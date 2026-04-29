@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://afg-projects.github.io/afg-framework/schema/afg-config-schema.json",
+  "title": "AFG Framework Gradle Plugin Configuration",
+  "description": "Configuration schema for AFG Framework Gradle Plugin",
+  "type": "object",
+  "properties": {
+    "moduleType": {
+      "type": "string",
+      "description": "模块类型，决定自动添加哪些框架依赖",
+      "enum": ["core", "data", "auth", "storage", "job", "registry", "starter"],
+      "default": "data"
+    },
+    "frameworkVersion": {
+      "type": "string",
+      "description": "AFG Framework 版本号",
+      "default": "1.0.0",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z0-9]+)?$"
+    },
+    "enableCodegen": {
+      "type": "boolean",
+      "description": "是否启用代码生成（编译时自动执行 generateEntity）",
+      "default": false
+    },
+    "useLombok": {
+      "type": "boolean",
+      "description": "是否自动配置 Lombok 依赖",
+      "default": true
+    },
+    "useJsr305": {
+      "type": "boolean",
+      "description": "是否自动配置 JSR-305 空安全注解",
+      "default": true
+    },
+    "useValidation": {
+      "type": "boolean",
+      "description": "是否自动配置 Bean Validation API",
+      "default": true
+    },
+    "migration": {
+      "type": "object",
+      "description": "数据库迁移配置",
+      "properties": {
+        "entityPackages": {
+          "type": "array",
+          "description": "实体包路径列表",
+          "items": {
+            "type": "string"
+          },
+          "examples": ["com.example.entity", "com.example.domain"]
+        },
+        "changeLogFile": {
+          "type": "string",
+          "description": "Liquibase ChangeLog 文件路径",
+          "default": "src/main/resources/db/changelog.xml"
+        },
+        "author": {
+          "type": "string",
+          "description": "迁移作者",
+          "default": "auto-generated"
+        },
+        "checkDatabase": {
+          "type": "boolean",
+          "description": "是否比对数据库现有结构",
+          "default": false
+        },
+        "checkChangeLog": {
+          "type": "boolean",
+          "description": "是否比对历史 ChangeLog",
+          "default": false
+        }
+      }
+    },
+    "reverseEngineering": {
+      "type": "object",
+      "description": "逆向工程配置",
+      "properties": {
+        "jdbcUrl": {
+          "type": "string",
+          "description": "JDBC 连接 URL",
+          "format": "uri"
+        },
+        "username": {
+          "type": "string",
+          "description": "数据库用户名"
+        },
+        "password": {
+          "type": "string",
+          "description": "数据库密码"
+        },
+        "tables": {
+          "type": "array",
+          "description": "要逆向的表名列表（为空则读取所有表）",
+          "items": {
+            "type": "string"
+          }
+        },
+        "basePackage": {
+          "type": "string",
+          "description": "生成的实体类包名",
+          "default": "io.github.afgprojects.entity"
+        },
+        "useLombok": {
+          "type": "boolean",
+          "description": "生成的实体是否使用 Lombok",
+          "default": true
+        },
+        "useJsr305": {
+          "type": "boolean",
+          "description": "生成的实体是否使用 JSR-305 注解",
+          "default": true
+        }
+      },
+      "required": ["jdbcUrl", "username", "password"]
+    }
+  },
+  "additionalProperties": false
+}
