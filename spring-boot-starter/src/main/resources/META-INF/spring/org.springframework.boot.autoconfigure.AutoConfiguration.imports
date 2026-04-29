@@ -1,0 +1,2 @@
+io.github.afgprojects.framework.starter.AfgStarterAutoConfiguration
+io.github.afgprojects.framework.starter.openapi.AfgOpenApiAutoConfiguration

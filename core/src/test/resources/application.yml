@@ -1,0 +1,20 @@
+afg:
+  platform:
+    enabled: true
+  virtual-thread:
+    enabled: true
+    name-prefix: afg-vt-
+  lock:
+    enabled: false
+  remote-config:
+    enabled: false
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  threads:
+    virtual:
+      enabled: true
+  autoconfigure:
+    exclude:
+      - org.redisson.spring.starter.RedissonAutoConfigurationV2

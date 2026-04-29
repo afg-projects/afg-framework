@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    AFG Platform Logback 配置模板
+
+    功能特性：
+    - 按模块/包设置不同日志级别
+    - 日志文件滚动策略（按日期、大小）
+    - 日志归档策略
+    - 敏感信息脱敏
+    - 环境特定配置（dev、test、prod）
+    - 结构化 JSON 日志支持
+
+    使用方式：
+    将此文件复制到 src/main/resources/ 目录并重命名为 logback-spring.xml，
+    Spring Boot 会自动加载。
+
+    配置说明：
+    1. 在 application.yml 中配置日志级别和文件路径
+    2. 通过 Spring Profile 激活不同环境配置
+    3. 结构化日志通过 afg.logging.structured.enabled=true 启用
+-->
+<configuration scan="true" scanPeriod="30 seconds">
+
+    <!-- ==================== 属性定义 ==================== -->
+
+    <!-- 从 application.yml 读取属性 -->
+    <springProperty scope="context" name="APP_NAME" source="spring.application.name" defaultValue="afg-application"/>
+    <springProperty scope="context" name="LOG_PATH" source="afg.logging.file.path" defaultValue="./logs"/>
+    <springProperty scope="context" name="LOG_LEVEL_ROOT" source="logging.level.root" defaultValue="INFO"/>
+    <springProperty scope="context" name="LOG_LEVEL_AFG" source="logging.level.io.github.afgprojects" defaultValue="DEBUG"/>
+    <springProperty scope="context" name="MAX_HISTORY" source="afg.logging.file.max-history" defaultValue="30"/>
+    <springProperty scope="context" name="MAX_FILE_SIZE" source="afg.logging.file.max-size" defaultValue="100MB"/>
+    <springProperty scope="context" name="TOTAL_SIZE_CAP" source="afg.logging.file.total-size-cap" defaultValue="10GB"/>
+    <springProperty scope="context" name="STRUCTURED_ENABLED" source="afg.logging.structured.enabled" defaultValue="false"/>
+    <springProperty scope="context" name="MASK_SENSITIVE" source="afg.logging.mask-sensitive" defaultValue="true"/>
+    <springProperty scope="context" name="ASYNC_QUEUE_SIZE" source="afg.logging.async.queue-size" defaultValue="512"/>
+
+    <!-- 定义日志颜色 -->
+    <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter"/>
+    <conversionRule conversionWord="wex" converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter"/>
+    <conversionRule conversionWord="wEx" converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter"/>
+
+    <!-- ==================== 日志格式定义 ==================== -->
+
+    <!-- 控制台日志格式（带 MDC 上下文和颜色） -->
+    <property name="CONSOLE_LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %clr(%-5level){FATAL=red blink, ERROR=red, WARN=yellow, INFO=green, DEBUG=blue, TRACE=cyan} %clr(%logger{36}){cyan} [%X{traceId:-},%X{requestId:-}] - %msg%n%wEx"/>
+
+    <!-- 文件日志格式（更详细，包含业务上下文） -->
+    <property name="FILE_LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} [%X{traceId:-},%X{requestId:-},%X{tenantId:-},%X{userId:-},%X{clientIp:-}] - %msg%n%wEx"/>
+
+    <!-- 简洁日志格式（适用于高流量场景） -->
+    <property name="SIMPLE_LOG_PATTERN"
+              value="%d{HH:mm:ss.SSS} %-5level %logger{20} - %msg%n"/>
+
+    <!-- ==================== Appender 定义 ==================== -->
+
+    <!-- 控制台 Appender -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- 结构化日志 Appender（JSON 格式） -->
+    <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="logging.web.io.github.afgprojects.framework.core.StructuredLogbackLayout">
+            <prettyPrint>false</prettyPrint>
+        </encoder>
+    </appender>
+
+    <!-- 应用日志文件 Appender -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/${APP_NAME}.log</file>
+        <encoder>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- 滚动文件名模式：按日期和序号，自动 gzip 压缩 -->
+            <fileNamePattern>${LOG_PATH}/${APP_NAME}.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <!-- 单个文件最大大小 -->
+            <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+            <!-- 保留的历史文件天数 -->
+            <maxHistory>${MAX_HISTORY}</maxHistory>
+            <!-- 所有日志文件总大小限制 -->
+            <totalSizeCap>${TOTAL_SIZE_CAP}</totalSizeCap>
+            <!-- 启动时清理过期日志 -->
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+    </appender>
+
+    <!-- 错误日志文件 Appender（单独存储 ERROR 及以上级别） -->
+    <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/${APP_NAME}-error.log</file>
+        <encoder>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/${APP_NAME}-error.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>50MB</maxFileSize>
+            <maxHistory>${MAX_HISTORY}</maxHistory>
+            <totalSizeCap>5GB</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+        <!-- 只记录 ERROR 及以上级别日志 -->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+    </appender>
+
+    <!-- 审计日志文件 Appender（单独存储审计日志，JSON 格式） -->
+    <appender name="AUDIT_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/${APP_NAME}-audit.log</file>
+        <encoder class="logging.web.io.github.afgprojects.framework.core.StructuredLogbackLayout">
+            <prettyPrint>false</prettyPrint>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/${APP_NAME}-audit.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>100MB</maxFileSize>
+            <!-- 审计日志保留更长时间 -->
+            <maxHistory>90</maxHistory>
+            <totalSizeCap>20GB</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+    </appender>
+
+    <!-- 慢查询日志 Appender（记录 SQL 慢查询） -->
+    <appender name="SLOW_QUERY_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/${APP_NAME}-slow-query.log</file>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%X{traceId:-}] - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/${APP_NAME}-slow-query.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>100MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>5GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <!-- ==================== 异步 Appender（提升性能） ==================== -->
+
+    <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <!-- 队列大小 -->
+        <queueSize>${ASYNC_QUEUE_SIZE}</queueSize>
+        <!-- 当队列剩余容量小于此值时开始丢弃 TRACE、DEBUG、INFO 日志 -->
+        <discardingThreshold>0</discardingThreshold>
+        <!-- 是否包含调用者信息（方法名、行号等），影响性能 -->
+        <includeCallerData>true</includeCallerData>
+        <!-- 队列满时不阻塞，直接丢弃日志 -->
+        <neverBlock>true</neverBlock>
+        <appender-ref ref="FILE"/>
+    </appender>
+
+    <appender name="ASYNC_ERROR_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>256</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <includeCallerData>true</includeCallerData>
+        <neverBlock>false</neverBlock>
+        <appender-ref ref="ERROR_FILE"/>
+    </appender>
+
+    <!-- ==================== 模块/包日志级别配置 ==================== -->
+
+    <!-- AFG Platform 核心模块 -->
+    <logger name="io.github.afgprojects" level="${LOG_LEVEL_AFG}" additivity="true"/>
+
+    <!-- AFG 各子模块可单独配置（按业务需求调整） -->
+    <!-- 核心模块 -->
+    <logger name="io.github.afgprojects.core" level="DEBUG" additivity="true"/>
+    <logger name="io.github.afgprojects.core.module" level="DEBUG" additivity="true"/>
+    <logger name="io.github.afgprojects.core.config" level="INFO" additivity="true"/>
+    <logger name="io.github.afgprojects.core.web" level="DEBUG" additivity="true"/>
+    <logger name="io.github.afgprojects.core.web.security" level="INFO" additivity="true"/>
+
+    <!-- 审计日志（单独输出到审计文件） -->
+    <logger name="io.github.afgprojects.core.audit" level="INFO" additivity="false">
+        <appender-ref ref="AUDIT_FILE"/>
+    </logger>
+
+    <!-- 慢查询日志 -->
+    <logger name="io.github.afgprojects.core.slow-query" level="INFO" additivity="false">
+        <appender-ref ref="SLOW_QUERY_FILE"/>
+    </logger>
+
+    <!-- Spring Framework -->
+    <logger name="org.springframework" level="INFO"/>
+    <logger name="org.springframework.web" level="INFO"/>
+    <logger name="org.springframework.security" level="INFO"/>
+    <logger name="org.springframework.boot" level="INFO"/>
+    <logger name="org.springframework.context" level="WARN"/>
+    <logger name="org.springframework.orm" level="INFO"/>
+
+    <!-- Hibernate/JPA -->
+    <logger name="org.hibernate" level="INFO"/>
+    <logger name="org.hibernate.SQL" level="INFO"/>
+    <logger name="org.hibernate.type.descriptor.sql" level="TRACE"/>
+
+    <!-- HTTP Client -->
+    <logger name="org.apache.http" level="INFO"/>
+    <logger name="okhttp3" level="INFO"/>
+
+    <!-- Cache -->
+    <logger name="com.github.benmanes.caffeine" level="INFO"/>
+    <logger name="org.redisson" level="INFO"/>
+
+    <!-- Connection Pool -->
+    <logger name="com.zaxxer.hikari" level="INFO"/>
+
+    <!-- Tomcat -->
+    <logger name="org.apache.catalina" level="INFO"/>
+    <logger name="org.apache.coyote" level="INFO"/>
+
+    <!-- Jackson JSON -->
+    <logger name="com.fasterxml.jackson" level="INFO"/>
+
+    <!-- Casbin 权限 -->
+    <logger name="org.casbin" level="INFO"/>
+
+    <!-- Micrometer 监控 -->
+    <logger name="io.micrometer" level="INFO"/>
+
+    <!-- ==================== 环境特定配置 ==================== -->
+
+    <!-- 开发环境：控制台输出，详细日志 -->
+    <springProfile name="dev">
+        <root level="DEBUG">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+
+        <!-- 开发环境模块日志级别 -->
+        <logger name="io.github.afgprojects" level="DEBUG"/>
+        <logger name="org.springframework.web" level="DEBUG"/>
+        <logger name="org.hibernate.SQL" level="DEBUG"/>
+
+        <!-- 开发环境显示 SQL 参数 -->
+        <logger name="org.hibernate.orm.jdbc.bind" level="TRACE"/>
+    </springProfile>
+
+    <!-- 测试环境：控制台输出 + 文件输出 -->
+    <springProfile name="test">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="ASYNC_FILE"/>
+            <appender-ref ref="ASYNC_ERROR_FILE"/>
+        </root>
+
+        <logger name="io.github.afgprojects" level="DEBUG"/>
+    </springProfile>
+
+    <!-- 生产环境：文件输出，可选结构化日志 -->
+    <springProfile name="prod">
+        <root level="INFO">
+            <appender-ref ref="ASYNC_FILE"/>
+            <appender-ref ref="ASYNC_ERROR_FILE"/>
+        </root>
+
+        <!-- 生产环境模块日志级别 -->
+        <logger name="io.github.afgprojects" level="INFO"/>
+        <logger name="org.springframework" level="WARN"/>
+        <logger name="org.hibernate" level="WARN"/>
+    </springProfile>
+
+    <!-- 默认配置（无特定 Profile） -->
+    <springProfile name="!dev &amp; !test &amp; !prod">
+        <root level="${LOG_LEVEL_ROOT}">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="ASYNC_FILE"/>
+            <appender-ref ref="ASYNC_ERROR_FILE"/>
+        </root>
+    </springProfile>
+
+</configuration>

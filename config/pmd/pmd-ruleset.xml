@@ -1,0 +1,389 @@
+<?xml version="1.0"?>
+<ruleset name="AFG Platform PMD Ruleset"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+
+    <description>AFG Platform 代码静态分析规则集（基于业界最佳实践，适配 PMD 7.23.0）
+
+本规则集遵循以下原则：
+1. 质量优先：关键代码质量规则必须启用
+2. 合理阈值：复杂度规则设置合理阈值，避免过度限制
+3. 明确理由：所有排除必须有充分理由并记录
+    </description>
+
+    <!-- ==================== 最佳实践 ==================== -->
+    <rule ref="category/java/bestpractices.xml">
+        <!-- Lombok @Slf4j 会生成静态日志字段，日志框架已有性能优化 -->
+        <exclude name="GuardLogStatement"/>
+
+        <!-- 允许直接存储数组，DTO/配置类中常见 -->
+        <exclude name="ArrayIsStoredDirectly"/>
+
+        <!-- 测试代码有时需要未使用的局部变量（如断点调试占位） -->
+        <!-- 主代码不应有此问题，但测试代码跳过 PMD 检查 -->
+        <exclude name="UnusedLocalVariable"/>
+
+        <!-- 循环中未使用的赋值在某些算法模式中常见 -->
+        <exclude name="UnusedAssignment"/>
+
+        <!-- 接口方法参数有时在实现类中不使用（如回调接口） -->
+        <exclude name="UnusedFormalParameter"/>
+
+        <!-- 不必要的警告抑制：保留 @SuppressWarnings 以便将来可能需要 -->
+        <exclude name="UnnecessaryWarningSuppression"/>
+
+        <!-- 松散耦合：Builder 模式返回具体类型更便于链式调用 -->
+        <exclude name="LooseCoupling"/>
+
+        <!-- 字面量在前比较：现代 IDE 已有 null 检查提示 -->
+        <exclude name="LiteralsFirstInComparisons"/>
+
+        <!-- 穷尽 switch 默认分支：某些枚举 switch 确实不需要默认分支 -->
+        <exclude name="ExhaustiveSwitchHasDefault"/>
+
+        <!-- 隐式函数式接口：不强制显式定义 @FunctionalInterface -->
+        <exclude name="ImplicitFunctionalInterface"/>
+
+        <!-- varargs：可变参数有其使用场景，如日志方法 -->
+        <exclude name="UseVarargs"/>
+
+        <!-- 未使用的私有字段：可能被反射访问（如 @Autowired） -->
+        <exclude name="UnusedPrivateField"/>
+
+        <!-- 抽象类无抽象方法：模板方法模式中常见 -->
+        <exclude name="AbstractClassWithoutAbstractMethod"/>
+
+        <!-- For 循环转 Foreach：某些场景需要索引访问 -->
+        <exclude name="ForLoopCanBeForeach"/>
+    </rule>
+
+    <!-- ==================== 代码风格 ==================== -->
+    <rule ref="category/java/codestyle.xml">
+        <!-- 允许长变量名（builder 模式链式调用） -->
+        <exclude name="LongVariable"/>
+
+        <!-- 允许短变量名（i, j, id 等常见简写） -->
+        <exclude name="ShortVariable"/>
+
+        <!-- 允许短方法名（getter/setter/工厂方法） -->
+        <exclude name="ShortMethodName"/>
+
+        <!-- 允许短类名（内部类、DTO 缩写如 Mdc） -->
+        <exclude name="ShortClassName"/>
+
+        <!-- 语义化命名检查过于严格，误报较多 -->
+        <exclude name="LinguisticNaming"/>
+
+        <!-- Lombok @NoArgsConstructor 不需要 super() 调用 -->
+        <exclude name="CallSuperInConstructor"/>
+
+        <!-- 不强制构造函数：Lombok @Data/@Value 已生成 -->
+        <exclude name="AtLeastOneConstructor"/>
+
+        <!-- 允许多个 return：早期返回可减少嵌套 -->
+        <exclude name="OnlyOneReturn"/>
+
+        <!-- 控制语句大括号：单行语句可选，遵循团队风格 -->
+        <exclude name="ControlStatementBraces"/>
+
+        <!-- import 优化：IDE 可自动处理 -->
+        <exclude name="UnnecessaryImport"/>
+        <exclude name="UnnecessaryFullyQualifiedName"/>
+
+        <!-- final 关键字：不强制，现代 JVM 优化已足够 -->
+        <exclude name="LocalVariableCouldBeFinal"/>
+        <exclude name="MethodArgumentCouldBeFinal"/>
+
+        <!-- 显式类型：var 有其使用场景，如复杂泛型 -->
+        <exclude name="UseExplicitTypes"/>
+
+        <!-- 默认访问修饰符注释：不强制 -->
+        <exclude name="CommentDefaultAccessModifier"/>
+
+        <!-- 方法命名约定：测试方法允许下划线风格（业界惯例） -->
+        <exclude name="MethodNamingConventions"/>
+
+        <!-- 混淆三元表达式：链式三元表达式在配置合并等场景中常见 -->
+        <exclude name="ConfusingTernary"/>
+
+        <!-- 字段声明应在类开头：常量接口模式中常见 -->
+        <exclude name="FieldDeclarationsShouldBeAtStartOfClass"/>
+
+        <!-- 泛型命名：ID 表示主键类型是团队约定 -->
+        <exclude name="GenericsNaming"/>
+
+        <!-- 数字字面量下划线：错误码等常量不强制 -->
+        <exclude name="UseUnderscoresInNumericLiterals"/>
+
+        <!-- 字段命名约定：Lombok @Slf4j 使用 log 是标准做法 -->
+        <exclude name="FieldNamingConventions"/>
+
+        <!-- 过早声明：有时需要在 try 块外声明以便 finally 访问 -->
+        <exclude name="PrematureDeclaration"/>
+
+        <!-- 无用括号：有时用于提高可读性 -->
+        <exclude name="UselessParentheses"/>
+
+        <!-- 空控制语句：有时用于占位或未来扩展 -->
+        <exclude name="EmptyControlStatement"/>
+
+        <!-- 不必要构造函数：Lombok 已生成 -->
+        <exclude name="UnnecessaryConstructor"/>
+
+        <!-- Lambda 转方法引用：有时 Lambda 更清晰 -->
+        <exclude name="LambdaCanBeMethodReference"/>
+
+        <!-- 修饰符顺序：IDE 可自动格式化 -->
+        <exclude name="ModifierOrder"/>
+
+        <!-- 类型参数命名：遵循 Java 惯例即可 -->
+        <exclude name="TypeParameterNamingConventions"/>
+
+        <!-- 菱形运算符：Java 7+ 已支持，但显式类型有时更清晰 -->
+        <exclude name="UseDiamondOperator"/>
+    </rule>
+
+    <!-- ==================== 设计 ==================== -->
+    <rule ref="category/java/design.xml">
+        <!-- 迪米特法则：过于严格，Builder/Fluent API 会触发 -->
+        <exclude name="LawOfDemeter"/>
+
+        <!-- 数据类：record/@Data 是合理的设计选择 -->
+        <exclude name="DataClass"/>
+
+        <!-- 循环依赖检查：太严格，某些设计模式需要 -->
+        <exclude name="LoosePackageCoupling"/>
+
+        <!-- 深层嵌套 if：某些复杂业务逻辑难以避免 -->
+        <exclude name="AvoidDeeplyNestedIfStmts"/>
+
+        <!-- 未检查异常签名：接口方法声明不强制 throws -->
+        <exclude name="AvoidUncheckedExceptionsInSignatures"/>
+
+        <!-- 公共方法过多：枚举类、工具类常见 -->
+        <exclude name="ExcessivePublicCount"/>
+
+        <!-- 可合并 if：有时分开更清晰，便于调试 -->
+        <exclude name="CollapsibleIfStatements"/>
+
+        <!-- 使用工具类：框架工具类是合理的设计 -->
+        <exclude name="UseUtilityClass"/>
+
+        <!-- 对象耦合：框架核心类需要与多种类型交互是正常的设计 -->
+        <exclude name="CouplingBetweenObjects"/>
+
+        <!-- 使用 Object 更清晰的 API：Builder 模式需要 -->
+        <exclude name="UseObjectForClearerAPI"/>
+
+        <!-- 非公共类型中的公共成员：测试内部类常见 -->
+        <exclude name="PublicMemberInNonPublicType"/>
+
+        <!-- 异常作为流程控制：某些框架代码需要 -->
+        <exclude name="ExceptionAsFlowControl"/>
+
+        <!-- 简化布尔返回：有时显式 return true/false 更清晰 -->
+        <exclude name="SimplifyBooleanReturns"/>
+
+        <!-- 只有私有构造函数的类应为 final：工具类可不声明 final -->
+        <exclude name="ClassWithOnlyPrivateConstructorsShouldBeFinal"/>
+
+        <!-- 方法签名声明抛出 Exception：某些框架回调需要 -->
+        <exclude name="SignatureDeclareThrowsException"/>
+
+        <!-- 不可变字段：Lombok @Value/@Builder 使用 -->
+        <exclude name="ImmutableField"/>
+
+        <!-- NCSS 计数：与 CyclomaticComplexity 重复 -->
+        <exclude name="NcssCount"/>
+
+        <!-- 抛出原始异常类型：框架底层代码需要包装底层异常 -->
+        <exclude name="AvoidThrowingRawExceptionTypes"/>
+
+        <!-- 过多导入：框架核心类需要集成多种组件 -->
+        <exclude name="ExcessiveImports"/>
+
+        <!-- God Class：企业级框架核心类职责复杂是合理的 -->
+        <exclude name="GodClass"/>
+
+        <!-- 参数数量限制：使用自定义配置 -->
+        <exclude name="ExcessiveParameterList"/>
+    </rule>
+
+    <!-- 复杂度规则使用放宽阈值，适配企业级框架设计 -->
+    <!-- TooManyMethods: 企业级框架核心类方法数较多是合理的 -->
+    <rule ref="category/java/design.xml/TooManyMethods">
+        <properties>
+            <property name="maxmethods" value="80"/>
+        </properties>
+    </rule>
+
+    <!-- TooManyFields: 缓存、配置类字段数较多是合理的 -->
+    <rule ref="category/java/design.xml/TooManyFields">
+        <properties>
+            <property name="maxfields" value="25"/>
+        </properties>
+    </rule>
+
+    <!-- CouplingBetweenObjects: 框架核心类需要与多种类型交互，使用默认阈值 -->
+    <!-- 注：PMD 7.x 不支持自定义 coupling 属性，使用默认阈值即可 -->
+
+    <!-- 配置：God Class 使用默认阈值 -->
+
+    <!-- ==================== 文档 ==================== -->
+    <rule ref="category/java/documentation.xml">
+        <!-- 不强制注释：代码应自文档化 -->
+        <exclude name="CommentRequired"/>
+        <exclude name="CommentSize"/>
+
+        <!-- 未注释的空构造函数：Lombok 生成的不需要注释 -->
+        <exclude name="UncommentedEmptyConstructor"/>
+
+        <!-- 挂起的 Javadoc：不强制所有 public 都有文档 -->
+        <exclude name="DanglingJavadoc"/>
+
+        <!-- 未注释的空方法体：接口默认方法、抽象方法实现常见 -->
+        <exclude name="UncommentedEmptyMethodBody"/>
+    </rule>
+
+    <!-- ==================== 错误处理 ==================== -->
+    <rule ref="category/java/errorprone.xml">
+        <!-- 重复字符串：注解值、配置键等不强制提取 -->
+        <exclude name="AvoidDuplicateLiterals"/>
+
+        <!-- 字段名与方法名匹配：Builder 模式常见 -->
+        <exclude name="AvoidFieldNameMatchingMethodName"/>
+        <exclude name="AvoidFieldNameMatchingTypeName"/>
+
+        <!-- if 条件中的字面量：边界检查常见 -->
+        <exclude name="AvoidLiteralsInIfCondition"/>
+
+        <!-- null 赋值：Optional 可替代，但旧代码迁移需要时间 -->
+        <exclude name="NullAssignment"/>
+
+        <!-- 对象比较使用 equals：基本类型比较不需要 -->
+        <exclude name="CompareObjectsWithEquals"/>
+
+        <!-- clone 方法：不使用 clone 模式 -->
+        <exclude name="CloneMethodMustBePublic"/>
+        <exclude name="CloneMethodMustImplementCloneable"/>
+        <exclude name="CloneMethodReturnTypeMustMatchClassName"/>
+
+        <!-- 可疑的 equals 方法名：不强制重写 equals -->
+        <exclude name="SuspiciousEqualsMethodName"/>
+
+        <!-- 缺少 serialVersionUID：内部异常类不需要序列化 -->
+        <exclude name="MissingSerialVersionUID"/>
+
+        <!-- 构造函数调用可覆盖方法：依赖注入框架需要 -->
+        <exclude name="ConstructorCallsOverridableMethod"/>
+
+        <!-- 操作数中的赋值：while((line = reader.readLine()) != null) 模式常见 -->
+        <exclude name="AssignmentInOperand"/>
+
+        <!-- 相同的条件分支：有时确实需要相同处理 -->
+        <exclude name="IdenticalConditionalBranches"/>
+
+        <!-- 可访问性改变：反射访问需要 -->
+        <exclude name="AvoidAccessibilityAlteration"/>
+
+        <!-- Locale 大小写转换：业务场景通常不需要 -->
+        <exclude name="UseLocaleWithCaseConversions"/>
+
+        <!-- 泛型异常捕获：集成模块需要捕获所有异常保证健壮性 -->
+        <exclude name="AvoidCatchingGenericException"/>
+
+        <!-- 返回空集合而非 null：有时 null 有特殊语义 -->
+        <exclude name="ReturnEmptyCollectionRatherThanNull"/>
+    </rule>
+
+    <!-- 空的 catch 块必须注释说明原因 -->
+    <rule ref="category/java/errorprone.xml/EmptyCatchBlock">
+        <properties>
+            <property name="allowCommentedBlocks" value="true"/>
+        </properties>
+    </rule>
+
+    <!-- ==================== 多线程 ==================== -->
+    <rule ref="category/java/multithreading.xml">
+        <!-- 允许使用线程：异步处理需要 -->
+        <exclude name="DoNotUseThreads"/>
+
+        <!-- ConcurrentHashMap 检查过于严格 -->
+        <exclude name="UseConcurrentHashMap"/>
+
+        <!-- synchronized 有其使用场景（雪花ID生成器、双重检查锁） -->
+        <exclude name="AvoidSynchronizedStatement"/>
+
+        <!-- volatile 是并发编程基础 -->
+        <exclude name="AvoidUsingVolatile"/>
+
+        <!-- 方法级 synchronized：简单同步场景可接受 -->
+        <exclude name="AvoidSynchronizedAtMethodLevel"/>
+    </rule>
+
+    <!-- ==================== 性能 ==================== -->
+    <rule ref="category/java/performance.xml">
+        <!-- 循环中创建对象：Builder 模式、DTO 转换常见 -->
+        <exclude name="AvoidInstantiatingObjectsInLoops"/>
+
+        <!-- 集合转数组优化：性能影响可忽略 -->
+        <exclude name="OptimizableToArrayCall"/>
+
+        <!-- 字符追加：现代 JVM 已优化 -->
+        <exclude name="AppendCharacterWithChar"/>
+
+        <!-- 连续字面量追加：日志消息常见 -->
+        <exclude name="ConsecutiveLiteralAppends"/>
+
+        <!-- StringBuffer 声明不足：现代 JVM 已优化 -->
+        <exclude name="InsufficientStringBufferDeclaration"/>
+
+        <!-- StringBuffer 追加字符串：StringBuilder 已足够 -->
+        <exclude name="UseStringBufferForStringAppends"/>
+
+        <!-- 连续 append 调用：StringBuilder 链式调用更清晰 -->
+        <exclude name="ConsecutiveAppendsShouldReuse"/>
+
+        <!-- 冗余字段初始化：Java 默认值已明确 -->
+        <exclude name="RedundantFieldInitializer"/>
+
+        <!-- Arrays.asList vs new ArrayList：有时需要可变列表 -->
+        <exclude name="UseArraysAsList"/>
+    </rule>
+
+    <!-- ==================== 安全 ==================== -->
+    <rule ref="category/java/security.xml"/>
+
+    <!-- ==================== 自定义规则配置 ==================== -->
+
+    <!-- 参数数量限制：10 个（Builder 模式可能需要更多参数） -->
+    <rule ref="category/java/design.xml/ExcessiveParameterList">
+        <properties>
+            <property name="minimum" value="10"/>
+        </properties>
+    </rule>
+
+    <!-- 圈复杂度限制：方法级 35，类级 300（JdbcEntityProxy 等复杂 ORM 实现需要） -->
+    <rule ref="category/java/design.xml/CyclomaticComplexity">
+        <properties>
+            <property name="classReportLevel" value="300"/>
+            <property name="methodReportLevel" value="35"/>
+        </properties>
+    </rule>
+
+    <!-- NPath 复杂度限制：方法级 40000（SQL 解析器等复杂逻辑需要） -->
+    <rule ref="category/java/design.xml/NPathComplexity">
+        <properties>
+            <property name="reportLevel" value="40000"/>
+        </properties>
+    </rule>
+
+    <!-- 认知复杂度限制：方法级 200（SQL 解析器等复杂逻辑需要） -->
+    <rule ref="category/java/design.xml/CognitiveComplexity">
+        <properties>
+            <property name="reportLevel" value="200"/>
+        </properties>
+    </rule>
+
+</ruleset>

@@ -1,0 +1,215 @@
+[versions]
+java = "25"
+gradle = "9.4.0"
+spring-boot = "4.0.5"
+spring-framework = "7.0.6"
+mybatis-plus = "3.5.16"
+# Jackson 版本由 Spring Boot BOM 管理
+# slf4j 版本由 Spring Boot BOM 管理
+# junit 版本由 Spring Boot BOM 管理
+# micrometer-tracing 版本由 Spring Boot BOM 管理
+jcasbin = "1.9.2"
+# jakarta-validation 版本由 Spring Boot BOM 管理
+# lombok 版本由 Spring Boot BOM 管理
+# jspecify 版本由 Spring Boot BOM 管理
+spotless = "6.25.0"
+jsqlparser = "5.3"
+# h2 版本由 Spring Boot BOM 管理
+# aspectj 版本由 Spring Boot BOM 管理
+# caffeine 版本由 Spring Boot BOM 管理
+# awaitility 版本由 Spring Boot BOM 管理
+# testcontainers 版本由 Spring Boot BOM 管理
+# logback 版本由 Spring Boot BOM 管理
+# snakeyaml 版本由 Spring Boot BOM 管理
+
+[libraries]
+# Spring Boot
+spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter" }
+spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
+spring-boot-starter-data-jdbc = { module = "org.springframework.boot:spring-boot-starter-data-jdbc" }
+spring-boot-starter-validation = { module = "org.springframework.boot:spring-boot-starter-validation" }
+spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security" }
+spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
+spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure" }
+
+# MyBatis-Plus
+mybatis-plus-starter = { module = "com.baomidou:mybatis-plus-spring-boot3-starter", version.ref = "mybatis-plus" }
+
+# Jackson (版本由 Spring Boot BOM 管理)
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
+jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310" }
+
+# 工具 (版本由 Spring Boot BOM 管理)
+slf4j-api = { module = "org.slf4j:slf4j-api" }
+
+# Micrometer Tracing (版本由 Spring Boot BOM 管理)
+micrometer-tracing = { module = "io.micrometer:micrometer-tracing" }
+
+# Micrometer Observation API (版本由 Spring Boot BOM 管理)
+micrometer-observation = { module = "io.micrometer:micrometer-observation" }
+
+# Micrometer Core (版本由 Spring Boot BOM 管理)
+micrometer-core = { module = "io.micrometer:micrometer-core" }
+
+# Micrometer Tracing Bridge - Brave (Zipkin compatible, 版本由 Spring Boot BOM 管理)
+micrometer-tracing-bridge-brave = { module = "io.micrometer:micrometer-tracing-bridge-brave" }
+
+# Micrometer Tracing Bridge - OpenTelemetry (版本由 Spring Boot BOM 管理)
+micrometer-tracing-bridge-otel = { module = "io.micrometer:micrometer-tracing-bridge-otel" }
+
+# Zipkin Reporter (Brave, 版本由 Spring Boot BOM 管理)
+zipkin-reporter-brave = { module = "io.zipkin.reporter2:zipkin-reporter-brave" }
+
+# Zipkin Sender (OKHttp, 版本由 Spring Boot BOM 管理)
+zipkin-sender-okhttp3 = { module = "io.zipkin.reporter2:zipkin-sender-okhttp3" }
+
+# OpenTelemetry Exporter Zipkin (版本由 Spring Boot BOM 管理)
+otel-exporter-zipkin = { module = "io.opentelemetry:opentelemetry-exporter-zipkin" }
+
+# OpenTelemetry Exporter OTLP (Jaeger, 版本由 Spring Boot BOM 管理)
+otel-exporter-otlp = { module = "io.opentelemetry:opentelemetry-exporter-otlp" }
+
+# Spring Boot Actuator
+spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
+spring-boot-health = { module = "org.springframework.boot:spring-boot-health" }
+
+# Spring AOP (版本由 Spring Boot BOM 管理)
+spring-aop = { module = "org.springframework:spring-aop" }
+aspectj-weaver = { module = "org.aspectj:aspectjweaver" }
+
+# Logback (版本由 Spring Boot BOM 管理)
+logback-classic = { module = "ch.qos.logback:logback-classic" }
+
+# Casbin
+jcasbin = { module = "org.casbin:jcasbin", version.ref = "jcasbin" }
+
+# Validation (版本由 Spring Boot BOM 管理)
+jakarta-validation-api = { module = "jakarta.validation:jakarta.validation-api" }
+
+# Lombok (版本由 Spring Boot BOM 管理)
+lombok = { module = "org.projectlombok:lombok" }
+
+# JSpecify (版本由 Spring Boot BOM 管理)
+jspecify = { module = "org.jspecify:jspecify" }
+
+# 测试 (版本由 Spring Boot BOM 管理)
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+assertj-core = { module = "org.assertj:assertj-core" }
+mockito-core = { module = "org.mockito:mockito-core" }
+mockito-junit-jupiter = { module = "org.mockito:mockito-junit-jupiter" }
+spring-boot-test = { module = "org.springframework.boot:spring-boot-test" }
+spring-test = { module = "org.springframework:spring-test" }
+
+# JMH (性能基准测试)
+jmh-core = { module = "org.openjdk.jmh:jmh-core", version = "1.37" }
+jmh-generator-annprocess = { module = "org.openjdk.jmh:jmh-generator-annprocess", version = "1.37" }
+
+# ArchUnit (架构测试)
+archunit-junit5 = { module = "com.tngtech.archunit:archunit-junit5", version = "1.4.2" }
+
+# jsoup (HTML 清洗)
+jsoup = { module = "org.jsoup:jsoup", version = "1.18.1" }
+
+# OWASP AntiSamy (XSS 防护)
+antisamy = { module = "org.owasp.antisamy:antisamy", version = "1.7.8" }
+
+# Caffeine (版本由 Spring Boot BOM 管理)
+caffeine = { module = "com.github.ben-manes.caffeine:caffeine" }
+
+# Awaitility (版本由 Spring Boot BOM 管理)
+awaitility = { module = "org.awaitility:awaitility" }
+
+# Testcontainers (版本由 Spring Boot BOM 管理)
+testcontainers = { module = "org.testcontainers:testcontainers" }
+testcontainers-junit-jupiter = { module = "org.testcontainers:testcontainers-junit-jupiter" }
+testcontainers-redis = { module = "org.testcontainers:testcontainers" }
+testcontainers-kafka = { module = "org.testcontainers:testcontainers-kafka" }
+testcontainers-rabbitmq = { module = "org.testcontainers:testcontainers-rabbitmq" }
+
+# Redisson (分布式限流)
+redisson = { module = "org.redisson:redisson-spring-boot-starter", version = "3.44.0" }
+
+# Redisson Core (用于测试，不自动配置)
+redisson-core = { module = "org.redisson:redisson", version = "3.44.0" }
+
+# Spring Expression (SpEL for cache key)
+spring-expression = { module = "org.springframework:spring-expression" }
+
+# PMD (用于测试自定义规则)
+pmd-core = { module = "net.sourceforge.pmd:pmd-core", version = "7.23.0" }
+pmd-java = { module = "net.sourceforge.pmd:pmd-java", version = "7.23.0" }
+
+# Spring Kafka
+spring-kafka = { module = "org.springframework.kafka:spring-kafka", version = "3.3.4" }
+
+# Spring AMQP (RabbitMQ)
+spring-amqp = { module = "org.springframework.amqp:spring-amqp" }
+spring-rabbitmq = { module = "org.springframework.amqp:spring-rabbit" }
+spring-boot-starter-amqp = { module = "org.springframework.boot:spring-boot-starter-amqp" }
+
+# Spring WebSocket
+spring-boot-starter-websocket = { module = "org.springframework.boot:spring-boot-starter-websocket" }
+
+# Spring Messaging (STOMP support)
+spring-messaging = { module = "org.springframework:spring-messaging" }
+
+# SpringDoc OpenAPI (API 文档)
+springdoc-openapi-starter-webmvc = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version = "2.8.6" }
+
+# Spring GraphQL
+spring-boot-starter-graphql = { module = "org.springframework.boot:spring-boot-starter-graphql" }
+spring-graphql-test = { module = "org.springframework.graphql:spring-graphql-test" }
+
+# Nacos Config Client
+nacos-client = { module = "com.alibaba.nacos:nacos-client", version = "2.4.2" }
+
+# Apollo Config Client
+apollo-client = { module = "com.ctrip.framework.apollo:apollo-client", version = "2.3.0" }
+
+# Consul Client
+consul-client = { module = "com.ecwid.consul:consul-api", version = "1.4.5" }
+
+# MyBatis-Plus Dynamic Datasource
+dynamic-datasource = { module = "com.baomidou:dynamic-datasource-spring-boot4-starter", version = "4.5.0" }
+
+# SnakeYAML (版本由 Spring Boot BOM 管理)
+snakeyaml = { module = "org.yaml:snakeyaml" }
+
+# Spring Data Redis
+spring-boot-starter-data-redis = { module = "org.springframework.boot:spring-boot-starter-data-redis" }
+
+# Spring JDBC (JdbcClient)
+spring-jdbc = { module = "org.springframework:spring-jdbc" }
+
+# JSqlParser (SQL 解析器)
+jsqlparser = { module = "com.github.jsqlparser:jsqlparser", version.ref = "jsqlparser" }
+
+# Flyway (Database Migration, 版本由 Spring Boot BOM 管理)
+flyway-core = { module = "org.flywaydb:flyway-core" }
+
+# H2 Database (版本由 Spring Boot BOM 管理)
+h2 = { module = "com.h2database:h2" }
+
+# AWS S3 SDK (s3 模块已包含 presigner 功能)
+aws-s3 = { module = "software.amazon.awssdk:s3", version = "2.31.0" }
+
+# Aliyun OSS SDK
+aliyun-oss = { module = "com.aliyun.oss:aliyun-sdk-oss", version = "3.18.1" }
+
+# Testcontainers LocalStack (用于 S3/MinIO 测试，版本由 Spring Boot BOM 管理)
+testcontainers-localstack = { module = "org.testcontainers:localstack" }
+
+[plugins]
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+spring-dependency-management = { id = "io.spring.dependency-management", version = "1.1.6" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+
+[bundles]
+spring-web = ["spring-boot-starter", "spring-boot-starter-web"]
+jackson = ["jackson-databind", "jackson-datatype-jsr310"]
+micrometer = ["micrometer-tracing", "micrometer-observation", "micrometer-core"]
+micrometer-tracing-brave = ["micrometer-tracing-bridge-brave", "zipkin-reporter-brave"]
+micrometer-tracing-otel = ["micrometer-tracing-bridge-otel", "otel-exporter-zipkin"]
+testing = ["junit-jupiter", "junit-platform-launcher", "assertj-core", "mockito-core", "mockito-junit-jupiter", "awaitility"]
+testing-integration = ["junit-jupiter", "junit-platform-launcher", "assertj-core", "testcontainers", "testcontainers-junit-jupiter"]

@@ -1,0 +1,6 @@
+/**
+ * WebSocket 配置。
+ *
+ * @since 1.0.0
+ */
+package io.github.afgprojects.framework.integration.websocket.config;
