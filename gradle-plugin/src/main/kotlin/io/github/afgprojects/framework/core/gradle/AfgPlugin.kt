@@ -1,6 +1,8 @@
 package io.github.afgprojects.framework.core.gradle
 
 import io.github.afgprojects.framework.core.gradle.extension.AfgExtension
+import io.github.afgprojects.framework.core.gradle.extension.MigrationExtension
+import io.github.afgprojects.framework.core.gradle.extension.ReverseEngineeringExtension
 import io.github.afgprojects.framework.core.gradle.task.*
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -22,8 +24,17 @@ import java.io.File
 class AfgPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
-        // 创建扩展配置
-        val extension = project.extensions.create("afg", AfgExtension::class.java)
+        // 创建嵌套扩展实例
+        val migrationExt = project.objects.newInstance(MigrationExtension::class.java)
+        val reverseExt = project.objects.newInstance(ReverseEngineeringExtension::class.java)
+
+        // 创建扩展配置（传入嵌套扩展）
+        val extension = project.extensions.create(
+            "afg",
+            AfgExtension::class.java,
+            migrationExt,
+            reverseExt
+        )
 
         // 应用基础插件
         project.plugins.apply("java-library")

@@ -143,7 +143,7 @@ class ScaffoldServiceTest {
         assertTrue(result.success)
 
         val entityContent = result.entityFile!!.readText()
-        assertTrue(entityContent.contains("tableName = \"user_order\""))
+        assertTrue(entityContent.contains("@Table(name = \"user_order\")"), "Expected @Table(name = \"user_order\") in generated entity")
     }
 
     @Test
