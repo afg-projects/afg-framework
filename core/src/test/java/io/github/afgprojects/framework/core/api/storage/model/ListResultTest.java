@@ -1,12 +1,14 @@
 package io.github.afgprojects.framework.core.api.storage.model;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 /**
  * ListResult 测试
@@ -14,63 +16,118 @@ import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("ListResult 测试")
 class ListResultTest {
 
-    @Test
-    @DisplayName("应该创建空结果")
-    void shouldCreateEmpty() {
-        ListResult result = ListResult.empty();
+    @Nested
+    @DisplayName("静态工厂方法测试")
+    class StaticFactoryTests {
 
-        assertTrue(result.isEmpty());
-        assertEquals(0, result.size());
-        assertTrue(result.objects().isEmpty());
-        assertTrue(result.commonPrefixes().isEmpty());
-        assertFalse(result.isTruncated());
-        assertNull(result.nextMarker());
+        @Test
+        @DisplayName("应该创建空结果")
+        void shouldCreateEmptyResult() {
+            ListResult result = ListResult.empty();
+
+            assertThat(result.objects()).isEmpty();
+            assertThat(result.commonPrefixes()).isEmpty();
+            assertThat(result.isTruncated()).isFalse();
+            assertThat(result.nextMarker()).isNull();
+            assertThat(result.isEmpty()).isTrue();
+        }
+
+        @Test
+        @DisplayName("应该创建对象列表结果")
+        void shouldCreateObjectListResult() {
+            StorageObject obj = StorageObject.of("test.txt", 100, "text/plain");
+            ListResult result = ListResult.of(List.of(obj));
+
+            assertThat(result.objects()).hasSize(1);
+            assertThat(result.commonPrefixes()).isEmpty();
+            assertThat(result.isTruncated()).isFalse();
+            assertThat(result.nextMarker()).isNull();
+            assertThat(result.isEmpty()).isFalse();
+            assertThat(result.size()).isEqualTo(1);
+        }
+
+        @Test
+        @DisplayName("应该创建带公共前缀的结果")
+        void shouldCreateResultWithCommonPrefixes() {
+            StorageObject obj = StorageObject.of("test.txt", 100, "text/plain");
+            ListResult result = ListResult.of(List.of(obj), List.of("prefix1/", "prefix2/"));
+
+            assertThat(result.objects()).hasSize(1);
+            assertThat(result.commonPrefixes()).containsExactly("prefix1/", "prefix2/");
+            assertThat(result.isTruncated()).isFalse();
+        }
+
+        @Test
+        @DisplayName("应该创建带分页的结果")
+        void shouldCreatePaginatedResult() {
+            StorageObject obj = StorageObject.of("test.txt", 100, "text/plain");
+            ListResult result = ListResult.of(
+                    List.of(obj),
+                    List.of("prefix/"),
+                    true,
+                    "next-marker"
+            );
+
+            assertThat(result.isTruncated()).isTrue();
+            assertThat(result.nextMarker()).isEqualTo("next-marker");
+        }
     }
 
-    @Test
-    @DisplayName("应该创建带对象列表的结果")
-    void shouldCreateWithObjects() {
-        StorageObject obj1 = StorageObject.of("file1.txt", 100, "text/plain");
-        StorageObject obj2 = StorageObject.of("file2.txt", 200, "text/plain");
-        ListResult result = ListResult.of(List.of(obj1, obj2));
+    @Nested
+    @DisplayName("辅助方法测试")
+    class HelperMethodTests {
 
-        assertEquals(2, result.size());
-        assertFalse(result.isEmpty());
-        assertEquals(2, result.objects().size());
+        @Test
+        @DisplayName("isEmpty 应该正确判断")
+        void shouldCheckIsEmpty() {
+            ListResult empty = ListResult.empty();
+            ListResult withObject = ListResult.of(List.of(
+                    StorageObject.of("test.txt", 100, "text/plain")
+            ));
+            ListResult withPrefix = ListResult.of(
+                    Collections.emptyList(),
+                    List.of("prefix/")
+            );
+
+            assertThat(empty.isEmpty()).isTrue();
+            assertThat(withObject.isEmpty()).isFalse();
+            assertThat(withPrefix.isEmpty()).isFalse();
+        }
+
+        @Test
+        @DisplayName("size 应该返回对象数量")
+        void shouldReturnObjectCount() {
+            ListResult result = ListResult.of(List.of(
+                    StorageObject.of("file1.txt", 100, "text/plain"),
+                    StorageObject.of("file2.txt", 200, "text/plain")
+            ));
+
+            assertThat(result.size()).isEqualTo(2);
+        }
     }
 
-    @Test
-    @DisplayName("应该创建带公共前缀的结果")
-    void shouldCreateWithCommonPrefixes() {
-        StorageObject obj = StorageObject.of("docs/readme.txt", 100, "text/plain");
-        ListResult result = ListResult.of(List.of(obj), List.of("images/", "videos/"));
+    @Nested
+    @DisplayName("Record 特性测试")
+    class RecordTests {
 
-        assertEquals(1, result.objects().size());
-        assertEquals(2, result.commonPrefixes().size());
-        assertTrue(result.commonPrefixes().contains("images/"));
-    }
+        @Test
+        @DisplayName("应该正确实现 equals")
+        void shouldImplementEquals() {
+            StorageObject obj = StorageObject.of("test.txt", 100, "text/plain");
+            ListResult result1 = ListResult.of(List.of(obj));
+            ListResult result2 = ListResult.of(List.of(obj));
 
-    @Test
-    @DisplayName("应该创建带分页的结果")
-    void shouldCreateWithPagination() {
-        StorageObject obj = StorageObject.of("file.txt", 100, "text/plain");
-        ListResult result = ListResult.of(
-                List.of(obj),
-                Collections.emptyList(),
-                true,
-                "next-marker-123"
-        );
+            assertThat(result1).isEqualTo(result2);
+        }
 
-        assertTrue(result.isTruncated());
-        assertEquals("next-marker-123", result.nextMarker());
-    }
+        @Test
+        @DisplayName("应该正确实现 hashCode")
+        void shouldImplementHashCode() {
+            StorageObject obj = StorageObject.of("test.txt", 100, "text/plain");
+            ListResult result1 = ListResult.of(List.of(obj));
+            ListResult result2 = ListResult.of(List.of(obj));
 
-    @Test
-    @DisplayName("isEmpty 应该在只有 commonPrefixes 时返回 false")
-    void isEmptyShouldReturnFalseWhenOnlyCommonPrefixes() {
-        ListResult result = ListResult.of(Collections.emptyList(), List.of("prefix/"));
-
-        assertFalse(result.isEmpty());
-        assertEquals(0, result.size());
+            assertThat(result1.hashCode()).isEqualTo(result2.hashCode());
+        }
     }
 }

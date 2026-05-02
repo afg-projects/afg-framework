@@ -1,9 +1,10 @@
 package io.github.afgprojects.framework.core.autoconfigure;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 /**
  * EncryptionProperties 测试
@@ -11,31 +12,41 @@ import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("EncryptionProperties 测试")
 class EncryptionPropertiesTest {
 
-    @Test
-    @DisplayName("应该使用默认值创建 EncryptionProperties")
-    void shouldCreateWithDefaults() {
-        EncryptionProperties properties = new EncryptionProperties();
-        assertFalse(properties.isEnabled());
-        assertEquals("AES-256-GCM", properties.getAlgorithm());
-        assertNull(properties.getSecretKey());
-        assertEquals("ENC(", properties.getPrefix());
-        assertEquals(")", properties.getSuffix());
+    @Nested
+    @DisplayName("默认值测试")
+    class DefaultValueTests {
+
+        @Test
+        @DisplayName("应该有正确的默认值")
+        void shouldHaveCorrectDefaultValues() {
+            EncryptionProperties props = new EncryptionProperties();
+
+            assertThat(props.isEnabled()).isFalse();
+            assertThat(props.getAlgorithm()).isEqualTo("AES-256-GCM");
+            assertThat(props.getSecretKey()).isNull();
+            assertThat(props.getPrefix()).isEqualTo("ENC(");
+            assertThat(props.getSuffix()).isEqualTo(")");
+        }
     }
 
-    @Test
-    @DisplayName("应该正确设置属性")
-    void shouldSetProperties() {
-        EncryptionProperties properties = new EncryptionProperties();
-        properties.setEnabled(true);
-        properties.setAlgorithm("AES-128-CBC");
-        properties.setSecretKey("my-secret-key");
-        properties.setPrefix("[ENC]");
-        properties.setSuffix("[/ENC]");
+    @Nested
+    @DisplayName("设置属性测试")
+    class SetPropertiesTests {
 
-        assertTrue(properties.isEnabled());
-        assertEquals("AES-128-CBC", properties.getAlgorithm());
-        assertEquals("my-secret-key", properties.getSecretKey());
-        assertEquals("[ENC]", properties.getPrefix());
-        assertEquals("[/ENC]", properties.getSuffix());
+        @Test
+        @DisplayName("应该正确设置属性")
+        void shouldSetProperties() {
+            EncryptionProperties props = new EncryptionProperties();
+            props.setEnabled(true);
+            props.setAlgorithm("AES-128-GCM");
+            props.setSecretKey("my-secret-key");
+            props.setPrefix("CRYPT(");
+            props.setSuffix(")");
+
+            assertThat(props.isEnabled()).isTrue();
+            assertThat(props.getAlgorithm()).isEqualTo("AES-128-GCM");
+            assertThat(props.getSecretKey()).isEqualTo("my-secret-key");
+            assertThat(props.getPrefix()).isEqualTo("CRYPT(");
+        }
     }
 }

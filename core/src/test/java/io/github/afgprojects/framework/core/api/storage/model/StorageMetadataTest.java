@@ -1,12 +1,15 @@
 package io.github.afgprojects.framework.core.api.storage.model;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import java.time.Instant;
+import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 /**
  * StorageMetadata 测试
@@ -14,68 +17,111 @@ import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("StorageMetadata 测试")
 class StorageMetadataTest {
 
-    @Test
-    @DisplayName("应该创建空的 StorageMetadata")
-    void shouldCreateEmpty() {
-        StorageMetadata metadata = new StorageMetadata();
-        assertTrue(metadata.isEmpty());
+    @Nested
+    @DisplayName("构造方法测试")
+    class ConstructorTests {
+
+        @Test
+        @DisplayName("应该创建空元数据")
+        void shouldCreateEmptyMetadata() {
+            StorageMetadata metadata = new StorageMetadata();
+
+            assertThat(metadata.isEmpty()).isTrue();
+        }
+
+        @Test
+        @DisplayName("应该从 Map 创建元数据")
+        void shouldCreateFromMap() {
+            Map<String, String> data = new HashMap<>();
+            data.put("author", "test");
+            data.put("version", "1.0");
+
+            StorageMetadata metadata = new StorageMetadata(data);
+
+            assertThat(metadata.get("author")).isEqualTo("test");
+            assertThat(metadata.get("version")).isEqualTo("1.0");
+            assertThat(metadata.isEmpty()).isFalse();
+        }
     }
 
-    @Test
-    @DisplayName("应该从 Map 创建 StorageMetadata")
-    void shouldCreateFromMap() {
-        StorageMetadata metadata = new StorageMetadata(Map.of("key1", "value1", "key2", "value2"));
+    @Nested
+    @DisplayName("操作方法测试")
+    class OperationTests {
 
-        assertEquals("value1", metadata.get("key1"));
-        assertEquals("value2", metadata.get("key2"));
-        assertFalse(metadata.isEmpty());
+        private StorageMetadata metadata;
+
+        @BeforeEach
+        void setUp() {
+            metadata = new StorageMetadata();
+        }
+
+        @Test
+        @DisplayName("应该正确设置和获取值")
+        void shouldPutAndGet() {
+            metadata.put("key1", "value1");
+
+            assertThat(metadata.get("key1")).isEqualTo("value1");
+            assertThat(metadata.containsKey("key1")).isTrue();
+        }
+
+        @Test
+        @DisplayName("应该对不存在的键返回 null")
+        void shouldReturnNullForMissingKey() {
+            assertThat(metadata.get("missing")).isNull();
+            assertThat(metadata.containsKey("missing")).isFalse();
+        }
+
+        @Test
+        @DisplayName("应该返回不可变的元数据 Map")
+        void shouldReturnUnmodifiableMap() {
+            metadata.put("key1", "value1");
+            Map<String, String> all = metadata.getAll();
+
+            assertThat(all).containsEntry("key1", "value1");
+            assertThatThrownBy(() -> all.put("key2", "value2"))
+                    .isInstanceOf(UnsupportedOperationException.class);
+        }
+
+        @Test
+        @DisplayName("应该正确判断是否为空")
+        void shouldCheckIsEmpty() {
+            assertThat(metadata.isEmpty()).isTrue();
+
+            metadata.put("key", "value");
+            assertThat(metadata.isEmpty()).isFalse();
+        }
     }
 
-    @Test
-    @DisplayName("应该正确设置和获取值")
-    void shouldPutAndGet() {
-        StorageMetadata metadata = new StorageMetadata();
-        metadata.put("author", "test");
-        metadata.put("version", "1.0");
+    @Nested
+    @DisplayName("Builder 测试")
+    class BuilderTests {
 
-        assertEquals("test", metadata.get("author"));
-        assertEquals("1.0", metadata.get("version"));
-        assertNull(metadata.get("nonexistent"));
+        @Test
+        @DisplayName("应该使用 Builder 构建元数据")
+        void shouldBuildWithBuilder() {
+            StorageMetadata metadata = StorageMetadata.builder()
+                    .put("author", "test")
+                    .put("version", "1.0")
+                    .build();
+
+            assertThat(metadata.get("author")).isEqualTo("test");
+            assertThat(metadata.get("version")).isEqualTo("1.0");
+        }
+
+        @Test
+        @DisplayName("应该支持 putAll")
+        void shouldSupportPutAll() {
+            Map<String, String> data = new HashMap<>();
+            data.put("key1", "value1");
+            data.put("key2", "value2");
+
+            StorageMetadata metadata = StorageMetadata.builder()
+                    .putAll(data)
+                    .build();
+
+            assertThat(metadata.get("key1")).isEqualTo("value1");
+            assertThat(metadata.get("key2")).isEqualTo("value2");
+        }
     }
 
-    @Test
-    @DisplayName("应该检查是否包含键")
-    void shouldCheckContainsKey() {
-        StorageMetadata metadata = new StorageMetadata();
-        metadata.put("key", "value");
-
-        assertTrue(metadata.containsKey("key"));
-        assertFalse(metadata.containsKey("other"));
-    }
-
-    @Test
-    @DisplayName("应该返回不可变的 Map")
-    void shouldReturnUnmodifiableMap() {
-        StorageMetadata metadata = new StorageMetadata();
-        metadata.put("key", "value");
-
-        Map<String, String> all = metadata.getAll();
-        assertEquals(1, all.size());
-        assertThrows(UnsupportedOperationException.class, () -> all.put("new", "value"));
-    }
-
-    @Test
-    @DisplayName("应该使用 Builder 创建 StorageMetadata")
-    void shouldCreateWithBuilder() {
-        StorageMetadata metadata = StorageMetadata.builder()
-                .put("author", "test")
-                .put("date", "2024-01-01")
-                .putAll(Map.of("extra1", "val1", "extra2", "val2"))
-                .build();
-
-        assertEquals("test", metadata.get("author"));
-        assertEquals("2024-01-01", metadata.get("date"));
-        assertEquals("val1", metadata.get("extra1"));
-        assertEquals("val2", metadata.get("extra2"));
-    }
 }

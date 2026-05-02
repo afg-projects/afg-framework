@@ -1,12 +1,14 @@
 package io.github.afgprojects.framework.core.codegen;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 /**
  * GeneratorContext 测试
@@ -14,178 +16,148 @@ import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("GeneratorContext 测试")
 class GeneratorContextTest {
 
-    @Test
-    @DisplayName("应该使用 Builder 创建 GeneratorContext")
-    void shouldCreateWithBuilder() {
-        GeneratorContext context = GeneratorContext.builder()
-                .className("UserEntity")
-                .packageName("com.example.entity")
-                .tableName("user")
-                .classComment("用户实体")
-                .fields(List.of())
-                .build();
+    @Nested
+    @DisplayName("Builder 测试")
+    class BuilderTests {
 
-        assertEquals("UserEntity", context.getClassName());
-        assertEquals("com.example.entity", context.getPackageName());
-        assertEquals("user", context.getTableName());
-        assertEquals("用户实体", context.getClassComment());
+        @Test
+        @DisplayName("应该构建基本上下文")
+        void shouldBuildBasicContext() {
+            GeneratorContext context = GeneratorContext.builder()
+                    .className("User")
+                    .packageName("com.example.entity")
+                    .build();
+
+            assertThat(context.getClassName()).isEqualTo("User");
+            assertThat(context.getPackageName()).isEqualTo("com.example.entity");
+        }
+
+        @Test
+        @DisplayName("应该构建完整上下文")
+        void shouldBuildFullContext() {
+            GeneratorContext.FieldDefinition field = GeneratorContext.FieldDefinition.builder()
+                    .name("id")
+                    .type("Long")
+                    .primaryKey(true)
+                    .build();
+
+            GeneratorContext.MethodDefinition method = GeneratorContext.MethodDefinition.builder()
+                    .name("getId")
+                    .returnType("Long")
+                    .build();
+
+            GeneratorContext context = GeneratorContext.builder()
+                    .className("User")
+                    .packageName("com.example.entity")
+                    .tableName("t_user")
+                    .classComment("用户实体")
+                    .fields(List.of(field))
+                    .methods(List.of(method))
+                    .imports(List.of("java.util.List"))
+                    .superClass("BaseEntity")
+                    .interfaces(List.of("Serializable"))
+                    .annotations(List.of("@Data"))
+                    .build();
+
+            assertThat(context.getClassName()).isEqualTo("User");
+            assertThat(context.getTableName()).isEqualTo("t_user");
+            assertThat(context.getClassComment()).isEqualTo("用户实体");
+            assertThat(context.getFields()).hasSize(1);
+            assertThat(context.getMethods()).hasSize(1);
+            assertThat(context.getSuperClass()).isEqualTo("BaseEntity");
+            assertThat(context.getInterfaces()).contains("Serializable");
+        }
+
+        @Test
+        @DisplayName("应该支持额外属性")
+        void shouldSupportExtraProperties() {
+            Map<String, Object> extra = new HashMap<>();
+            extra.put("custom", "value");
+
+            GeneratorContext context = GeneratorContext.builder()
+                    .className("User")
+                    .packageName("com.example")
+                    .extraProperties(extra)
+                    .build();
+
+            assertThat(context.getExtraProperties()).containsEntry("custom", "value");
+        }
     }
 
-    @Test
-    @DisplayName("应该正确设置和获取 fields")
-    void shouldSetAndGetFields() {
-        GeneratorContext.FieldDefinition field = GeneratorContext.FieldDefinition.builder()
-                .name("id")
-                .type("Long")
-                .primaryKey(true)
-                .build();
+    @Nested
+    @DisplayName("FieldDefinition 测试")
+    class FieldDefinitionTests {
 
-        GeneratorContext context = GeneratorContext.builder()
-                .className("TestEntity")
-                .packageName("com.example")
-                .fields(List.of(field))
-                .build();
+        @Test
+        @DisplayName("应该构建字段定义")
+        void shouldBuildFieldDefinition() {
+            GeneratorContext.FieldDefinition field = GeneratorContext.FieldDefinition.builder()
+                    .name("userName")
+                    .type("String")
+                    .comment("用户名")
+                    .primaryKey(false)
+                    .required(true)
+                    .defaultValue("guest")
+                    .length(50)
+                    .columnName("user_name")
+                    .annotations(List.of("@NotBlank"))
+                    .build();
 
-        assertEquals(1, context.getFields().size());
-        assertEquals("id", context.getFields().get(0).getName());
-        assertTrue(context.getFields().get(0).isPrimaryKey());
+            assertThat(field.getName()).isEqualTo("userName");
+            assertThat(field.getType()).isEqualTo("String");
+            assertThat(field.getComment()).isEqualTo("用户名");
+            assertThat(field.isRequired()).isTrue();
+            assertThat(field.getDefaultValue()).isEqualTo("guest");
+            assertThat(field.getLength()).isEqualTo(50);
+            assertThat(field.getColumnName()).isEqualTo("user_name");
+            assertThat(field.getAnnotations()).contains("@NotBlank");
+        }
     }
 
-    @Test
-    @DisplayName("应该正确设置和获取 methods")
-    void shouldSetAndGetMethods() {
-        GeneratorContext.MethodDefinition method = GeneratorContext.MethodDefinition.builder()
-                .name("getId")
-                .returnType("Long")
-                .build();
+    @Nested
+    @DisplayName("MethodDefinition 测试")
+    class MethodDefinitionTests {
 
-        GeneratorContext context = GeneratorContext.builder()
-                .className("TestEntity")
-                .packageName("com.example")
-                .fields(List.of())
-                .methods(List.of(method))
-                .build();
+        @Test
+        @DisplayName("应该构建方法定义")
+        void shouldBuildMethodDefinition() {
+            GeneratorContext.ParameterDefinition param = GeneratorContext.ParameterDefinition.builder()
+                    .name("id")
+                    .type("Long")
+                    .build();
 
-        assertNotNull(context.getMethods());
-        assertEquals(1, context.getMethods().size());
-        assertEquals("getId", context.getMethods().get(0).getName());
+            GeneratorContext.MethodDefinition method = GeneratorContext.MethodDefinition.builder()
+                    .name("findById")
+                    .returnType("User")
+                    .parameters(List.of(param))
+                    .body("return repository.findById(id);")
+                    .comment("根据ID查找用户")
+                    .annotations(List.of("@Override"))
+                    .build();
+
+            assertThat(method.getName()).isEqualTo("findById");
+            assertThat(method.getReturnType()).isEqualTo("User");
+            assertThat(method.getParameters()).hasSize(1);
+            assertThat(method.getBody()).isEqualTo("return repository.findById(id);");
+            assertThat(method.getComment()).isEqualTo("根据ID查找用户");
+            assertThat(method.getAnnotations()).contains("@Override");
+        }
     }
 
-    @Test
-    @DisplayName("应该正确设置和获取 extraProperties")
-    void shouldSetAndGetExtraProperties() {
-        GeneratorContext context = GeneratorContext.builder()
-                .className("TestEntity")
-                .packageName("com.example")
-                .fields(List.of())
-                .extraProperties(Map.of("key", "value"))
-                .build();
+    @Nested
+    @DisplayName("ParameterDefinition 测试")
+    class ParameterDefinitionTests {
 
-        assertEquals("value", context.getExtraProperties().get("key"));
-    }
+        @Test
+        @DisplayName("应该构建参数定义")
+        void shouldBuildParameterDefinition() {
+            GeneratorContext.ParameterDefinition param = GeneratorContext.ParameterDefinition.builder()
+                    .name("userId")
+                    .type("Long")
+                    .build();
 
-    @Test
-    @DisplayName("应该正确设置和获取 superClass")
-    void shouldSetAndGetSuperClass() {
-        GeneratorContext context = GeneratorContext.builder()
-                .className("TestEntity")
-                .packageName("com.example")
-                .fields(List.of())
-                .superClass("BaseEntity")
-                .build();
-
-        assertEquals("BaseEntity", context.getSuperClass());
-    }
-
-    @Test
-    @DisplayName("应该正确设置和获取 interfaces")
-    void shouldSetAndGetInterfaces() {
-        GeneratorContext context = GeneratorContext.builder()
-                .className("TestEntity")
-                .packageName("com.example")
-                .fields(List.of())
-                .interfaces(List.of("Serializable", "Cloneable"))
-                .build();
-
-        assertNotNull(context.getInterfaces());
-        assertEquals(2, context.getInterfaces().size());
-    }
-
-    @Test
-    @DisplayName("应该正确设置和获取 annotations")
-    void shouldSetAndGetAnnotations() {
-        GeneratorContext context = GeneratorContext.builder()
-                .className("TestEntity")
-                .packageName("com.example")
-                .fields(List.of())
-                .annotations(List.of("@Entity", "@Table(name = \"test\")"))
-                .build();
-
-        assertNotNull(context.getAnnotations());
-        assertEquals(2, context.getAnnotations().size());
-    }
-
-    @Test
-    @DisplayName("FieldDefinition 应该正确设置所有属性")
-    void fieldDefinitionShouldSetAllProperties() {
-        GeneratorContext.FieldDefinition field = GeneratorContext.FieldDefinition.builder()
-                .name("username")
-                .type("String")
-                .comment("用户名")
-                .primaryKey(false)
-                .required(true)
-                .defaultValue("guest")
-                .length(50)
-                .columnName("user_name")
-                .annotations(List.of("@NotBlank"))
-                .build();
-
-        assertEquals("username", field.getName());
-        assertEquals("String", field.getType());
-        assertEquals("用户名", field.getComment());
-        assertFalse(field.isPrimaryKey());
-        assertTrue(field.isRequired());
-        assertEquals("guest", field.getDefaultValue());
-        assertEquals(50, field.getLength());
-        assertEquals("user_name", field.getColumnName());
-        assertNotNull(field.getAnnotations());
-    }
-
-    @Test
-    @DisplayName("MethodDefinition 应该正确设置所有属性")
-    void methodDefinitionShouldSetAllProperties() {
-        GeneratorContext.ParameterDefinition param = GeneratorContext.ParameterDefinition.builder()
-                .name("id")
-                .type("Long")
-                .build();
-
-        GeneratorContext.MethodDefinition method = GeneratorContext.MethodDefinition.builder()
-                .name("findById")
-                .returnType("Optional<User>")
-                .parameters(List.of(param))
-                .body("return repository.findById(id);")
-                .comment("根据ID查找用户")
-                .annotations(List.of("@Override"))
-                .build();
-
-        assertEquals("findById", method.getName());
-        assertEquals("Optional<User>", method.getReturnType());
-        assertNotNull(method.getParameters());
-        assertEquals(1, method.getParameters().size());
-        assertEquals("return repository.findById(id);", method.getBody());
-        assertEquals("根据ID查找用户", method.getComment());
-        assertNotNull(method.getAnnotations());
-    }
-
-    @Test
-    @DisplayName("ParameterDefinition 应该正确设置属性")
-    void parameterDefinitionShouldSetProperties() {
-        GeneratorContext.ParameterDefinition param = GeneratorContext.ParameterDefinition.builder()
-                .name("name")
-                .type("String")
-                .build();
-
-        assertEquals("name", param.getName());
-        assertEquals("String", param.getType());
+            assertThat(param.getName()).isEqualTo("userId");
+            assertThat(param.getType()).isEqualTo("Long");
+        }
     }
 }

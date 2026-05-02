@@ -3,38 +3,42 @@ package io.github.afgprojects.framework.core.autoconfigure;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import io.github.afgprojects.framework.core.support.BaseUnitTest;
-
 /**
- * VirtualThreadProperties 单元测试
+ * VirtualThreadProperties 测试
  */
-class VirtualThreadPropertiesTest extends BaseUnitTest {
+@DisplayName("VirtualThreadProperties 测试")
+class VirtualThreadPropertiesTest {
 
-    @Test
-    @DisplayName("默认配置应该正确初始化")
-    void defaultPropertiesShouldBeCorrect() {
-        // given
-        VirtualThreadProperties properties = new VirtualThreadProperties();
+    @Nested
+    @DisplayName("默认值测试")
+    class DefaultValueTests {
 
-        // then
-        assertThat(properties.isEnabled()).isTrue();
-        assertThat(properties.getNamePrefix()).isEqualTo("afg-vt-");
+        @Test
+        @DisplayName("应该有正确的默认值")
+        void shouldHaveCorrectDefaultValues() {
+            VirtualThreadProperties props = new VirtualThreadProperties();
+
+            assertThat(props.isEnabled()).isTrue();
+            assertThat(props.getNamePrefix()).isEqualTo("afg-vt-");
+        }
     }
 
-    @Test
-    @DisplayName("应该能够修改配置属性")
-    void shouldAllowModifyingProperties() {
-        // given
-        VirtualThreadProperties properties = new VirtualThreadProperties();
+    @Nested
+    @DisplayName("设置属性测试")
+    class SetPropertiesTests {
 
-        // when
-        properties.setEnabled(false);
-        properties.setNamePrefix("custom-vt-");
+        @Test
+        @DisplayName("应该正确设置属性")
+        void shouldSetProperties() {
+            VirtualThreadProperties props = new VirtualThreadProperties();
+            props.setEnabled(false);
+            props.setNamePrefix("custom-vt-");
 
-        // then
-        assertThat(properties.isEnabled()).isFalse();
-        assertThat(properties.getNamePrefix()).isEqualTo("custom-vt-");
+            assertThat(props.isEnabled()).isFalse();
+            assertThat(props.getNamePrefix()).isEqualTo("custom-vt-");
+        }
     }
 }

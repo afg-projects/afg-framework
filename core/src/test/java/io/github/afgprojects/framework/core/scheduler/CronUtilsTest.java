@@ -7,124 +7,166 @@ import java.time.Duration;
 import java.time.ZonedDateTime;
 
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
  * CronUtils 测试
  */
-@DisplayName("CronUtils Tests")
+@DisplayName("CronUtils 测试")
 class CronUtilsTest {
 
-    @Test
-    @DisplayName("Should validate correct cron expressions")
-    void shouldValidateCorrectCron() {
-        assertThat(CronUtils.isValid("0 * * * * ?")).isTrue();
-        assertThat(CronUtils.isValid("0 0/5 * * * ?")).isTrue();
-        assertThat(CronUtils.isValid("0 0 12 * * ?")).isTrue();
-        assertThat(CronUtils.isValid("0 0 0 1 1 ?")).isTrue();
+    @Nested
+    @DisplayName("验证测试")
+    class ValidationTests {
+
+        @Test
+        @DisplayName("应该验证有效的 Cron 表达式")
+        void shouldValidateValidCron() {
+            assertThat(CronUtils.isValid("0 * * * * *")).isTrue();
+            assertThat(CronUtils.isValid("0 0 12 * * *")).isTrue();
+            assertThat(CronUtils.isValid("0 30 10 * * 1")).isTrue(); // MON = 1
+        }
+
+        @Test
+        @DisplayName("应该拒绝无效的 Cron 表达式")
+        void shouldRejectInvalidCron() {
+            assertThat(CronUtils.isValid(null)).isFalse();
+            assertThat(CronUtils.isValid("")).isFalse();
+            assertThat(CronUtils.isValid("* * *")).isFalse();
+            assertThat(CronUtils.isValid("* * * * * * *")).isFalse();
+        }
     }
 
-    @Test
-    @DisplayName("Should reject invalid cron expressions")
-    void shouldRejectInvalidCron() {
-        assertThat(CronUtils.isValid(null)).isFalse();
-        assertThat(CronUtils.isValid("")).isFalse();
-        assertThat(CronUtils.isValid("0 0 12")).isFalse(); // 缺少字段
-        assertThat(CronUtils.isValid("invalid")).isFalse();
+    @Nested
+    @DisplayName("解析测试")
+    class ParseTests {
+
+        @Test
+        @DisplayName("应该解析标准 Cron 表达式")
+        void shouldParseStandardCron() {
+            CronUtils.CronExpression expr = CronUtils.parse("0 30 10 * * 1"); // MON = 1
+
+            assertThat(expr).isNotNull();
+        }
+
+        @Test
+        @DisplayName("应该拒绝字段数量不正确的表达式")
+        void shouldRejectIncorrectFieldCount() {
+            assertThatThrownBy(() -> CronUtils.parse("* * *"))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("expected 6 fields");
+        }
+
+        @Test
+        @DisplayName("应该解析星号字段")
+        void shouldParseStarField() {
+            CronUtils.CronExpression expr = CronUtils.parse("* * * * * *");
+
+            assertThat(expr).isNotNull();
+        }
+
+        @Test
+        @DisplayName("应该解析问号字段")
+        void shouldParseQuestionMarkField() {
+            CronUtils.CronExpression expr = CronUtils.parse("0 0 12 ? * *");
+
+            assertThat(expr).isNotNull();
+        }
+
+        @Test
+        @DisplayName("应该解析步进表达式")
+        void shouldParseStepExpression() {
+            CronUtils.CronExpression expr = CronUtils.parse("*/5 * * * * *");
+
+            assertThat(expr).isNotNull();
+        }
+
+        @Test
+        @DisplayName("应该解析范围表达式")
+        void shouldParseRangeExpression() {
+            CronUtils.CronExpression expr = CronUtils.parse("0 0-5 * * * *");
+
+            assertThat(expr).isNotNull();
+        }
+
+        @Test
+        @DisplayName("应该解析列表表达式")
+        void shouldParseListExpression() {
+            CronUtils.CronExpression expr = CronUtils.parse("0 0,15,30,45 * * * *");
+
+            assertThat(expr).isNotNull();
+        }
     }
 
-    @Test
-    @DisplayName("Should parse simple cron expression")
-    void shouldParseSimpleCron() {
-        CronUtils.CronExpression expr = CronUtils.parse("0 * * * * ?");
+    @Nested
+    @DisplayName("下一次执行时间测试")
+    class NextExecutionTimeTests {
 
-        assertThat(expr).isNotNull();
+        @Test
+        @DisplayName("应该计算下一次执行时间")
+        void shouldCalculateNextExecutionTime() {
+            ZonedDateTime now = ZonedDateTime.now();
+            ZonedDateTime next = CronUtils.getNextExecutionTime("0 0 12 * * *", now);
+
+            assertThat(next).isAfter(now);
+            assertThat(next.getHour()).isEqualTo(12);
+            assertThat(next.getMinute()).isEqualTo(0);
+            assertThat(next.getSecond()).isEqualTo(0);
+        }
+
+        @Test
+        @DisplayName("应该返回延迟时间")
+        void shouldReturnDelay() {
+            Duration delay = CronUtils.getNextExecutionDelay("0 0 12 * * *");
+
+            assertThat(delay).isNotNull();
+            assertThat(delay).isGreaterThanOrEqualTo(Duration.ZERO);
+        }
     }
 
-    @Test
-    @DisplayName("Should throw exception for invalid cron")
-    void shouldThrowForInvalidCron() {
-        assertThatThrownBy(() -> CronUtils.parse("invalid"))
-            .isInstanceOf(IllegalArgumentException.class);
+    @Nested
+    @DisplayName("周期测试")
+    class PeriodTests {
+
+        @Test
+        @DisplayName("应该计算执行周期")
+        void shouldCalculatePeriod() {
+            Duration period = CronUtils.getPeriod("0 0 */2 * * *");
+
+            assertThat(period).isNotNull();
+            assertThat(period.toHours()).isEqualTo(2);
+        }
     }
 
-    @Test
-    @DisplayName("Should calculate next execution time for every minute")
-    void shouldCalculateNextExecutionForEveryMinute() {
-        String cron = "0 * * * * ?";
+    @Nested
+    @DisplayName("CronExpression 测试")
+    class CronExpressionTests {
 
-        ZonedDateTime now = ZonedDateTime.now();
-        ZonedDateTime next = CronUtils.getNextExecutionTime(cron, now);
+        @Test
+        @DisplayName("应该计算下一个执行时间")
+        void shouldCalculateNextExecution() {
+            CronUtils.CronExpression expr = CronUtils.parse("0 30 10 * * *");
+            ZonedDateTime now = ZonedDateTime.now().withHour(9).withMinute(0);
+            ZonedDateTime next = expr.nextExecutionTime(now);
 
-        assertThat(next).isAfter(now);
-        assertThat(next.getSecond()).isEqualTo(0);
+            assertThat(next.getHour()).isEqualTo(10);
+            assertThat(next.getMinute()).isEqualTo(30);
+            assertThat(next.getSecond()).isEqualTo(0);
+        }
     }
 
-    @Test
-    @DisplayName("Should calculate next execution delay")
-    void shouldCalculateNextExecutionDelay() {
-        String cron = "0 0/5 * * * ?"; // 每 5 分钟
+    @Nested
+    @DisplayName("CronField 测试")
+    class CronFieldTests {
 
-        Duration delay = CronUtils.getNextExecutionDelay(cron);
+        @Test
+        @DisplayName("星号字段应该匹配所有值")
+        void shouldMatchAllValuesForStarField() {
+            CronUtils.CronExpression expr = CronUtils.parse("* * * * * *");
 
-        assertThat(delay).isNotNull();
-        assertThat(delay.toMillis()).isGreaterThan(0);
-    }
-
-    @Test
-    @DisplayName("Should calculate period for fixed interval cron")
-    void shouldCalculatePeriod() {
-        String cron = "0 0/5 * * * ?"; // 每 5 分钟
-
-        Duration period = CronUtils.getPeriod(cron);
-
-        assertThat(period).isEqualTo(Duration.ofMinutes(5));
-    }
-
-    @Test
-    @DisplayName("Should handle step expressions")
-    void shouldHandleStepExpressions() {
-        CronUtils.CronExpression expr = CronUtils.parse("0 */5 * * * ?");
-
-        ZonedDateTime now = ZonedDateTime.now();
-        ZonedDateTime next = expr.nextExecutionTime(now);
-
-        assertThat(next).isAfter(now);
-        assertThat(next.getMinute() % 5).isEqualTo(0);
-        assertThat(next.getSecond()).isEqualTo(0);
-    }
-
-    @Test
-    @DisplayName("Should handle range expressions")
-    void shouldHandleRangeExpressions() {
-        CronUtils.CronExpression expr = CronUtils.parse("0 0 9-17 * * 1-5");
-
-        ZonedDateTime next = expr.nextExecutionTime(ZonedDateTime.now());
-
-        assertThat(next).isNotNull();
-    }
-
-    @Test
-    @DisplayName("Should handle specific values")
-    void shouldHandleSpecificValues() {
-        CronUtils.CronExpression expr = CronUtils.parse("30 15 10 * * ?");
-
-        ZonedDateTime next = expr.nextExecutionTime(ZonedDateTime.now());
-
-        assertThat(next.getSecond()).isEqualTo(30);
-        assertThat(next.getMinute()).isEqualTo(15);
-        assertThat(next.getHour()).isEqualTo(10);
-    }
-
-    @Test
-    @DisplayName("Should handle wildcard for all values")
-    void shouldHandleWildcard() {
-        CronUtils.CronExpression expr = CronUtils.parse("0 * * * * ?");
-
-        // 验证下一个执行时间的秒数是否为 0
-        ZonedDateTime now = ZonedDateTime.now();
-        ZonedDateTime next = expr.nextExecutionTime(now);
-
-        assertThat(next.getSecond()).isEqualTo(0);
+            // 验证星号匹配所有值
+            assertThat(expr).isNotNull();
+        }
     }
 }

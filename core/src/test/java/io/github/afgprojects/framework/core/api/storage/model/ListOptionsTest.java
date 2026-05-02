@@ -1,9 +1,10 @@
 package io.github.afgprojects.framework.core.api.storage.model;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 /**
  * ListOptions 测试
@@ -11,59 +12,105 @@ import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("ListOptions 测试")
 class ListOptionsTest {
 
-    @Test
-    @DisplayName("应该创建默认选项")
-    void shouldCreateDefaults() {
-        ListOptions options = ListOptions.defaults();
+    @Nested
+    @DisplayName("静态工厂方法测试")
+    class StaticFactoryTests {
 
-        assertNull(options.prefix());
-        assertNull(options.delimiter());
-        assertEquals(1000, options.maxKeys());
-        assertNull(options.marker());
+        @Test
+        @DisplayName("应该创建默认选项")
+        void shouldCreateDefaults() {
+            ListOptions options = ListOptions.defaults();
+
+            assertThat(options.prefix()).isNull();
+            assertThat(options.delimiter()).isNull();
+            assertThat(options.maxKeys()).isEqualTo(1000);
+            assertThat(options.marker()).isNull();
+        }
+
+        @Test
+        @DisplayName("应该创建带前缀的选项")
+        void shouldCreateWithPrefix() {
+            ListOptions options = ListOptions.withPrefix("images/");
+
+            assertThat(options.prefix()).isEqualTo("images/");
+            assertThat(options.delimiter()).isNull();
+            assertThat(options.maxKeys()).isEqualTo(1000);
+            assertThat(options.marker()).isNull();
+        }
+
+        @Test
+        @DisplayName("应该创建带前缀和分隔符的选项")
+        void shouldCreateWithPrefixAndDelimiter() {
+            ListOptions options = ListOptions.withPrefixAndDelimiter("images/", "/");
+
+            assertThat(options.prefix()).isEqualTo("images/");
+            assertThat(options.delimiter()).isEqualTo("/");
+            assertThat(options.maxKeys()).isEqualTo(1000);
+            assertThat(options.marker()).isNull();
+        }
     }
 
-    @Test
-    @DisplayName("应该创建带前缀的选项")
-    void shouldCreateWithPrefix() {
-        ListOptions options = ListOptions.withPrefix("images/");
+    @Nested
+    @DisplayName("Builder 测试")
+    class BuilderTests {
 
-        assertEquals("images/", options.prefix());
-        assertNull(options.delimiter());
-        assertEquals(1000, options.maxKeys());
+        @Test
+        @DisplayName("应该使用 Builder 构建选项")
+        void shouldBuildWithBuilder() {
+            ListOptions options = ListOptions.builder()
+                    .prefix("docs/")
+                    .delimiter("/")
+                    .maxKeys(500)
+                    .marker("start-key")
+                    .build();
+
+            assertThat(options.prefix()).isEqualTo("docs/");
+            assertThat(options.delimiter()).isEqualTo("/");
+            assertThat(options.maxKeys()).isEqualTo(500);
+            assertThat(options.marker()).isEqualTo("start-key");
+        }
+
+        @Test
+        @DisplayName("应该支持部分设置")
+        void shouldSupportPartialSettings() {
+            ListOptions options = ListOptions.builder()
+                    .maxKeys(100)
+                    .build();
+
+            assertThat(options.prefix()).isNull();
+            assertThat(options.maxKeys()).isEqualTo(100);
+        }
     }
 
-    @Test
-    @DisplayName("应该创建带前缀和分隔符的选项")
-    void shouldCreateWithPrefixAndDelimiter() {
-        ListOptions options = ListOptions.withPrefixAndDelimiter("docs/", "/");
+    @Nested
+    @DisplayName("Record 特性测试")
+    class RecordTests {
 
-        assertEquals("docs/", options.prefix());
-        assertEquals("/", options.delimiter());
-    }
+        @Test
+        @DisplayName("应该正确实现 equals")
+        void shouldImplementEquals() {
+            ListOptions options1 = new ListOptions("test/", "/", 100, "marker");
+            ListOptions options2 = new ListOptions("test/", "/", 100, "marker");
 
-    @Test
-    @DisplayName("应该使用 Builder 创建选项")
-    void shouldCreateWithBuilder() {
-        ListOptions options = ListOptions.builder()
-                .prefix("files/")
-                .delimiter("/")
-                .maxKeys(100)
-                .marker("marker123")
-                .build();
+            assertThat(options1).isEqualTo(options2);
+        }
 
-        assertEquals("files/", options.prefix());
-        assertEquals("/", options.delimiter());
-        assertEquals(100, options.maxKeys());
-        assertEquals("marker123", options.marker());
-    }
+        @Test
+        @DisplayName("应该正确实现 hashCode")
+        void shouldImplementHashCode() {
+            ListOptions options1 = new ListOptions("test/", "/", 100, "marker");
+            ListOptions options2 = new ListOptions("test/", "/", 100, "marker");
 
-    @Test
-    @DisplayName("Builder 应该使用默认 maxKeys")
-    void builderShouldUseDefaultMaxKeys() {
-        ListOptions options = ListOptions.builder()
-                .prefix("test/")
-                .build();
+            assertThat(options1.hashCode()).isEqualTo(options2.hashCode());
+        }
 
-        assertEquals(1000, options.maxKeys());
+        @Test
+        @DisplayName("应该生成正确的 toString")
+        void shouldGenerateToString() {
+            ListOptions options = new ListOptions("test/", "/", 100, "marker");
+
+            assertThat(options.toString()).contains("test/");
+            assertThat(options.toString()).contains("100");
+        }
     }
 }
