@@ -178,7 +178,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Check for dependency updates
-        run: ./gradlew dependencyUpdates --no-daemon
+        run: ./gradlew dependencyUpdates --no-daemon --no-parallel
 
   # Summary job for branch protection rules
   ci-success:

@@ -1,6 +1,7 @@
 package io.github.afgprojects.framework.data.jdbc;
 
 import io.github.afgprojects.framework.data.core.EntityProxy;
+import io.github.afgprojects.framework.data.core.EntityQuery;
 import io.github.afgprojects.framework.data.core.condition.Conditions;
 import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.relation.*;
@@ -244,11 +245,11 @@ class AssociationLoadingIntegrationTest {
             EntityProxy<TestUserWithDept> userProxy = dataManager.entity(TestUserWithDept.class);
 
             // When
-            EntityProxy<TestUserWithDept> configuredProxy = userProxy.withAssociation("department");
+            EntityQuery<TestUserWithDept> configuredQuery = userProxy.withAssociation("department");
 
             // Then
-            assertThat(configuredProxy).isNotNull();
-            assertThat(((JdbcEntityProxy<TestUserWithDept>) configuredProxy).getEagerFetchAssociations())
+            assertThat(configuredQuery).isNotNull();
+            assertThat(((JdbcEntityQuery<TestUserWithDept>) configuredQuery).getEagerFetchAssociations())
                 .contains("department");
         }
 
@@ -259,10 +260,10 @@ class AssociationLoadingIntegrationTest {
             EntityProxy<TestUserWithDept> userProxy = dataManager.entity(TestUserWithDept.class);
 
             // When - 配置单个关联（该实体只有一个关联字段）
-            EntityProxy<TestUserWithDept> configuredProxy = userProxy.withAssociation("department");
+            EntityQuery<TestUserWithDept> configuredQuery = userProxy.withAssociation("department");
 
             // Then
-            assertThat(((JdbcEntityProxy<TestUserWithDept>) configuredProxy).getEagerFetchAssociations())
+            assertThat(((JdbcEntityQuery<TestUserWithDept>) configuredQuery).getEagerFetchAssociations())
                 .contains("department");
         }
 
@@ -270,14 +271,14 @@ class AssociationLoadingIntegrationTest {
         @DisplayName("应该成功清除关联加载配置")
         void shouldClearAssociations() {
             // Given
-            EntityProxy<TestUserWithDept> userProxy = dataManager.entity(TestUserWithDept.class)
+            EntityQuery<TestUserWithDept> userQuery = dataManager.entity(TestUserWithDept.class)
                 .withAssociation("department");
 
             // When
-            EntityProxy<TestUserWithDept> clearedProxy = userProxy.clearAssociations();
+            EntityQuery<TestUserWithDept> clearedQuery = userQuery.clearAssociations();
 
             // Then
-            assertThat(((JdbcEntityProxy<TestUserWithDept>) clearedProxy).getEagerFetchAssociations())
+            assertThat(((JdbcEntityQuery<TestUserWithDept>) clearedQuery).getEagerFetchAssociations())
                 .isEmpty();
         }
 

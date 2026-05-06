@@ -87,7 +87,7 @@ class TimestampSoftDeleteIntegrationTest {
             assertThat(userProxy.findById(userId)).isEmpty();
 
             // 使用 includeDeleted 可以查到
-            Optional<TimestampUser> deleted = userProxy.includeDeleted().findById(userId);
+            Optional<TimestampUser> deleted = userProxy.includeDeleted().where(Conditions.eq("id", userId)).one();
             assertThat(deleted).isPresent();
             assertThat(deleted.get().getDeletedAt()).isNotNull();
         }
@@ -107,7 +107,7 @@ class TimestampSoftDeleteIntegrationTest {
 
             // Then
             assertThat(userProxy.findById(userId)).isEmpty();
-            assertThat(userProxy.includeDeleted().findById(userId)).isPresent();
+            assertThat(userProxy.includeDeleted().where(Conditions.eq("id", userId)).one()).isPresent();
         }
 
         @Test
@@ -127,8 +127,8 @@ class TimestampSoftDeleteIntegrationTest {
             // Then
             assertThat(userProxy.findById(u1.getId())).isEmpty();
             assertThat(userProxy.findById(u2.getId())).isEmpty();
-            assertThat(userProxy.includeDeleted().findById(u1.getId())).isPresent();
-            assertThat(userProxy.includeDeleted().findById(u2.getId())).isPresent();
+            assertThat(userProxy.includeDeleted().where(Conditions.eq("id", u1.getId())).one()).isPresent();
+            assertThat(userProxy.includeDeleted().where(Conditions.eq("id", u2.getId())).one()).isPresent();
         }
     }
 
@@ -344,7 +344,7 @@ class TimestampSoftDeleteIntegrationTest {
             userProxy.delete(deleted);
 
             // When
-            List<TimestampUser> allWithDeleted = userProxy.includeDeleted().findAll();
+            List<TimestampUser> allWithDeleted = userProxy.includeDeleted().list();
 
             // Then
             assertThat(allWithDeleted).hasSize(2);
@@ -367,7 +367,8 @@ class TimestampSoftDeleteIntegrationTest {
 
             // When
             List<TimestampUser> found = userProxy.includeDeleted()
-                .findAll(Conditions.like("name", "user"));
+                .where(Conditions.like("name", "user"))
+                .list();
 
             // Then
             assertThat(found).hasSize(2);
@@ -392,7 +393,7 @@ class TimestampSoftDeleteIntegrationTest {
             ((JdbcEntityProxy<TimestampUser>) userProxy).hardDelete(user);
 
             // Then - 即使使用 includeDeleted 也找不到
-            assertThat(userProxy.includeDeleted().findById(userId)).isEmpty();
+            assertThat(userProxy.includeDeleted().where(Conditions.eq("id", userId)).one()).isEmpty();
         }
 
         @Test
@@ -409,7 +410,7 @@ class TimestampSoftDeleteIntegrationTest {
             ((JdbcEntityProxy<TimestampUser>) userProxy).hardDeleteById(userId);
 
             // Then
-            assertThat(userProxy.includeDeleted().findById(userId)).isEmpty();
+            assertThat(userProxy.includeDeleted().where(Conditions.eq("id", userId)).one()).isEmpty();
         }
     }
 

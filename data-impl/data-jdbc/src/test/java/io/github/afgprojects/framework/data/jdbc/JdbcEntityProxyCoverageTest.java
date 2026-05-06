@@ -281,7 +281,7 @@ class JdbcEntityProxyCoverageTest {
 
             // When - 空条件 + includeDeleted
             Condition emptyCondition = Conditions.empty();
-            List<SoftDeleteUser> results = jdbcProxy.includeDeleted().findAll(emptyCondition);
+            List<SoftDeleteUser> results = jdbcProxy.includeDeleted().where(emptyCondition).list();
 
             // Then
             assertThat(results).hasSize(1);
@@ -361,7 +361,7 @@ class JdbcEntityProxyCoverageTest {
             assertThat(normalResult).isEmpty();
 
             // When - includeDeleted 可以找到
-            Optional<SoftDeleteUser> withDeletedResult = jdbcProxy.includeDeleted().findFirst(condition);
+            Optional<SoftDeleteUser> withDeletedResult = jdbcProxy.includeDeleted().where(condition).first();
 
             // Then
             assertThat(withDeletedResult).isPresent();
@@ -1169,7 +1169,9 @@ class JdbcEntityProxyCoverageTest {
             proxy.delete(user);
 
             // When - 使用 includeDeleted
-            List<SoftDeleteUser> result = jdbcProxy.includeDeleted().findAllById(List.of(user.getId()));
+            List<SoftDeleteUser> result = jdbcProxy.includeDeleted()
+                .where(Conditions.in("id", List.of(user.getId())))
+                .list();
 
             // Then
             assertThat(result).hasSize(1);

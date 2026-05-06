@@ -123,6 +123,15 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
         return this;
     }
 
+    /**
+     * 获取急加载关联配置（用于测试）
+     *
+     * @return 关联字段名集合
+     */
+    Set<String> getEagerFetchAssociations() {
+        return Collections.unmodifiableSet(eagerFetchAssociations);
+    }
+
     @Override
     public @NonNull EntityQuery<T> limit(int limit) {
         this.limit = limit;

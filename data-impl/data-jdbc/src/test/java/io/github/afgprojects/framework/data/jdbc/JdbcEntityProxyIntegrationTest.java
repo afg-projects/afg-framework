@@ -1,6 +1,7 @@
 package io.github.afgprojects.framework.data.jdbc;
 
 import io.github.afgprojects.framework.data.core.EntityProxy;
+import io.github.afgprojects.framework.data.core.EntityQuery;
 import io.github.afgprojects.framework.data.core.condition.Conditions;
 import io.github.afgprojects.framework.data.core.entity.SoftDeleteStrategy;
 import io.github.afgprojects.framework.data.core.entity.VersionedEntity;
@@ -757,7 +758,7 @@ class JdbcEntityProxyIntegrationTest {
             );
 
             // When
-            EntityProxy<TestUser> scopedProxy = userProxy.withDataScope(scope);
+            EntityQuery<TestUser> scopedProxy = userProxy.withDataScope(scope);
 
             // Then
             assertThat(scopedProxy).isNotNull();
@@ -779,7 +780,7 @@ class JdbcEntityProxyIntegrationTest {
             );
 
             // When
-            EntityProxy<TestUser> scopedProxy = userProxy.withDataScopes(scope1, scope2);
+            EntityQuery<TestUser> scopedProxy = userProxy.withDataScopes(scope1, scope2);
 
             // Then
             assertThat(scopedProxy).isNotNull();
@@ -789,7 +790,7 @@ class JdbcEntityProxyIntegrationTest {
         @DisplayName("应该正确设置租户")
         void shouldSetTenant() {
             // When
-            EntityProxy<TestUser> tenantProxy = userProxy.withTenant("tenant-123");
+            EntityQuery<TestUser> tenantProxy = userProxy.withTenant("tenant-123");
 
             // Then
             assertThat(tenantProxy).isNotNull();
@@ -799,7 +800,7 @@ class JdbcEntityProxyIntegrationTest {
         @DisplayName("应该正确设置数据源")
         void shouldSetDataSource() {
             // When
-            EntityProxy<TestUser> dataSourceProxy = userProxy.withDataSource("secondary-ds");
+            EntityQuery<TestUser> dataSourceProxy = userProxy.withDataSource("secondary-ds");
 
             // Then
             assertThat(dataSourceProxy).isNotNull();
@@ -809,7 +810,7 @@ class JdbcEntityProxyIntegrationTest {
         @DisplayName("应该正确设置只读模式")
         void shouldSetReadOnly() {
             // When
-            EntityProxy<TestUser> readOnlyProxy = userProxy.withReadOnly();
+            EntityQuery<TestUser> readOnlyProxy = userProxy.withReadOnly();
 
             // Then
             assertThat(readOnlyProxy).isNotNull();
@@ -819,7 +820,7 @@ class JdbcEntityProxyIntegrationTest {
         @DisplayName("应该正确设置包含已删除")
         void shouldSetIncludeDeleted() {
             // When
-            EntityProxy<TestUser> includeDeletedProxy = userProxy.includeDeleted();
+            EntityQuery<TestUser> includeDeletedProxy = userProxy.includeDeleted();
 
             // Then
             assertThat(includeDeletedProxy).isNotNull();
@@ -1151,7 +1152,7 @@ class JdbcEntityProxyIntegrationTest {
             // Then - 记录仍在数据库中，但标记为已删除
             assertThat(softDeleteProxy.findById(user.getId())).isEmpty();
             // 使用 includeDeleted 可以查到
-            List<SoftDeleteUser> allWithDeleted = jdbcSoftDeleteProxy.includeDeleted().findAll();
+            List<SoftDeleteUser> allWithDeleted = jdbcSoftDeleteProxy.includeDeleted().list();
             assertThat(allWithDeleted).hasSize(1);
         }
 
@@ -1207,7 +1208,7 @@ class JdbcEntityProxyIntegrationTest {
             jdbcSoftDeleteProxy.hardDelete(user);
 
             // Then - 记录完全被删除
-            List<SoftDeleteUser> allWithDeleted = jdbcSoftDeleteProxy.includeDeleted().findAll();
+            List<SoftDeleteUser> allWithDeleted = jdbcSoftDeleteProxy.includeDeleted().list();
             assertThat(allWithDeleted.stream().noneMatch(u -> u.getId().equals(userId))).isTrue();
         }
 
@@ -1225,7 +1226,7 @@ class JdbcEntityProxyIntegrationTest {
             jdbcSoftDeleteProxy.hardDeleteById(userId);
 
             // Then - 记录完全被删除
-            List<SoftDeleteUser> allWithDeleted = jdbcSoftDeleteProxy.includeDeleted().findAll();
+            List<SoftDeleteUser> allWithDeleted = jdbcSoftDeleteProxy.includeDeleted().list();
             assertThat(allWithDeleted.stream().noneMatch(u -> u.getId().equals(userId))).isTrue();
         }
 
@@ -1247,7 +1248,7 @@ class JdbcEntityProxyIntegrationTest {
             jdbcSoftDeleteProxy.hardDeleteAllById(List.of(u1.getId(), u2.getId()));
 
             // Then
-            List<SoftDeleteUser> allWithDeleted = jdbcSoftDeleteProxy.includeDeleted().findAll();
+            List<SoftDeleteUser> allWithDeleted = jdbcSoftDeleteProxy.includeDeleted().list();
             assertThat(allWithDeleted).isEmpty();
         }
 
@@ -1353,7 +1354,7 @@ class JdbcEntityProxyIntegrationTest {
             softDeleteProxy.delete(u2); // 软删除
 
             // When
-            List<SoftDeleteUser> allUsers = jdbcSoftDeleteProxy.includeDeleted().findAll();
+            List<SoftDeleteUser> allUsers = jdbcSoftDeleteProxy.includeDeleted().list();
 
             // Then
             assertThat(allUsers).hasSize(2);
@@ -1428,7 +1429,7 @@ class JdbcEntityProxyIntegrationTest {
             // Then
             assertThat(timestampProxy.findById(user.getId())).isEmpty();
             // 验证记录仍在数据库中（使用includeDeleted）
-            List<TimestampSoftDeleteUser> allWithDeleted = jdbcTimestampProxy.includeDeleted().findAll();
+            List<TimestampSoftDeleteUser> allWithDeleted = jdbcTimestampProxy.includeDeleted().list();
             assertThat(allWithDeleted).hasSize(1);
         }
 
@@ -1528,7 +1529,7 @@ class JdbcEntityProxyIntegrationTest {
             timestampProxy.delete(u2);
 
             // When
-            List<TimestampSoftDeleteUser> allUsers = jdbcTimestampProxy.includeDeleted().findAll();
+            List<TimestampSoftDeleteUser> allUsers = jdbcTimestampProxy.includeDeleted().list();
 
             // Then
             assertThat(allUsers).hasSize(2);
@@ -2040,7 +2041,7 @@ class JdbcEntityProxyIntegrationTest {
             assertThat(normalResults.get(0).getName()).isEqualTo("active-user");
 
             // When - 使用 includeDeleted 查询
-            List<SoftDeleteUser> allResults = jdbcSoftDeleteProxy.includeDeleted().findAll();
+            List<SoftDeleteUser> allResults = jdbcSoftDeleteProxy.includeDeleted().list();
 
             // Then
             assertThat(allResults).hasSize(2);
@@ -2065,7 +2066,9 @@ class JdbcEntityProxyIntegrationTest {
             assertThat(normalResult).isEmpty();
 
             // When - 使用 includeDeleted 查询
-            Optional<SoftDeleteUser> withDeletedResult = jdbcSoftDeleteProxy.includeDeleted().findById(user.getId());
+            Optional<SoftDeleteUser> withDeletedResult = jdbcSoftDeleteProxy.includeDeleted()
+                .where(Conditions.eq("id", user.getId()))
+                .one();
 
             // Then
             assertThat(withDeletedResult).isPresent();
@@ -2118,7 +2121,7 @@ class JdbcEntityProxyIntegrationTest {
             assertThat(normalResults).isEmpty();
 
             // When - 使用 includeDeleted 条件查询
-            List<SoftDeleteUser> allResults = jdbcSoftDeleteProxy.includeDeleted().findAll(condition);
+            List<SoftDeleteUser> allResults = jdbcSoftDeleteProxy.includeDeleted().where(condition).list();
 
             // Then
             assertThat(allResults).hasSize(1);
@@ -2147,7 +2150,7 @@ class JdbcEntityProxyIntegrationTest {
             assertThat(normalPage.getTotal()).isEqualTo(1);
 
             // When - 使用 includeDeleted 分页查询
-            Page<SoftDeleteUser> allPage = jdbcSoftDeleteProxy.includeDeleted().findAll(condition, PageRequest.of(1, 10));
+            Page<SoftDeleteUser> allPage = jdbcSoftDeleteProxy.includeDeleted().where(condition).page(PageRequest.of(1, 10));
 
             // Then
             assertThat(allPage.getTotal()).isEqualTo(2);
@@ -2207,11 +2210,11 @@ class JdbcEntityProxyIntegrationTest {
         @DisplayName("withAssociation 应正确配置关联加载")
         void shouldConfigureAssociationLoading() {
             // When
-            EntityProxy<TestUserWithDept> configuredProxy = userWithDeptProxy.withAssociation("department");
+            EntityQuery<TestUserWithDept> configuredQuery = userWithDeptProxy.withAssociation("department");
 
             // Then
-            assertThat(configuredProxy).isNotNull();
-            assertThat(((JdbcEntityProxy<TestUserWithDept>) configuredProxy).getEagerFetchAssociations())
+            assertThat(configuredQuery).isNotNull();
+            assertThat(((JdbcEntityQuery<TestUserWithDept>) configuredQuery).getEagerFetchAssociations())
                 .contains("department");
         }
 
@@ -2219,10 +2222,10 @@ class JdbcEntityProxyIntegrationTest {
         @DisplayName("withAssociations 应配置多个关联加载")
         void shouldConfigureMultipleAssociations() {
             // When
-            EntityProxy<TestUserWithDept> configuredProxy = userWithDeptProxy.withAssociations("department");
+            EntityQuery<TestUserWithDept> configuredQuery = userWithDeptProxy.withAssociations("department");
 
             // Then
-            assertThat(((JdbcEntityProxy<TestUserWithDept>) configuredProxy).getEagerFetchAssociations())
+            assertThat(((JdbcEntityQuery<TestUserWithDept>) configuredQuery).getEagerFetchAssociations())
                 .contains("department");
         }
 
@@ -2308,13 +2311,13 @@ class JdbcEntityProxyIntegrationTest {
         @DisplayName("clearAssociations 应清除关联加载配置")
         void shouldClearAssociations() {
             // Given
-            EntityProxy<TestUserWithDept> configuredProxy = userWithDeptProxy.withAssociation("department");
+            EntityQuery<TestUserWithDept> configuredQuery = userWithDeptProxy.withAssociation("department");
 
             // When
-            EntityProxy<TestUserWithDept> clearedProxy = configuredProxy.clearAssociations();
+            EntityQuery<TestUserWithDept> clearedQuery = configuredQuery.clearAssociations();
 
             // Then
-            assertThat(((JdbcEntityProxy<TestUserWithDept>) clearedProxy).getEagerFetchAssociations())
+            assertThat(((JdbcEntityQuery<TestUserWithDept>) clearedQuery).getEagerFetchAssociations())
                 .isEmpty();
         }
 
@@ -2364,8 +2367,8 @@ class JdbcEntityProxyIntegrationTest {
         @DisplayName("getEagerFetchAssociations 应返回不可修改集合")
         void shouldReturnUnmodifiableSet() {
             // Given
-            EntityProxy<TestUserWithDept> configuredProxy = userWithDeptProxy.withAssociation("department");
-            Set<String> associations = ((JdbcEntityProxy<TestUserWithDept>) configuredProxy).getEagerFetchAssociations();
+            EntityQuery<TestUserWithDept> configuredQuery = userWithDeptProxy.withAssociation("department");
+            Set<String> associations = ((JdbcEntityQuery<TestUserWithDept>) configuredQuery).getEagerFetchAssociations();
 
             // When & Then
             assertThatThrownBy(() -> associations.add("new"))
