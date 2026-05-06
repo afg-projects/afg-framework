@@ -48,8 +48,8 @@ public final class TestDataFactory {
      */
     private static AfgModule createHealthyModule(String id, String name) {
         AfgModule module = mock(AfgModule.class, withSettings().extraInterfaces(ModuleStatusProvider.class));
-        when(module.getModuleId()).thenReturn(id);
-        when(module.getModuleName()).thenReturn(name);
+        when(module.moduleId()).thenReturn(id);
+        when(module.moduleName()).thenReturn(name);
         ModuleStatusProvider statusProvider = (ModuleStatusProvider) module;
         when(statusProvider.getState()).thenReturn(ModuleState.READY);
         return module;
@@ -63,7 +63,7 @@ public final class TestDataFactory {
      */
     public static AfgModule createMockModule(String id) {
         AfgModule module = mock(AfgModule.class);
-        when(module.getModuleId()).thenReturn(id);
+        when(module.moduleId()).thenReturn(id);
         return module;
     }
 
@@ -76,8 +76,8 @@ public final class TestDataFactory {
      */
     public static AfgModule createMockModule(String id, String name) {
         AfgModule module = mock(AfgModule.class);
-        when(module.getModuleId()).thenReturn(id);
-        when(module.getModuleName()).thenReturn(name);
+        when(module.moduleId()).thenReturn(id);
+        when(module.moduleName()).thenReturn(name);
         return module;
     }
 }

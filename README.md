@@ -9,7 +9,7 @@
 ## 特性
 
 - **Core** - 核心：缓存管理、事件发布、异常处理、安全防护
-- **Data** - 数据访问：SQL 构建器、JDBC 增强、数据库迁移
+- **Data** - 数据访问：轻量级 ORM、SQL 构建器、JDBC 增强、数据库迁移
 - **Integration** - 中间件集成：Redis、Kafka、RabbitMQ、WebSocket、Storage
 - **Spring Boot Starter** - 自动配置
 
@@ -28,7 +28,7 @@
 ```xml
 <dependency>
     <groupId>io.github.afg-projects</groupId>
-    <artifactId>afg-framework-core</artifactId>
+    <artifactId>afg-framework-spring-boot-starter</artifactId>
     <version>1.0.0</version>
 </dependency>
 ```
@@ -36,38 +36,65 @@
 **Gradle (Kotlin DSL):**
 
 ```kotlin
-implementation("io.github.afg-projects:afg-framework-core:1.0.0")
+implementation("io.github.afg-projects:afg-framework-spring-boot-starter:1.0.0")
 ```
 
-**Gradle (Groovy DSL):**
+### 数据访问示例
 
-```groovy
-implementation 'io.github.afg-projects:afg-framework-core:1.0.0'
+```java
+@Service
+@RequiredArgsConstructor
+public class UserService {
+    
+    private final DataManager dataManager;
+    
+    // 保存实体
+    public User save(User user) {
+        return dataManager.entity(User.class).save(user);
+    }
+    
+    // 根据 ID 查询
+    public Optional<User> findById(Long id) {
+        return dataManager.entity(User.class).findById(id);
+    }
+    
+    // 条件查询（Lambda 风格）
+    public List<User> findActiveUsers() {
+        return dataManager.entity(User.class)
+            .query()
+            .where(Conditions.builder(User.class)
+                .eq(User::getStatus, "ACTIVE")
+                .build())
+            .list();
+    }
+    
+    // 分页查询
+    public Page<User> listUsers(int page, int size) {
+        return dataManager.entity(User.class)
+            .query()
+            .where(Conditions.builder(User.class)
+                .eq(User::getDeleted, false)
+                .build())
+            .page(PageRequest.of(page, size, Sort.by(Sort.Order.desc("createdAt"))));
+    }
+}
 ```
 
-### Snapshot 版本
+### 实体定义
 
-如需使用最新的 Snapshot 版本，添加 Maven Central Snapshot 仓库：
-
-**Maven:**
-
-```xml
-<repository>
-    <id>sonatype-snapshots</id>
-    <url>https://central.sonatype.com/repository/maven-snapshots/</url>
-    <snapshots>
-        <enabled>true</enabled>
-    </snapshots>
-</repository>
-```
-
-**Gradle (Kotlin DSL):**
-
-```kotlin
-repositories {
-    mavenCentral()
-    maven {
-        url = uri("https://central.sonatype.com/repository/maven-snapshots/")
+```java
+@Getter
+@Setter
+public class User extends BaseEntity {
+    
+    private Long id;
+    private String username;
+    private String password;
+    private String realName;
+    private UserStatus status = UserStatus.ACTIVE;
+    
+    public enum UserStatus {
+        ACTIVE, DISABLED, LOCKED
     }
 }
 ```
@@ -84,6 +111,9 @@ cd afg-framework
 
 # 运行测试
 ./gradlew test
+
+# 运行单个模块测试
+./gradlew :data-impl:data-jdbc:test
 ```
 
 ## 模块说明
@@ -101,17 +131,21 @@ cd afg-framework
 | integration/afg-rabbitmq | afg-framework-afg-rabbitmq | RabbitMQ 消息队列集成 |
 | integration/afg-websocket | afg-framework-afg-websocket | WebSocket 实时通信集成 |
 | integration/afg-storage | afg-framework-afg-storage | 文件存储抽象层：本地、OSS、S3 |
-| integration/afg-jdbc | afg-framework-afg-jdbc | JDBC 审计日志存储 |
-| integration/afg-nacos | afg-framework-afg-nacos | Nacos 配置中心集成 |
-| integration/afg-apollo | afg-framework-afg-apollo | Apollo 配置中心集成 |
-| integration/afg-consul | afg-framework-afg-consul | Consul 服务发现与配置集成 |
+
+## 支持的数据库
+
+- MySQL / OceanBase
+- PostgreSQL / GaussDB / OpenGauss / Kingbase
+- Oracle
+- SQL Server
+- H2
+- DM (达梦)
 
 ## 文档
 
 - [快速开始指南](docs/quick-start.md)
+- [数据访问层](docs/data/README.md)
 - [核心功能](docs/core/README.md)
-- [数据访问](docs/data/README.md)
-- [中间件集成](docs/integration/README.md)
 
 ## 贡献
 

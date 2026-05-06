@@ -1,7 +1,5 @@
 package io.github.afgprojects.framework.core.web.version;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Objects;
 
 import org.jspecify.annotations.NonNull;
@@ -20,11 +18,25 @@ import jakarta.servlet.http.HttpServletRequest;
  *   <li>主版本匹配：请求版本的主版本号与 API 版本相同</li>
  *   <li>版本降级：请求版本高于 API 版本时，匹配最近的有效版本</li>
  * </ul>
+ *
+ * <p>性能优化：版本解析逻辑直接在此类中执行，不依赖拦截器，
+ * 只有带有 @ApiVersion 注解的请求才会触发版本匹配逻辑。
  */
 public class ApiVersionRequestCondition implements RequestCondition<ApiVersionRequestCondition> {
 
+    /**
+     * 请求属性 key：解析的版本信息
+     */
+    public static final String RESOLVED_VERSION_ATTRIBUTE = ApiVersionRequestCondition.class.getName() + ".RESOLVED_VERSION";
+
+    /**
+     * 请求属性 key：API 版本注解信息
+     */
+    public static final String API_VERSION_INFO_ATTRIBUTE = ApiVersionRequestCondition.class.getName() + ".API_VERSION_INFO";
+
     private final ApiVersionInfo versionInfo;
     private final ApiVersionProperties properties;
+    private final ApiVersionResolver versionResolver;
 
     /**
      * 创建版本请求条件
@@ -35,6 +47,7 @@ public class ApiVersionRequestCondition implements RequestCondition<ApiVersionRe
     public ApiVersionRequestCondition(@NonNull ApiVersionInfo versionInfo, @NonNull ApiVersionProperties properties) {
         this.versionInfo = versionInfo;
         this.properties = properties;
+        this.versionResolver = new ApiVersionResolver(properties);
     }
 
     /**
@@ -54,22 +67,14 @@ public class ApiVersionRequestCondition implements RequestCondition<ApiVersionRe
 
     @Override
     @Nullable public ApiVersionRequestCondition getMatchingCondition(@NonNull HttpServletRequest request) {
-        // 解析请求版本
-        Object versionObj = ApiVersionInterceptor.getResolvedVersion(request);
-        ApiVersionResolver.ResolvedVersion resolvedVersion = null;
-
-        if (versionObj instanceof ApiVersionResolver.ResolvedVersion rv) {
-            resolvedVersion = rv;
-        }
-
-        if (resolvedVersion == null) {
-            // 如果没有版本信息，使用默认版本
-            resolvedVersion = new ApiVersionResolver.ResolvedVersion(
-                    ApiVersionInfo.of(properties.getDefaultVersion()), null, "default");
-        }
+        // 直接从请求解析版本（不依赖拦截器）
+        ApiVersionResolver.ResolvedVersion resolvedVersion = versionResolver.resolve(request);
 
         // 检查版本兼容性
         if (matches(resolvedVersion)) {
+            // 存储版本信息供后续使用（如废弃警告、响应头设置）
+            request.setAttribute(RESOLVED_VERSION_ATTRIBUTE, resolvedVersion);
+            request.setAttribute(API_VERSION_INFO_ATTRIBUTE, versionInfo);
             return this;
         }
 
@@ -82,7 +87,7 @@ public class ApiVersionRequestCondition implements RequestCondition<ApiVersionRe
      * @param resolvedVersion 解析的版本
      * @return 是否匹配
      */
-    private boolean matches(ApiVersionResolver.ResolvedVersion resolvedVersion) {
+    private boolean matches(ApiVersionResolver.@NonNull ResolvedVersion resolvedVersion) {
         int requestMajor = resolvedVersion.getMajor();
         int apiMajor = versionInfo.major();
 
@@ -92,13 +97,38 @@ public class ApiVersionRequestCondition implements RequestCondition<ApiVersionRe
 
     @Override
     public int compareTo(@NonNull ApiVersionRequestCondition other, @NonNull HttpServletRequest request) {
-        // 优先匹配更高版本（compareTo 返回正数表示 this > other）
-        // 我们希望更高版本优先，所以返回 this - other
+        // 优先匹配更高版本
         return this.versionInfo.compareTo(other.versionInfo);
     }
 
-    // getContent 和 getToStringInfix 在 Spring 6.2+ 中为 final 方法
-    // 重写 toString 以提供自定义表示
+    /**
+     * 从请求中获取解析的版本信息
+     *
+     * @param request HTTP 请求
+     * @return 解析的版本信息，如果不存在则返回 null
+     */
+    public static ApiVersionResolver.@Nullable ResolvedVersion getResolvedVersion(@NonNull HttpServletRequest request) {
+        Object attr = request.getAttribute(RESOLVED_VERSION_ATTRIBUTE);
+        if (attr instanceof ApiVersionResolver.ResolvedVersion rv) {
+            return rv;
+        }
+        return null;
+    }
+
+    /**
+     * 从请求中获取 API 版本信息
+     *
+     * @param request HTTP 请求
+     * @return API 版本信息，如果不存在则返回 null
+     */
+    @Nullable
+    public static ApiVersionInfo getApiVersionInfo(@NonNull HttpServletRequest request) {
+        Object attr = request.getAttribute(API_VERSION_INFO_ATTRIBUTE);
+        if (attr instanceof ApiVersionInfo info) {
+            return info;
+        }
+        return null;
+    }
 
     @Override
     public boolean equals(@Nullable Object o) {

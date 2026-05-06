@@ -6,6 +6,7 @@ import java.util.List;
 import jakarta.servlet.Servlet;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -29,11 +30,13 @@ import io.github.afgprojects.framework.core.web.security.sanitizer.EnhancedInput
 @AutoConfiguration
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @ConditionalOnClass(Servlet.class)
+@ConditionalOnProperty(prefix = "afg.security", name = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(AfgSecurityProperties.class)
 public class AfgSecurityAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    @ConditionalOnProperty(prefix = "afg.security.input-sanitizer", name = "enabled", havingValue = "true", matchIfMissing = true)
     public EnhancedInputSanitizer enhancedInputSanitizer(AfgSecurityProperties properties) {
         return new EnhancedInputSanitizer(properties);
     }
@@ -41,6 +44,7 @@ public class AfgSecurityAutoConfiguration {
     @Bean
     @ConditionalOnProperty(prefix = "afg.security.xss", name = "enabled", havingValue = "true", matchIfMissing = true)
     @ConditionalOnMissingBean
+    @ConditionalOnBean(EnhancedInputSanitizer.class)
     public XssFilter xssFilter(EnhancedInputSanitizer sanitizer) {
         return new XssFilter(sanitizer);
     }
@@ -52,6 +56,7 @@ public class AfgSecurityAutoConfiguration {
             havingValue = "true",
             matchIfMissing = true)
     @ConditionalOnMissingBean
+    @ConditionalOnBean(EnhancedInputSanitizer.class)
     public SqlInjectionFilter sqlInjectionFilter(EnhancedInputSanitizer sanitizer) {
         return new SqlInjectionFilter(sanitizer);
     }

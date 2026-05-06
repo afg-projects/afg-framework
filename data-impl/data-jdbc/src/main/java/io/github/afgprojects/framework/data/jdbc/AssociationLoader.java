@@ -84,7 +84,7 @@ class AssociationLoader {
 
         EntityProxy<?> targetProxy = dataManager.entity(targetEntityClass);
         Condition condition = Conditions.eq(foreignKeyColumn, idValue);
-        return targetProxy.findOne(condition).orElse(null);
+        return targetProxy.query().where(condition).one().orElse(null);
     }
 
     /**
@@ -97,7 +97,7 @@ class AssociationLoader {
 
         EntityProxy<?> targetProxy = dataManager.entity(targetEntityClass);
         Condition condition = Conditions.eq(foreignKeyColumn, idValue);
-        return targetProxy.findAll(condition);
+        return targetProxy.query().where(condition).list();
     }
 
     /**
@@ -178,7 +178,7 @@ class AssociationLoader {
 
         EntityProxy<?> targetProxy = dataManager.entity(targetEntityClass);
         Condition condition = Conditions.in(foreignKeyColumn, ids);
-        List<?> targets = targetProxy.findAll(condition);
+        List<?> targets = targetProxy.query().where(condition).list();
 
         // 构建外键到目标实体的映射
         Map<Object, Object> foreignKeyToTarget = new HashMap<>();
@@ -213,7 +213,7 @@ class AssociationLoader {
 
         EntityProxy<?> targetProxy = dataManager.entity(targetEntityClass);
         Condition condition = Conditions.in(foreignKeyColumn, ids);
-        List<?> targets = targetProxy.findAll(condition);
+        List<?> targets = targetProxy.query().where(condition).list();
 
         // 构建外键到目标实体列表的映射
         Map<Object, List<Object>> foreignKeyToTargets = new HashMap<>();

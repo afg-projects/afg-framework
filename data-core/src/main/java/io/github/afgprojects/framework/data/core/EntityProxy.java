@@ -6,230 +6,47 @@ import io.github.afgprojects.framework.data.core.query.Page;
 import io.github.afgprojects.framework.data.core.scope.DataScope;
 import org.jspecify.annotations.NonNull;
 
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
  * 实体操作代理
  * <p>
- * 类型安全的实体操作入口，支持链式调用配置企业级特性。
+ * 类型安全的实体操作入口，整合读取、写入、查询三大能力。
+ * <p>
+ * 该接口继承自 {@link EntityReader}、{@link EntityWriter}，
+ * 提供完整的实体操作能力。接口拆分后职责更清晰，便于理解和维护。
  * <p>
  * 使用示例：
  * <pre>
  * // 基础 CRUD
- * dataManager.entity(User.class).save(user);
- * dataManager.entity(User.class).findById(1L);
+ * User saved = dataManager.entity(User.class).save(user);
+ * Optional&lt;User&gt; user = dataManager.entity(User.class).findById(1L);
  *
- * // 条件查询
+ * // 条件查询（推荐使用 query() 方法）
  * List&lt;User&gt; users = dataManager.entity(User.class)
- *     .findAll(Conditions.builder().eq("status", 1).build());
+ *     .query()
+ *     .where(Conditions.builder(User.class).eq(User::getStatus, 1).build())
+ *     .list();
  *
- * // 企业级特性
+ * // 分页查询
+ * Page&lt;User&gt; page = dataManager.entity(User.class)
+ *     .query()
+ *     .where(condition)
+ *     .page(PageRequest.of(1, 10));
+ *
+ * // 企业级特性（便捷方法，等同于 query().withXxx()）
  * List&lt;User&gt; users = dataManager.entity(User.class)
  *     .withDataScope(DataScope.of("sys_user", "dept_id", DataScopeType.DEPT))
  *     .withTenant("tenant-001")
- *     .findAll();
+ *     .findAll(condition);
  * </pre>
  *
  * @param <T> 实体类型
+ * @see EntityReader 实体读取操作接口
+ * @see EntityWriter 实体写入操作接口
+ * @see EntityQuery 实体条件查询接口
  */
-public interface EntityProxy<T> {
-
-    // ==================== 基础 CRUD ====================
-
-    /**
-     * 保存实体（新增或更新）
-     */
-    @NonNull T save(@NonNull T entity);
-
-    /**
-     * 批量保存实体
-     */
-    @NonNull List<T> saveAll(@NonNull Iterable<T> entities);
-
-    /**
-     * 插入实体
-     */
-    @NonNull T insert(@NonNull T entity);
-
-    /**
-     * 批量插入实体
-     */
-    @NonNull List<T> insertAll(@NonNull Iterable<T> entities);
-
-    /**
-     * 更新实体
-     */
-    @NonNull T update(@NonNull T entity);
-
-    /**
-     * 批量更新实体
-     */
-    @NonNull List<T> updateAll(@NonNull Iterable<T> entities);
-
-    /**
-     * 根据ID查询实体
-     */
-    @NonNull Optional<T> findById(@NonNull Object id);
-
-    /**
-     * 查询所有实体
-     */
-    @NonNull List<T> findAll();
-
-    /**
-     * 根据多个ID查询实体
-     */
-    @NonNull List<T> findAllById(@NonNull Iterable<?> ids);
-
-    /**
-     * 统计实体总数
-     */
-    long count();
-
-    /**
-     * 判断实体是否存在
-     */
-    boolean existsById(@NonNull Object id);
-
-    /**
-     * 根据ID删除实体
-     */
-    void deleteById(@NonNull Object id);
-
-    /**
-     * 删除实体
-     */
-    void delete(@NonNull T entity);
-
-    /**
-     * 根据多个ID批量删除
-     */
-    void deleteAllById(@NonNull Iterable<?> ids);
-
-    /**
-     * 批量删除实体
-     */
-    void deleteAll(@NonNull Iterable<? extends T> entities);
-
-    // ==================== 条件查询 ====================
-
-    /**
-     * 根据条件查询实体列表
-     */
-    @NonNull List<T> findAll(@NonNull Condition condition);
-
-    /**
-     * 根据条件分页查询
-     */
-    @NonNull Page<T> findAll(@NonNull Condition condition, @NonNull PageRequest pageable);
-
-    /**
-     * 根据条件统计数量
-     */
-    long count(@NonNull Condition condition);
-
-    /**
-     * 根据条件判断是否存在
-     */
-    boolean exists(@NonNull Condition condition);
-
-    /**
-     * 根据条件查询唯一实体
-     */
-    @NonNull Optional<T> findOne(@NonNull Condition condition);
-
-    /**
-     * 根据条件查询第一个实体
-     */
-    @NonNull Optional<T> findFirst(@NonNull Condition condition);
-
-    // ==================== 条件更新/删除 ====================
-
-    /**
-     * 根据条件批量更新
-     */
-    long updateAll(@NonNull Condition condition, @NonNull Map<String, Object> updates);
-
-    /**
-     * 根据条件批量删除
-     */
-    long deleteAll(@NonNull Condition condition);
-
-    // ==================== 企业级特性 ====================
-
-    /**
-     * 设置数据权限
-     */
-    @NonNull EntityProxy<T> withDataScope(@NonNull DataScope scope);
-
-    /**
-     * 设置多个数据权限
-     */
-    @NonNull EntityProxy<T> withDataScopes(@NonNull DataScope... scopes);
-
-    /**
-     * 设置租户ID
-     */
-    @NonNull EntityProxy<T> withTenant(@NonNull String tenantId);
-
-    /**
-     * 设置数据源
-     */
-    @NonNull EntityProxy<T> withDataSource(@NonNull String name);
-
-    /**
-     * 设置只读模式
-     */
-    @NonNull EntityProxy<T> withReadOnly();
-
-    /**
-     * 包含已删除记录（软删除场景）
-     */
-    @NonNull EntityProxy<T> includeDeleted();
-
-    // ==================== 软删除扩展 ====================
-
-    /**
-     * 根据ID恢复删除
-     */
-    void restoreById(@NonNull Object id);
-
-    /**
-     * 根据多个ID恢复删除
-     */
-    void restoreAllById(@NonNull Iterable<?> ids);
-
-    // ==================== 关联查询 ====================
-
-    /**
-     * 急加载指定关联
-     * <p>
-     * 配置查询时加载关联数据，支持链式调用配置多个关联。
-     * <p>
-     * 使用示例：
-     * <pre>
-     * List&lt;User&gt; users = dataManager.entity(User.class)
-     *     .withAssociation("profile")
-     *     .withAssociation("orders")
-     *     .findAll();
-     * </pre>
-     *
-     * @param name 关联字段名
-     * @return 实体操作代理（支持链式调用）
-     */
-    @NonNull EntityProxy<T> withAssociation(@NonNull String name);
-
-    /**
-     * 急加载多个关联
-     * <p>
-     * 配置查询时加载多个关联数据。
-     *
-     * @param names 关联字段名数组
-     * @return 实体操作代理（支持链式调用）
-     */
-    @NonNull EntityProxy<T> withAssociations(@NonNull String... names);
+public interface EntityProxy<T> extends EntityReader<T>, EntityWriter<T> {
 
     /**
      * 加载实体的关联数据
@@ -242,9 +59,9 @@ public interface EntityProxy<T> {
      * List&lt;Order&gt; orders = dataManager.entity(User.class).fetch(user, "orders");
      * </pre>
      *
-     * @param entity     实体实例
-     * @param name       关联字段名
-     * @param <R>        关联数据类型
+     * @param entity 实体实例
+     * @param name   关联字段名
+     * @param <R>    关联数据类型
      * @return 关联数据
      */
     <R> @NonNull R fetch(@NonNull T entity, @NonNull String name);
@@ -259,12 +76,185 @@ public interface EntityProxy<T> {
      */
     void fetchAll(@NonNull Iterable<T> entities, @NonNull String name);
 
+    // ==================== 便捷方法（委托到 query()） ====================
+
     /**
-     * 清除关联加载配置
+     * 设置数据权限（便捷方法）
      * <p>
-     * 清除之前配置的关联加载设置，恢复默认行为。
+     * 等同于 {@code query().withDataScope(scope)}
      *
-     * @return 实体操作代理
+     * @param scope 数据权限范围
+     * @return 查询构建器
      */
-    @NonNull EntityProxy<T> clearAssociations();
+    default @NonNull EntityQuery<T> withDataScope(@NonNull DataScope scope) {
+        return query().withDataScope(scope);
+    }
+
+    /**
+     * 设置多个数据权限（便捷方法）
+     * <p>
+     * 等同于 {@code query().withDataScopes(scopes)}
+     *
+     * @param scopes 数据权限范围数组
+     * @return 查询构建器
+     */
+    default @NonNull EntityQuery<T> withDataScopes(@NonNull DataScope... scopes) {
+        return query().withDataScopes(scopes);
+    }
+
+    /**
+     * 设置租户ID（便捷方法）
+     * <p>
+     * 等同于 {@code query().withTenant(tenantId)}
+     *
+     * @param tenantId 租户ID
+     * @return 查询构建器
+     */
+    default @NonNull EntityQuery<T> withTenant(@NonNull String tenantId) {
+        return query().withTenant(tenantId);
+    }
+
+    /**
+     * 设置数据源（便捷方法）
+     * <p>
+     * 等同于 {@code query().withDataSource(name)}
+     *
+     * @param name 数据源名称
+     * @return 查询构建器
+     */
+    default @NonNull EntityQuery<T> withDataSource(@NonNull String name) {
+        return query().withDataSource(name);
+    }
+
+    /**
+     * 设置只读模式（便捷方法）
+     * <p>
+     * 等同于 {@code query().withReadOnly()}
+     *
+     * @return 查询构建器
+     */
+    default @NonNull EntityQuery<T> withReadOnly() {
+        return query().withReadOnly();
+    }
+
+    /**
+     * 包含已删除记录（便捷方法）
+     * <p>
+     * 等同于 {@code query().includeDeleted()}
+     *
+     * @return 查询构建器
+     */
+    default @NonNull EntityQuery<T> includeDeleted() {
+        return query().includeDeleted();
+    }
+
+    /**
+     * 急加载指定关联（便捷方法）
+     * <p>
+     * 等同于 {@code query().withAssociation(name)}
+     *
+     * @param name 关联字段名
+     * @return 查询构建器
+     */
+    default @NonNull EntityQuery<T> withAssociation(@NonNull String name) {
+        return query().withAssociation(name);
+    }
+
+    /**
+     * 急加载多个关联（便捷方法）
+     * <p>
+     * 等同于 {@code query().withAssociations(names)}
+     *
+     * @param names 关联字段名数组
+     * @return 查询构建器
+     */
+    default @NonNull EntityQuery<T> withAssociations(@NonNull String... names) {
+        return query().withAssociations(names);
+    }
+
+    /**
+     * 清除关联加载配置（便捷方法）
+     * <p>
+     * 等同于 {@code query().clearAssociations()}
+     *
+     * @return 查询构建器
+     */
+    default @NonNull EntityQuery<T> clearAssociations() {
+        return query().clearAssociations();
+    }
+
+    // ==================== 条件查询便捷方法 ====================
+
+    /**
+     * 根据条件查询实体列表（便捷方法）
+     * <p>
+     * 等同于 {@code query().where(condition).list()}
+     *
+     * @param condition 查询条件
+     * @return 实体列表
+     */
+    default java.util.@NonNull List<T> findAll(@NonNull Condition condition) {
+        return query().where(condition).list();
+    }
+
+    /**
+     * 根据条件分页查询（便捷方法）
+     * <p>
+     * 等同于 {@code query().where(condition).page(pageRequest)}
+     *
+     * @param condition   查询条件
+     * @param pageRequest 分页参数
+     * @return 分页结果
+     */
+    default @NonNull Page<T> findAll(@NonNull Condition condition, @NonNull PageRequest pageRequest) {
+        return query().where(condition).page(pageRequest);
+    }
+
+    /**
+     * 根据条件统计数量（便捷方法）
+     * <p>
+     * 等同于 {@code query().where(condition).count()}
+     *
+     * @param condition 查询条件
+     * @return 数量
+     */
+    default long count(@NonNull Condition condition) {
+        return query().where(condition).count();
+    }
+
+    /**
+     * 根据条件判断是否存在（便捷方法）
+     * <p>
+     * 等同于 {@code query().where(condition).exists()}
+     *
+     * @param condition 查询条件
+     * @return 是否存在
+     */
+    default boolean exists(@NonNull Condition condition) {
+        return query().where(condition).exists();
+    }
+
+    /**
+     * 根据条件查询唯一实体（便捷方法）
+     * <p>
+     * 等同于 {@code query().where(condition).one()}
+     *
+     * @param condition 查询条件
+     * @return 实体（可能为空）
+     */
+    default java.util.@NonNull Optional<T> findOne(@NonNull Condition condition) {
+        return query().where(condition).one();
+    }
+
+    /**
+     * 根据条件查询第一个实体（便捷方法）
+     * <p>
+     * 等同于 {@code query().where(condition).first()}
+     *
+     * @param condition 查询条件
+     * @return 实体（可能为空）
+     */
+    default java.util.@NonNull Optional<T> findFirst(@NonNull Condition condition) {
+        return query().where(condition).first();
+    }
 }

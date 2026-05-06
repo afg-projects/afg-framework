@@ -4,16 +4,10 @@ package io.github.afgprojects.framework.data.core.exception;
  * 乐观锁异常
  * <p>
  * 当乐观锁更新失败时抛出此异常（即 UPDATE 行数为 0，表示版本冲突）。
- * </p>
  */
-public class OptimisticLockException extends RuntimeException {
+public class OptimisticLockException extends DataAccessException {
 
     private static final long serialVersionUID = 1L;
-
-    /**
-     * 实体类名
-     */
-    private final String entityClassName;
 
     /**
      * 实体 ID
@@ -34,8 +28,8 @@ public class OptimisticLockException extends RuntimeException {
      */
     public OptimisticLockException(String entityClassName, Object entityId, long expectedVersion) {
         super(String.format("Optimistic lock conflict: entity=%s, id=%s, expectedVersion=%d",
-            entityClassName, entityId, expectedVersion));
-        this.entityClassName = entityClassName;
+            entityClassName, entityId, expectedVersion),
+            entityClassName);
         this.entityId = entityId;
         this.expectedVersion = expectedVersion;
     }
@@ -49,19 +43,9 @@ public class OptimisticLockException extends RuntimeException {
      * @param expectedVersion  期望的版本号
      */
     public OptimisticLockException(String message, String entityClassName, Object entityId, long expectedVersion) {
-        super(message);
-        this.entityClassName = entityClassName;
+        super(message, entityClassName);
         this.entityId = entityId;
         this.expectedVersion = expectedVersion;
-    }
-
-    /**
-     * 获取实体类名
-     *
-     * @return 实体类名
-     */
-    public String getEntityClassName() {
-        return entityClassName;
     }
 
     /**

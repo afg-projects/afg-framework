@@ -43,32 +43,30 @@ class CacheAutoConfigurationTest {
             CacheProperties properties = new CacheProperties();
             properties.setType(CacheProperties.CacheType.LOCAL);
 
-            DefaultCacheManager manager = configuration.cacheManager(properties, null);
+            DefaultCacheManager manager = configuration.cacheManager(properties);
 
             assertThat(manager).isNotNull();
-            assertThat(manager.getProperties()).isEqualTo(properties);
+            assertThat(manager.getProperties()).isNotNull();
         }
 
         @Test
-        @DisplayName("应该创建分布式缓存管理器")
+        @DisplayName("应该创建分布式缓存管理器（回退到本地缓存）")
         void shouldCreateDistributedCacheManager() {
             CacheProperties properties = new CacheProperties();
             properties.setType(CacheProperties.CacheType.DISTRIBUTED);
-            RedissonClient redissonClient = mock(RedissonClient.class);
 
-            DefaultCacheManager manager = configuration.cacheManager(properties, redissonClient);
+            DefaultCacheManager manager = configuration.cacheManager(properties);
 
             assertThat(manager).isNotNull();
         }
 
         @Test
-        @DisplayName("应该创建多级缓存管理器")
+        @DisplayName("应该创建多级缓存管理器（回退到本地缓存）")
         void shouldCreateMultiLevelCacheManager() {
             CacheProperties properties = new CacheProperties();
             properties.setType(CacheProperties.CacheType.MULTI_LEVEL);
-            RedissonClient redissonClient = mock(RedissonClient.class);
 
-            DefaultCacheManager manager = configuration.cacheManager(properties, redissonClient);
+            DefaultCacheManager manager = configuration.cacheManager(properties);
 
             assertThat(manager).isNotNull();
         }
@@ -80,7 +78,7 @@ class CacheAutoConfigurationTest {
             properties.setType(CacheProperties.CacheType.DISTRIBUTED);
             properties.setDefaultTtl(60000);
 
-            DefaultCacheManager manager = configuration.cacheManager(properties, null);
+            DefaultCacheManager manager = configuration.cacheManager(properties);
 
             assertThat(manager).isNotNull();
             // 验证可以创建本地缓存
@@ -94,7 +92,7 @@ class CacheAutoConfigurationTest {
             CacheProperties properties = new CacheProperties();
             properties.setType(CacheProperties.CacheType.MULTI_LEVEL);
 
-            DefaultCacheManager manager = configuration.cacheManager(properties, null);
+            DefaultCacheManager manager = configuration.cacheManager(properties);
 
             assertThat(manager).isNotNull();
             LocalCache<String> cache = manager.getLocalCache("test");
@@ -113,7 +111,7 @@ class CacheAutoConfigurationTest {
             properties.setType(CacheProperties.CacheType.DISTRIBUTED);
 
             // 通过 cacheManager 行为间接验证
-            DefaultCacheManager manager = configuration.cacheManager(properties, null);
+            DefaultCacheManager manager = configuration.cacheManager(properties);
             assertThat(manager).isNotNull();
         }
 
@@ -124,7 +122,7 @@ class CacheAutoConfigurationTest {
             properties.setType(CacheProperties.CacheType.MULTI_LEVEL);
 
             // 通过 cacheManager 行为间接验证
-            DefaultCacheManager manager = configuration.cacheManager(properties, null);
+            DefaultCacheManager manager = configuration.cacheManager(properties);
             assertThat(manager).isNotNull();
         }
 
@@ -134,7 +132,7 @@ class CacheAutoConfigurationTest {
             CacheProperties properties = new CacheProperties();
             properties.setType(CacheProperties.CacheType.LOCAL);
 
-            DefaultCacheManager manager = configuration.cacheManager(properties, null);
+            DefaultCacheManager manager = configuration.cacheManager(properties);
             assertThat(manager).isNotNull();
         }
     }

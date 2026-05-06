@@ -10,8 +10,10 @@ import javax.inject.Inject
  * 使用方式：
  * <pre>
  * afg {
+ *     springBootVersion.set("4.0.5")
+ *     frameworkVersion.set("1.0.0-SNAPSHOT")
  *     moduleType.set("data")
- *     frameworkVersion.set("1.0.0")
+ *     deploymentMode.set("module")  // module 或 platform
  *     useLombok.set(true)
  *     useValidation.set(true)
  *
@@ -29,17 +31,31 @@ abstract class AfgExtension @Inject constructor(
     private val reverseEngineeringExt: ReverseEngineeringExtension
 ) {
     /**
-     * 模块类型：core, data, auth, storage, job, registry, starter
+     * Spring Boot 版本
+     *
+     * 格式: major.minor.patch
+     * 示例: 4.0.5
+     * 默认: 4.0.5
+     */
+    abstract val springBootVersion: Property<String>
+
+    /**
+     * 模块类型：starter, data, integration
      *
      * 决定自动添加哪些框架依赖：
-     * - data: core + data-jdbc + data-liquibase
-     * - auth: core + auth
-     * - storage: core + storage
-     * - job: core + job
-     * - registry: core + registry
-     * - starter: 仅 core
+     * - starter: 仅核心依赖
+     * - data: 核心 + data-jdbc + data-liquibase
+     * - integration: 核心 + spring-boot-starter
      */
     abstract val moduleType: Property<String>
+
+    /**
+     * 部署模式：module, platform
+     *
+     * - module: 独立部署模式，生成可执行 bootJar
+     * - platform: 聚合部署模式，作为普通 jar 被主应用依赖
+     */
+    abstract val deploymentMode: Property<String>
 
     /**
      * 框架版本
@@ -59,7 +75,7 @@ abstract class AfgExtension @Inject constructor(
     /**
      * 是否使用 Lombok
      *
-     * 自动配置 Lombok 依赖和注解处理器
+     * 自动配置 Lombok 依赖和注解处理器（版本由 Spring Boot BOM 管理）
      */
     abstract val useLombok: Property<Boolean>
 
@@ -73,7 +89,7 @@ abstract class AfgExtension @Inject constructor(
     /**
      * 是否使用 Bean Validation
      *
-     * 自动配置 jakarta.validation-api 依赖
+     * 自动配置 jakarta.validation-api 依赖（版本由 Spring Boot BOM 管理）
      */
     abstract val useValidation: Property<Boolean>
 

@@ -16,22 +16,42 @@ public interface AfgModule {
      *
      * @return 模块ID
      */
-    String getModuleId();
+    String moduleId();
 
     /**
      * 获取模块显示名称
      *
      * @return 模块名称
      */
-    String getModuleName();
+    String moduleName();
 
     /**
      * 获取依赖的模块ID列表
      *
      * @return 依赖模块ID列表，无依赖返回空列表
      */
-    default List<String> getDependencies() {
+    default List<String> dependencies() {
         return Collections.emptyList();
+    }
+
+    /**
+     * 获取模块基础包名
+     * 用于自动为该包下的 Controller 添加 contextPath 前缀
+     *
+     * @return 基础包名，如 "io.github.afgprojects.auth"
+     */
+    default String basePackage() {
+        return "";
+    }
+
+    /**
+     * 获取模块上下文路径
+     * 用于 Web MVC 路径映射前缀
+     *
+     * @return 上下文路径，如 "/api/auth"
+     */
+    default String contextPath() {
+        return "";
     }
 
     /**

@@ -1,6 +1,7 @@
 package io.github.afgprojects.framework.data.core.relation;
 
 import io.github.afgprojects.framework.data.core.EntityProxy;
+import io.github.afgprojects.framework.data.core.EntityQuery;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;
@@ -13,14 +14,14 @@ class EntityProxyRelationTest {
     void shouldHaveWithAssociationMethod() throws NoSuchMethodException {
         Method method = EntityProxy.class.getMethod("withAssociation", String.class);
         assertThat(method).isNotNull();
-        assertThat(method.getReturnType()).isEqualTo(EntityProxy.class);
+        assertThat(method.getReturnType()).isEqualTo(EntityQuery.class);
     }
 
     @Test
     void shouldHaveWithAssociationsMethod() throws NoSuchMethodException {
         Method method = EntityProxy.class.getMethod("withAssociations", String[].class);
         assertThat(method).isNotNull();
-        assertThat(method.getReturnType()).isEqualTo(EntityProxy.class);
+        assertThat(method.getReturnType()).isEqualTo(EntityQuery.class);
     }
 
     @Test
@@ -40,6 +41,6 @@ class EntityProxyRelationTest {
     void shouldHaveClearAssociationsMethod() throws NoSuchMethodException {
         Method method = EntityProxy.class.getMethod("clearAssociations");
         assertThat(method).isNotNull();
-        assertThat(method.getReturnType()).isEqualTo(EntityProxy.class);
+        assertThat(method.getReturnType()).isEqualTo(EntityQuery.class);
     }
 }

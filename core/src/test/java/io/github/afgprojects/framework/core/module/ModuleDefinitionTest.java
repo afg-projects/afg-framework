@@ -231,4 +231,78 @@ class ModuleDefinitionTest extends BaseUnitTest {
             assertTrue(result.contains("Test Module"));
         }
     }
+
+    @Nested
+    @DisplayName("configFile 字段测试")
+    class ConfigFileTest {
+
+        @Test
+        @DisplayName("应该正确设置自定义配置文件名")
+        void shouldSetCustomConfigFile() {
+            // when
+            ModuleDefinition definition = ModuleDefinition.builder()
+                    .id("auth")
+                    .name("Auth Module")
+                    .configFile("custom-auth.yml")
+                    .build();
+
+            // then
+            assertEquals("custom-auth.yml", definition.configFile());
+        }
+
+        @Test
+        @DisplayName("未指定配置文件时应返回空字符串")
+        void shouldReturnEmptyWhenConfigFileNotSet() {
+            // when
+            ModuleDefinition definition = ModuleDefinition.builder()
+                    .id("auth")
+                    .name("Auth Module")
+                    .build();
+
+            // then
+            assertEquals("", definition.configFile());
+        }
+
+        @Test
+        @DisplayName("null 配置文件应转换为空字符串")
+        void shouldConvertNullToEmpty() {
+            // when
+            ModuleDefinition definition = ModuleDefinition.builder()
+                    .id("auth")
+                    .name("Auth Module")
+                    .configFile(null)
+                    .build();
+
+            // then
+            assertEquals("", definition.configFile());
+        }
+
+        @Test
+        @DisplayName("完整构建应包含所有字段")
+        void shouldBuildWithAllFields() {
+            // given
+            AfgModule module = TestDataFactory.createMockModule("auth");
+
+            // when
+            ModuleDefinition definition = ModuleDefinition.builder()
+                    .id("auth")
+                    .name("Auth Module")
+                    .dependencies(List.of("system"))
+                    .moduleInstance(module)
+                    .basePackage("io.github.afgprojects.auth")
+                    .contextPath("/auth-api")
+                    .configFile("module-auth.yml")
+                    .build();
+
+            // then
+            assertEquals("auth", definition.id());
+            assertEquals("Auth Module", definition.name());
+            assertEquals(1, definition.dependencies().size());
+            assertTrue(definition.dependencies().contains("system"));
+            assertNotNull(definition.moduleInstance());
+            assertEquals("io.github.afgprojects.auth", definition.basePackage());
+            assertEquals("/auth-api", definition.contextPath());
+            assertEquals("module-auth.yml", definition.configFile());
+        }
+    }
 }

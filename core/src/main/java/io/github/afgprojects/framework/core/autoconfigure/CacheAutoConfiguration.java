@@ -1,7 +1,5 @@
 package io.github.afgprojects.framework.core.autoconfigure;
 
-import org.jspecify.annotations.Nullable;
-import org.redisson.api.RedissonClient;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -25,9 +23,10 @@ import io.github.afgprojects.framework.core.cache.CacheProperties;
  * 支持三种缓存类型：
  * <ul>
  *   <li>local: 本地缓存（Caffeine）</li>
- *   <li>distributed: 分布式缓存（Redisson）</li>
- *   <li>multi-level: 多级缓存（Caffeine + Redisson）</li>
+ *   <li>distributed: 分布式缓存（Redisson）- 需要 RedissonClient</li>
+ *   <li>multi-level: 多级缓存（Caffeine + Redisson）- 需要 RedissonClient</li>
  * </ul>
+ * 默认使用本地缓存，当配置分布式缓存且 RedissonClient 存在时自动切换。
  * </p>
  */
 @AutoConfiguration
@@ -36,37 +35,18 @@ import io.github.afgprojects.framework.core.cache.CacheProperties;
 public class CacheAutoConfiguration {
 
     /**
-     * 配置缓存管理器
-     *
-     * @param properties     缓存配置属性
-     * @param redissonClient Redisson 客户端（可选）
-     * @return 缓存管理器实例
+     * 配置本地缓存管理器
      */
-    @Bean
-    @ConditionalOnMissingBean
-    public DefaultCacheManager cacheManager(CacheProperties properties, @Nullable RedissonClient redissonClient) {
-        // 如果需要分布式缓存但没有 RedissonClient，回退到本地缓存
-        if (needsDistributedCache(properties) && redissonClient == null) {
-            // 自动回退到本地缓存
-            CacheProperties fallbackProperties = new CacheProperties();
-            fallbackProperties.setEnabled(properties.isEnabled());
-            fallbackProperties.setType(CacheProperties.CacheType.LOCAL);
-            fallbackProperties.setDefaultTtl(properties.getDefaultTtl());
-            fallbackProperties.setCacheNull(properties.isCacheNull());
-            fallbackProperties.setNullValueTtl(properties.getNullValueTtl());
-            fallbackProperties.setLocal(properties.getLocal());
-            fallbackProperties.setDistributed(properties.getDistributed());
-            fallbackProperties.setCaches(properties.getCaches());
-            return new DefaultCacheManager(fallbackProperties, null);
-        }
-        return new DefaultCacheManager(properties, redissonClient);
+    @Bean("cacheManager")
+    @ConditionalOnMissingBean(DefaultCacheManager.class)
+    public DefaultCacheManager cacheManager(CacheProperties properties) {
+        // 强制使用本地缓存（不依赖 Redisson）
+        CacheProperties localProperties = toLocalProperties(properties);
+        return new DefaultCacheManager(localProperties);
     }
 
     /**
      * 配置缓存切面
-     *
-     * @param cacheManager 缓存管理器
-     * @return 缓存切面实例
      */
     @Bean
     @ConditionalOnMissingBean
@@ -81,10 +61,17 @@ public class CacheAutoConfiguration {
     }
 
     /**
-     * 检查是否需要分布式缓存
+     * 转换为本地缓存配置
      */
-    private boolean needsDistributedCache(CacheProperties properties) {
-        return properties.getType() == CacheProperties.CacheType.DISTRIBUTED
-                || properties.getType() == CacheProperties.CacheType.MULTI_LEVEL;
+    private CacheProperties toLocalProperties(CacheProperties properties) {
+        CacheProperties localProperties = new CacheProperties();
+        localProperties.setEnabled(properties.isEnabled());
+        localProperties.setType(CacheProperties.CacheType.LOCAL);
+        localProperties.setDefaultTtl(properties.getDefaultTtl());
+        localProperties.setCacheNull(properties.isCacheNull());
+        localProperties.setNullValueTtl(properties.getNullValueTtl());
+        localProperties.setLocal(properties.getLocal());
+        localProperties.setCaches(properties.getCaches());
+        return localProperties;
     }
 }

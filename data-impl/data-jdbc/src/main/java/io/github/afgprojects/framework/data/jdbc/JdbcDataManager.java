@@ -10,6 +10,7 @@ import io.github.afgprojects.framework.data.core.sql.SqlDeleteBuilder;
 import io.github.afgprojects.framework.data.core.sql.SqlInsertBuilder;
 import io.github.afgprojects.framework.data.core.sql.SqlQueryBuilder;
 import io.github.afgprojects.framework.data.core.sql.SqlUpdateBuilder;
+import io.github.afgprojects.framework.data.core.transaction.TransactionAdapter;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheManager;
 import io.github.afgprojects.framework.data.jdbc.metadata.SimpleEntityMetadata;
 import io.github.afgprojects.framework.data.sql.builder.SqlDeleteBuilderImpl;
@@ -59,6 +60,11 @@ public class JdbcDataManager implements DataManager {
      * 实体缓存管理器（可选）
      */
     private @Nullable EntityCacheManager cacheManager;
+
+    /**
+     * 事务适配器（可选）
+     */
+    private @Nullable TransactionAdapter transactionAdapter;
 
     public JdbcDataManager(DataSource dataSource) {
         this.dataSource = dataSource;
@@ -192,6 +198,16 @@ public class JdbcDataManager implements DataManager {
     @Override
     public @NonNull Object getTransactionManager() {
         return dataSource;
+    }
+
+    @Override
+    public @Nullable TransactionAdapter getTransactionAdapter() {
+        return transactionAdapter;
+    }
+
+    @Override
+    public void setTransactionAdapter(@NonNull TransactionAdapter adapter) {
+        this.transactionAdapter = adapter;
     }
 
     // ==================== JdbcClient 便捷方法 ====================

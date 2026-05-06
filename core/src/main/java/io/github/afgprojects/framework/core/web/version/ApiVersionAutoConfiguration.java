@@ -10,8 +10,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * API 版本管理自动配置类
@@ -24,13 +22,19 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  *     default-version: "1.0.0"
  *     header-name: "X-API-Version"
  * }</pre>
+ *
+ * <p>性能优化：
+ * <ul>
+ *   <li>版本匹配逻辑在 {@link ApiVersionRequestCondition} 中执行，只对带 @ApiVersion 注解的请求生效</li>
+ *   <li>没有 @ApiVersion 注解的 Controller 完全不受影响，零额外开销</li>
+ * </ul>
  */
 @AutoConfiguration
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @ConditionalOnClass(Servlet.class)
 @ConditionalOnProperty(prefix = "afg.api-version", name = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(ApiVersionProperties.class)
-public class ApiVersionAutoConfiguration implements WebMvcConfigurer {
+public class ApiVersionAutoConfiguration {
 
     private final ApiVersionProperties properties;
 
@@ -50,32 +54,17 @@ public class ApiVersionAutoConfiguration implements WebMvcConfigurer {
     }
 
     /**
-     * 创建 API 版本拦截器
-     *
-     * @param resolver 版本解析器
-     * @return 版本拦截器
-     */
-    @Bean
-    @ConditionalOnMissingBean
-    @NonNull public ApiVersionInterceptor apiVersionInterceptor(@NonNull ApiVersionResolver resolver) {
-        return new ApiVersionInterceptor(resolver, properties);
-    }
-
-    /**
      * 创建 API 版本路由映射处理器
+     * 只处理带有 @ApiVersion 注解的 Controller
      *
      * @return 版本路由映射处理器
      */
     @Bean
     @ConditionalOnMissingBean
     @NonNull public ApiVersionRequestMappingHandlerMapping apiVersionRequestMappingHandlerMapping() {
-        return new ApiVersionRequestMappingHandlerMapping(properties);
-    }
-
-    @Override
-    public void addInterceptors(@NonNull InterceptorRegistry registry) {
-        registry.addInterceptor(apiVersionInterceptor(apiVersionResolver()))
-                .addPathPatterns("/**")
-                .excludePathPatterns("/actuator/**", "/error", "/swagger-ui/**", "/v3/api-docs/**");
+        ApiVersionRequestMappingHandlerMapping mapping = new ApiVersionRequestMappingHandlerMapping(properties);
+        // 设置高优先级（0），确保优先于默认的 RequestMappingHandlerMapping
+        mapping.setOrder(0);
+        return mapping;
     }
 }

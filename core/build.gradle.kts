@@ -3,6 +3,9 @@ plugins {
 }
 
 dependencies {
+    // 模块注解 API
+    api(project(":module-api"))
+
     // Jackson
     api(libs.bundles.jackson)
 

@@ -6,7 +6,7 @@ import io.github.afgprojects.framework.core.gradle.extension.ReverseEngineeringE
 import io.github.afgprojects.framework.core.gradle.task.*
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.compile.JavaCompile
 import java.io.File
@@ -15,13 +15,21 @@ import java.io.File
  * AFG Framework Gradle 插件
  *
  * 应用此插件时，会自动配置：
- * 1. 框架核心依赖
- * 2. 代码规范（PMD、JaCoCo）
- * 3. 编译选项（-parameters、UTF-8）
- * 4. 源码生成目录
- * 5. 测试配置
+ * 1. Spring Boot BOM 版本管理
+ * 2. 框架核心依赖
+ * 3. 部署模式配置（独立部署 / 聚合部署）
+ * 4. 代码规范（JaCoCo）
+ * 5. 编译选项（-parameters、UTF-8）
+ * 6. 源码生成目录
+ * 7. 测试配置
  */
 class AfgPlugin : Plugin<Project> {
+
+    companion object {
+        const val DEFAULT_SPRING_BOOT_VERSION = "4.0.5"
+        const val DEFAULT_FRAMEWORK_VERSION = "1.0.0-SNAPSHOT"
+        const val FRAMEWORK_GROUP = "io.github.afg-projects"
+    }
 
     override fun apply(project: Project) {
         // 创建嵌套扩展实例
@@ -39,19 +47,87 @@ class AfgPlugin : Plugin<Project> {
         // 应用基础插件
         project.plugins.apply("java-library")
 
-        // 配置框架特性
-        configureFrameworkDependencies(project, extension)
+        // 配置框架特性（编译选项、源码集等立即配置）
         configureCompileOptions(project)
-        configureSourceSets(project, extension)
+        configureSourceSets(project)
         configureCodeQuality(project)
         configureTesting(project)
 
         // 注册自定义任务
         registerTasks(project, extension)
 
+        // 配置依赖版本管理（立即配置，不需要 afterEvaluate）
+        configureDependencyManagement(project, extension)
+
         // 项目评估后配置
         project.afterEvaluate {
+            configureFrameworkDependencies(project, extension)
+            configureDeploymentMode(project, extension)
             configureAfterEvaluate(project, extension)
+        }
+    }
+
+    /**
+     * 配置依赖版本管理
+     */
+    private fun configureDependencyManagement(project: Project, extension: AfgExtension) {
+        val springBootVersion = extension.springBootVersion.getOrElse(DEFAULT_SPRING_BOOT_VERSION)
+        val frameworkVersion = extension.frameworkVersion
+
+        // 配置 Spring Boot BOM
+        project.dependencies.apply {
+            // Spring Boot BOM - 使用 enforcedPlatform 确保版本一致
+            val springBootBom = enforcedPlatform("org.springframework.boot:spring-boot-dependencies:$springBootVersion")
+            add("implementation", springBootBom)
+            add("annotationProcessor", springBootBom)
+            add("testAnnotationProcessor", springBootBom)
+        }
+
+        // 配置框架依赖版本约束
+        // 当声明 io.github.afg-projects:afg-framework-* 但不指定版本时，使用 frameworkVersion
+        project.configurations.all {
+            resolutionStrategy.eachDependency {
+                if (requested.group == FRAMEWORK_GROUP &&
+                    requested.name.startsWith("afg-framework-") &&
+                    requested.version.isNullOrBlank()) {
+                    useVersion(frameworkVersion.getOrElse(DEFAULT_FRAMEWORK_VERSION))
+                }
+            }
+        }
+    }
+
+    /**
+     * 配置部署模式
+     */
+    private fun configureDeploymentMode(project: Project, extension: AfgExtension) {
+        val deploymentMode = extension.deploymentMode.getOrElse("module")
+
+        when (deploymentMode) {
+            "module" -> {
+                // 独立部署模式：自动应用 Spring Boot 插件，生成可执行 bootJar
+                if (!project.plugins.hasPlugin("org.springframework.boot")) {
+                    project.plugins.apply("org.springframework.boot")
+                }
+                try {
+                    val bootJar = project.tasks.findByName("bootJar")
+                    bootJar?.enabled = true
+                    val jar = project.tasks.findByName("jar") as? Jar
+                    jar?.enabled = true
+                } catch (e: Exception) {
+                    // 忽略配置错误
+                }
+            }
+            "platform" -> {
+                // 聚合部署模式：作为普通 jar 被主应用依赖
+                try {
+                    val bootJar = project.tasks.findByName("bootJar")
+                    bootJar?.enabled = false
+                    val jar = project.tasks.findByName("jar") as? Jar
+                    jar?.enabled = true
+                } catch (e: Exception) {
+                    // 忽略配置错误
+                }
+            }
         }
     }
 
@@ -61,41 +137,37 @@ class AfgPlugin : Plugin<Project> {
     private fun configureFrameworkDependencies(project: Project, extension: AfgExtension) {
         project.dependencies.apply {
             // 添加框架核心依赖
-            val frameworkVersion = extension.frameworkVersion.getOrElse("1.0.0")
+            val frameworkVersion = extension.frameworkVersion.getOrElse(DEFAULT_FRAMEWORK_VERSION)
 
             // 根据模块类型添加不同依赖
-            val moduleType = extension.moduleType.getOrElse("data")
+            val moduleType = extension.moduleType.getOrElse("starter")
 
+            // 核心依赖
             add("implementation", "io.github.afg-projects:afg-framework-core:$frameworkVersion")
+
+            // 自动添加模块注解处理器（用于生成模块索引）
+            add("annotationProcessor", "io.github.afg-projects:afg-framework-module-processor:$frameworkVersion")
 
             when (moduleType) {
                 "data" -> {
                     add("implementation", "io.github.afg-projects:afg-framework-data-jdbc:$frameworkVersion")
                     add("implementation", "io.github.afg-projects:afg-framework-data-liquibase:$frameworkVersion")
                 }
-                "auth" -> {
-                    add("implementation", "io.github.afg-projects:afg-framework-auth:$frameworkVersion")
-                }
-                "storage" -> {
-                    add("implementation", "io.github.afg-projects:afg-framework-storage:$frameworkVersion")
-                }
-                "job" -> {
-                    add("implementation", "io.github.afg-projects:afg-framework-job:$frameworkVersion")
-                }
-                "registry" -> {
-                    add("implementation", "io.github.afg-projects:afg-framework-registry:$frameworkVersion")
-                }
                 "starter" -> {
                     // Starter 模块只依赖核心，其他依赖由使用者引入
                 }
+                "integration" -> {
+                    // 集成模块：添加 spring-boot-starter
+                    add("implementation", "io.github.afg-projects:afg-framework-spring-boot-starter:$frameworkVersion")
+                }
             }
 
-            // 自动添加 Lombok（如果启用）
+            // 自动添加 Lombok（如果启用）- 版本由 Spring Boot BOM 管理
             if (extension.useLombok.getOrElse(true)) {
-                add("compileOnly", "org.projectlombok:lombok:1.18.36")
-                add("annotationProcessor", "org.projectlombok:lombok:1.18.36")
-                add("testCompileOnly", "org.projectlombok:lombok:1.18.36")
-                add("testAnnotationProcessor", "org.projectlombok:lombok:1.18.36")
+                add("compileOnly", "org.projectlombok:lombok")
+                add("annotationProcessor", "org.projectlombok:lombok")
+                add("testCompileOnly", "org.projectlombok:lombok")
+                add("testAnnotationProcessor", "org.projectlombok:lombok")
             }
 
             // 自动添加 JSR-305 空安全注解（如果启用）
@@ -103,15 +175,15 @@ class AfgPlugin : Plugin<Project> {
                 add("compileOnly", "com.google.code.findbugs:jsr305:3.0.2")
             }
 
-            // 自动添加 Validation API（如果启用）
+            // 自动添加 Validation API（如果启用）- 版本由 Spring Boot BOM 管理
             if (extension.useValidation.getOrElse(true)) {
-                add("implementation", "jakarta.validation:jakarta.validation-api:3.1.0")
+                add("implementation", "jakarta.validation:jakarta.validation-api")
             }
 
-            // 自动添加测试依赖
-            add("testImplementation", "org.junit.jupiter:junit-jupiter:5.12.2")
-            add("testImplementation", "org.assertj:assertj-core:3.27.3")
-            add("testRuntimeOnly", "org.junit.platform:junit-platform-launcher:1.12.2")
+            // 自动添加测试依赖 - 版本由 Spring Boot BOM 管理
+            add("testImplementation", "org.junit.jupiter:junit-jupiter")
+            add("testImplementation", "org.assertj:assertj-core")
+            add("testRuntimeOnly", "org.junit.platform:junit-platform-launcher")
         }
     }
 
@@ -131,7 +203,7 @@ class AfgPlugin : Plugin<Project> {
     /**
      * 配置源码集（包含生成的源码目录）
      */
-    private fun configureSourceSets(project: Project, extension: AfgExtension) {
+    private fun configureSourceSets(project: Project) {
         val sourceSets = project.extensions.findByType(SourceSetContainer::class.java)
         if (sourceSets != null) {
             val mainSourceSet = sourceSets.getByName("main")
@@ -225,8 +297,10 @@ class AfgPlugin : Plugin<Project> {
             description = "显示 AFG Framework 配置信息"
             doLast {
                 println("AFG Framework 配置信息:")
-                println("  模块类型: ${extension.moduleType.getOrElse("data")}")
-                println("  框架版本: ${extension.frameworkVersion.getOrElse("1.0.0")}")
+                println("  Spring Boot 版本: ${extension.springBootVersion.getOrElse(DEFAULT_SPRING_BOOT_VERSION)}")
+                println("  框架版本: ${extension.frameworkVersion.getOrElse(DEFAULT_FRAMEWORK_VERSION)}")
+                println("  模块类型: ${extension.moduleType.getOrElse("starter")}")
+                println("  部署模式: ${extension.deploymentMode.getOrElse("module")}")
                 println("  使用 Lombok: ${extension.useLombok.getOrElse(true)}")
                 println("  使用 JSR-305: ${extension.useJsr305.getOrElse(true)}")
                 println("  使用 Validation: ${extension.useValidation.getOrElse(true)}")

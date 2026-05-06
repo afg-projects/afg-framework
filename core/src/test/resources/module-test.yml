@@ -1,0 +1,7 @@
+# 测试模块配置文件
+# 用于集成测试验证配置加载
+
+test-module:
+  value: module-default-value
+  nested:
+    key: nested-value

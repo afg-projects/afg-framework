@@ -125,11 +125,28 @@ public class SimpleEntityMetadata<T> implements EntityMetadata<T> {
 
     /**
      * 推断实体表名
+     * <p>
+     * 支持以下表名识别方式（按优先级）：
+     * <ol>
+     *   <li>jakarta.persistence.Table 注解的 name 属性</li>
+     *   <li>类名转换为 snake_case（默认行为）</li>
+     * </ol>
      *
      * @param entityClass 实体类
      * @return 表名（snake_case）
      */
     private String inferTableName(Class<?> entityClass) {
+        // 1. 检查 Jakarta Persistence @Table 注解
+        try {
+            jakarta.persistence.Table tableAnnotation = entityClass.getAnnotation(jakarta.persistence.Table.class);
+            if (tableAnnotation != null && !tableAnnotation.name().isEmpty()) {
+                return tableAnnotation.name();
+            }
+        } catch (NoClassDefFoundError e) {
+            // JPA API 不在类路径中，使用默认行为
+        }
+
+        // 2. 默认：类名转换为 snake_case
         String className = entityClass.getSimpleName();
         StringBuilder tableName = new StringBuilder();
         for (int i = 0; i < className.length(); i++) {

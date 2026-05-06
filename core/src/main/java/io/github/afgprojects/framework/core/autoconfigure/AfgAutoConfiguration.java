@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.github.afgprojects.framework.core.config.AfgConfigRegistry;
 import io.github.afgprojects.framework.core.config.ConfigRefresher;
+import io.github.afgprojects.framework.core.module.AfgModuleProcessor;
 import io.github.afgprojects.framework.core.module.ModuleContext;
 import io.github.afgprojects.framework.core.module.ModuleRegistry;
 import io.github.afgprojects.framework.core.util.JacksonMapper;
@@ -56,6 +57,11 @@ public class AfgAutoConfiguration {
     @Bean
     public JacksonUtilsBeanPostProcessor jacksonUtilsBeanPostProcessor() {
         return new JacksonUtilsBeanPostProcessor();
+    }
+
+    @Bean
+    public AfgModuleProcessor afgModuleProcessor(ModuleRegistry moduleRegistry, ApplicationContext applicationContext) {
+        return new AfgModuleProcessor(moduleRegistry, applicationContext);
     }
 
     /**

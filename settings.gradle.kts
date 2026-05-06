@@ -19,6 +19,10 @@ dependencyResolutionManagement {
 // Gradle 插件
 include("gradle-plugin")
 
+// 模块注解和处理器（独立模块，避免循环依赖）
+include("module-api")
+include("module-processor")
+
 // 核心模块
 include("core")
 

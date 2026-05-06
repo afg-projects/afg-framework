@@ -72,10 +72,8 @@ class ApiVersionRequestConditionTest {
         @Test
         @DisplayName("版本匹配应该返回自身")
         void shouldReturnSelfWhenVersionMatches() {
-            // given
-            ApiVersionResolver.ResolvedVersion resolvedVersion =
-                    new ApiVersionResolver.ResolvedVersion(ApiVersionInfo.of("1.5"), "1.5", "test");
-            when(request.getAttribute(ApiVersionInterceptor.VERSION_ATTRIBUTE)).thenReturn(resolvedVersion);
+            // given - 请求版本 1.x，API 版本 1.0，主版本号相同应该匹配
+            when(request.getHeader("X-API-Version")).thenReturn("1.5");
 
             // when
             ApiVersionRequestCondition result = condition.getMatchingCondition(request);
@@ -88,10 +86,8 @@ class ApiVersionRequestConditionTest {
         @Test
         @DisplayName("版本不匹配应该返回 null")
         void shouldReturnNullWhenVersionDoesNotMatch() {
-            // given
-            ApiVersionResolver.ResolvedVersion resolvedVersion =
-                    new ApiVersionResolver.ResolvedVersion(ApiVersionInfo.of("2.0"), "2.0", "test");
-            when(request.getAttribute(ApiVersionInterceptor.VERSION_ATTRIBUTE)).thenReturn(resolvedVersion);
+            // given - 请求版本 2.x，API 版本 1.0，主版本号不同不应该匹配
+            when(request.getHeader("X-API-Version")).thenReturn("2.0");
 
             // when
             ApiVersionRequestCondition result = condition.getMatchingCondition(request);
@@ -103,14 +99,17 @@ class ApiVersionRequestConditionTest {
         @Test
         @DisplayName("无版本信息时应该使用默认版本")
         void shouldUseDefaultVersionWhenNoVersionInfo() {
-            // given
-            when(request.getAttribute(ApiVersionInterceptor.VERSION_ATTRIBUTE)).thenReturn(null);
+            // given - 无版本头，使用默认版本 1.0.0
+            // 需要模拟 request.getRequestURI() 用于 URL 解析策略
+            when(request.getHeader("X-API-Version")).thenReturn(null);
+            when(request.getRequestURI()).thenReturn("/api/users");
+            when(request.getParameter("version")).thenReturn(null);
 
             // when
             ApiVersionRequestCondition result = condition.getMatchingCondition(request);
 
-            // then
-            assertThat(result).isNotNull(); // 默认版本 1.0.0 应该匹配 1.x
+            // then - 默认版本 1.0.0 应该匹配 API 版本 1.0（主版本号相同）
+            assertThat(result).isNotNull();
         }
     }
 

@@ -13,6 +13,7 @@ import java.lang.reflect.Field;
 public class SimpleFieldMetadata implements FieldMetadata {
 
     private final String propertyName;
+    private final String columnName;
     private final Class<?> fieldType;
     private final boolean idField;
     private final Field reflectedField;
@@ -20,6 +21,7 @@ public class SimpleFieldMetadata implements FieldMetadata {
 
     public SimpleFieldMetadata(String propertyName, Class<?> fieldType) {
         this.propertyName = propertyName;
+        this.columnName = inferColumnName(propertyName, null);
         this.fieldType = fieldType;
         this.idField = "id".equals(propertyName);
         this.reflectedField = null;
@@ -27,12 +29,13 @@ public class SimpleFieldMetadata implements FieldMetadata {
     }
 
     /**
-     * 基于反射创建字段元数据，支持注解识别主键
+     * 基于反射创建字段元数据，支持注解识别主键和自定义列名
      *
      * @param reflectedField 反射字段
      */
     public SimpleFieldMetadata(Field reflectedField) {
         this.propertyName = reflectedField.getName();
+        this.columnName = inferColumnName(reflectedField);
         this.fieldType = reflectedField.getType();
         this.reflectedField = reflectedField;
         this.idField = detectIdField(reflectedField);
@@ -47,16 +50,7 @@ public class SimpleFieldMetadata implements FieldMetadata {
 
     @Override
     public String getColumnName() {
-        // 转换为下划线命名
-        StringBuilder columnName = new StringBuilder();
-        for (int i = 0; i < propertyName.length(); i++) {
-            char c = propertyName.charAt(i);
-            if (i > 0 && Character.isUpperCase(c)) {
-                columnName.append('_');
-            }
-            columnName.append(Character.toLowerCase(c));
-        }
-        return columnName.toString();
+        return columnName;
     }
 
     @Override
@@ -173,5 +167,53 @@ public class SimpleFieldMetadata implements FieldMetadata {
             }
         }
         return false;
+    }
+
+    /**
+     * 推断列名
+     * <p>
+     * 支持以下列名识别方式（按优先级）：
+     * <ol>
+     *   <li>jakarta.persistence.Column 注解的 name 属性</li>
+     *   <li>字段名转换为 snake_case（默认行为）</li>
+     * </ol>
+     *
+     * @param propertyName 字段名
+     * @param field 反射字段（可能为 null）
+     * @return 列名
+     */
+    private static String inferColumnName(String propertyName, @Nullable Field field) {
+        // 1. 检查是否有反射字段和 @Column 注解
+        if (field != null) {
+            try {
+                jakarta.persistence.Column columnAnnotation = field.getAnnotation(jakarta.persistence.Column.class);
+                if (columnAnnotation != null && !columnAnnotation.name().isEmpty()) {
+                    return columnAnnotation.name();
+                }
+            } catch (NoClassDefFoundError e) {
+                // JPA API 不在类路径中，使用默认行为
+            }
+        }
+
+        // 2. 默认：字段名转换为 snake_case
+        StringBuilder columnName = new StringBuilder();
+        for (int i = 0; i < propertyName.length(); i++) {
+            char c = propertyName.charAt(i);
+            if (i > 0 && Character.isUpperCase(c)) {
+                columnName.append('_');
+            }
+            columnName.append(Character.toLowerCase(c));
+        }
+        return columnName.toString();
+    }
+
+    /**
+     * 推断列名（从反射字段）
+     *
+     * @param field 反射字段
+     * @return 列名
+     */
+    private static String inferColumnName(Field field) {
+        return inferColumnName(field.getName(), field);
     }
 }

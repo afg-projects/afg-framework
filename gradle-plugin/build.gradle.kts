@@ -20,12 +20,18 @@ gradlePlugin {
 
     plugins {
         create("afgPlugin") {
-            id = "io.github.afg-projects.plugin"
+            id = "io.github.afg-projects.framework-plugin"
             implementationClass = "io.github.afgprojects.framework.core.gradle.AfgPlugin"
             displayName = "AFG Framework Gradle Plugin"
             description = "Gradle plugin for AFG Framework - provides code generation, database migration, and reverse engineering capabilities"
             tags.set(listOf("afg", "framework", "codegen", "liquibase", "migration"))
         }
+    }
+
+    // 声明插件依赖
+    dependencies {
+        // 独立部署模式时自动应用 Spring Boot 插件
+        implementation("org.springframework.boot:org.springframework.boot.gradle.plugin:4.0.5")
     }
 }
 

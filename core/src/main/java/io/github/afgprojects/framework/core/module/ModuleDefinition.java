@@ -7,11 +7,21 @@ import java.util.Objects;
  * 模块定义
  */
 @SuppressWarnings("PMD.UnusedAssignment")
-public record ModuleDefinition(String id, String name, List<String> dependencies, AfgModule moduleInstance) {
+public record ModuleDefinition(
+        String id,
+        String name,
+        List<String> dependencies,
+        AfgModule moduleInstance,
+        String basePackage,
+        String contextPath,
+        String configFile) {
 
     // NOPMD - record 紧凑构造器中重新赋值参数是正常行为
     public ModuleDefinition {
         dependencies = dependencies != null ? List.copyOf(dependencies) : List.of();
+        basePackage = basePackage != null ? basePackage : "";
+        contextPath = contextPath != null ? contextPath : "";
+        configFile = configFile != null ? configFile : "";
     }
 
     @Override
@@ -37,6 +47,9 @@ public record ModuleDefinition(String id, String name, List<String> dependencies
         private String name;
         private List<String> dependencies;
         private AfgModule moduleInstance;
+        private String basePackage;
+        private String contextPath;
+        private String configFile;
 
         public Builder id(String id) {
             this.id = id;
@@ -58,8 +71,23 @@ public record ModuleDefinition(String id, String name, List<String> dependencies
             return this;
         }
 
+        public Builder basePackage(String basePackage) {
+            this.basePackage = basePackage;
+            return this;
+        }
+
+        public Builder contextPath(String contextPath) {
+            this.contextPath = contextPath;
+            return this;
+        }
+
+        public Builder configFile(String configFile) {
+            this.configFile = configFile;
+            return this;
+        }
+
         public ModuleDefinition build() {
-            return new ModuleDefinition(id, name, dependencies, moduleInstance);
+            return new ModuleDefinition(id, name, dependencies, moduleInstance, basePackage, contextPath, configFile);
         }
     }
 }

@@ -1,4 +1,5 @@
 io.github.afgprojects.framework.core.autoconfigure.AfgAutoConfiguration
+io.github.afgprojects.framework.core.autoconfigure.ModuleAutoConfiguration
 io.github.afgprojects.framework.core.autoconfigure.WebAutoConfiguration
 io.github.afgprojects.framework.core.autoconfigure.HttpClientAutoConfiguration
 io.github.afgprojects.framework.core.autoconfigure.LoggingAutoConfiguration
@@ -16,6 +17,7 @@ io.github.afgprojects.framework.core.web.security.autoconfigure.AfgSecurityAutoC
 io.github.afgprojects.framework.core.web.security.signature.SignatureAutoConfiguration
 io.github.afgprojects.framework.core.web.version.ApiVersionAutoConfiguration
 io.github.afgprojects.framework.core.web.ratelimit.RateLimitAutoConfiguration
+io.github.afgprojects.framework.core.web.module.ModuleWebAutoConfiguration
 io.github.afgprojects.framework.core.security.datascope.autoconfigure.DataScopeAutoConfiguration
 io.github.afgprojects.framework.core.audit.AuditLogAutoConfiguration
 io.github.afgprojects.framework.core.event.EventAutoConfiguration

@@ -31,6 +31,10 @@ spring-boot-starter-validation = { module = "org.springframework.boot:spring-boo
 spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security" }
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
 spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure" }
+spring-boot-webmvc = { module = "org.springframework.boot:spring-boot-webmvc" }
+
+# Spring Framework
+spring-context = { module = "org.springframework:spring-context" }
 
 # MyBatis-Plus
 mybatis-plus-starter = { module = "com.baomidou:mybatis-plus-spring-boot3-starter", version.ref = "mybatis-plus" }

@@ -8,7 +8,9 @@ import io.github.afgprojects.framework.data.core.sql.SqlDeleteBuilder;
 import io.github.afgprojects.framework.data.core.sql.SqlInsertBuilder;
 import io.github.afgprojects.framework.data.core.sql.SqlQueryBuilder;
 import io.github.afgprojects.framework.data.core.sql.SqlUpdateBuilder;
+import io.github.afgprojects.framework.data.core.transaction.TransactionAdapter;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.util.function.Supplier;
 
@@ -131,4 +133,22 @@ public interface DataManager {
      * @return 事务管理器
      */
     @NonNull Object getTransactionManager();
+
+    /**
+     * 获取事务适配器
+     * <p>
+     * 事务适配器提供与 Spring 声明式事务的集成能力。
+     *
+     * @return 事务适配器，可能为 null（如果未配置）
+     */
+    @Nullable TransactionAdapter getTransactionAdapter();
+
+    /**
+     * 设置事务适配器
+     * <p>
+     * 允许运行时替换事务适配器实现。
+     *
+     * @param adapter 事务适配器
+     */
+    void setTransactionAdapter(@NonNull TransactionAdapter adapter);
 }

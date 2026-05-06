@@ -1,6 +1,7 @@
 package io.github.afgprojects.framework.data.jdbc;
 
 import io.github.afgprojects.framework.data.core.EntityProxy;
+import io.github.afgprojects.framework.data.core.EntityQuery;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
 import io.github.afgprojects.framework.data.core.entity.SoftDeleteStrategy;
 import io.github.afgprojects.framework.data.core.entity.Versioned;
@@ -505,6 +506,18 @@ public class JdbcEntityProxy<T> implements EntityProxy<T> {
 
     // ==================== 条件查询 ====================
 
+    /**
+     * 获取条件查询构建器
+     * <p>
+     * 返回新的查询构建器实例，支持链式调用配置查询条件。
+     *
+     * @return 查询构建器
+     */
+    @Override
+    public @NonNull EntityQuery<T> query() {
+        return new JdbcEntityQuery<>(this);
+    }
+
     @Override
     public @NonNull List<T> findAll(@NonNull Condition condition) {
         ConditionToSqlConverter converter = new ConditionToSqlConverter();
@@ -580,76 +593,6 @@ public class JdbcEntityProxy<T> implements EntityProxy<T> {
         return new Page<>(records, total, pageable.page(), pageable.size());
     }
 
-    @Override
-    public long count(@NonNull Condition condition) {
-        ConditionToSqlConverter converter = new ConditionToSqlConverter();
-        ConditionToSqlConverter.SqlResult result = converter.convert(condition);
-
-        StringBuilder sqlBuilder = new StringBuilder("SELECT COUNT(*) FROM ")
-                .append(dialect.quoteIdentifier(metadata.getTableName()));
-
-        // 构建 WHERE 子句
-        StringBuilder whereClause = new StringBuilder(result.sql());
-
-        // 自动过滤已删除记录
-        if (softDeleteHandler.getSoftDeleteStrategy() != null && !includeDeleted) {
-            if (whereClause.length() > 0) {
-                whereClause.append(" AND ");
-            }
-            if (softDeleteHandler.getSoftDeleteStrategy() == SoftDeleteStrategy.TIMESTAMP) {
-                whereClause.append("deleted_at IS NULL");
-            } else {
-                whereClause.append("deleted = false");
-            }
-        }
-
-        if (!whereClause.isEmpty()) {
-            sqlBuilder.append(" WHERE ").append(whereClause);
-        }
-
-        return dataManager.queryForCount(sqlBuilder.toString(), result.parameters());
-    }
-
-    @Override
-    public boolean exists(@NonNull Condition condition) {
-        return count(condition) > 0;
-    }
-
-    @Override
-    public @NonNull Optional<T> findOne(@NonNull Condition condition) {
-        List<T> results = findAll(condition);
-        if (results.isEmpty()) {
-            return Optional.empty();
-        }
-        if (results.size() > 1) {
-            throw new RuntimeException("Expected one result but got " + results.size());
-        }
-        return Optional.of(results.get(0));
-    }
-
-    @Override
-    public @NonNull Optional<T> findFirst(@NonNull Condition condition) {
-        ConditionToSqlConverter converter = new ConditionToSqlConverter();
-        ConditionToSqlConverter.SqlResult result = converter.convert(condition);
-
-        StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM ")
-                .append(dialect.quoteIdentifier(metadata.getTableName()))
-                .append(" WHERE ")
-                .append(result.sql());
-
-        // 自动过滤已删除记录
-        if (softDeleteHandler.getSoftDeleteStrategy() != null && !includeDeleted) {
-            appendSoftDeleteFilter(sqlBuilder, true);
-        }
-
-        sqlBuilder.append(" LIMIT 1");
-
-        return jdbcClient.sql(sqlBuilder.toString())
-                .params(result.parameters())
-                .query(rowMapper)
-                .optional();
-    }
-
     // ==================== 条件更新/删除 ====================
 
     @Override
@@ -697,42 +640,41 @@ public class JdbcEntityProxy<T> implements EntityProxy<T> {
         return dataManager.executeUpdate(sql, result.parameters());
     }
 
-    // ==================== 企业级特性 ====================
+    // ==================== 企业级特性（内部状态，供 JdbcEntityQuery 使用） ====================
 
-    @Override
-    public @NonNull EntityProxy<T> withDataScope(@NonNull DataScope scope) {
-        this.dataScopes.add(scope);
-        return this;
+    /**
+     * 获取数据权限列表
+     */
+    List<DataScope> getDataScopes() {
+        return dataScopes;
     }
 
-    @Override
-    public @NonNull EntityProxy<T> withDataScopes(@NonNull DataScope... scopes) {
-        this.dataScopes.addAll(Arrays.asList(scopes));
-        return this;
+    /**
+     * 获取租户ID
+     */
+    String getTenantId() {
+        return tenantId;
     }
 
-    @Override
-    public @NonNull EntityProxy<T> withTenant(@NonNull String tenantId) {
-        this.tenantId = tenantId;
-        return this;
+    /**
+     * 获取数据源名称
+     */
+    String getDataSourceName() {
+        return dataSourceName;
     }
 
-    @Override
-    public @NonNull EntityProxy<T> withDataSource(@NonNull String name) {
-        this.dataSourceName = name;
-        return this;
+    /**
+     * 是否只读模式
+     */
+    boolean isReadOnly() {
+        return readOnly;
     }
 
-    @Override
-    public @NonNull EntityProxy<T> withReadOnly() {
-        this.readOnly = true;
-        return this;
-    }
-
-    @Override
-    public @NonNull EntityProxy<T> includeDeleted() {
-        this.includeDeleted = true;
-        return this;
+    /**
+     * 是否包含已删除记录
+     */
+    boolean isIncludeDeleted() {
+        return includeDeleted;
     }
 
     /**
@@ -766,6 +708,36 @@ public class JdbcEntityProxy<T> implements EntityProxy<T> {
     @NonNull
     public Class<T> getEntityClass() {
         return entityClass;
+    }
+
+    /**
+     * 获取 JdbcClient
+     *
+     * @return JdbcClient
+     */
+    @NonNull
+    public JdbcClient getJdbcClient() {
+        return jdbcClient;
+    }
+
+    /**
+     * 获取数据库方言
+     *
+     * @return 方言
+     */
+    @NonNull
+    public Dialect getDialect() {
+        return dialect;
+    }
+
+    /**
+     * 获取行映射器
+     *
+     * @return 行映射器
+     */
+    @NonNull
+    public RowMapper<T> getRowMapper() {
+        return rowMapper;
     }
 
     // ==================== 软删除扩展 ====================
@@ -830,34 +802,11 @@ public class JdbcEntityProxy<T> implements EntityProxy<T> {
 
     // ==================== 关联查询 ====================
 
-    @Override
-    public @NonNull EntityProxy<T> withAssociation(@NonNull String name) {
-        validateAssociation(name);
-        eagerFetchAssociations.add(name);
-        return this;
-    }
-
-    @Override
-    public @NonNull EntityProxy<T> withAssociations(@NonNull String... names) {
-        for (String name : names) {
-            validateAssociation(name);
-            eagerFetchAssociations.add(name);
-        }
-        return this;
-    }
-
     /**
-     * 验证关联字段是否存在
-     *
-     * @param name 关联字段名
-     * @throws IllegalArgumentException 如果关联字段不存在
+     * 获取要急加载的关联字段集合
      */
-    private void validateAssociation(String name) {
-        if (!metadata.hasRelation(name)) {
-            throw new IllegalArgumentException(
-                    "Association '" + name + "' not found in entity " + entityClass.getSimpleName()
-            );
-        }
+    Set<String> getEagerFetchAssociations() {
+        return Collections.unmodifiableSet(eagerFetchAssociations);
     }
 
     @Override
@@ -936,21 +885,6 @@ public class JdbcEntityProxy<T> implements EntityProxy<T> {
                 associationLoader.fetchAllManyToMany(ids, relation, targetEntityClass);
                 break;
         }
-    }
-
-    @Override
-    public @NonNull EntityProxy<T> clearAssociations() {
-        eagerFetchAssociations.clear();
-        return this;
-    }
-
-    /**
-     * 获取要急加载的关联字段集合
-     *
-     * @return 关联字段集合
-     */
-    public Set<String> getEagerFetchAssociations() {
-        return Collections.unmodifiableSet(eagerFetchAssociations);
     }
 
     /**

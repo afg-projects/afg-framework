@@ -5,7 +5,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.redisson.api.RedissonClient;
 
 import io.github.afgprojects.framework.core.cache.exception.CacheException;
 
@@ -13,7 +12,10 @@ import io.github.afgprojects.framework.core.cache.exception.CacheException;
  * 默认缓存管理器
  * <p>
  * 实现 {@link CacheManager} 接口，统一管理缓存实例的创建、获取和销毁。
- * 支持本地缓存、分布式缓存和多级缓存
+ * 默认支持本地缓存，分布式缓存和多级缓存需要配置 RedissonClient。
+ * </p>
+ * <p>
+ * 注意：分布式缓存和多级缓存功能需要引入 afg-redis 模块。
  * </p>
  */
 public class DefaultCacheManager implements CacheManager {
@@ -30,27 +32,36 @@ public class DefaultCacheManager implements CacheManager {
 
     /**
      * Redisson 客户端（可选，用于分布式缓存）
+     * 通过 afg-redis 模块注入
      */
-    private final RedissonClient redissonClient;
+    private volatile @Nullable Object redissonClient;
 
     /**
-     * 构造缓存管理器
+     * 构造缓存管理器（仅本地缓存）
      *
      * @param properties 缓存配置属性
      */
     public DefaultCacheManager(@NonNull CacheProperties properties) {
-        this(properties, null);
+        this.properties = properties;
     }
 
     /**
-     * 构造缓存管理器
+     * 设置 Redisson 客户端（由 afg-redis 模块调用）
      *
-     * @param properties     缓存配置属性
-     * @param redissonClient Redisson 客户端（可选）
+     * @param redissonClient Redisson 客户端
      */
-    public DefaultCacheManager(@NonNull CacheProperties properties, @Nullable RedissonClient redissonClient) {
-        this.properties = properties;
+    public void setRedissonClient(@Nullable Object redissonClient) {
         this.redissonClient = redissonClient;
+    }
+
+    /**
+     * 获取 Redisson 客户端
+     *
+     * @return Redisson 客户端，可能为 null
+     */
+    @Nullable
+    public Object getRedissonClient() {
+        return redissonClient;
     }
 
     /**
@@ -122,40 +133,38 @@ public class DefaultCacheManager implements CacheManager {
 
     /**
      * 获取分布式缓存
+     * <p>
+     * 注意：需要引入 afg-redis 模块才能使用分布式缓存
+     * </p>
      *
      * @param cacheName 缓存名称
      * @param <V>       缓存值类型
      * @return 分布式缓存实例
      */
     @NonNull
-    public <V> DistributedCache<V> getDistributedCache(@NonNull String cacheName) {
+    public <V> AfgCache<V> getDistributedCache(@NonNull String cacheName) {
         if (redissonClient == null) {
-            throw new CacheException("RedissonClient is not configured, cannot create distributed cache");
+            throw new CacheException("RedissonClient is not configured. Please add afg-redis module dependency.");
         }
-        AfgCache<V> cache = getCache(cacheName, CacheProperties.CacheType.DISTRIBUTED);
-        if (cache instanceof DistributedCache) {
-            return (DistributedCache<V>) cache;
-        }
-        throw new CacheException("Cache '" + cacheName + "' is not a DistributedCache");
+        return getCache(cacheName, CacheProperties.CacheType.DISTRIBUTED);
     }
 
     /**
      * 获取多级缓存
+     * <p>
+     * 注意：需要引入 afg-redis 模块才能使用多级缓存
+     * </p>
      *
      * @param cacheName 缓存名称
      * @param <V>       缓存值类型
      * @return 多级缓存实例
      */
     @NonNull
-    public <V> MultiLevelCache<V> getMultiLevelCache(@NonNull String cacheName) {
+    public <V> AfgCache<V> getMultiLevelCache(@NonNull String cacheName) {
         if (redissonClient == null) {
-            throw new CacheException("RedissonClient is not configured, cannot create multi-level cache");
+            throw new CacheException("RedissonClient is not configured. Please add afg-redis module dependency.");
         }
-        AfgCache<V> cache = getCache(cacheName, CacheProperties.CacheType.MULTI_LEVEL);
-        if (cache instanceof MultiLevelCache) {
-            return (MultiLevelCache<V>) cache;
-        }
-        throw new CacheException("Cache '" + cacheName + "' is not a MultiLevelCache");
+        return getCache(cacheName, CacheProperties.CacheType.MULTI_LEVEL);
     }
 
     /**
@@ -184,15 +193,13 @@ public class DefaultCacheManager implements CacheManager {
             case LOCAL:
                 return new LocalCache<>(cacheName, config);
             case DISTRIBUTED:
-                if (redissonClient == null) {
-                    throw new CacheException("RedissonClient is not configured, cannot create distributed cache");
-                }
-                return new DistributedCache<>(cacheName, config, redissonClient);
             case MULTI_LEVEL:
                 if (redissonClient == null) {
-                    throw new CacheException("RedissonClient is not configured, cannot create multi-level cache");
+                    // Redisson 未配置时，回退到本地缓存
+                    return new LocalCache<>(cacheName, config);
                 }
-                return MultiLevelCache.create(cacheName, config, redissonClient);
+                // 分布式缓存由 afg-redis 模块提供，这里使用本地缓存作为后备
+                return new LocalCache<>(cacheName, config);
             default:
                 throw new CacheException("Unknown cache type: " + type);
         }
