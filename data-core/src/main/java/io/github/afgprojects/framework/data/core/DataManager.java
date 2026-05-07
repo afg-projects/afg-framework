@@ -1,8 +1,10 @@
 package io.github.afgprojects.framework.data.core;
 
+import io.github.afgprojects.framework.data.core.condition.SFunction;
 import io.github.afgprojects.framework.data.core.context.TenantContextHolder;
 import io.github.afgprojects.framework.data.core.dialect.DatabaseType;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
+import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.scope.TenantScope;
 import io.github.afgprojects.framework.data.core.sql.SqlDeleteBuilder;
 import io.github.afgprojects.framework.data.core.sql.SqlInsertBuilder;
@@ -12,6 +14,8 @@ import io.github.afgprojects.framework.data.core.transaction.TransactionAdapter;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
@@ -151,4 +155,148 @@ public interface DataManager {
      * @param adapter 事务适配器
      */
     void setTransactionAdapter(@NonNull TransactionAdapter adapter);
+
+    // ==================== 快捷查询方法 ====================
+
+    /**
+     * 根据ID查找实体（快捷方法）
+     * <p>
+     * 等价于 {@code entity(entityClass).findById(id)}
+     *
+     * @param entityClass 实体类型
+     * @param id          主键值
+     * @return 实体可选值
+     */
+    default <T> @NonNull Optional<T> findById(@NonNull Class<T> entityClass, @Nullable Object id) {
+        return entity(entityClass).findById(id);
+    }
+
+    /**
+     * 根据单个字段值查找唯一实体（快捷方法）
+     * <p>
+     * 等价于 {@code entity(entityClass).findOne(Conditions.builder(entityClass).eq(getter, value).build())}
+     *
+     * @param entityClass 实体类型
+     * @param getter      字段 getter 方法引用
+     * @param value       字段值
+     * @return 实体可选值
+     */
+    default <T, R> @NonNull Optional<T> findOneByField(@NonNull Class<T> entityClass,
+                                                         @NonNull SFunction<T, R> getter,
+                                                         @Nullable Object value) {
+        return entity(entityClass).findOne(
+            io.github.afgprojects.framework.data.core.condition.Conditions.builder(entityClass)
+                .eq(getter, value)
+                .build()
+        );
+    }
+
+    /**
+     * 根据单个字段值查找所有匹配实体（快捷方法）
+     * <p>
+     * 等价于 {@code entity(entityClass).query().where(Conditions.builder(entityClass).eq(getter, value).build()).list()}
+     *
+     * @param entityClass 实体类型
+     * @param getter      字段 getter 方法引用
+     * @param value       字段值
+     * @return 实体列表
+     */
+    default <T, R> @NonNull List<T> findAllByField(@NonNull Class<T> entityClass,
+                                                    @NonNull SFunction<T, R> getter,
+                                                    @Nullable Object value) {
+        return entity(entityClass).query()
+            .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder(entityClass)
+                .eq(getter, value)
+                .build())
+            .list();
+    }
+
+    /**
+     * 查找所有实体（快捷方法）
+     * <p>
+     * 等价于 {@code entity(entityClass).findAll()}
+     *
+     * @param entityClass 实体类型
+     * @return 实体列表
+     */
+    default <T> @NonNull List<T> findAll(@NonNull Class<T> entityClass) {
+        return entity(entityClass).findAll();
+    }
+
+    /**
+     * 根据条件查找唯一实体（快捷方法）
+     * <p>
+     * 等价于 {@code entity(entityClass).findOne(condition)}
+     *
+     * @param entityClass 实体类型
+     * @param condition   查询条件
+     * @return 实体可选值
+     */
+    default <T> @NonNull Optional<T> findOne(@NonNull Class<T> entityClass, @NonNull Condition condition) {
+        return entity(entityClass).findOne(condition);
+    }
+
+    /**
+     * 根据条件查找所有匹配实体（快捷方法）
+     * <p>
+     * 等价于 {@code entity(entityClass).query().where(condition).list()}
+     *
+     * @param entityClass 实体类型
+     * @param condition   查询条件
+     * @return 实体列表
+     */
+    default <T> @NonNull List<T> findList(@NonNull Class<T> entityClass, @NonNull Condition condition) {
+        return entity(entityClass).query().where(condition).list();
+    }
+
+    /**
+     * 统计实体总数（快捷方法）
+     * <p>
+     * 等价于 {@code entity(entityClass).count()}
+     *
+     * @param entityClass 实体类型
+     * @return 实体总数
+     */
+    default <T> long count(@NonNull Class<T> entityClass) {
+        return entity(entityClass).count();
+    }
+
+    /**
+     * 根据条件统计实体数量（快捷方法）
+     * <p>
+     * 等价于 {@code entity(entityClass).query().where(condition).count()}
+     *
+     * @param entityClass 实体类型
+     * @param condition   查询条件
+     * @return 匹配的实体数量
+     */
+    default <T> long countByCondition(@NonNull Class<T> entityClass, @NonNull Condition condition) {
+        return entity(entityClass).query().where(condition).count();
+    }
+
+    /**
+     * 根据ID删除实体（快捷方法）
+     * <p>
+     * 等价于 {@code entity(entityClass).deleteById(id)}
+     *
+     * @param entityClass 实体类型
+     * @param id          主键值
+     */
+    default <T> void deleteById(@NonNull Class<T> entityClass, @NonNull Object id) {
+        entity(entityClass).deleteById(id);
+    }
+
+    /**
+     * 保存实体（快捷方法）
+     * <p>
+     * 等价于 {@code entity(entityClass).save(entity)}
+     *
+     * @param entityClass 实体类型
+     * @param entity      实体实例
+     * @return 保存后的实体
+     */
+    @SuppressWarnings("unchecked")
+    default <T> @NonNull T save(@NonNull Class<T> entityClass, @NonNull T entity) {
+        return entity(entityClass).save(entity);
+    }
 }

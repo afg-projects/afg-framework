@@ -42,6 +42,73 @@ public final class Conditions {
     }
 
     /**
+     * 创建匹配所有条件（WHERE 1=1）
+     * <p>
+     * 用于需要返回所有记录的场景
+     */
+    public static Condition all() {
+        return builder().build();
+    }
+
+    /**
+     * 创建不匹配任何条件（WHERE 1=0）
+     * <p>
+     * 用于需要返回空结果集的场景
+     */
+    public static Condition none() {
+        return builder().eq("1", "0").build();
+    }
+
+    /**
+     * 创建 OR 组合条件（任意一个条件匹配即可）
+     * <p>
+     * 等价于 {@code (condition1 OR condition2 OR ...)}
+     *
+     * @param conditions 要组合的条件
+     * @return OR 组合后的条件
+     */
+    public static Condition anyOf(Condition... conditions) {
+        if (conditions == null || conditions.length == 0) {
+            return empty();
+        }
+        if (conditions.length == 1) {
+            return conditions[0];
+        }
+        ConditionBuilder builder = builder();
+        for (int i = 0; i < conditions.length; i++) {
+            if (i == 0) {
+                builder.and(conditions[i]);
+            } else {
+                // 使用 or 方法组合后续条件
+                builder.or(conditions[i]);
+            }
+        }
+        return builder.build();
+    }
+
+    /**
+     * 创建 AND 组合条件（所有条件都必须匹配）
+     * <p>
+     * 等价于 {@code (condition1 AND condition2 AND ...)}
+     *
+     * @param conditions 要组合的条件
+     * @return AND 组合后的条件
+     */
+    public static Condition allOf(Condition... conditions) {
+        if (conditions == null || conditions.length == 0) {
+            return empty();
+        }
+        if (conditions.length == 1) {
+            return conditions[0];
+        }
+        ConditionBuilder builder = builder();
+        for (Condition condition : conditions) {
+            builder.and(condition);
+        }
+        return builder.build();
+    }
+
+    /**
      * 创建等于条件
      */
     public static Condition eq(String field, @Nullable Object value) {
@@ -60,6 +127,41 @@ public final class Conditions {
      */
     public static Condition in(String field, @Nullable Iterable<?> values) {
         return builder().in(field, values).build();
+    }
+
+    /**
+     * 创建类型化等于条件
+     */
+    public static <T, R> Condition eq(Class<T> entityClass, SFunction<T, R> getter, @Nullable Object value) {
+        return builder(entityClass).eq(getter, value).build();
+    }
+
+    /**
+     * 创建类型化 LIKE 条件
+     */
+    public static <T> Condition like(Class<T> entityClass, SFunction<T, String> getter, @Nullable String value) {
+        return builder(entityClass).like(getter, value).build();
+    }
+
+    /**
+     * 创建类型化 IN 条件
+     */
+    public static <T, R> Condition in(Class<T> entityClass, SFunction<T, R> getter, @Nullable Iterable<?> values) {
+        return builder(entityClass).in(getter, values).build();
+    }
+
+    /**
+     * 创建类型化 IS NULL 条件
+     */
+    public static <T, R> Condition isNull(Class<T> entityClass, SFunction<T, R> getter) {
+        return builder(entityClass).isNull(getter).build();
+    }
+
+    /**
+     * 创建类型化 IS NOT NULL 条件
+     */
+    public static <T, R> Condition isNotNull(Class<T> entityClass, SFunction<T, R> getter) {
+        return builder(entityClass).isNotNull(getter).build();
     }
 
     /**
