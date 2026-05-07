@@ -83,7 +83,27 @@ public enum Operator {
     /**
      * NOT BETWEEN
      */
-    NOT_BETWEEN("NOT BETWEEN");
+    NOT_BETWEEN("NOT BETWEEN"),
+
+    /**
+     * NOT（条件取反）
+     */
+    NOT("NOT"),
+
+    /**
+     * JSON 包含（PostgreSQL: @>）
+     */
+    JSON_CONTAINS("@>"),
+
+    /**
+     * JSON 被包含（PostgreSQL: <@）
+     */
+    JSON_CONTAINED("<@"),
+
+    /**
+     * JSON 路径存在（PostgreSQL: ?）
+     */
+    JSON_PATH("?");
 
     private final String symbol;
 

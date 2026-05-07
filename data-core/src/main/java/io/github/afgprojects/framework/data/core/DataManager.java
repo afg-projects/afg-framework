@@ -299,4 +299,81 @@ public interface DataManager {
     default <T> @NonNull T save(@NonNull Class<T> entityClass, @NonNull T entity) {
         return entity(entityClass).save(entity);
     }
+
+    /**
+     * 批量保存实体（快捷方法）
+     * <p>
+     * 等价于 {@code entity(entityClass).saveAll(entities)}
+     *
+     * @param entityClass 实体类型
+     * @param entities    实体集合
+     * @return 保存后的实体列表
+     */
+    default <T> @NonNull List<T> saveAll(@NonNull Class<T> entityClass, @NonNull Iterable<T> entities) {
+        return entity(entityClass).saveAll(entities);
+    }
+
+    /**
+     * 批量插入实体（快捷方法）
+     * <p>
+     * 等价于 {@code entity(entityClass).insertAll(entities)}
+     *
+     * @param entityClass 实体类型
+     * @param entities    实体集合
+     * @return 插入后的实体列表
+     */
+    default <T> @NonNull List<T> insertAll(@NonNull Class<T> entityClass, @NonNull Iterable<T> entities) {
+        return entity(entityClass).insertAll(entities);
+    }
+
+    /**
+     * 根据多个ID批量删除（快捷方法）
+     * <p>
+     * 等价于 {@code entity(entityClass).deleteAllById(ids)}
+     *
+     * @param entityClass 实体类型
+     * @param ids         ID集合
+     */
+    default <T> void deleteAllById(@NonNull Class<T> entityClass, @NonNull Iterable<?> ids) {
+        entity(entityClass).deleteAllById(ids);
+    }
+
+    /**
+     * 根据多个ID查找实体（快捷方法）
+     * <p>
+     * 等价于 {@code entity(entityClass).findAllById(ids)}
+     *
+     * @param entityClass 实体类型
+     * @param ids         ID集合
+     * @return 实体列表
+     */
+    default <T> @NonNull List<T> findAllById(@NonNull Class<T> entityClass, @NonNull Iterable<?> ids) {
+        return entity(entityClass).findAllById(ids);
+    }
+
+    /**
+     * 判断实体是否存在（快捷方法）
+     * <p>
+     * 等价于 {@code entity(entityClass).existsById(id)}
+     *
+     * @param entityClass 实体类型
+     * @param id          主键值
+     * @return 是否存在
+     */
+    default <T> boolean existsById(@NonNull Class<T> entityClass, @NonNull Object id) {
+        return entity(entityClass).existsById(id);
+    }
+
+    /**
+     * 根据条件判断是否存在（快捷方法）
+     * <p>
+     * 等价于 {@code entity(entityClass).query().where(condition).exists()}
+     *
+     * @param entityClass 实体类型
+     * @param condition   查询条件
+     * @return 是否存在
+     */
+    default <T> boolean existsByCondition(@NonNull Class<T> entityClass, @NonNull Condition condition) {
+        return entity(entityClass).query().where(condition).exists();
+    }
 }

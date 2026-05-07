@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.data.core;
 
+import io.github.afgprojects.framework.data.core.condition.SFunction;
 import io.github.afgprojects.framework.data.core.page.PageRequest;
 import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.query.Page;
@@ -37,6 +38,13 @@ import java.util.Optional;
  *     .withDataScope(DataScope.of("sys_user", "dept_id", DataScopeType.DEPT))
  *     .where(condition)
  *     .list();
+ *
+ * // 选择部分字段
+ * List&lt;User&gt; users = dataManager.entity(User.class)
+ *     .query()
+ *     .select(User::getId, User::getName)
+ *     .where(condition)
+ *     .list();
  * </pre>
  *
  * @param <T> 实体类型
@@ -58,6 +66,43 @@ public interface EntityQuery<T> {
      * @return 查询构建器（支持链式调用）
      */
     @NonNull EntityQuery<T> orderBy(@NonNull Sort sort);
+
+    /**
+     * 选择部分字段查询（字符串字段名）
+     * <p>
+     * 默认查询所有字段（SELECT *），使用此方法可以指定只查询部分字段。
+     *
+     * @param fields 要查询的字段名
+     * @return 查询构建器（支持链式调用）
+     */
+    @NonNull EntityQuery<T> select(@NonNull String... fields);
+
+    /**
+     * 选择部分字段查询（Lambda 字段引用）
+     * <p>
+     * 类型安全的字段选择方式。
+     *
+     * @param getters 字段 getter 方法引用
+     * @return 查询构建器（支持链式调用）
+     */
+    @SuppressWarnings("unchecked")
+    default @NonNull EntityQuery<T> select(@NonNull SFunction<T, ?>... getters) {
+        String[] fields = new String[getters.length];
+        for (int i = 0; i < getters.length; i++) {
+            fields[i] = io.github.afgprojects.framework.data.core.condition.Conditions.getFieldName(getters[i]);
+        }
+        return select(fields);
+    }
+
+    /**
+     * 排除部分字段查询
+     * <p>
+     * 查询除指定字段外的所有字段。
+     *
+     * @param fields 要排除的字段名
+     * @return 查询构建器（支持链式调用）
+     */
+    @NonNull EntityQuery<T> exclude(@NonNull String... fields);
 
     /**
      * 设置数据权限

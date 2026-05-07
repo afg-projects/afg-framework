@@ -9,6 +9,7 @@ import io.github.afgprojects.framework.data.core.query.Page;
 import io.github.afgprojects.framework.data.core.query.Sort;
 import io.github.afgprojects.framework.data.core.scope.DataScope;
 import io.github.afgprojects.framework.data.jdbc.metadata.SimpleEntityMetadata;
+import io.github.afgprojects.framework.data.jdbc.metadata.SimpleFieldMetadata;
 import io.github.afgprojects.framework.data.sql.converter.ConditionToSqlConverter;
 import org.jspecify.annotations.NonNull;
 import org.springframework.jdbc.core.RowMapper;
@@ -43,6 +44,16 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
     private Integer limit;
     private Integer offset;
 
+    /**
+     * 选中的字段列表（null 表示查询所有字段）
+     */
+    private List<String> selectedFields;
+
+    /**
+     * 排除的字段列表
+     */
+    private Set<String> excludedFields = new HashSet<>();
+
     public JdbcEntityQuery(JdbcEntityProxy<T> parentProxy) {
         this.parentProxy = parentProxy;
         this.entityClass = parentProxy.getEntityClass();
@@ -62,6 +73,20 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
     @Override
     public @NonNull EntityQuery<T> orderBy(@NonNull Sort sort) {
         this.sort = sort;
+        return this;
+    }
+
+    @Override
+    public @NonNull EntityQuery<T> select(@NonNull String... fields) {
+        this.selectedFields = Arrays.asList(fields);
+        this.excludedFields.clear();
+        return this;
+    }
+
+    @Override
+    public @NonNull EntityQuery<T> exclude(@NonNull String... fields) {
+        this.excludedFields.addAll(Arrays.asList(fields));
+        this.selectedFields = null;
         return this;
     }
 
@@ -294,7 +319,36 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
     // ==================== 辅助方法 ====================
 
     private String buildSelectSql() {
-        return "SELECT * FROM " + dialect.quoteIdentifier(metadata.getTableName());
+        List<String> fields = resolveFields();
+        if (fields == null || fields.isEmpty()) {
+            return "SELECT * FROM " + dialect.quoteIdentifier(metadata.getTableName());
+        }
+        return "SELECT " + String.join(", ", fields) + " FROM " + dialect.quoteIdentifier(metadata.getTableName());
+    }
+
+    /**
+     * 解析要查询的字段列表
+     *
+     * @return 字段列表，null 表示查询所有字段
+     */
+    private List<String> resolveFields() {
+        if (selectedFields != null && !selectedFields.isEmpty()) {
+            return selectedFields;
+        }
+
+        if (!excludedFields.isEmpty()) {
+            List<String> fields = new ArrayList<>();
+            for (var field : metadata.getFields()) {
+                String columnName = field.getColumnName();
+                String propertyName = field.getPropertyName();
+                if (!excludedFields.contains(columnName) && !excludedFields.contains(propertyName)) {
+                    fields.add(columnName);
+                }
+            }
+            return fields.isEmpty() ? null : fields;
+        }
+
+        return null;
     }
 
     private String buildOrderByClause() {

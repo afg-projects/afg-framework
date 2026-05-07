@@ -30,7 +30,8 @@ class QueryTest {
                     Operator.EQ, Operator.NE, Operator.GT, Operator.GE,
                     Operator.LT, Operator.LE, Operator.LIKE, Operator.LIKE_LEFT,
                     Operator.LIKE_RIGHT, Operator.NOT_LIKE, Operator.IN, Operator.NOT_IN,
-                    Operator.IS_NULL, Operator.IS_NOT_NULL, Operator.BETWEEN, Operator.NOT_BETWEEN
+                    Operator.IS_NULL, Operator.IS_NOT_NULL, Operator.BETWEEN, Operator.NOT_BETWEEN,
+                    Operator.NOT, Operator.JSON_CONTAINS, Operator.JSON_CONTAINED, Operator.JSON_PATH
             );
         }
 
@@ -77,6 +78,10 @@ class QueryTest {
             assertThat(Operator.NOT_IN.requiresValue()).isTrue();
             assertThat(Operator.BETWEEN.requiresValue()).isTrue();
             assertThat(Operator.NOT_BETWEEN.requiresValue()).isTrue();
+            assertThat(Operator.NOT.requiresValue()).isTrue();
+            assertThat(Operator.JSON_CONTAINS.requiresValue()).isTrue();
+            assertThat(Operator.JSON_CONTAINED.requiresValue()).isTrue();
+            assertThat(Operator.JSON_PATH.requiresValue()).isTrue();
         }
 
         @Test

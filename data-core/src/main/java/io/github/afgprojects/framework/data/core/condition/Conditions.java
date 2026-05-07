@@ -11,12 +11,18 @@ import java.lang.invoke.SerializedLambda;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 条件工厂类
  */
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
 public final class Conditions {
+
+    /**
+     * Lambda 字段名解析缓存
+     */
+    private static final ConcurrentHashMap<String, String> FIELD_NAME_CACHE = new ConcurrentHashMap<>();
 
     private Conditions() {}
 
@@ -79,7 +85,6 @@ public final class Conditions {
             if (i == 0) {
                 builder.and(conditions[i]);
             } else {
-                // 使用 or 方法组合后续条件
                 builder.or(conditions[i]);
             }
         }
@@ -109,45 +114,146 @@ public final class Conditions {
     }
 
     /**
-     * 创建等于条件
+     * 创建等于条件（智能处理 null 值）
+     * <p>
+     * 如果 value 为 null，自动转换为 IS NULL 条件
      */
     public static Condition eq(String field, @Nullable Object value) {
+        if (value == null) {
+            return isNull(field);
+        }
         return builder().eq(field, value).build();
+    }
+
+    /**
+     * 创建不等于条件（智能处理 null 值）
+     * <p>
+     * 如果 value 为 null，自动转换为 IS NOT NULL 条件
+     */
+    public static Condition ne(String field, @Nullable Object value) {
+        if (value == null) {
+            return isNotNull(field);
+        }
+        return builder().ne(field, value).build();
     }
 
     /**
      * 创建 LIKE 条件
      */
     public static Condition like(String field, @Nullable String value) {
+        if (value == null) {
+            return isNull(field);
+        }
         return builder().like(field, value).build();
     }
 
     /**
-     * 创建 IN 条件
+     * 创建 IN 条件（智能处理空集合）
+     * <p>
+     * 如果 values 为 null，转换为 IS NULL；
+     * 如果 values 为空集合，返回 none()（不匹配任何记录）
      */
     public static Condition in(String field, @Nullable Iterable<?> values) {
-        return builder().in(field, values).build();
+        if (values == null) {
+            return isNull(field);
+        }
+        List<Object> list = new ArrayList<>();
+        values.forEach(list::add);
+        if (list.isEmpty()) {
+            return none();
+        }
+        return builder().in(field, list).build();
     }
 
     /**
-     * 创建类型化等于条件
+     * 创建 NOT IN 条件（智能处理空集合）
+     */
+    public static Condition notIn(String field, @Nullable Iterable<?> values) {
+        if (values == null) {
+            return isNotNull(field);
+        }
+        List<Object> list = new ArrayList<>();
+        values.forEach(list::add);
+        if (list.isEmpty()) {
+            return all();
+        }
+        return builder().notIn(field, list).build();
+    }
+
+    /**
+     * 创建 IS NULL 条件
+     */
+    public static Condition isNull(String field) {
+        return builder().isNull(field).build();
+    }
+
+    /**
+     * 创建 IS NOT NULL 条件
+     */
+    public static Condition isNotNull(String field) {
+        return builder().isNotNull(field).build();
+    }
+
+    // ==================== 类型化静态方法 ====================
+
+    /**
+     * 创建类型化等于条件（智能处理 null 值）
      */
     public static <T, R> Condition eq(Class<T> entityClass, SFunction<T, R> getter, @Nullable Object value) {
+        if (value == null) {
+            return isNull(entityClass, getter);
+        }
         return builder(entityClass).eq(getter, value).build();
+    }
+
+    /**
+     * 创建类型化不等于条件（智能处理 null 值）
+     */
+    public static <T, R> Condition ne(Class<T> entityClass, SFunction<T, R> getter, @Nullable Object value) {
+        if (value == null) {
+            return isNotNull(entityClass, getter);
+        }
+        return builder(entityClass).ne(getter, value).build();
     }
 
     /**
      * 创建类型化 LIKE 条件
      */
     public static <T> Condition like(Class<T> entityClass, SFunction<T, String> getter, @Nullable String value) {
+        if (value == null) {
+            return isNull(entityClass, getter);
+        }
         return builder(entityClass).like(getter, value).build();
     }
 
     /**
-     * 创建类型化 IN 条件
+     * 创建类型化 IN 条件（智能处理空集合）
      */
     public static <T, R> Condition in(Class<T> entityClass, SFunction<T, R> getter, @Nullable Iterable<?> values) {
-        return builder(entityClass).in(getter, values).build();
+        if (values == null) {
+            return isNull(entityClass, getter);
+        }
+        List<Object> list = new ArrayList<>();
+        values.forEach(list::add);
+        if (list.isEmpty()) {
+            return none();
+        }
+        return builder(entityClass).in(getter, list).build();
+    }
+
+    /**
+     * 创建类型化 NOT IN 条件（智能处理空集合）
+     */
+    public static <T, R> Condition notIn(Class<T> entityClass, SFunction<T, R> getter, @Nullable Iterable<?> values) {
+        if (values == null) {
+            return isNotNull(entityClass, getter);
+        }
+        List<Object> list = new ArrayList<>();
+        values.forEach(list::add);
+        if (list.isEmpty()) {
+            return all();
+        }
+        return builder(entityClass).notIn(getter, list).build();
     }
 
     /**
@@ -165,9 +271,17 @@ public final class Conditions {
     }
 
     /**
-     * 从 Lambda 获取字段名
+     * 从 Lambda 获取字段名（带缓存）
      */
     public static <T, R> String getFieldName(SFunction<T, R> getter) {
+        String cacheKey = getter.getClass().getName();
+        return FIELD_NAME_CACHE.computeIfAbsent(cacheKey, k -> doGetFieldName(getter));
+    }
+
+    /**
+     * 实际解析 Lambda 字段名
+     */
+    private static <T, R> String doGetFieldName(SFunction<T, R> getter) {
         try {
             Method writeReplace = getter.getClass().getDeclaredMethod("writeReplace");
             writeReplace.setAccessible(true);
