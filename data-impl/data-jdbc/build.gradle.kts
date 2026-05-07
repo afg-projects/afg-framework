@@ -12,7 +12,7 @@ dependencies {
     // 依赖 core 模块（用于缓存集成）
     api(project(":core"))
 
-    // Spring JDBC (JdbcClient) - 版本与 Spring Boot 4.0.5 同步
+    // Spring JDBC (JdbcClient) - 版本由 Spring Boot BOM 管理
     api(libs.spring.jdbc)
 
     // Micrometer for metrics

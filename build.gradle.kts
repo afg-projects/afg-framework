@@ -3,7 +3,7 @@ import org.gradle.testing.jacoco.plugins.JacocoPluginExtension
 import org.gradle.testing.jacoco.tasks.JacocoReport
 
 plugins {
-    id("org.springframework.boot") version "4.0.5" apply false
+    id("org.springframework.boot") version "4.0.6" apply false
     id("io.spring.dependency-management") version "1.1.7" apply false
     id("com.github.ben-manes.versions") version "0.54.0"
     id("org.owasp.dependencycheck") version "12.1.0"
@@ -11,6 +11,9 @@ plugins {
     id("org.jetbrains.kotlin.jvm") version "2.3.0" apply false
     pmd
 }
+
+// 统一版本管理
+val springBootVersion: String by extra { property("springBootVersion") as String }
 
 allprojects {
     group = property("projectGroup").toString()
@@ -29,7 +32,7 @@ subprojects {
         // 配置 Spring Boot BOM 版本管理
         configure<io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension> {
             imports {
-                mavenBom("org.springframework.boot:spring-boot-dependencies:4.0.5")
+                mavenBom("org.springframework.boot:spring-boot-dependencies:${property("springBootVersion")}")
             }
         }
 

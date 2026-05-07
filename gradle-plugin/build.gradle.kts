@@ -31,7 +31,7 @@ gradlePlugin {
     // 声明插件依赖
     dependencies {
         // 独立部署模式时自动应用 Spring Boot 插件
-        implementation("org.springframework.boot:org.springframework.boot.gradle.plugin:4.0.5")
+        implementation("org.springframework.boot:org.springframework.boot.gradle.plugin:${property("springBootVersion")}")
     }
 }
 
