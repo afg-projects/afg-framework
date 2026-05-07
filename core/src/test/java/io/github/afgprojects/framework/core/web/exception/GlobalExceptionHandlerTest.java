@@ -66,6 +66,9 @@ class GlobalExceptionHandlerTest {
         messageSource.setDefaultEncoding("UTF-8");
         messageSource.setFallbackToSystemLocale(false);
         ErrorCodeMessageSource.setMessageSource(messageSource);
+
+        // Set default locale to Chinese for tests expecting Chinese messages
+        LocaleContextHolder.setLocale(Locale.CHINA);
     }
 
     @AfterEach
