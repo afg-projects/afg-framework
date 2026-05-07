@@ -147,13 +147,19 @@ subprojects {
 // 依赖版本检查配置
 tasks.named<com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask>("dependencyUpdates") {
     // 输出格式
-    outputFormatter = "text,json"
+    outputFormatter = "json"
     outputDir = "${layout.buildDirectory.get().asFile}/reports/dependency-updates"
+
+    // 只检查生产依赖，跳过测试依赖以提速
+    checkConstraints = true
 
     // 拒绝不稳定版本（alpha, beta, milestone, rc 等）
     rejectVersionIf {
         isNonStable(candidate.version)
     }
+
+    // 使用 Gradle 依赖缓存提速
+    checkBuildEnvironmentConstraints = false
 }
 
 /**
