@@ -115,8 +115,8 @@ class LocalEventPublisherTest {
             // when
             CompletableFuture<Void> future = publisher.publishAsync(event);
 
-            // then
-            assertThat(future).isCompleted();
+            // then - 等待异步操作完成
+            assertThat(future).succeedsWithin(java.time.Duration.ofSeconds(5));
             verify(applicationEventPublisher).publishEvent(any(LocalEventPublisher.DomainEventWrapper.class));
         }
     }
