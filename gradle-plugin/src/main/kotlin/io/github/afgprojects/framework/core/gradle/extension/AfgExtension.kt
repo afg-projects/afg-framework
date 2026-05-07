@@ -10,7 +10,7 @@ import javax.inject.Inject
  * 使用方式：
  * <pre>
  * afg {
- *     springBootVersion.set("4.0.5")
+ *     springBootVersion.set("4.0.6")
  *     frameworkVersion.set("1.0.0-SNAPSHOT")
  *     moduleType.set("data")
  *     deploymentMode.set("module")  // module 或 platform

@@ -24,7 +24,7 @@ data class ProjectInitOptions(
     val projectType: ProjectType = ProjectType.DATA,
     val basePackage: String = "com.example",
     val javaVersion: Int = 21,
-    val springBootVersion: String = "4.0.5",
+    val springBootVersion: String = "4.0.6",
     val afgFrameworkVersion: String = "1.0.0",
     val databaseType: DatabaseType = DatabaseType.H2,
     val buildTool: BuildTool = BuildTool.GRADLE_KOTLIN,

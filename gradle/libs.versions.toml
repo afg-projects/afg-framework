@@ -25,9 +25,9 @@ jsqlparser = "5.3"
 # Gradle 插件版本
 dependency-management = "1.1.7"
 versions-plugin = "0.54.0"
-dependency-check = "12.1.0"
+dependency-check = "12.2.2"
 maven-publish = "0.36.0"
-kotlin-jvm = "2.3.0"
+kotlin-jvm = "2.3.21"
 
 [libraries]
 # Spring Boot
@@ -120,7 +120,7 @@ jmh-generator-annprocess = { module = "org.openjdk.jmh:jmh-generator-annprocess"
 archunit-junit5 = { module = "com.tngtech.archunit:archunit-junit5", version = "1.4.2" }
 
 # jsoup (HTML 清洗)
-jsoup = { module = "org.jsoup:jsoup", version = "1.18.1" }
+jsoup = { module = "org.jsoup:jsoup", version = "1.22.2" }
 
 # OWASP AntiSamy (XSS 防护)
 antisamy = { module = "org.owasp.antisamy:antisamy", version = "1.7.8" }
@@ -151,10 +151,10 @@ spring-expression = { module = "org.springframework:spring-expression" }
 pmd-core = { module = "net.sourceforge.pmd:pmd-core", version = "7.23.0" }
 pmd-java = { module = "net.sourceforge.pmd:pmd-java", version = "7.23.0" }
 
-# Spring Kafka
-spring-kafka = { module = "org.springframework.kafka:spring-kafka", version = "3.3.4" }
+# Spring Kafka (版本由 Spring Boot BOM 管理)
+spring-kafka = { module = "org.springframework.kafka:spring-kafka" }
 
-# Spring AMQP (RabbitMQ)
+# Spring AMQP (RabbitMQ, 版本由 Spring Boot BOM 管理)
 spring-amqp = { module = "org.springframework.amqp:spring-amqp" }
 spring-rabbitmq = { module = "org.springframework.amqp:spring-rabbit" }
 spring-boot-starter-amqp = { module = "org.springframework.boot:spring-boot-starter-amqp" }
@@ -168,7 +168,7 @@ spring-messaging = { module = "org.springframework:spring-messaging" }
 # SpringDoc OpenAPI (API 文档)
 springdoc-openapi-starter-webmvc = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version = "2.8.6" }
 
-# Spring GraphQL
+# Spring GraphQL (版本由 Spring Boot BOM 管理)
 spring-boot-starter-graphql = { module = "org.springframework.boot:spring-boot-starter-graphql" }
 spring-graphql-test = { module = "org.springframework.graphql:spring-graphql-test" }
 
@@ -203,7 +203,7 @@ flyway-core = { module = "org.flywaydb:flyway-core" }
 h2 = { module = "com.h2database:h2" }
 
 # AWS S3 SDK (s3 模块已包含 presigner 功能)
-aws-s3 = { module = "software.amazon.awssdk:s3", version = "2.31.0" }
+aws-s3 = { module = "software.amazon.awssdk:s3", version = "2.44.3" }
 
 # Aliyun OSS SDK
 aliyun-oss = { module = "com.aliyun.oss:aliyun-sdk-oss", version = "3.18.1" }

@@ -61,23 +61,23 @@ dependencies {
     compileOnly(libs.aspectj.weaver)
 
     // Logback (结构化日志)
-    compileOnly(libs.logback.classic)
+    api(libs.logback.classic)
 
     // Redisson (分布式存储，功能开关)
     compileOnly(libs.redisson)
     compileOnly(libs.redisson.core)
 
     // Caffeine (本地缓存)
-    compileOnly(libs.caffeine)
+    api(libs.caffeine)
 
     // Spring Expression (SpEL for cache key)
     compileOnly(libs.spring.expression)
 
     // jsoup (HTML 清洗)
-    compileOnly(libs.jsoup)
+    api(libs.jsoup)
 
     // OWASP AntiSamy (XSS 防护)
-    compileOnly(libs.antisamy)
+    api(libs.antisamy)
 
     // Nacos Config (配置中心)
     compileOnly(libs.nacos.client)

@@ -210,9 +210,6 @@ dependencyCheck {
 
     // 跳过测试依赖扫描（可选，提高扫描速度）
     skipTestGroups = true
-
-    // 输出目录
-    outputDirectory = "${layout.buildDirectory.get().asFile}/reports/dependency-check"
 }
 
 // ==================== JMH 基准测试配置 ====================

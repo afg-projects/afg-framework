@@ -26,7 +26,7 @@ import java.io.File
 class AfgPlugin : Plugin<Project> {
 
     companion object {
-        const val DEFAULT_SPRING_BOOT_VERSION = "4.0.5"
+        const val DEFAULT_SPRING_BOOT_VERSION = "4.0.6"
         const val DEFAULT_FRAMEWORK_VERSION = "1.0.0-SNAPSHOT"
         const val FRAMEWORK_GROUP = "io.github.afg-projects"
     }

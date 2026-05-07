@@ -16,7 +16,7 @@
 ## 技术栈
 
 - Java 25
-- Spring Boot 4.0.5
+- Spring Boot 4.0.6
 - Gradle 9.4 (Kotlin DSL)
 
 ## 快速开始
