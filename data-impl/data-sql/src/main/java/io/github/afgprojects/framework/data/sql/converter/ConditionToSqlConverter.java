@@ -3,6 +3,7 @@ package io.github.afgprojects.framework.data.sql.converter;
 import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.query.Criterion;
 import io.github.afgprojects.framework.data.core.query.LogicalOperator;
+import io.github.afgprojects.framework.data.core.query.NotCondition;
 import io.github.afgprojects.framework.data.core.query.Operator;
 import org.jspecify.annotations.NonNull;
 
@@ -55,6 +56,13 @@ public class ConditionToSqlConverter {
     }
 
     private void convertCondition(Condition condition, StringBuilder sql, List<Object> parameters) {
+        // 处理 NOT 条件
+        if (condition instanceof NotCondition notCondition) {
+            sql.append("NOT ");
+            convertCondition(notCondition.getOriginal(), sql, parameters);
+            return;
+        }
+
         List<Criterion> criteria = condition.getCriteria();
         if (criteria.isEmpty()) {
             return;
@@ -95,6 +103,13 @@ public class ConditionToSqlConverter {
         // 处理嵌套条件
         if ("__nested__".equals(field) && value instanceof Condition nestedCondition) {
             convertCondition(nestedCondition, sql, parameters);
+            return;
+        }
+
+        // 处理 NOT 操作符
+        if (operator == Operator.NOT && value instanceof Condition notCondition) {
+            sql.append("NOT ");
+            convertCondition(notCondition, sql, parameters);
             return;
         }
 
@@ -176,6 +191,24 @@ public class ConditionToSqlConverter {
                     parameters.add(arr[0]);
                     parameters.add(arr[1]);
                 }
+            }
+            case JSON_CONTAINS -> {
+                // PostgreSQL JSON 包含操作符
+                sql.append(" @> ?::jsonb");
+                parameters.add(value);
+            }
+            case JSON_CONTAINED -> {
+                // PostgreSQL JSON 被包含操作符
+                sql.append(" <@ ?::jsonb");
+                parameters.add(value);
+            }
+            case JSON_PATH -> {
+                // PostgreSQL JSON 路径存在操作符
+                sql.append(" ?? ?");
+                parameters.add(value);
+            }
+            case NOT -> {
+                // 已在上面处理
             }
         }
     }

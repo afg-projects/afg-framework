@@ -3,7 +3,11 @@ package io.github.afgprojects.framework.data.jdbc.cache;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * 实体缓存接口
@@ -17,12 +21,31 @@ import java.util.Optional;
 public interface EntityCache<T> {
 
     /**
+     * NULL 标记对象，用于防止缓存穿透
+     */
+    Object NULL_MARKER = new Object();
+
+    /**
      * 从缓存获取实体
      *
      * @param id 实体 ID
      * @return 缓存的实体，不存在时返回 Optional.empty()
      */
     @NonNull Optional<T> get(@NonNull Object id);
+
+    /**
+     * 批量获取实体
+     *
+     * @param ids 实体 ID 集合
+     * @return 缓存的实体映射（不存在的 ID 不会包含在结果中）
+     */
+    default @NonNull Map<Object, T> getAll(@NonNull Set<Object> ids) {
+        java.util.Map<Object, T> result = new java.util.HashMap<>();
+        for (Object id : ids) {
+            get(id).ifPresent(entity -> result.put(id, entity));
+        }
+        return result;
+    }
 
     /**
      * 缓存实体
@@ -42,11 +65,60 @@ public interface EntityCache<T> {
     void put(@NonNull Object id, @NonNull T entity, long ttlMillis);
 
     /**
+     * 缓存 null 标记（防止缓存穿透）
+     *
+     * @param id 实体 ID
+     */
+    default void putNull(@NonNull Object id) {
+        // 默认实现：子类可覆盖以支持 null 标记
+    }
+
+    /**
+     * 缓存 null 标记（指定 TTL）
+     *
+     * @param id        实体 ID
+     * @param ttlMillis 过期时间（毫秒）
+     */
+    default void putNull(@NonNull Object id, long ttlMillis) {
+        putNull(id);
+    }
+
+    /**
+     * 检查是否为 null 标记
+     *
+     * @param id 实体 ID
+     * @return 是 null 标记返回 true
+     */
+    default boolean isNullMarker(@NonNull Object id) {
+        return false;
+    }
+
+    /**
+     * 批量缓存实体
+     *
+     * @param entities 实体列表
+     */
+    default void putAll(@NonNull List<T> entities) {
+        // 子类需覆盖实现
+    }
+
+    /**
      * 失效单个实体缓存
      *
      * @param id 实体 ID
      */
     void evict(@NonNull Object id);
+
+    /**
+     * 批量失效缓存
+     *
+     * @param ids 实体 ID 集合
+     */
+    default void evictAll(@NonNull Set<Object> ids) {
+        for (Object id : ids) {
+            evict(id);
+        }
+    }
 
     /**
      * 失效该实体类型的所有缓存
@@ -86,4 +158,22 @@ public interface EntityCache<T> {
      * @return 缓存名称
      */
     @NonNull String getCacheName();
+
+    /**
+     * 获取所有缓存的 ID
+     *
+     * @return ID 集合
+     */
+    default Set<Object> keys() {
+        throw new UnsupportedOperationException("keys() not supported");
+    }
+
+    /**
+     * 获取所有缓存的实体
+     *
+     * @return 实体集合
+     */
+    default Collection<T> values() {
+        throw new UnsupportedOperationException("values() not supported");
+    }
 }

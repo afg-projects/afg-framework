@@ -286,6 +286,7 @@ class CacheAspectTest extends BaseUnitTest {
             @Override public String keyPrefix() { return keyPrefix; }
             @Override public long ttl() { return ttl; }
             @Override public TimeUnit timeUnit() { return timeUnit; }
+            @Override public double jitter() { return 0; }
             @Override public String condition() { return condition; }
             @Override public String unless() { return unless; }
             @Override public boolean cacheNull() { return cacheNull; }

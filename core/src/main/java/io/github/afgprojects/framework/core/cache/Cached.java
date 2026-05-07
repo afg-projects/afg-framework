@@ -83,6 +83,17 @@ public @interface Cached {
     TimeUnit timeUnit() default TimeUnit.MILLISECONDS;
 
     /**
+     * TTL 随机抖动范围（百分比）
+     * <p>
+     * 用于防止缓存雪崩。实际 TTL = ttl * (1 + random(-jitter, jitter))
+     * 例如：ttl=60, jitter=0.1，则实际 TTL 在 54-66 秒之间
+     * </p>
+     *
+     * @return 抖动范围（0-1之间），0 表示不抖动
+     */
+    double jitter() default 0;
+
+    /**
      * 是否缓存 null 值
      * <p>
      * 开启后可以防止缓存穿透
