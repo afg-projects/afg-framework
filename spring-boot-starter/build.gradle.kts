@@ -6,6 +6,9 @@ dependencies {
     // ===== 核心模块（必须依赖）=====
     api(project(":core"))
 
+    // ===== 安全模块 =====
+    api(project(":security-core"))
+
     // ===== 数据访问模块（推荐依赖）=====
     api(project(":data-core"))
     api(project(":data-impl:data-sql"))
