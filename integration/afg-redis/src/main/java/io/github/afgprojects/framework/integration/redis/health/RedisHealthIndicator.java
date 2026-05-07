@@ -1,7 +1,5 @@
 package io.github.afgprojects.framework.integration.redis.health;
 
-import java.util.concurrent.TimeUnit;
-
 import org.jspecify.annotations.NonNull;
 import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
@@ -29,6 +27,7 @@ import org.springframework.boot.health.contributor.Status;
 public class RedisHealthIndicator implements HealthIndicator {
 
     private static final Logger log = LoggerFactory.getLogger(RedisHealthIndicator.class);
+    private static final String HEALTH_CHECK_KEY = "__redis_health_check__";
 
     private final RedissonClient redissonClient;
     private final RedisHealthProperties properties;
@@ -48,11 +47,12 @@ public class RedisHealthIndicator implements HealthIndicator {
     public Health health() {
         Health.Builder builder = Health.up();
         long startTime = System.currentTimeMillis();
-        long timeoutMs = properties.getConnectionTimeout();
 
         try {
-            // 使用 ping 命令检查连接
-            boolean connected = redissonClient.getNodesGroup().pingAll(timeoutMs, TimeUnit.MILLISECONDS);
+            // Redisson 4.x: 使用简单的 get/set 操作检查连接
+            redissonClient.getBucket(HEALTH_CHECK_KEY).set("ping");
+            String value = (String) redissonClient.getBucket(HEALTH_CHECK_KEY).get();
+            boolean connected = "ping".equals(value);
             long duration = System.currentTimeMillis() - startTime;
 
             if (connected) {
@@ -87,9 +87,10 @@ public class RedisHealthIndicator implements HealthIndicator {
      */
     private void addServerInfo(Health.Builder builder) {
         try {
-            // 获取节点数量作为简单的可用性检查
-            int nodeCount = redissonClient.getNodesGroup().getNodes().size();
-            builder.withDetail("nodeCount", nodeCount);
+            // Redisson 4.x: 使用简单的操作检查可用性
+            // 尝试获取一个不存在的 key 来验证连接正常
+            redissonClient.getBucket("__health_check_nonexistent__").get();
+            builder.withDetail("serverInfo", "available");
         } catch (Exception e) {
             log.debug("获取 Redis 服务器信息失败: {}", e.getMessage());
             builder.withDetail("serverInfo", "unavailable");

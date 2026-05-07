@@ -7,9 +7,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.redisson.api.NodesGroup;
+import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
-import org.redisson.api.Node;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.Status;
 
@@ -21,7 +20,6 @@ class RedisHealthIndicatorTest {
 
     private RedisHealthProperties properties;
     private RedissonClient mockRedissonClient;
-    private NodesGroup<Node> mockNodesGroup;
 
     @SuppressWarnings("unchecked")
     @BeforeEach
@@ -31,8 +29,6 @@ class RedisHealthIndicatorTest {
         properties.setIncludeServerInfo(false);
 
         mockRedissonClient = mock(RedissonClient.class);
-        mockNodesGroup = mock(NodesGroup.class);
-        when(mockRedissonClient.getNodesGroup()).thenReturn(mockNodesGroup);
     }
 
     @Nested
@@ -43,7 +39,9 @@ class RedisHealthIndicatorTest {
         @DisplayName("连接有效时应该返回 UP 状态")
         void shouldReturnUpWhenConnectionValid() {
             // given
-            when(mockNodesGroup.pingAll(anyLong(), any())).thenReturn(true);
+            RBucket<Object> mockBucket = mock(RBucket.class);
+            when(mockBucket.get()).thenReturn("ping");
+            when(mockRedissonClient.getBucket("__redis_health_check__")).thenReturn(mockBucket);
             RedisHealthIndicator indicator = new RedisHealthIndicator(mockRedissonClient, properties);
 
             // when
@@ -59,7 +57,9 @@ class RedisHealthIndicatorTest {
         @DisplayName("Ping 失败时应该返回 DOWN 状态")
         void shouldReturnDownWhenPingFailed() {
             // given
-            when(mockNodesGroup.pingAll(anyLong(), any())).thenReturn(false);
+            RBucket<Object> mockBucket = mock(RBucket.class);
+            when(mockBucket.get()).thenReturn("wrong-value");
+            when(mockRedissonClient.getBucket("__redis_health_check__")).thenReturn(mockBucket);
             RedisHealthIndicator indicator = new RedisHealthIndicator(mockRedissonClient, properties);
 
             // when
@@ -75,7 +75,7 @@ class RedisHealthIndicatorTest {
         @DisplayName("抛出异常时应该返回 DOWN 状态")
         void shouldReturnDownWhenExceptionThrown() {
             // given
-            when(mockNodesGroup.pingAll(anyLong(), any())).thenThrow(new RuntimeException("Connection refused"));
+            when(mockRedissonClient.getBucket("__redis_health_check__")).thenThrow(new RuntimeException("Connection refused"));
             RedisHealthIndicator indicator = new RedisHealthIndicator(mockRedissonClient, properties);
 
             // when

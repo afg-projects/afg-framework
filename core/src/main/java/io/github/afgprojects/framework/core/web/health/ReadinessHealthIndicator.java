@@ -145,9 +145,15 @@ public class ReadinessHealthIndicator implements HealthIndicator {
         long timeoutMs = properties.getReadiness().getRedisCheckTimeout().toMillis();
 
         try {
-            // 使用 ping 命令检查连接
-            long remainingTime = timeoutMs;
-            boolean connected = redissonClient.getNodesGroup().pingAll(remainingTime, TimeUnit.MILLISECONDS);
+            // Redisson 4.x: 使用简单的 get/set 操作检查连接
+            // 使用一个特殊的健康检查 key
+            String healthCheckKey = "__redis_health_check__";
+
+            // 执行简单的 ping 命令
+            redissonClient.getBucket(healthCheckKey).set("ping");
+            String value = (String) redissonClient.getBucket(healthCheckKey).get();
+            boolean connected = "ping".equals(value);
+
             long duration = System.currentTimeMillis() - startTime;
 
             if (connected) {

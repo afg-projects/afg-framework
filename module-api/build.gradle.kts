@@ -7,7 +7,7 @@ dependencies {
     api("org.jspecify:jspecify:1.0.0")
 
     // Spring Context (用于 @Configuration, @ComponentScan)
-    compileOnly("org.springframework:spring-context:${property("springFrameworkVersion")}")
+    compileOnly("org.springframework:spring-context:${rootProject.extra["springFrameworkVersion"]}")
 }
 
 // 确保先编译此模块

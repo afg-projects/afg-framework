@@ -48,8 +48,11 @@ class RedisIntegrationTest {
 
         RedissonClient client = Redisson.create(config);
 
-        // Redisson 通过 getNodes() 可以验证连接
-        assertThat(client.getNodesGroup().getNodes()).isNotEmpty();
+        // Redisson 4.x: 使用 getBucket 验证连接
+        var bucket = client.getBucket("__ping_test__");
+        bucket.set("ping");
+        assertThat(bucket.get()).isEqualTo("ping");
+        bucket.delete();
 
         client.shutdown();
     }

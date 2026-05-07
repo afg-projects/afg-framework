@@ -7,7 +7,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import javax.sql.DataSource;
 
@@ -16,7 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.redisson.api.NodesGroup;
+import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.Status;
@@ -157,9 +156,9 @@ class ReadinessHealthIndicatorTest extends BaseUnitTest {
         @SuppressWarnings("unchecked")
         void shouldReturnUpWhenRedisHealthy() {
             // given
-            NodesGroup<?> nodesGroup = mock(NodesGroup.class);
-            when(nodesGroup.pingAll(anyLong(), any(TimeUnit.class))).thenReturn(true);
-            doReturn(nodesGroup).when(redissonClient).getNodesGroup();
+            RBucket<Object> bucket = mock(RBucket.class);
+            when(bucket.get()).thenReturn("ping");
+            when(redissonClient.getBucket("__redis_health_check__")).thenReturn(bucket);
             healthIndicator = new ReadinessHealthIndicator(properties, null, redissonClient, null);
 
             // when
@@ -175,9 +174,9 @@ class ReadinessHealthIndicatorTest extends BaseUnitTest {
         @SuppressWarnings("unchecked")
         void shouldReturnDownWhenRedisPingFails() {
             // given
-            NodesGroup<?> nodesGroup = mock(NodesGroup.class);
-            when(nodesGroup.pingAll(anyLong(), any(TimeUnit.class))).thenReturn(false);
-            doReturn(nodesGroup).when(redissonClient).getNodesGroup();
+            RBucket<Object> bucket = mock(RBucket.class);
+            when(bucket.get()).thenReturn("wrong-value");
+            when(redissonClient.getBucket("__redis_health_check__")).thenReturn(bucket);
             healthIndicator = new ReadinessHealthIndicator(properties, null, redissonClient, null);
 
             // when
@@ -193,7 +192,7 @@ class ReadinessHealthIndicatorTest extends BaseUnitTest {
         @SuppressWarnings("unchecked")
         void shouldReturnDownWhenRedisException() {
             // given
-            when(redissonClient.getNodesGroup()).thenThrow(new RuntimeException("Redis error"));
+            when(redissonClient.getBucket("__redis_health_check__")).thenThrow(new RuntimeException("Redis error"));
             healthIndicator = new ReadinessHealthIndicator(properties, null, redissonClient, null);
 
             // when
@@ -285,9 +284,9 @@ class ReadinessHealthIndicatorTest extends BaseUnitTest {
             when(connection.isValid(anyInt())).thenReturn(true);
             when(dataSource.getConnection()).thenReturn(connection);
 
-            NodesGroup<?> nodesGroup = mock(NodesGroup.class);
-            when(nodesGroup.pingAll(anyLong(), any(TimeUnit.class))).thenReturn(true);
-            doReturn(nodesGroup).when(redissonClient).getNodesGroup();
+            RBucket<Object> bucket = mock(RBucket.class);
+            when(bucket.get()).thenReturn("ping");
+            when(redissonClient.getBucket("__redis_health_check__")).thenReturn(bucket);
 
             ModuleDefinition module = TestDataFactory.createModuleDefinition("test-module", "Test Module");
             moduleRegistry.register(module);
