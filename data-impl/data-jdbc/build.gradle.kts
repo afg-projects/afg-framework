@@ -25,7 +25,7 @@ dependencies {
     api(libs.jspecify)
 
     // Jakarta Persistence API (可选，用于 @Table/@Column 注解支持)
-    compileOnly("jakarta.persistence:jakarta.persistence-api")
+    api("jakarta.persistence:jakarta.persistence-api")
 
     // Lombok
     compileOnly(libs.lombok)

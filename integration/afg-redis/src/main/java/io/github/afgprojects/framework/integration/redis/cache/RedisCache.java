@@ -42,7 +42,7 @@ public class RedisCache<V> implements AfgCache<V> {
      *
      * @param redissonClient Redisson 客户端
      * @param name           缓存名称（用于构建 Redis key 前缀）
-     * @param defaultTtl     默认过期时间（毫秒），小于等于 0 表示永不过期
+     * @param defaultTtlMillis     默认过期时间（毫秒），小于等于 0 表示永不过期
      */
     public RedisCache(RedissonClient redissonClient, String name, long defaultTtlMillis) {
         this.name = name;
