@@ -160,6 +160,9 @@ tasks.named<com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask>("
 
     // 使用 Gradle 依赖缓存提速
     checkBuildEnvironmentConstraints = false
+
+    // 启用 HTTP 缓存，减少网络请求
+    revision = "release"
 }
 
 /**
