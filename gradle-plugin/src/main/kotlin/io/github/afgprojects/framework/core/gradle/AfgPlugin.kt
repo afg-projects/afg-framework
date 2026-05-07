@@ -410,7 +410,7 @@ logging:
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.26.xsd">
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
 
     <!-- 包含迁移文件 -->
     <include file="changelog/init.xml" relativeToChangelogFile="true"/>
@@ -429,7 +429,7 @@ logging:
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.26.xsd">
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
 
     <!-- 初始化迁移 -->
 

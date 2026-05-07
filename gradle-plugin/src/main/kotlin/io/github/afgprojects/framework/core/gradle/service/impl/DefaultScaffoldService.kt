@@ -420,7 +420,7 @@ public class ${entityName}Service {
             appendLine("    xmlns=\"http://www.liquibase.org/xml/ns/dbchangelog\"")
             appendLine("    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"")
             appendLine("    xsi:schemaLocation=\"http://www.liquibase.org/xml/ns/dbchangelog")
-            appendLine("                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.26.xsd\">")
+            appendLine("                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd\">")
             appendLine()
             appendLine("    <changeSet id=\"$timestamp\" author=\"scaffold\">")
             appendLine("        <createTable tableName=\"$tableName\">")

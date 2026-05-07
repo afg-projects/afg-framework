@@ -54,7 +54,7 @@ dependencies {
     implementation("io.github.classgraph:classgraph:4.8.165")
 
     // Liquibase
-    implementation("org.liquibase:liquibase-core:4.26.0")
+    implementation("org.liquibase:liquibase-core:5.0.2")
 
     // SnakeYAML (YAML 解析)
     implementation("org.yaml:snakeyaml:2.4")

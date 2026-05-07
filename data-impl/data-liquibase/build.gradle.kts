@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
     api(project(":data-core"))
-    api("org.liquibase:liquibase-core:4.26.0")
+    api("org.liquibase:liquibase-core:5.0.2")
     implementation("io.github.classgraph:classgraph:4.8.165")
 
     testImplementation(platform("org.junit:junit-bom:5.11.4"))

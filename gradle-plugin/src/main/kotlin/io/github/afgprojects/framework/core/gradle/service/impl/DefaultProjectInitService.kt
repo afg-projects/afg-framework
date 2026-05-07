@@ -423,7 +423,7 @@ logs/
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.26.xsd">
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
 
     <!-- Include generated changesets here -->
     <include file="db/changelog/init.xml" relativeToChangelogFile="true"/>
@@ -442,7 +442,7 @@ logs/
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.26.xsd">
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
 
     <!-- Initial schema -->
 
