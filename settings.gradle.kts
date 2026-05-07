@@ -32,6 +32,12 @@ include("data-impl:data-sql")       // SQL 解析和构建
 include("data-impl:data-jdbc")      // JDBC 实现
 include("data-impl:data-liquibase") // Liquibase 集成（数据库迁移、逆向工程）
 
+// 安全模块
+include("security-core")
+include("security-impl:auth-server")       // OAuth2 授权服务器
+include("security-impl:resource-server")   // 资源服务器
+include("security-impl:security-casbin")   // Casbin 权限集成
+
 // Spring Boot Starter
 include("spring-boot-starter")
 
