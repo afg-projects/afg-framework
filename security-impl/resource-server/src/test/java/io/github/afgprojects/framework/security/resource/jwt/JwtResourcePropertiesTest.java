@@ -82,6 +82,27 @@ class JwtResourcePropertiesTest {
             JwtResourceProperties properties = new JwtResourceProperties();
             assertThat(properties.getAudience()).isEmpty();
         }
+
+        @Test
+        @DisplayName("jwkSetUri 默认值为 null")
+        void shouldDefaultJwkSetUriToNull() {
+            JwtResourceProperties properties = new JwtResourceProperties();
+            assertThat(properties.getJwkSetUri()).isNull();
+        }
+
+        @Test
+        @DisplayName("issuerUri 默认值为 null")
+        void shouldDefaultIssuerUriToNull() {
+            JwtResourceProperties properties = new JwtResourceProperties();
+            assertThat(properties.getIssuerUri()).isNull();
+        }
+
+        @Test
+        @DisplayName("publicKey 默认值为 null")
+        void shouldDefaultPublicKeyToNull() {
+            JwtResourceProperties properties = new JwtResourceProperties();
+            assertThat(properties.getPublicKey()).isNull();
+        }
     }
 
     @Nested
@@ -113,6 +134,22 @@ class JwtResourcePropertiesTest {
         }
 
         @Test
+        @DisplayName("设置 publicKey")
+        void shouldSetPublicKey() {
+            JwtResourceProperties properties = new JwtResourceProperties();
+            properties.setPublicKey("-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...\n-----END PUBLIC KEY-----");
+            assertThat(properties.getPublicKey()).contains("BEGIN PUBLIC KEY");
+        }
+
+        @Test
+        @DisplayName("设置 jwsAlgorithm")
+        void shouldSetJwsAlgorithm() {
+            JwtResourceProperties properties = new JwtResourceProperties();
+            properties.setJwsAlgorithm("ES256");
+            assertThat(properties.getJwsAlgorithm()).isEqualTo("ES256");
+        }
+
+        @Test
         @DisplayName("设置 cacheTtl")
         void shouldSetCacheTtl() {
             JwtResourceProperties properties = new JwtResourceProperties();
@@ -134,6 +171,38 @@ class JwtResourcePropertiesTest {
             JwtResourceProperties properties = new JwtResourceProperties();
             properties.setTenantIdClaim("custom_tenant");
             assertThat(properties.getTenantIdClaim()).isEqualTo("custom_tenant");
+        }
+
+        @Test
+        @DisplayName("设置 userIdClaim")
+        void shouldSetUserIdClaim() {
+            JwtResourceProperties properties = new JwtResourceProperties();
+            properties.setUserIdClaim("user_id");
+            assertThat(properties.getUserIdClaim()).isEqualTo("user_id");
+        }
+
+        @Test
+        @DisplayName("设置 usernameClaim")
+        void shouldSetUsernameClaim() {
+            JwtResourceProperties properties = new JwtResourceProperties();
+            properties.setUsernameClaim("username");
+            assertThat(properties.getUsernameClaim()).isEqualTo("username");
+        }
+
+        @Test
+        @DisplayName("设置 rolesClaim")
+        void shouldSetRolesClaim() {
+            JwtResourceProperties properties = new JwtResourceProperties();
+            properties.setRolesClaim("authorities");
+            assertThat(properties.getRolesClaim()).isEqualTo("authorities");
+        }
+
+        @Test
+        @DisplayName("设置 permissionsClaim")
+        void shouldSetPermissionsClaim() {
+            JwtResourceProperties properties = new JwtResourceProperties();
+            properties.setPermissionsClaim("perms");
+            assertThat(properties.getPermissionsClaim()).isEqualTo("perms");
         }
     }
 }

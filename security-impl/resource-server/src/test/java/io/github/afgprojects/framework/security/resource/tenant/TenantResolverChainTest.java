@@ -1,16 +1,20 @@
 package io.github.afgprojects.framework.security.resource.tenant;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.github.afgprojects.framework.security.core.tenant.TenantContext;
 import io.github.afgprojects.framework.security.core.tenant.TenantException;
+import io.github.afgprojects.framework.security.core.tenant.TenantResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 /**
  * TenantResolverChain 测试类。
@@ -88,6 +92,115 @@ class TenantResolverChainTest {
 
             assertThat(context).isNull();
         }
+
+        @Test
+        @DisplayName("当解析器抛出异常时应继续尝试下一个")
+        void shouldContinueOnResolverException() {
+            HttpServletRequest request = mock(HttpServletRequest.class);
+            when(request.getHeader("X-Tenant-Id")).thenReturn("tenant-123");
+
+            // 创建一个会抛出异常的解析器
+            TenantResolver failingResolver = new TenantResolver() {
+                @Override
+                public TenantContext resolve(HttpServletRequest request) {
+                    throw new RuntimeException("Test exception");
+                }
+
+                @Override
+                public int getOrder() {
+                    return 50; // 高优先级
+                }
+            };
+
+            HeaderTenantResolver successResolver = new HeaderTenantResolver();
+            successResolver.setOrder(100);
+
+            chain.addResolver(failingResolver);
+            chain.addResolver(successResolver);
+            chain.setFailIfUnresolved(true);
+
+            TenantContext context = chain.resolve(request);
+
+            assertThat(context).isNotNull();
+            assertThat(context.getTenantId()).isEqualTo("tenant-123");
+        }
+
+        @Test
+        @DisplayName("空解析链且 failIfUnresolved 为 true 时应抛出异常")
+        void shouldThrowExceptionWhenEmptyChainAndFailIfUnresolved() {
+            HttpServletRequest request = mock(HttpServletRequest.class);
+            chain.setFailIfUnresolved(true);
+
+            assertThatThrownBy(() -> chain.resolve(request))
+                    .isInstanceOf(TenantException.class);
+        }
+
+        @Test
+        @DisplayName("空解析链且 failIfUnresolved 为 false 时应返回 null")
+        void shouldReturnNullWhenEmptyChainAndNotFailIfUnresolved() {
+            HttpServletRequest request = mock(HttpServletRequest.class);
+            chain.setFailIfUnresolved(false);
+
+            TenantContext context = chain.resolve(request);
+
+            assertThat(context).isNull();
+        }
+    }
+
+    @Nested
+    @DisplayName("resolveFromToken(String)")
+    class ResolveFromTokenTests {
+
+        @Test
+        @DisplayName("应遍历解析器解析 token")
+        void shouldResolveFromToken() {
+            TenantContext mockContext = new DefaultTenantContext("tenant-from-token");
+
+            TenantResolver tokenResolver = new TenantResolver() {
+                @Override
+                public TenantContext resolve(HttpServletRequest request) {
+                    return null;
+                }
+
+                @Override
+                public TenantContext resolveFromToken(String token) {
+                    return mockContext;
+                }
+
+                @Override
+                public int getOrder() {
+                    return 100;
+                }
+            };
+
+            chain.addResolver(tokenResolver);
+
+            TenantContext context = chain.resolveFromToken("some-token");
+
+            assertThat(context).isNotNull();
+            assertThat(context.getTenantId()).isEqualTo("tenant-from-token");
+        }
+
+        @Test
+        @DisplayName("当所有解析器都无法解析 token 时应返回 null")
+        void shouldReturnNullWhenCannotResolveToken() {
+            chain.addResolver(new HeaderTenantResolver());
+            chain.setFailIfUnresolved(false);
+
+            TenantContext context = chain.resolveFromToken("some-token");
+
+            assertThat(context).isNull();
+        }
+
+        @Test
+        @DisplayName("当无法解析 token 且 failIfUnresolved 为 true 时应抛出异常")
+        void shouldThrowExceptionWhenCannotResolveTokenAndFailIfUnresolved() {
+            chain.addResolver(new HeaderTenantResolver());
+            chain.setFailIfUnresolved(true);
+
+            assertThatThrownBy(() -> chain.resolveFromToken("some-token"))
+                    .isInstanceOf(TenantException.class);
+        }
     }
 
     @Nested
@@ -109,6 +222,39 @@ class TenantResolverChainTest {
 
             // 应自动排序为高优先级在前
             assertThat(chain.getResolvers().get(0)).isInstanceOf(TokenTenantResolver.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("addResolvers()")
+    class AddResolversTests {
+
+        @Test
+        @DisplayName("批量添加解析器")
+        void shouldAddMultipleResolvers() {
+            HeaderTenantResolver headerResolver = new HeaderTenantResolver();
+            TokenTenantResolver tokenResolver = new TokenTenantResolver();
+
+            chain.addResolvers(List.of(headerResolver, tokenResolver));
+
+            assertThat(chain.getResolvers()).hasSize(2);
+        }
+    }
+
+    @Nested
+    @DisplayName("构造函数测试")
+    class ConstructorTests {
+
+        @Test
+        @DisplayName("使用解析器列表构造")
+        void shouldConstructWithResolverList() {
+            HeaderTenantResolver headerResolver = new HeaderTenantResolver();
+            TokenTenantResolver tokenResolver = new TokenTenantResolver();
+
+            TenantResolverChain newChain = new TenantResolverChain(
+                    List.of(headerResolver, tokenResolver));
+
+            assertThat(newChain.getResolvers()).hasSize(2);
         }
     }
 
@@ -135,6 +281,17 @@ class TenantResolverChainTest {
             chain.addResolver(new HeaderTenantResolver());
             chain.clear();
             assertThat(chain.isEmpty()).isTrue();
+        }
+    }
+
+    @Nested
+    @DisplayName("getOrder()")
+    class GetOrderTests {
+
+        @Test
+        @DisplayName("解析链的 order 应为 0")
+        void shouldReturnZero() {
+            assertThat(chain.getOrder()).isEqualTo(0);
         }
     }
 }

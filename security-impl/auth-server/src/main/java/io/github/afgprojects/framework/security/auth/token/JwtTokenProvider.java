@@ -147,9 +147,11 @@ public class JwtTokenProvider {
             }
 
             JWTClaimsSet claims = signedJWT.getJWTClaimsSet();
-            Date expiration = claims.getExpirationTime();
+            Instant expiration = claims.getExpirationTime() != null
+                    ? claims.getExpirationTime().toInstant()
+                    : null;
 
-            if (expiration != null && expiration.before(new Date())) {
+            if (expiration != null && expiration.isBefore(Instant.now())) {
                 log.debug("Token has expired");
                 return false;
             }

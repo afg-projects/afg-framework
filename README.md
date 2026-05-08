@@ -10,6 +10,7 @@
 
 - **Core** - 核心：缓存管理、事件发布、异常处理、安全防护
 - **Data** - 数据访问：轻量级 ORM、SQL 构建器、JDBC 增强、数据库迁移
+- **Security** - 安全模块：OAuth2 授权服务器、资源服务器、Casbin 权限集成
 - **Integration** - 中间件集成：Redis、Kafka、RabbitMQ、WebSocket、Storage
 - **Spring Boot Starter** - 自动配置
 
@@ -125,6 +126,10 @@ cd afg-framework
 | data-impl/data-sql | afg-framework-data-sql | SQL 解析与构建器 |
 | data-impl/data-jdbc | afg-framework-data-jdbc | JDBC 增强实现 |
 | data-impl/data-liquibase | afg-framework-data-liquibase | Liquibase 数据库迁移集成 |
+| security-core | afg-framework-security-core | 安全核心抽象层：认证、授权、多租户、Token |
+| security-impl/auth-server | afg-framework-auth-server | OAuth2 授权服务器 |
+| security-impl/resource-server | afg-framework-resource-server | 资源服务器：JWT 验证、多租户解析 |
+| security-impl/security-casbin | afg-framework-security-casbin | Casbin 权限集成：RBAC with domains |
 | spring-boot-starter | afg-framework-spring-boot-starter | Spring Boot 自动配置 |
 | integration/afg-redis | afg-framework-afg-redis | Redis 集成：缓存、分布式锁、延迟队列 |
 | integration/afg-kafka | afg-framework-afg-kafka | Kafka 事件发布集成 |

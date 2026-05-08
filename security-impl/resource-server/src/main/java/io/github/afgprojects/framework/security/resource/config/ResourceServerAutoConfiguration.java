@@ -7,14 +7,15 @@ import io.github.afgprojects.framework.security.resource.tenant.HeaderTenantReso
 import io.github.afgprojects.framework.security.resource.tenant.TokenTenantResolver;
 import io.github.afgprojects.framework.security.resource.tenant.TenantResolverChain;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
@@ -97,7 +98,7 @@ public class ResourceServerAutoConfiguration {
     /**
      * 配置租户解析链。
      *
-     * @param tokenTenantResolver Token 租户解析器
+     * @param tokenTenantResolver Token 租户解析器（可选，当 JWT 禁用时为 null）
      * @param headerTenantResolver 请求头租户解析器
      * @param properties 资源服务器配置属性
      * @return 租户解析链
@@ -105,8 +106,8 @@ public class ResourceServerAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public TenantResolverChain tenantResolverChain(
-            TokenTenantResolver tokenTenantResolver,
-            HeaderTenantResolver headerTenantResolver,
+            @Autowired(required = false) @Nullable TokenTenantResolver tokenTenantResolver,
+            @NonNull HeaderTenantResolver headerTenantResolver,
             @NonNull ResourceServerProperties properties) {
 
         log.info("Configuring tenant resolver chain with strategies: {}", properties.getTenantStrategies());
@@ -119,7 +120,11 @@ public class ResourceServerAutoConfiguration {
         for (String strategy : strategies) {
             switch (strategy.toLowerCase()) {
                 case "token":
-                    chain.addResolver(tokenTenantResolver);
+                    if (tokenTenantResolver != null) {
+                        chain.addResolver(tokenTenantResolver);
+                    } else {
+                        log.warn("Token tenant resolver not available, skipping token strategy");
+                    }
                     break;
                 case "header":
                     chain.addResolver(headerTenantResolver);
@@ -129,10 +134,12 @@ public class ResourceServerAutoConfiguration {
             }
         }
 
-        // 如果没有配置策略，默认使用 token 和 header
+        // 如果没有配置策略，默认使用可用的解析器
         if (chain.isEmpty()) {
-            log.info("No tenant strategies configured, using default: token, header");
-            chain.addResolver(tokenTenantResolver);
+            log.info("No tenant strategies configured, using default resolvers");
+            if (tokenTenantResolver != null) {
+                chain.addResolver(tokenTenantResolver);
+            }
             chain.addResolver(headerTenantResolver);
         }
 
