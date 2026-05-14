@@ -100,7 +100,15 @@ public class RateLimitInterceptor {
         RateLimit triggeredAnnotation = null;
 
         for (RateLimit annotation : annotations) {
-            RateLimitResult result = rateLimiter.tryAcquire(annotation);
+            // 使用 Builder API 进行限流检查
+            RateLimitResult result = rateLimiter.builder()
+                .key(annotation.key())
+                .dimension(annotation.dimension())
+                .rate(annotation.rate())
+                .burst(annotation.burst())
+                .algorithm(annotation.algorithm())
+                .windowSize(annotation.windowSize())
+                .tryAcquire();
 
             // 记录限流指标
             recordMetrics(annotation, result);
@@ -133,9 +141,11 @@ public class RateLimitInterceptor {
             }
 
             // 无回退方法或回退执行失败，抛出限流异常
-            throw new BusinessException(
-                    CommonErrorCode.RATE_LIMIT_EXCEEDED,
-                    rateLimiter.getRateLimitMessage(triggeredAnnotation));
+            String message = triggeredAnnotation.message();
+            if (message == null || message.isEmpty()) {
+                message = properties.getFallback().getDefaultMessage();
+            }
+            throw new BusinessException(CommonErrorCode.RATE_LIMIT_EXCEEDED, message);
         }
 
         return joinPoint.proceed();
