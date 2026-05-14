@@ -75,15 +75,6 @@ dependencies {
     // OWASP AntiSamy (XSS 防护)
     api(libs.antisamy)
 
-    // Nacos Config (配置中心)
-    compileOnly(libs.nacos.client)
-
-    // Apollo Config (配置中心)
-    compileOnly(libs.apollo.client)
-
-    // Consul Client (配置中心/服务发现)
-    compileOnly(libs.consul.client)
-
     // MyBatis-Plus Dynamic Datasource (多数据源)
     compileOnly(libs.dynamic.datasource)
 
