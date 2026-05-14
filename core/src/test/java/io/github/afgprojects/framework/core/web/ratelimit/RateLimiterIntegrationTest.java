@@ -10,6 +10,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 
 import io.github.afgprojects.framework.core.api.ratelimit.RateLimitAlgorithm;
+import io.github.afgprojects.framework.core.api.ratelimit.RateLimitDimension;
+import io.github.afgprojects.framework.core.api.ratelimit.RateLimitResult;
+import io.github.afgprojects.framework.core.api.ratelimit.RateLimiter;
 import io.github.afgprojects.framework.core.support.TestApplication;
 
 /**

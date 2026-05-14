@@ -5,7 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.lang.reflect.Method;
 
 import org.junit.jupiter.api.Test;
-import org.redisson.api.RateType;
+
+import io.github.afgprojects.framework.core.api.ratelimit.RateLimitDimension;
 
 /**
  * 限流维度测试
@@ -50,13 +51,6 @@ class RateLimitDimensionTest {
         method = TestService.class.getMethod("apiLimited");
         annotation = method.getAnnotation(RateLimit.class);
         assertThat(annotation.dimension()).isEqualTo(RateLimitDimension.API);
-    }
-
-    @Test
-    void should_supportRateType() {
-        // 验证 Redisson RateType 可用于限流配置
-        assertThat(RateType.OVERALL).isNotNull();
-        assertThat(RateType.PER_CLIENT).isNotNull();
     }
 
     // 测试服务类

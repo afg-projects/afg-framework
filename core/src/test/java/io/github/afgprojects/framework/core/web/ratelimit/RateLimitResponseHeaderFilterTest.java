@@ -21,6 +21,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import io.github.afgprojects.framework.core.api.ratelimit.RateLimitResult;
+
 /**
  * RateLimitResponseHeaderFilter 单元测试
  */
