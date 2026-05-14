@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.integration.redis.autoconfigure;
 
+import io.github.afgprojects.framework.core.api.ratelimit.RateLimitStorage;
 import io.github.afgprojects.framework.core.cache.CacheManager;
 import io.github.afgprojects.framework.core.api.scheduler.DelayQueue;
 import io.github.afgprojects.framework.core.api.scheduler.DistributedTaskScheduler;
@@ -17,6 +18,8 @@ import io.github.afgprojects.framework.integration.redis.health.RedisHealthPrope
 import io.github.afgprojects.framework.integration.redis.lock.LockAspect;
 import io.github.afgprojects.framework.integration.redis.lock.LockProperties;
 import io.github.afgprojects.framework.integration.redis.lock.RedisDistributedLock;
+import io.github.afgprojects.framework.integration.redis.ratelimit.RedisRateLimitProperties;
+import io.github.afgprojects.framework.integration.redis.ratelimit.RedisRateLimitStorage;
 import io.github.afgprojects.framework.integration.redis.scheduler.RedissonDelayQueue;
 import io.github.afgprojects.framework.integration.redis.scheduler.RedissonSchedulerProperties;
 import io.github.afgprojects.framework.integration.redis.scheduler.RedissonTaskScheduler;
@@ -94,7 +97,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
         RedissonSchedulerProperties.class,
         AuditLogProperties.class,
         FeatureFlagProperties.class,
-        RedisHealthProperties.class
+        RedisHealthProperties.class,
+        RedisRateLimitProperties.class
 })
 public class RedisAutoConfiguration {
 
@@ -266,5 +270,23 @@ public class RedisAutoConfiguration {
             @NonNull RedissonClient redissonClient,
             @NonNull RedisHealthProperties properties) {
         return new RedisHealthIndicator(redissonClient, properties);
+    }
+
+    // ==================== Rate Limit Configuration ====================
+
+    /**
+     * 配置 Redis 限流存储
+     *
+     * @param redissonClient Redisson 客户端
+     * @param properties      Redis 限流配置
+     * @return Redis 限流存储实例
+     */
+    @Bean
+    @ConditionalOnMissingBean(RateLimitStorage.class)
+    @ConditionalOnProperty(prefix = "afg.rate-limit", name = "storage-type", havingValue = "redis")
+    public RateLimitStorage redisRateLimitStorage(
+            @NonNull RedissonClient redissonClient,
+            @NonNull RedisRateLimitProperties properties) {
+        return new RedisRateLimitStorage(redissonClient, properties);
     }
 }
