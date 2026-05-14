@@ -9,11 +9,23 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * TaskExecutionLog 测试
+ * {@link TaskExecutionLog} 任务执行日志测试
+ *
+ * <p>测试任务执行日志的状态转换：
+ * <ul>
+ *   <li>RUNNING → SUCCESS/FAILED/TIMEOUT/CANCELLED/SKIPPED</li>
+ *   <li>重试计数</li>
+ *   <li>执行时长计算</li>
+ * </ul>
+ *
+ * @see TaskExecutionLog
  */
 @DisplayName("TaskExecutionLog Tests")
 class TaskExecutionLogTest {
 
+    /**
+     * 测试创建运行中状态的日志
+     */
     @Test
     @DisplayName("Should create running log")
     void shouldCreateRunningLog() {
@@ -25,6 +37,9 @@ class TaskExecutionLogTest {
         assertThat(log.endTime()).isNull();
     }
 
+    /**
+     * 测试标记为成功状态
+     */
     @Test
     @DisplayName("Should mark success")
     void shouldMarkSuccess() {
@@ -37,6 +52,9 @@ class TaskExecutionLogTest {
         assertThat(success.isFailed()).isFalse();
     }
 
+    /**
+     * 测试标记为失败状态
+     */
     @Test
     @DisplayName("Should mark failure")
     void shouldMarkFailure() {
@@ -50,6 +68,9 @@ class TaskExecutionLogTest {
         assertThat(failed.isFailed()).isTrue();
     }
 
+    /**
+     * 测试标记为超时状态
+     */
     @Test
     @DisplayName("Should mark timeout")
     void shouldMarkTimeout() {
@@ -61,6 +82,9 @@ class TaskExecutionLogTest {
         assertThat(timeout.isFailed()).isTrue();
     }
 
+    /**
+     * 测试标记为取消状态
+     */
     @Test
     @DisplayName("Should mark cancelled")
     void shouldMarkCancelled() {
@@ -70,6 +94,9 @@ class TaskExecutionLogTest {
         assertThat(cancelled.status()).isEqualTo(TaskExecutionLog.ExecutionStatus.CANCELLED);
     }
 
+    /**
+     * 测试标记为跳过状态
+     */
     @Test
     @DisplayName("Should mark skipped")
     void shouldMarkSkipped() {
@@ -80,6 +107,9 @@ class TaskExecutionLogTest {
         assertThat(skipped.errorMessage()).isEqualTo("Lock not acquired");
     }
 
+    /**
+     * 测试重试计数递增
+     */
     @Test
     @DisplayName("Should increment retry count")
     void shouldIncrementRetry() {
@@ -94,6 +124,9 @@ class TaskExecutionLogTest {
         assertThat(log.retried()).isEqualTo(2);
     }
 
+    /**
+     * 测试执行时长计算
+     */
     @Test
     @DisplayName("Should calculate duration")
     void shouldCalculateDuration() {

@@ -11,7 +11,10 @@ import org.junit.jupiter.api.Test;
 import io.github.afgprojects.framework.core.config.ConfigEncryptor;
 
 /**
- * EncryptionAutoConfiguration 测试
+ * EncryptionAutoConfiguration 单元测试。
+ * 测试加密自动配置类的 Bean 创建和加密解密功能。
+ *
+ * @see EncryptionAutoConfiguration
  */
 @DisplayName("EncryptionAutoConfiguration 测试")
 class EncryptionAutoConfigurationTest {
@@ -23,10 +26,17 @@ class EncryptionAutoConfigurationTest {
         configuration = new EncryptionAutoConfiguration();
     }
 
+    /**
+     * ConfigEncryptor 配置测试。
+     * 验证 configEncryptor Bean 的创建和异常处理。
+     */
     @Nested
     @DisplayName("configEncryptor 配置测试")
     class ConfigEncryptorTests {
 
+        /**
+         * 测试使用有效密钥创建加密器。
+         */
         @Test
         @DisplayName("应该使用有效密钥创建加密器")
         void shouldCreateEncryptorWithValidKey() {
@@ -38,6 +48,9 @@ class EncryptionAutoConfigurationTest {
             assertThat(encryptor).isNotNull();
         }
 
+        /**
+         * 测试密钥为空时抛出异常。
+         */
         @Test
         @DisplayName("密钥为空时应该抛出异常")
         void shouldThrowExceptionWhenSecretKeyIsNull() {
@@ -49,6 +62,9 @@ class EncryptionAutoConfigurationTest {
                     .hasMessageContaining("Encryption is enabled but no secret key is configured");
         }
 
+        /**
+         * 测试密钥为空白时抛出异常。
+         */
         @Test
         @DisplayName("密钥为空白时应该抛出异常")
         void shouldThrowExceptionWhenSecretKeyIsBlank() {
@@ -60,6 +76,9 @@ class EncryptionAutoConfigurationTest {
                     .hasMessageContaining("Encryption is enabled but no secret key is configured");
         }
 
+        /**
+         * 测试加密和解密功能。
+         */
         @Test
         @DisplayName("应该能够加密和解密")
         void shouldEncryptAndDecrypt() {

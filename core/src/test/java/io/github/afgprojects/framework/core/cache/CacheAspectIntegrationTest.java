@@ -14,7 +14,12 @@ import org.springframework.test.annotation.DirtiesContext;
 import io.github.afgprojects.framework.core.support.TestApplication;
 
 /**
- * CacheAspect 集成测试
+ * CacheAspect 集成测试。
+ * <p>
+ * 测试缓存切面与 Spring Boot 的集成，包括切面配置和缓存操作功能。
+ * </p>
+ *
+ * @see CacheAspect
  */
 @DisplayName("CacheAspect 集成测试")
 @SpringBootTest(
@@ -34,16 +39,28 @@ class CacheAspectIntegrationTest {
     @Autowired(required = false)
     private CacheAspect cacheAspect;
 
+    /**
+     * CacheAspect 配置测试。
+     * <p>
+     * 测试切面和缓存管理器的自动配置。
+     * </p>
+     */
     @Nested
     @DisplayName("CacheAspect 配置测试")
     class CacheAspectConfigTests {
 
+        /**
+         * 测试正确配置 CacheAspect。
+         */
         @Test
         @DisplayName("应该正确配置 CacheAspect")
         void shouldConfigureCacheAspect() {
             assertThat(cacheAspect).isNotNull();
         }
 
+        /**
+         * 测试正确配置 CacheManager。
+         */
         @Test
         @DisplayName("应该正确配置 CacheManager")
         void shouldConfigureCacheManager() {
@@ -51,10 +68,19 @@ class CacheAspectIntegrationTest {
         }
     }
 
+    /**
+     * 缓存操作测试。
+     * <p>
+     * 测试本地缓存的基本操作，包括存取、TTL 支持、containsKey 和 clear。
+     * </p>
+     */
     @Nested
     @DisplayName("缓存操作测试")
     class CacheOperationTests {
 
+        /**
+         * 测试能够操作本地缓存。
+         */
         @Test
         @DisplayName("应该能够操作本地缓存")
         void shouldOperateLocalCache() {
@@ -67,6 +93,9 @@ class CacheAspectIntegrationTest {
             assertThat(cache.get("key1")).isNull();
         }
 
+        /**
+         * 测试支持 TTL。
+         */
         @Test
         @DisplayName("应该支持 TTL")
         void shouldSupportTtl() {
@@ -76,6 +105,9 @@ class CacheAspectIntegrationTest {
             assertThat(cache.get("key1")).isEqualTo("value1");
         }
 
+        /**
+         * 测试支持 containsKey。
+         */
         @Test
         @DisplayName("应该支持 containsKey")
         void shouldSupportContainsKey() {
@@ -86,6 +118,9 @@ class CacheAspectIntegrationTest {
             assertThat(cache.containsKey("key2")).isFalse();
         }
 
+        /**
+         * 测试支持 clear。
+         */
         @Test
         @DisplayName("应该支持 clear")
         void shouldSupportClear() {

@@ -37,7 +37,11 @@ import io.github.afgprojects.framework.core.client.ResilienceInterceptor.Circuit
 import io.github.afgprojects.framework.core.client.ResilienceInterceptor.RetryExhaustedException;
 
 /**
- * AsyncResilienceInterceptor 测试
+ * AsyncResilienceInterceptor 单元测试。
+ * <p>
+ * 测试异步弹性拦截器的重试、熔断、回调等功能。
+ *
+ * @see AsyncResilienceInterceptor
  */
 @DisplayName("AsyncResilienceInterceptor 测试")
 class AsyncResilienceInterceptorTest {
@@ -93,10 +97,16 @@ class AsyncResilienceInterceptorTest {
         }
     }
 
+    /**
+     * 测试成功请求场景。
+     */
     @Nested
     @DisplayName("成功请求测试")
     class SuccessfulRequestTests {
 
+        /**
+         * 测试成功请求返回正确的响应。
+         */
         @Test
         @DisplayName("成功请求应该返回响应")
         void shouldReturnResponseOnSuccess() {
@@ -114,6 +124,9 @@ class AsyncResilienceInterceptorTest {
             assertThat(future.getNow(null)).isEqualTo(response);
         }
 
+        /**
+         * 测试成功请求被记录为成功状态。
+         */
         @Test
         @DisplayName("成功请求应该记录为成功")
         void shouldRecordSuccessOnOkResponse() {
@@ -135,10 +148,16 @@ class AsyncResilienceInterceptorTest {
         }
     }
 
+    /**
+     * 测试异步重试功能。
+     */
     @Nested
     @DisplayName("异步重试测试")
     class AsyncRetryTests {
 
+        /**
+         * 测试在配置的状态码上触发异步重试。
+         */
         @Test
         @DisplayName("应该在配置的状态码上异步重试")
         void shouldRetryOnConfiguredStatusCodes() {
@@ -170,6 +189,9 @@ class AsyncResilienceInterceptorTest {
             assertThat(future.getNow(null)).isEqualTo(response);
         }
 
+        /**
+         * 测试重试耗尽后返回最终响应。
+         */
         @Test
         @DisplayName("重试耗尽应该返回最终响应")
         void shouldReturnResponseWhenRetryExhausted() {
@@ -193,6 +215,9 @@ class AsyncResilienceInterceptorTest {
             assertThat(future.isDone()).isTrue();
         }
 
+        /**
+         * 测试在 IO 异常上触发异步重试。
+         */
         @Test
         @DisplayName("应该在 IO 异常上异步重试")
         void shouldRetryOnIOException() {
@@ -219,6 +244,9 @@ class AsyncResilienceInterceptorTest {
             assertThat(future.getNow(null)).isEqualTo(response);
         }
 
+        /**
+         * 测试异步重试不阻塞调用线程。
+         */
         @Test
         @DisplayName("异步重试不应该阻塞调用线程")
         void shouldNotBlockCallingThread() {
@@ -238,6 +266,9 @@ class AsyncResilienceInterceptorTest {
             assertThat(elapsed).isLessThan(100); // 小于重试间隔
         }
 
+        /**
+         * 测试异常重试耗尽后返回异常。
+         */
         @Test
         @DisplayName("异常重试耗尽应该返回异常")
         void shouldReturnExceptionWhenRetryExhausted() {
@@ -263,10 +294,16 @@ class AsyncResilienceInterceptorTest {
         }
     }
 
+    /**
+     * 测试熔断器功能。
+     */
     @Nested
     @DisplayName("熔断器测试")
     class CircuitBreakerTests {
 
+        /**
+         * 测试熔断器关闭时允许请求通过。
+         */
         @Test
         @DisplayName("熔断器关闭时应该允许请求")
         void shouldAllowRequestWhenCircuitBreakerClosed() {
@@ -283,6 +320,9 @@ class AsyncResilienceInterceptorTest {
             assertThat(future.isCompletedExceptionally()).isFalse();
         }
 
+        /**
+         * 测试禁用熔断器时跳过熔断检查。
+         */
         @Test
         @DisplayName("禁用熔断器时应该跳过熔断检查")
         void shouldSkipCircuitBreakerWhenDisabled() {
@@ -303,10 +343,16 @@ class AsyncResilienceInterceptorTest {
         }
     }
 
+    /**
+     * 测试调度器管理功能。
+     */
     @Nested
     @DisplayName("调度器管理测试")
     class SchedulerManagementTests {
 
+        /**
+         * 测试正确获取调度器。
+         */
         @Test
         @DisplayName("应该正确获取调度器")
         void shouldGetScheduler() {
@@ -318,6 +364,9 @@ class AsyncResilienceInterceptorTest {
             assertThat(result.isShutdown()).isFalse();
         }
 
+        /**
+         * 测试关闭调度器后停止接收新任务。
+         */
         @Test
         @DisplayName("关闭调度器应该停止接收新任务")
         void shutdownShouldStopAcceptingNewTasks() {
@@ -329,10 +378,16 @@ class AsyncResilienceInterceptorTest {
         }
     }
 
+    /**
+     * 测试 URI 提取功能。
+     */
     @Nested
     @DisplayName("URI 提取测试")
     class KeyExtractionTests {
 
+        /**
+         * 测试从 URI 提取 host 作为熔断器 key。
+         */
         @Test
         @DisplayName("应该从 URI 提取 host 作为熔断器 key")
         void shouldExtractHostFromUri() {
@@ -349,6 +404,9 @@ class AsyncResilienceInterceptorTest {
             assertThat(future.isCompletedExceptionally()).isFalse();
         }
 
+        /**
+         * 测试 URI 没有 host 时使用 default 作为 key。
+         */
         @Test
         @DisplayName("URI 没有 host 时应该使用 default 作为 key")
         void shouldUseDefaultKeyWhenNoHost() {
@@ -366,10 +424,16 @@ class AsyncResilienceInterceptorTest {
         }
     }
 
+    /**
+     * 测试回调功能。
+     */
     @Nested
     @DisplayName("回调测试")
     class CallbackTests {
 
+        /**
+         * 测试支持成功回调。
+         */
         @Test
         @DisplayName("应该支持成功回调")
         void shouldSupportSuccessCallback() {
@@ -388,6 +452,9 @@ class AsyncResilienceInterceptorTest {
                     .until(() -> callbackCount.get() == 1);
         }
 
+        /**
+         * 测试支持异常回调。
+         */
         @Test
         @DisplayName("应该支持异常回调")
         void shouldSupportExceptionCallback() {
@@ -410,10 +477,16 @@ class AsyncResilienceInterceptorTest {
         }
     }
 
+    /**
+     * 测试服务端错误处理。
+     */
     @Nested
     @DisplayName("服务端错误测试")
     class ServerErrorTests {
 
+        /**
+         * 测试 4xx 响应被记录为成功（不触发重试）。
+         */
         @Test
         @DisplayName("4xx 响应应该记录为成功")
         void shouldRecordSuccessOn4xxResponse() {

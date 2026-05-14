@@ -20,7 +20,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * AuditLogAspect 单元测试
+ * AuditLogAspect 单元测试。
+ * <p>
+ * 测试审计切面的核心功能，包括审计日志记录、异常处理、敏感字段脱敏等。
+ *
+ * @see AuditLogAspect
+ * @see AuditLog
+ * @see Audited
  */
 @ExtendWith(MockitoExtension.class)
 class AuditLogAspectTest {
@@ -43,6 +49,9 @@ class AuditLogAspectTest {
         aspect = new AuditLogAspect(storage, properties);
     }
 
+    /**
+     * 测试方法执行成功时是否正确记录审计日志。
+     */
     @Test
     void should_recordAuditLog_when_methodSucceeds() throws Throwable {
         // Given
@@ -68,6 +77,9 @@ class AuditLogAspectTest {
         assertThat(auditLog.errorMessage()).isNull();
     }
 
+    /**
+     * 测试方法抛出异常时是否正确记录失败日志。
+     */
     @Test
     void should_recordFailureLog_when_methodThrowsException() throws Throwable {
         // Given
@@ -89,6 +101,9 @@ class AuditLogAspectTest {
         assertThat(auditLog.errorMessage()).isEqualTo("用户不存在");
     }
 
+    /**
+     * 测试配置敏感字段时是否正确进行脱敏处理。
+     */
     @Test
     void should_maskSensitiveFields_when_configured() throws Throwable {
         // Given
@@ -110,6 +125,9 @@ class AuditLogAspectTest {
         assertThat(auditLog.args()).contains("userId=\"user-1\"");
     }
 
+    /**
+     * 测试未指定操作名时是否使用方法名作为操作名。
+     */
     @Test
     void should_useMethodNameAsOperation_when_notSpecified() throws Throwable {
         // Given
@@ -130,6 +148,9 @@ class AuditLogAspectTest {
         assertThat(auditLog.module()).isEqualTo("TestService");
     }
 
+    /**
+     * 测试 recordArgs 为 false 时不记录方法参数。
+     */
     @Test
     void should_notRecordArgs_when_recordArgsIsFalse() throws Throwable {
         // Given
@@ -184,6 +205,9 @@ class AuditLogAspectTest {
         assertThat(auditLog.args()).isNull();
     }
 
+    /**
+     * 测试提供 target 表达式时是否正确提取目标值。
+     */
     @Test
     void should_extractTarget_when_targetExpressionProvided() throws Throwable {
         // Given
@@ -238,6 +262,9 @@ class AuditLogAspectTest {
         assertThat(auditLog.target()).isEqualTo("user-123");
     }
 
+    /**
+     * 设置 JoinPoint 的模拟行为。
+     */
     private void setupJoinPoint(String methodName, String[] paramNames, Object[] args) {
         lenient().when(joinPoint.getSignature()).thenReturn(methodSignature);
         lenient().when(methodSignature.getName()).thenReturn(methodName);
@@ -246,6 +273,9 @@ class AuditLogAspectTest {
         lenient().when(joinPoint.getArgs()).thenReturn(args);
     }
 
+    /**
+     * 创建 Audited 注解的模拟实例。
+     */
     private Audited createAudited(String operation, String module, String[] sensitiveFields) {
         return new Audited() {
             @Override

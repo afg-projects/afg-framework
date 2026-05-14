@@ -12,15 +12,31 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
- * StorageMetadata 测试
+ * {@link StorageMetadata} 存储元数据测试
+ *
+ * <p>测试存储元数据的创建和操作：
+ * <ul>
+ *   <li>构造方法</li>
+ *   <li>put/get 操作</li>
+ *   <li>Builder 构建</li>
+ *   <li>不可变 Map 返回</li>
+ * </ul>
+ *
+ * @see StorageMetadata
  */
 @DisplayName("StorageMetadata 测试")
 class StorageMetadataTest {
 
+    /**
+     * 构造方法测试
+     */
     @Nested
     @DisplayName("构造方法测试")
     class ConstructorTests {
 
+        /**
+         * 测试创建空元数据
+         */
         @Test
         @DisplayName("应该创建空元数据")
         void shouldCreateEmptyMetadata() {
@@ -29,6 +45,9 @@ class StorageMetadataTest {
             assertThat(metadata.isEmpty()).isTrue();
         }
 
+        /**
+         * 测试从 Map 创建元数据
+         */
         @Test
         @DisplayName("应该从 Map 创建元数据")
         void shouldCreateFromMap() {
@@ -44,6 +63,9 @@ class StorageMetadataTest {
         }
     }
 
+    /**
+     * 操作方法测试
+     */
     @Nested
     @DisplayName("操作方法测试")
     class OperationTests {
@@ -55,6 +77,9 @@ class StorageMetadataTest {
             metadata = new StorageMetadata();
         }
 
+        /**
+         * 测试正确设置和获取值
+         */
         @Test
         @DisplayName("应该正确设置和获取值")
         void shouldPutAndGet() {
@@ -64,6 +89,9 @@ class StorageMetadataTest {
             assertThat(metadata.containsKey("key1")).isTrue();
         }
 
+        /**
+         * 测试对不存在的键返回 null
+         */
         @Test
         @DisplayName("应该对不存在的键返回 null")
         void shouldReturnNullForMissingKey() {
@@ -71,6 +99,9 @@ class StorageMetadataTest {
             assertThat(metadata.containsKey("missing")).isFalse();
         }
 
+        /**
+         * 测试返回不可变的元数据 Map
+         */
         @Test
         @DisplayName("应该返回不可变的元数据 Map")
         void shouldReturnUnmodifiableMap() {
@@ -82,6 +113,9 @@ class StorageMetadataTest {
                     .isInstanceOf(UnsupportedOperationException.class);
         }
 
+        /**
+         * 测试正确判断是否为空
+         */
         @Test
         @DisplayName("应该正确判断是否为空")
         void shouldCheckIsEmpty() {
@@ -92,10 +126,16 @@ class StorageMetadataTest {
         }
     }
 
+    /**
+     * Builder 构建测试
+     */
     @Nested
     @DisplayName("Builder 测试")
     class BuilderTests {
 
+        /**
+         * 测试使用 Builder 构建元数据
+         */
         @Test
         @DisplayName("应该使用 Builder 构建元数据")
         void shouldBuildWithBuilder() {
@@ -108,6 +148,9 @@ class StorageMetadataTest {
             assertThat(metadata.get("version")).isEqualTo("1.0");
         }
 
+        /**
+         * 测试支持 putAll
+         */
         @Test
         @DisplayName("应该支持 putAll")
         void shouldSupportPutAll() {

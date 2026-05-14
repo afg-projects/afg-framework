@@ -17,6 +17,7 @@ import io.github.afgprojects.framework.core.api.ratelimit.RateLimitAlgorithm;
 import io.github.afgprojects.framework.core.api.ratelimit.RateLimitDimension;
 import io.github.afgprojects.framework.core.api.ratelimit.RateLimitResult;
 import io.github.afgprojects.framework.core.api.ratelimit.RateLimiter;
+import io.github.afgprojects.framework.core.api.ratelimit.RateLimiterBuilder;
 import io.github.afgprojects.framework.core.model.exception.BusinessException;
 import io.github.afgprojects.framework.core.model.exception.CommonErrorCode;
 import io.github.afgprojects.framework.core.support.BaseUnitTest;
@@ -25,6 +26,9 @@ class RateLimitInterceptorTest extends BaseUnitTest {
 
     @Mock
     private RateLimiter rateLimiter;
+
+    @Mock
+    private RateLimiterBuilder rateLimiterBuilder;
 
     @Mock
     private ProceedingJoinPoint joinPoint;
@@ -40,6 +44,15 @@ class RateLimitInterceptorTest extends BaseUnitTest {
         MockitoAnnotations.openMocks(this);
         properties = new RateLimitProperties();
         interceptor = new RateLimitInterceptor(rateLimiter, properties, null);
+
+        // Setup builder mock chain
+        when(rateLimiter.builder()).thenReturn(rateLimiterBuilder);
+        when(rateLimiterBuilder.key(any())).thenReturn(rateLimiterBuilder);
+        when(rateLimiterBuilder.dimension(any())).thenReturn(rateLimiterBuilder);
+        when(rateLimiterBuilder.rate(any(long.class))).thenReturn(rateLimiterBuilder);
+        when(rateLimiterBuilder.burst(any(long.class))).thenReturn(rateLimiterBuilder);
+        when(rateLimiterBuilder.algorithm(any())).thenReturn(rateLimiterBuilder);
+        when(rateLimiterBuilder.windowSize(any(long.class))).thenReturn(rateLimiterBuilder);
     }
 
     @Test
@@ -52,34 +65,32 @@ class RateLimitInterceptorTest extends BaseUnitTest {
         Object result = interceptor.around(joinPoint, annotation);
 
         assertThat(result).isEqualTo("result");
-        verify(rateLimiter, never()).tryAcquire(any());
+        verify(rateLimiter, never()).builder();
     }
 
     @Test
     void should_proceed_when_tokenAcquired() throws Throwable {
         RateLimit annotation = createAnnotation("test", 10, RateLimitDimension.IP);
 
-        when(rateLimiter.tryAcquire(annotation)).thenReturn(RateLimitResult.allowed(10, 20, System.currentTimeMillis() + 1000));
+        when(rateLimiterBuilder.tryAcquire()).thenReturn(RateLimitResult.allowed(10, 20, System.currentTimeMillis() + 1000));
         when(joinPoint.proceed()).thenReturn("result");
 
         Object result = interceptor.around(joinPoint, annotation);
 
         assertThat(result).isEqualTo("result");
-        verify(rateLimiter).tryAcquire(annotation);
+        verify(rateLimiter).builder();
     }
 
     @Test
     void should_throwException_when_rateLimitExceeded() throws Throwable {
         RateLimit annotation = createAnnotation("test", 10, RateLimitDimension.IP);
 
-        when(rateLimiter.tryAcquire(annotation)).thenReturn(RateLimitResult.rejected(20, System.currentTimeMillis() + 1000, 100));
-        when(rateLimiter.getRateLimitMessage(annotation)).thenReturn("请求过于频繁");
+        when(rateLimiterBuilder.tryAcquire()).thenReturn(RateLimitResult.rejected(20, System.currentTimeMillis() + 1000, 100));
 
         try {
             interceptor.around(joinPoint, annotation);
         } catch (BusinessException e) {
             assertThat(e.getCode()).isEqualTo(CommonErrorCode.RATE_LIMIT_EXCEEDED.getCode());
-            assertThat(e.getMessage()).isEqualTo("请求过于频繁");
         }
     }
 
@@ -87,7 +98,7 @@ class RateLimitInterceptorTest extends BaseUnitTest {
     void should_executeFallback_when_fallbackMethodProvided() throws Throwable {
         RateLimit annotation = createAnnotationWithFallback("test", 10, RateLimitDimension.IP, "fallback");
 
-        when(rateLimiter.tryAcquire(annotation)).thenReturn(RateLimitResult.rejected(20, System.currentTimeMillis() + 1000, 100));
+        when(rateLimiterBuilder.tryAcquire()).thenReturn(RateLimitResult.rejected(20, System.currentTimeMillis() + 1000, 100));
         when(joinPoint.getTarget()).thenReturn(new TestService());
         when(joinPoint.getArgs()).thenReturn(new Object[] {"arg"});
         when(joinPoint.getSignature()).thenReturn(methodSignature);
@@ -102,8 +113,7 @@ class RateLimitInterceptorTest extends BaseUnitTest {
     void should_throwException_when_fallbackMethodNotFound() throws Throwable {
         RateLimit annotation = createAnnotationWithFallback("test", 10, RateLimitDimension.IP, "nonExistFallback");
 
-        when(rateLimiter.tryAcquire(annotation)).thenReturn(RateLimitResult.rejected(20, System.currentTimeMillis() + 1000, 100));
-        when(rateLimiter.getRateLimitMessage(annotation)).thenReturn("请求过于频繁");
+        when(rateLimiterBuilder.tryAcquire()).thenReturn(RateLimitResult.rejected(20, System.currentTimeMillis() + 1000, 100));
         when(joinPoint.getTarget()).thenReturn(new TestService());
         when(joinPoint.getArgs()).thenReturn(new Object[] {"arg"});
         when(joinPoint.getSignature()).thenReturn(methodSignature);
@@ -121,8 +131,7 @@ class RateLimitInterceptorTest extends BaseUnitTest {
         properties.getFallback().setEnabled(false);
         RateLimit annotation = createAnnotationWithFallback("test", 10, RateLimitDimension.IP, "fallback");
 
-        when(rateLimiter.tryAcquire(annotation)).thenReturn(RateLimitResult.rejected(20, System.currentTimeMillis() + 1000, 100));
-        when(rateLimiter.getRateLimitMessage(annotation)).thenReturn("请求过于频繁");
+        when(rateLimiterBuilder.tryAcquire()).thenReturn(RateLimitResult.rejected(20, System.currentTimeMillis() + 1000, 100));
 
         try {
             interceptor.around(joinPoint, annotation);

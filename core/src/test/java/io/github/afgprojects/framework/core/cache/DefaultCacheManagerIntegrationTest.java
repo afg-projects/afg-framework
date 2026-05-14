@@ -14,7 +14,12 @@ import io.github.afgprojects.framework.core.cache.exception.CacheException;
 import io.github.afgprojects.framework.core.support.TestApplication;
 
 /**
- * DefaultCacheManager 集成测试
+ * DefaultCacheManager 集成测试。
+ * <p>
+ * 测试缓存管理器与 Spring Boot 的集成，包括自动配置、缓存操作、本地缓存、分布式缓存、多级缓存和缓存管理功能。
+ * </p>
+ *
+ * @see DefaultCacheManager
  */
 @DisplayName("DefaultCacheManager 集成测试")
 @SpringBootTest(
@@ -34,16 +39,28 @@ class DefaultCacheManagerIntegrationTest {
     @Autowired(required = false)
     private CacheProperties cacheProperties;
 
+    /**
+     * 缓存管理器配置测试。
+     * <p>
+     * 测试缓存管理器和属性的自动配置。
+     * </p>
+     */
     @Nested
     @DisplayName("缓存管理器配置测试")
     class CacheManagerConfigTests {
 
+        /**
+         * 测试自动配置缓存管理器。
+         */
         @Test
         @DisplayName("应该自动配置缓存管理器")
         void shouldAutoConfigureCacheManager() {
             assertThat(cacheManager).isNotNull();
         }
 
+        /**
+         * 测试自动配置缓存属性。
+         */
         @Test
         @DisplayName("应该自动配置缓存属性")
         void shouldAutoConfigureCacheProperties() {
@@ -53,10 +70,19 @@ class DefaultCacheManagerIntegrationTest {
         }
     }
 
+    /**
+     * 缓存操作测试。
+     * <p>
+     * 测试缓存的基本操作，包括创建、存取、删除、清空和检查。
+     * </p>
+     */
     @Nested
     @DisplayName("缓存操作测试")
     class CacheOperationTests {
 
+        /**
+         * 测试能够创建和获取缓存。
+         */
         @Test
         @DisplayName("应该能够创建和获取缓存")
         void shouldCreateAndGetCache() {
@@ -66,6 +92,9 @@ class DefaultCacheManagerIntegrationTest {
             assertThat(cache.getName()).isEqualTo("test-cache");
         }
 
+        /**
+         * 测试能够存取缓存值。
+         */
         @Test
         @DisplayName("应该能够存取缓存值")
         void shouldPutAndGetCacheValue() {
@@ -75,6 +104,9 @@ class DefaultCacheManagerIntegrationTest {
             assertThat(cache.get("key1")).isEqualTo("value1");
         }
 
+        /**
+         * 测试能够删除缓存值。
+         */
         @Test
         @DisplayName("应该能够删除缓存值")
         void shouldEvictCacheValue() {
@@ -86,6 +118,9 @@ class DefaultCacheManagerIntegrationTest {
             assertThat(cache.get("key1")).isNull();
         }
 
+        /**
+         * 测试能够清空缓存。
+         */
         @Test
         @DisplayName("应该能够清空缓存")
         void shouldClearCache() {
@@ -99,6 +134,9 @@ class DefaultCacheManagerIntegrationTest {
             assertThat(cache.get("key2")).isNull();
         }
 
+        /**
+         * 测试能够检查缓存是否存在。
+         */
         @Test
         @DisplayName("应该能够检查缓存是否存在")
         void shouldCheckCacheExists() {
@@ -108,6 +146,9 @@ class DefaultCacheManagerIntegrationTest {
             assertThat(cacheManager.containsCache("non-existing-cache")).isFalse();
         }
 
+        /**
+         * 测试能够获取所有缓存名称。
+         */
         @Test
         @DisplayName("应该能够获取所有缓存名称")
         void shouldGetAllCacheNames() {
@@ -120,10 +161,19 @@ class DefaultCacheManagerIntegrationTest {
         }
     }
 
+    /**
+     * 本地缓存测试。
+     * <p>
+     * 测试本地缓存的特定功能，包括 putIfAbsent、getOrLoad 和大小查询。
+     * </p>
+     */
     @Nested
     @DisplayName("本地缓存测试")
     class LocalCacheTests {
 
+        /**
+         * 测试能够获取本地缓存。
+         */
         @Test
         @DisplayName("应该能够获取本地缓存")
         void shouldGetLocalCache() {
@@ -133,6 +183,9 @@ class DefaultCacheManagerIntegrationTest {
             assertThat(cache.getName()).isEqualTo("local-test");
         }
 
+        /**
+         * 测试本地缓存支持 putIfAbsent。
+         */
         @Test
         @DisplayName("本地缓存应该支持 putIfAbsent")
         void shouldSupportPutIfAbsent() {
@@ -145,6 +198,9 @@ class DefaultCacheManagerIntegrationTest {
             assertThat(result2).isEqualTo("value1");
         }
 
+        /**
+         * 测试本地缓存支持 getOrLoad。
+         */
         @Test
         @DisplayName("本地缓存应该支持 getOrLoad")
         void shouldSupportGetOrLoad() {
@@ -156,6 +212,9 @@ class DefaultCacheManagerIntegrationTest {
             assertThat(cache.get("load-key")).isEqualTo("loaded-value");
         }
 
+        /**
+         * 测试本地缓存支持大小查询。
+         */
         @Test
         @DisplayName("本地缓存应该支持大小查询")
         void shouldSupportSizeQuery() {
@@ -169,10 +228,19 @@ class DefaultCacheManagerIntegrationTest {
         }
     }
 
+    /**
+     * 分布式缓存测试。
+     * <p>
+     * 测试分布式缓存的异常处理。
+     * </p>
+     */
     @Nested
     @DisplayName("分布式缓存测试")
     class DistributedCacheTests {
 
+        /**
+         * 测试没有 Redisson 时抛出异常。
+         */
         @Test
         @DisplayName("没有 Redisson 时应该抛出异常")
         void shouldThrowExceptionWithoutRedisson() {
@@ -182,10 +250,19 @@ class DefaultCacheManagerIntegrationTest {
         }
     }
 
+    /**
+     * 多级缓存测试。
+     * <p>
+     * 测试多级缓存的异常处理。
+     * </p>
+     */
     @Nested
     @DisplayName("多级缓存测试")
     class MultiLevelCacheTests {
 
+        /**
+         * 测试没有 Redisson 时抛出异常。
+         */
         @Test
         @DisplayName("没有 Redisson 时应该抛出异常")
         void shouldThrowExceptionWithoutRedisson() {
@@ -195,10 +272,19 @@ class DefaultCacheManagerIntegrationTest {
         }
     }
 
+    /**
+     * 缓存管理测试。
+     * <p>
+     * 测试缓存的注册、移除和清空功能。
+     * </p>
+     */
     @Nested
     @DisplayName("缓存管理测试")
     class CacheManagementTests {
 
+        /**
+         * 测试能够注册自定义缓存。
+         */
         @Test
         @DisplayName("应该能够注册自定义缓存")
         void shouldRegisterCustomCache() {
@@ -210,6 +296,9 @@ class DefaultCacheManagerIntegrationTest {
             assertThat(cacheManager.getCache("custom-cache")).isSameAs(customCache);
         }
 
+        /**
+         * 测试能够移除缓存。
+         */
         @Test
         @DisplayName("应该能够移除缓存")
         void shouldRemoveCache() {
@@ -220,6 +309,9 @@ class DefaultCacheManagerIntegrationTest {
             assertThat(cacheManager.containsCache("to-remove")).isFalse();
         }
 
+        /**
+         * 测试能够清空所有缓存。
+         */
         @Test
         @DisplayName("应该能够清空所有缓存")
         void shouldClearAllCaches() {

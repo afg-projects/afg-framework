@@ -19,7 +19,10 @@ import io.github.afgprojects.framework.core.web.health.ModuleHealthIndicator;
 import io.github.afgprojects.framework.core.web.health.ReadinessHealthIndicator;
 
 /**
- * HealthAutoConfiguration 测试
+ * HealthAutoConfiguration 单元测试。
+ * 测试健康检查自动配置类的 Bean 创建功能。
+ *
+ * @see HealthAutoConfiguration
  */
 @DisplayName("HealthAutoConfiguration 测试")
 class HealthAutoConfigurationTest {
@@ -31,10 +34,17 @@ class HealthAutoConfigurationTest {
         configuration = new HealthAutoConfiguration();
     }
 
+    /**
+     * 模块健康指示器配置测试。
+     * 验证 moduleHealthIndicator Bean 的创建。
+     */
     @Nested
     @DisplayName("moduleHealthIndicator 配置测试")
     class ModuleHealthIndicatorTests {
 
+        /**
+         * 测试创建模块健康指示器。
+         */
         @Test
         @DisplayName("应该创建模块健康指示器")
         void shouldCreateModuleHealthIndicator() {
@@ -46,10 +56,17 @@ class HealthAutoConfigurationTest {
         }
     }
 
+    /**
+     * 数据源健康指示器配置测试。
+     * 验证 dataSourceHealthIndicator Bean 的创建。
+     */
     @Nested
     @DisplayName("dataSourceHealthIndicator 配置测试")
     class DataSourceHealthIndicatorTests {
 
+        /**
+         * 测试创建数据源健康指示器。
+         */
         @Test
         @DisplayName("应该创建数据源健康指示器")
         void shouldCreateDataSourceHealthIndicator() {
@@ -62,10 +79,17 @@ class HealthAutoConfigurationTest {
         }
     }
 
+    /**
+     * 存活探针健康指示器配置测试。
+     * 验证 livenessHealthIndicator Bean 的创建。
+     */
     @Nested
     @DisplayName("livenessHealthIndicator 配置测试")
     class LivenessHealthIndicatorTests {
 
+        /**
+         * 测试创建存活探针健康指示器。
+         */
         @Test
         @DisplayName("应该创建存活探针健康指示器")
         void shouldCreateLivenessHealthIndicator() {
@@ -77,10 +101,17 @@ class HealthAutoConfigurationTest {
         }
     }
 
+    /**
+     * 就绪探针健康指示器配置测试。
+     * 验证 readinessHealthIndicator Bean 的创建。
+     */
     @Nested
     @DisplayName("readinessHealthIndicator 配置测试")
     class ReadinessHealthIndicatorTests {
 
+        /**
+         * 测试创建就绪探针健康指示器。
+         */
         @Test
         @DisplayName("应该创建就绪探针健康指示器")
         void shouldCreateReadinessHealthIndicator() {
@@ -92,6 +123,9 @@ class HealthAutoConfigurationTest {
             assertThat(indicator).isNotNull();
         }
 
+        /**
+         * 测试使用数据源创建就绪探针健康指示器。
+         */
         @Test
         @DisplayName("应该使用数据源创建就绪探针健康指示器")
         void shouldCreateReadinessHealthIndicatorWithDataSource() {
@@ -104,6 +138,9 @@ class HealthAutoConfigurationTest {
             assertThat(indicator).isNotNull();
         }
 
+        /**
+         * 测试使用 RedissonClient 创建就绪探针健康指示器。
+         */
         @Test
         @DisplayName("应该使用 RedissonClient 创建就绪探针健康指示器")
         void shouldCreateReadinessHealthIndicatorWithRedissonClient() {
@@ -116,6 +153,9 @@ class HealthAutoConfigurationTest {
             assertThat(indicator).isNotNull();
         }
 
+        /**
+         * 测试使用所有组件创建就绪探针健康指示器。
+         */
         @Test
         @DisplayName("应该使用所有组件创建就绪探针健康指示器")
         void shouldCreateReadinessHealthIndicatorWithAllComponents() {

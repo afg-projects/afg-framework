@@ -11,15 +11,27 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
- * GeneratorContext 测试
+ * {@link GeneratorContext} 的单元测试。
+ * <p>
+ * 测试代码生成上下文及其内部类（FieldDefinition、MethodDefinition、ParameterDefinition）的构建功能。
+ *
+ * @see GeneratorContext
  */
 @DisplayName("GeneratorContext 测试")
 class GeneratorContextTest {
 
+    /**
+     * Builder 构建测试。
+     * <p>
+     * 验证 GeneratorContext 的 Builder 功能。
+     */
     @Nested
     @DisplayName("Builder 测试")
     class BuilderTests {
 
+        /**
+         * 测试构建基本上下文（仅包含类名和包名）。
+         */
         @Test
         @DisplayName("应该构建基本上下文")
         void shouldBuildBasicContext() {
@@ -32,6 +44,9 @@ class GeneratorContextTest {
             assertThat(context.getPackageName()).isEqualTo("com.example.entity");
         }
 
+        /**
+         * 测试构建完整上下文（包含所有属性）。
+         */
         @Test
         @DisplayName("应该构建完整上下文")
         void shouldBuildFullContext() {
@@ -68,6 +83,9 @@ class GeneratorContextTest {
             assertThat(context.getInterfaces()).contains("Serializable");
         }
 
+        /**
+         * 测试构建带额外属性的上下文。
+         */
         @Test
         @DisplayName("应该支持额外属性")
         void shouldSupportExtraProperties() {
@@ -84,10 +102,18 @@ class GeneratorContextTest {
         }
     }
 
+    /**
+     * FieldDefinition 字段定义测试。
+     * <p>
+     * 验证字段定义的构建功能。
+     */
     @Nested
     @DisplayName("FieldDefinition 测试")
     class FieldDefinitionTests {
 
+        /**
+         * 测试构建完整的字段定义。
+         */
         @Test
         @DisplayName("应该构建字段定义")
         void shouldBuildFieldDefinition() {
@@ -114,10 +140,18 @@ class GeneratorContextTest {
         }
     }
 
+    /**
+     * MethodDefinition 方法定义测试。
+     * <p>
+     * 验证方法定义的构建功能。
+     */
     @Nested
     @DisplayName("MethodDefinition 测试")
     class MethodDefinitionTests {
 
+        /**
+         * 测试构建完整的方法定义（包含参数、返回类型、方法体等）。
+         */
         @Test
         @DisplayName("应该构建方法定义")
         void shouldBuildMethodDefinition() {
@@ -144,10 +178,18 @@ class GeneratorContextTest {
         }
     }
 
+    /**
+     * ParameterDefinition 参数定义测试。
+     * <p>
+     * 验证参数定义的构建功能。
+     */
     @Nested
     @DisplayName("ParameterDefinition 测试")
     class ParameterDefinitionTests {
 
+        /**
+         * 测试构建参数定义。
+         */
         @Test
         @DisplayName("应该构建参数定义")
         void shouldBuildParameterDefinition() {

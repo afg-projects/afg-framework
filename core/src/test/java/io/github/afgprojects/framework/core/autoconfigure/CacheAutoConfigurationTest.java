@@ -21,7 +21,10 @@ import io.github.afgprojects.framework.core.cache.MultiLevelCache;
 import io.github.afgprojects.framework.core.cache.exception.CacheException;
 
 /**
- * CacheAutoConfiguration 测试
+ * CacheAutoConfiguration 单元测试。
+ * 测试缓存自动配置类的 Bean 创建和缓存管理器类型选择功能。
+ *
+ * @see CacheAutoConfiguration
  */
 @DisplayName("CacheAutoConfiguration 测试")
 class CacheAutoConfigurationTest {
@@ -33,10 +36,17 @@ class CacheAutoConfigurationTest {
         configuration = new CacheAutoConfiguration();
     }
 
+    /**
+     * 缓存管理器配置测试。
+     * 验证 cacheManager Bean 的创建和不同缓存类型的处理。
+     */
     @Nested
     @DisplayName("cacheManager 配置测试")
     class CacheManagerTests {
 
+        /**
+         * 测试创建本地缓存管理器。
+         */
         @Test
         @DisplayName("应该创建本地缓存管理器")
         void shouldCreateLocalCacheManager() {
@@ -49,6 +59,9 @@ class CacheAutoConfigurationTest {
             assertThat(manager.getProperties()).isNotNull();
         }
 
+        /**
+         * 测试创建分布式缓存管理器（回退到本地缓存）。
+         */
         @Test
         @DisplayName("应该创建分布式缓存管理器（回退到本地缓存）")
         void shouldCreateDistributedCacheManager() {
@@ -60,6 +73,9 @@ class CacheAutoConfigurationTest {
             assertThat(manager).isNotNull();
         }
 
+        /**
+         * 测试创建多级缓存管理器（回退到本地缓存）。
+         */
         @Test
         @DisplayName("应该创建多级缓存管理器（回退到本地缓存）")
         void shouldCreateMultiLevelCacheManager() {
@@ -71,6 +87,9 @@ class CacheAutoConfigurationTest {
             assertThat(manager).isNotNull();
         }
 
+        /**
+         * 测试当需要分布式缓存但没有 RedissonClient 时回退到本地缓存。
+         */
         @Test
         @DisplayName("当需要分布式缓存但没有 RedissonClient 时应该回退到本地缓存")
         void shouldFallbackToLocalCacheWhenDistributedCacheNeededButNoRedissonClient() {
@@ -86,6 +105,9 @@ class CacheAutoConfigurationTest {
             assertThat(cache).isNotNull();
         }
 
+        /**
+         * 测试当需要多级缓存但没有 RedissonClient 时回退到本地缓存。
+         */
         @Test
         @DisplayName("当需要多级缓存但没有 RedissonClient 时应该回退到本地缓存")
         void shouldFallbackToLocalCacheWhenMultiLevelCacheNeededButNoRedissonClient() {
@@ -100,10 +122,17 @@ class CacheAutoConfigurationTest {
         }
     }
 
+    /**
+     * needsDistributedCache 条件判断测试。
+     * 验证分布式缓存需求的判断逻辑。
+     */
     @Nested
     @DisplayName("needsDistributedCache 测试")
     class NeedsDistributedCacheTests {
 
+        /**
+         * 测试 DISTRIBUTED 类型需要分布式缓存。
+         */
         @Test
         @DisplayName("DISTRIBUTED 类型应该需要分布式缓存")
         void distributedTypeShouldNeedDistributedCache() {
@@ -115,6 +144,9 @@ class CacheAutoConfigurationTest {
             assertThat(manager).isNotNull();
         }
 
+        /**
+         * 测试 MULTI_LEVEL 类型需要分布式缓存。
+         */
         @Test
         @DisplayName("MULTI_LEVEL 类型应该需要分布式缓存")
         void multiLevelTypeShouldNeedDistributedCache() {
@@ -126,6 +158,9 @@ class CacheAutoConfigurationTest {
             assertThat(manager).isNotNull();
         }
 
+        /**
+         * 测试 LOCAL 类型不需要分布式缓存。
+         */
         @Test
         @DisplayName("LOCAL 类型不需要分布式缓存")
         void localTypeShouldNotNeedDistributedCache() {
@@ -137,10 +172,17 @@ class CacheAutoConfigurationTest {
         }
     }
 
+    /**
+     * 缓存切面配置测试。
+     * 验证 cacheAspect Bean 的创建。
+     */
     @Nested
     @DisplayName("cacheAspect 配置测试")
     class CacheAspectTests {
 
+        /**
+         * 测试创建缓存切面。
+         */
         @Test
         @DisplayName("应该创建缓存切面")
         void shouldCreateCacheAspect() {

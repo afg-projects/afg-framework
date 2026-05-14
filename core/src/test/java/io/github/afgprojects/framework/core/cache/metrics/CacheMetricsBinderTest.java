@@ -12,7 +12,12 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 /**
- * CacheMetricsBinder 测试
+ * CacheMetricsBinder 单元测试。
+ * <p>
+ * 测试缓存指标绑定器的功能，包括指标绑定和标签设置。
+ * </p>
+ *
+ * @see CacheMetricsBinder
  */
 @DisplayName("CacheMetricsBinder 测试")
 class CacheMetricsBinderTest {
@@ -26,10 +31,19 @@ class CacheMetricsBinderTest {
         meterRegistry = new SimpleMeterRegistry();
     }
 
+    /**
+     * bind 测试。
+     * <p>
+     * 测试缓存指标绑定到 MeterRegistry 的功能。
+     * </p>
+     */
     @Nested
     @DisplayName("bind 测试")
     class BindTests {
 
+        /**
+         * 测试绑定缓存指标到 MeterRegistry。
+         */
         @Test
         @DisplayName("应该绑定缓存指标到 MeterRegistry")
         void shouldBindMetricsToMeterRegistry() {
@@ -53,6 +67,9 @@ class CacheMetricsBinderTest {
             assertThat(meterRegistry.find("afg.cache.load.success.rate").gauge()).isNotNull();
         }
 
+        /**
+         * 测试正确设置标签。
+         */
         @Test
         @DisplayName("应该正确设置标签")
         void shouldSetCorrectTags() {

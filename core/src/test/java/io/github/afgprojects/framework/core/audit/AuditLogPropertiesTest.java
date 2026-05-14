@@ -7,10 +7,17 @@ import java.time.Duration;
 import org.junit.jupiter.api.Test;
 
 /**
- * AuditLogProperties 单元测试
+ * AuditLogProperties 单元测试。
+ * <p>
+ * 测试审计日志配置属性的默认值和属性修改功能。
+ *
+ * @see AuditLogProperties
  */
 class AuditLogPropertiesTest {
 
+    /**
+     * 测试配置属性是否具有正确的默认值。
+     */
     @Test
     void should_haveDefaultValues() {
         // When
@@ -26,6 +33,9 @@ class AuditLogPropertiesTest {
                 "password", "token", "secret", "apikey", "credential", "accesstoken");
     }
 
+    /**
+     * 测试配置属性是否允许修改值。
+     */
     @Test
     void should_allowChangingValues() {
         // Given

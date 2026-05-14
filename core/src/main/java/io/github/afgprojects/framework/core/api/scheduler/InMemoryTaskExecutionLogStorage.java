@@ -13,7 +13,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -237,7 +236,7 @@ public class InMemoryTaskExecutionLogStorage implements TaskExecutionLogStorage 
      */
     private void evictOldest() {
         // 找到最旧的记录
-        @Nullable TaskExecutionLog oldest = null;
+        TaskExecutionLog oldest = null;
         for (TaskExecutionLog log : logsByExecutionId.values()) {
             if (oldest == null || log.startTime().isBefore(oldest.startTime())) {
                 oldest = log;

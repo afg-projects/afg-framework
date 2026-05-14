@@ -16,8 +16,12 @@ import org.springframework.test.annotation.DirtiesContext;
 import io.github.afgprojects.framework.core.support.TestApplication;
 
 /**
- * 条件装配集成测试
- * 验证条件注解在 Spring 容器中的实际行为
+ * 条件装配集成测试。
+ * 验证条件注解在 Spring 容器中的实际行为。
+ *
+ * @see ConditionalOnFeature
+ * @see ConditionalOnTenant
+ * @see ConditionalOnPropertyNotEmpty
  */
 @SpringBootTest(classes = {TestApplication.class, ConditionTestConfiguration.class})
 @TestPropertySource(properties = {
@@ -39,6 +43,9 @@ class ConditionalAnnotationIntegrationTest {
     @Autowired
     private ApplicationContext applicationContext;
 
+    /**
+     * 测试功能启用时 Bean 被装配。
+     */
     @Test
     @DisplayName("功能启用时 Bean 应该被装配")
     void shouldLoadBeanWhenFeatureEnabled() {
@@ -46,6 +53,9 @@ class ConditionalAnnotationIntegrationTest {
         assertThat(applicationContext.containsBean("cacheService")).isTrue();
     }
 
+    /**
+     * 测试功能禁用时 Bean 不被装配。
+     */
     @Test
     @DisplayName("功能禁用时 Bean 不应该被装配")
     void shouldNotLoadBeanWhenFeatureDisabled() {
@@ -53,6 +63,9 @@ class ConditionalAnnotationIntegrationTest {
         assertThat(applicationContext.containsBean("searchService")).isFalse();
     }
 
+    /**
+     * 测试租户匹配时 Bean 被装配。
+     */
     @Test
     @DisplayName("租户匹配时 Bean 应该被装配")
     void shouldLoadBeanWhenTenantMatches() {
@@ -60,6 +73,9 @@ class ConditionalAnnotationIntegrationTest {
         assertThat(applicationContext.containsBean("tenantSpecificService")).isTrue();
     }
 
+    /**
+     * 测试租户不匹配时 Bean 不被装配。
+     */
     @Test
     @DisplayName("租户不匹配时 Bean 不应该被装配")
     void shouldNotLoadBeanWhenTenantNotMatches() {
@@ -67,6 +83,9 @@ class ConditionalAnnotationIntegrationTest {
         assertThat(applicationContext.containsBean("otherTenantService")).isFalse();
     }
 
+    /**
+     * 测试属性非空时 Bean 被装配。
+     */
     @Test
     @DisplayName("属性非空时 Bean 应该被装配")
     void shouldLoadBeanWhenPropertyNotEmpty() {
@@ -74,6 +93,9 @@ class ConditionalAnnotationIntegrationTest {
         assertThat(applicationContext.containsBean("databaseService")).isTrue();
     }
 
+    /**
+     * 测试属性为空时 Bean 不被装配。
+     */
     @Test
     @DisplayName("属性为空时 Bean 不应该被装配")
     void shouldNotLoadBeanWhenPropertyEmpty() {

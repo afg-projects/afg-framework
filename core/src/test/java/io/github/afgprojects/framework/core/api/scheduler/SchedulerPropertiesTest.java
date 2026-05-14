@@ -11,15 +11,33 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
- * SchedulerProperties 测试
+ * {@link SchedulerProperties} 调度器配置属性测试
+ *
+ * <p>测试调度器的各项配置及其嵌套配置类：
+ * <ul>
+ *   <li>默认值验证</li>
+ *   <li>LogStorageConfig - 日志存储配置</li>
+ *   <li>MetricsConfig - 指标配置</li>
+ *   <li>DynamicTaskConfig - 动态任务配置</li>
+ *   <li>AnnotationConfig - 注解配置</li>
+ *   <li>ApiConfig - API 配置</li>
+ * </ul>
+ *
+ * @see SchedulerProperties
  */
 @DisplayName("SchedulerProperties 测试")
 class SchedulerPropertiesTest {
 
+    /**
+     * 主配置默认值测试
+     */
     @Nested
     @DisplayName("默认值测试")
     class DefaultValueTests {
 
+        /**
+         * 验证调度器主配置的默认值
+         */
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
@@ -39,10 +57,16 @@ class SchedulerPropertiesTest {
         }
     }
 
+    /**
+     * LogStorageConfig 日志存储配置测试
+     */
     @Nested
     @DisplayName("LogStorageConfig 测试")
     class LogStorageConfigTests {
 
+        /**
+         * 验证日志存储配置的默认值
+         */
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
@@ -55,6 +79,9 @@ class SchedulerPropertiesTest {
             assertThat(config.isLogErrorStack()).isTrue();
         }
 
+        /**
+         * 验证日志存储配置的属性设置
+         */
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
@@ -73,10 +100,16 @@ class SchedulerPropertiesTest {
         }
     }
 
+    /**
+     * MetricsConfig 指标配置测试
+     */
     @Nested
     @DisplayName("MetricsConfig 测试")
     class MetricsConfigTests {
 
+        /**
+         * 验证指标配置的默认值
+         */
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
@@ -88,6 +121,9 @@ class SchedulerPropertiesTest {
             assertThat(config.isRecordDurationHistogram()).isTrue();
         }
 
+        /**
+         * 验证指标配置的属性设置
+         */
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
@@ -106,10 +142,16 @@ class SchedulerPropertiesTest {
         }
     }
 
+    /**
+     * DynamicTaskConfig 动态任务配置测试
+     */
     @Nested
     @DisplayName("DynamicTaskConfig 测试")
     class DynamicTaskConfigTests {
 
+        /**
+         * 验证动态任务配置的默认值
+         */
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
@@ -121,6 +163,9 @@ class SchedulerPropertiesTest {
             assertThat(config.getConfigPrefix()).isEqualTo("afg.tasks");
         }
 
+        /**
+         * 验证动态任务配置的属性设置
+         */
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
@@ -137,10 +182,16 @@ class SchedulerPropertiesTest {
         }
     }
 
+    /**
+     * AnnotationConfig 注解配置测试
+     */
     @Nested
     @DisplayName("AnnotationConfig 测试")
     class AnnotationConfigTests {
 
+        /**
+         * 验证注解配置的默认值
+         */
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
@@ -149,6 +200,9 @@ class SchedulerPropertiesTest {
             assertThat(config.isEnabled()).isTrue();
         }
 
+        /**
+         * 验证注解配置的属性设置
+         */
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
@@ -159,10 +213,16 @@ class SchedulerPropertiesTest {
         }
     }
 
+    /**
+     * ApiConfig API 配置测试
+     */
     @Nested
     @DisplayName("ApiConfig 测试")
     class ApiConfigTests {
 
+        /**
+         * 验证 API 配置的默认值
+         */
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
@@ -172,6 +232,9 @@ class SchedulerPropertiesTest {
             assertThat(config.getBasePath()).isEqualTo("/afg/scheduler");
         }
 
+        /**
+         * 验证 API 配置的属性设置
+         */
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {

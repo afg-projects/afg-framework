@@ -67,44 +67,60 @@ class RateLimiterIntegrationTest {
                 return;
             }
 
-            RateLimit annotation = createTestAnnotation("local-test", 10);
-
             // 第一次应该通过
-            RateLimitResult result1 = rateLimiter.tryAcquire(annotation);
+            RateLimitResult result1 = rateLimiter.builder()
+                .key("local-test")
+                .dimension(RateLimitDimension.API)
+                .rate(10)
+                .burst(20)
+                .tryAcquire();
             assertThat(result1.allowed()).isTrue();
         }
 
         @Test
-        @DisplayName("应该能够重置限流器")
-        void shouldResetRateLimiter() {
+        @DisplayName("应该能够消耗所有限流令牌")
+        void shouldConsumeAllTokens() {
             if (rateLimiter == null) {
                 return;
             }
 
-            RateLimit annotation = createTestAnnotation("reset-test", 10);
+            // 消耗所有令牌
+            for (int i = 0; i < 20; i++) {
+                rateLimiter.builder()
+                    .key("consume-test")
+                    .dimension(RateLimitDimension.API)
+                    .rate(10)
+                    .burst(20)
+                    .tryAcquire();
+            }
 
-            rateLimiter.tryAcquire(annotation);
+            // 下一次应该被拒绝
+            RateLimitResult result = rateLimiter.builder()
+                .key("consume-test")
+                .dimension(RateLimitDimension.API)
+                .rate(10)
+                .burst(20)
+                .tryAcquire();
 
-            boolean reset = rateLimiter.reset(annotation);
-
-            assertThat(reset).isTrue();
+            assertThat(result.allowed()).isFalse();
         }
 
         @Test
-        @DisplayName("应该能够获取限流信息")
-        void shouldGetRateLimitInfo() {
+        @DisplayName("应该支持滑动窗口算法")
+        void shouldSupportSlidingWindow() {
             if (rateLimiter == null) {
                 return;
             }
 
-            RateLimit annotation = createTestAnnotation("info-test", 10);
+            RateLimitResult result = rateLimiter.builder()
+                .key("sliding-test")
+                .dimension(RateLimitDimension.API)
+                .rate(10)
+                .algorithm(RateLimitAlgorithm.SLIDING_WINDOW)
+                .windowSize(60)
+                .tryAcquire();
 
-            rateLimiter.tryAcquire(annotation);
-
-            var info = rateLimiter.getRateLimitInfo(annotation);
-
-            // 本地限流可能返回 null
-            assertThat(info == null || info.key() != null).isTrue();
+            assertThat(result.allowed()).isTrue();
         }
     }
 
@@ -130,59 +146,5 @@ class RateLimiterIntegrationTest {
         void shouldConfigureKeyPrefix() {
             assertThat(rateLimitProperties.getKeyPrefix()).isNotNull();
         }
-    }
-
-    private RateLimit createTestAnnotation(String key, int rate) {
-        return new RateLimit() {
-            @Override
-            public String key() {
-                return key;
-            }
-
-            @Override
-            public long rate() {
-                return rate;
-            }
-
-            @Override
-            public long burst() {
-                return rate * 2;
-            }
-
-            @Override
-            public RateLimitDimension dimension() {
-                return RateLimitDimension.API;
-            }
-
-            @Override
-            public RateLimitAlgorithm algorithm() {
-                return RateLimitAlgorithm.TOKEN_BUCKET;
-            }
-
-            @Override
-            public long windowSize() {
-                return 1;
-            }
-
-            @Override
-            public String message() {
-                return "Rate limit exceeded";
-            }
-
-            @Override
-            public String fallbackMethod() {
-                return "";
-            }
-
-            @Override
-            public boolean responseHeaders() {
-                return true;
-            }
-
-            @Override
-            public Class<? extends java.lang.annotation.Annotation> annotationType() {
-                return RateLimit.class;
-            }
-        };
     }
 }

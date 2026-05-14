@@ -22,7 +22,12 @@ import io.github.afgprojects.framework.core.support.TestApplication;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * AfgAutoConfiguration 集成测试
+ * AfgAutoConfiguration 集成测试。
+ * 测试 AFG 核心自动配置在 Spring Boot 环境中的实际装配效果。
+ *
+ * @see AfgAutoConfiguration
+ * @see ModuleRegistry
+ * @see AfgConfigRegistry
  */
 @DisplayName("AfgAutoConfiguration 集成测试")
 @SpringBootTest(
@@ -49,34 +54,53 @@ class AfgAutoConfigurationIntegrationTest {
     @Autowired(required = false)
     private ObjectMapper objectMapper;
 
+    /**
+     * 自动配置测试。
+     * 验证核心组件的自动装配。
+     */
     @Nested
     @DisplayName("自动配置测试")
     class AutoConfigurationTests {
 
+        /**
+         * 测试自动配置 ModuleRegistry。
+         */
         @Test
         @DisplayName("应该自动配置 ModuleRegistry")
         void shouldAutoConfigureModuleRegistry() {
             assertThat(moduleRegistry).isNotNull();
         }
 
+        /**
+         * 测试自动配置 AfgConfigRegistry。
+         */
         @Test
         @DisplayName("应该自动配置 AfgConfigRegistry")
         void shouldAutoConfigureAfgConfigRegistry() {
             assertThat(afgConfigRegistry).isNotNull();
         }
 
+        /**
+         * 测试自动配置 ConfigRefresher。
+         */
         @Test
         @DisplayName("应该自动配置 ConfigRefresher")
         void shouldAutoConfigureConfigRefresher() {
             assertThat(configRefresher).isNotNull();
         }
 
+        /**
+         * 测试自动配置 ModuleContext。
+         */
         @Test
         @DisplayName("应该自动配置 ModuleContext")
         void shouldAutoConfigureModuleContext() {
             assertThat(moduleContext).isNotNull();
         }
 
+        /**
+         * 测试自动配置 ObjectMapper。
+         */
         @Test
         @DisplayName("应该自动配置 ObjectMapper")
         void shouldAutoConfigureObjectMapper() {
@@ -84,10 +108,17 @@ class AfgAutoConfigurationIntegrationTest {
         }
     }
 
+    /**
+     * ModuleRegistry 功能测试。
+     * 验证模块注册表的基本功能。
+     */
     @Nested
     @DisplayName("ModuleRegistry 功能测试")
     class ModuleRegistryTests {
 
+        /**
+         * 测试注册模块。
+         */
         @Test
         @DisplayName("应该能够注册模块")
         void shouldRegisterModule() {
@@ -102,6 +133,9 @@ class AfgAutoConfigurationIntegrationTest {
             assertThat(moduleRegistry.containsModule("test-module")).isTrue();
         }
 
+        /**
+         * 测试获取模块信息。
+         */
         @Test
         @DisplayName("应该能够获取模块信息")
         void shouldGetModuleInfo() {
@@ -119,6 +153,9 @@ class AfgAutoConfigurationIntegrationTest {
             assertThat(info.name()).isEqualTo("Info Module");
         }
 
+        /**
+         * 测试获取所有模块。
+         */
         @Test
         @DisplayName("应该能够获取所有模块")
         void shouldGetAllModules() {
@@ -142,10 +179,17 @@ class AfgAutoConfigurationIntegrationTest {
         }
     }
 
+    /**
+     * AfgConfigRegistry 功能测试。
+     * 验证配置注册表的基本功能。
+     */
     @Nested
     @DisplayName("AfgConfigRegistry 功能测试")
     class AfgConfigRegistryTests {
 
+        /**
+         * 测试注册配置。
+         */
         @Test
         @DisplayName("应该能够注册配置")
         void shouldRegisterConfig() {
@@ -155,6 +199,9 @@ class AfgAutoConfigurationIntegrationTest {
             assertThat(afgConfigRegistry.getConfig("test.config.key")).isEqualTo("test-value");
         }
 
+        /**
+         * 测试更新配置。
+         */
         @Test
         @DisplayName("应该能够更新配置")
         void shouldUpdateConfig() {
@@ -164,6 +211,9 @@ class AfgAutoConfigurationIntegrationTest {
             assertThat(afgConfigRegistry.getConfig("update.config.key")).isEqualTo("updated-value");
         }
 
+        /**
+         * 测试删除配置。
+         */
         @Test
         @DisplayName("应该能够删除配置")
         void shouldRemoveConfig() {
@@ -174,10 +224,17 @@ class AfgAutoConfigurationIntegrationTest {
         }
     }
 
+    /**
+     * ObjectMapper 功能测试。
+     * 验证 JSON 序列化和反序列化功能。
+     */
     @Nested
     @DisplayName("ObjectMapper 功能测试")
     class ObjectMapperTests {
 
+        /**
+         * 测试序列化对象。
+         */
         @Test
         @DisplayName("应该能够序列化对象")
         void shouldSerializeObject() throws Exception {
@@ -189,6 +246,9 @@ class AfgAutoConfigurationIntegrationTest {
             assertThat(json).contains("123");
         }
 
+        /**
+         * 测试反序列化对象。
+         */
         @Test
         @DisplayName("应该能够反序列化对象")
         void shouldDeserializeObject() throws Exception {

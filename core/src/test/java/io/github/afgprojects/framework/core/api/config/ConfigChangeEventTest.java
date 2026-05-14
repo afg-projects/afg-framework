@@ -6,11 +6,23 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * ConfigChangeEvent 测试
+ * {@link ConfigChangeEvent} 配置变更事件测试
+ *
+ * <p>测试配置变更事件的创建和类型判断：
+ * <ul>
+ *   <li>ADDED - 配置新增</li>
+ *   <li>MODIFIED - 配置修改</li>
+ *   <li>DELETED - 配置删除</li>
+ * </ul>
+ *
+ * @see ConfigChangeEvent
  */
 @DisplayName("ConfigChangeEvent 测试")
 class ConfigChangeEventTest {
 
+    /**
+     * 测试创建 ADDED 类型的事件
+     */
     @Test
     @DisplayName("应该创建 ADDED 类型的配置变更事件")
     void shouldCreateAddedEvent() {
@@ -32,6 +44,9 @@ class ConfigChangeEventTest {
         assertFalse(event.isDeletion());
     }
 
+    /**
+     * 测试创建 MODIFIED 类型的事件
+     */
     @Test
     @DisplayName("应该创建 MODIFIED 类型的配置变更事件")
     void shouldCreateModifiedEvent() {
@@ -53,6 +68,9 @@ class ConfigChangeEventTest {
         assertFalse(event.isDeletion());
     }
 
+    /**
+     * 测试创建 DELETED 类型的事件
+     */
     @Test
     @DisplayName("应该创建 DELETED 类型的配置变更事件")
     void shouldCreateDeletedEvent() {
@@ -74,6 +92,9 @@ class ConfigChangeEventTest {
         assertTrue(event.isDeletion());
     }
 
+    /**
+     * 测试 ConfigChangeType 枚举包含所有类型
+     */
     @Test
     @DisplayName("ConfigChangeType 枚举应该包含所有类型")
     void configChangeTypeShouldContainAllTypes() {

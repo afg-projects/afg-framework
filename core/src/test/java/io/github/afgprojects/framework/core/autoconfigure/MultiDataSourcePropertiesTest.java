@@ -11,15 +11,25 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
- * MultiDataSourceProperties 测试
+ * MultiDataSourceProperties 单元测试。
+ * 测试多数据源配置属性类的默认值和属性设置。
+ *
+ * @see MultiDataSourceProperties
  */
 @DisplayName("MultiDataSourceProperties 测试")
 class MultiDataSourcePropertiesTest {
 
+    /**
+     * 默认值测试。
+     * 验证配置属性的默认初始化值。
+     */
     @Nested
     @DisplayName("默认值测试")
     class DefaultValueTests {
 
+        /**
+         * 测试主配置类的默认值。
+         */
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
@@ -33,10 +43,17 @@ class MultiDataSourcePropertiesTest {
         }
     }
 
+    /**
+     * DataSourceConfig 内嵌类测试。
+     * 验证数据源配置的默认值和属性设置。
+     */
     @Nested
     @DisplayName("DataSourceConfig 测试")
     class DataSourceConfigTests {
 
+        /**
+         * 测试 DataSourceConfig 的默认值。
+         */
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
@@ -46,6 +63,9 @@ class MultiDataSourcePropertiesTest {
             assertThat(config.getPoolConfig()).isEmpty();
         }
 
+        /**
+         * 测试 DataSourceConfig 的属性设置。
+         */
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
@@ -69,10 +89,17 @@ class MultiDataSourcePropertiesTest {
         }
     }
 
+    /**
+     * ReadWriteSeparationConfig 内嵌类测试。
+     * 验证读写分离配置的默认值和属性设置。
+     */
     @Nested
     @DisplayName("ReadWriteSeparationConfig 测试")
     class ReadWriteSeparationConfigTests {
 
+        /**
+         * 测试 ReadWriteSeparationConfig 的默认值。
+         */
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
@@ -83,6 +110,9 @@ class MultiDataSourcePropertiesTest {
             assertThat(config.getLoadBalance()).isNotNull();
         }
 
+        /**
+         * 测试 ReadWriteSeparationConfig 的属性设置。
+         */
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
@@ -97,10 +127,17 @@ class MultiDataSourcePropertiesTest {
         }
     }
 
+    /**
+     * LoadBalanceConfig 内嵌类测试。
+     * 验证负载均衡配置的默认值和属性设置。
+     */
     @Nested
     @DisplayName("LoadBalanceConfig 测试")
     class LoadBalanceConfigTests {
 
+        /**
+         * 测试 LoadBalanceConfig 的默认值。
+         */
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
@@ -112,6 +149,9 @@ class MultiDataSourcePropertiesTest {
             assertThat(config.getWeights()).isEmpty();
         }
 
+        /**
+         * 测试 LoadBalanceConfig 的属性设置。
+         */
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
@@ -132,10 +172,17 @@ class MultiDataSourcePropertiesTest {
         }
     }
 
+    /**
+     * LoadBalanceStrategyType 枚举测试。
+     * 验证负载均衡策略枚举类型的完整性。
+     */
     @Nested
     @DisplayName("LoadBalanceStrategyType 枚举测试")
     class LoadBalanceStrategyTypeTests {
 
+        /**
+         * 测试枚举包含所有策略类型。
+         */
         @Test
         @DisplayName("应该包含所有策略类型")
         void shouldContainAllTypes() {

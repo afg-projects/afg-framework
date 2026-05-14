@@ -12,15 +12,25 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
- * MetricsProperties 测试
+ * MetricsProperties 单元测试。
+ * 测试指标配置属性类的默认值和属性设置。
+ *
+ * @see MetricsProperties
  */
 @DisplayName("MetricsProperties 测试")
 class MetricsPropertiesTest {
 
+    /**
+     * 默认值测试。
+     * 验证配置属性的默认初始化值。
+     */
     @Nested
     @DisplayName("默认值测试")
     class DefaultValueTests {
 
+        /**
+         * 测试主配置类的默认值。
+         */
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
@@ -33,10 +43,17 @@ class MetricsPropertiesTest {
         }
     }
 
+    /**
+     * HistogramConfigProperties 内嵌类测试。
+     * 验证直方图配置的默认值。
+     */
     @Nested
     @DisplayName("HistogramConfigProperties 测试")
     class HistogramConfigTests {
 
+        /**
+         * 测试 HistogramConfigProperties 的默认值。
+         */
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
@@ -50,10 +67,17 @@ class MetricsPropertiesTest {
         }
     }
 
+    /**
+     * CustomMetricsConfig 内嵌类测试。
+     * 验证自定义指标配置的默认值。
+     */
     @Nested
     @DisplayName("CustomMetricsConfig 测试")
     class CustomMetricsConfigTests {
 
+        /**
+         * 测试 CustomMetricsConfig 的默认值。
+         */
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
@@ -65,10 +89,17 @@ class MetricsPropertiesTest {
         }
     }
 
+    /**
+     * CounterConfig 内嵌类测试。
+     * 验证计数器配置的属性设置。
+     */
     @Nested
     @DisplayName("CounterConfig 测试")
     class CounterConfigTests {
 
+        /**
+         * 测试 CounterConfig 的属性设置。
+         */
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
@@ -85,10 +116,17 @@ class MetricsPropertiesTest {
         }
     }
 
+    /**
+     * GaugeConfig 内嵌类测试。
+     * 验证仪表盘配置的属性设置。
+     */
     @Nested
     @DisplayName("GaugeConfig 测试")
     class GaugeConfigTests {
 
+        /**
+         * 测试 GaugeConfig 的属性设置。
+         */
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
@@ -105,10 +143,17 @@ class MetricsPropertiesTest {
         }
     }
 
+    /**
+     * 设置属性测试。
+     * 验证主配置类的属性设置。
+     */
     @Nested
     @DisplayName("设置属性测试")
     class SetPropertiesTests {
 
+        /**
+         * 测试设置所有属性。
+         */
         @Test
         @DisplayName("应该正确设置所有属性")
         void shouldSetAllProperties() {

@@ -1,11 +1,14 @@
 package io.github.afgprojects.framework.core.web.health;
 
+import lombok.Getter;
+
 /**
  * 健康检查级别枚举
  * 定义不同深度的健康检查，支持 Kubernetes 探针
  *
  * @since 1.0.0
  */
+@Getter
 public enum HealthCheckLevel {
 
     /**
@@ -44,30 +47,24 @@ public enum HealthCheckLevel {
      */
     DEEP(3, "深度检查");
 
+    /**
+     * -- GETTER --
+     *  获取检查级别数值
+     *
+     * @return 级别数值，数值越大检查越深入
+     */
     private final int level;
+    /**
+     * -- GETTER --
+     *  获取级别描述
+     *
+     * @return 中文描述
+     */
     private final String description;
 
     HealthCheckLevel(int level, String description) {
         this.level = level;
         this.description = description;
-    }
-
-    /**
-     * 获取检查级别数值
-     *
-     * @return 级别数值，数值越大检查越深入
-     */
-    public int getLevel() {
-        return level;
-    }
-
-    /**
-     * 获取级别描述
-     *
-     * @return 中文描述
-     */
-    public String getDescription() {
-        return description;
     }
 
     /**

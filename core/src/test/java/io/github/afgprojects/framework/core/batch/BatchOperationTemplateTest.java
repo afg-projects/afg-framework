@@ -12,7 +12,14 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
- * BatchOperationTemplate 测试
+ * {@link BatchOperationTemplate} 单元测试。
+ * <p>
+ * 测试批量操作模板的顺序执行、并行执行、重试机制、分批执行以及错误容忍等功能。
+ *
+ * @see BatchOperationTemplate
+ * @see BatchResult
+ * @see BatchError
+ * @see BatchProperties
  */
 @DisplayName("BatchOperationTemplate 测试")
 class BatchOperationTemplateTest {
@@ -24,10 +31,18 @@ class BatchOperationTemplateTest {
         template = new BatchOperationTemplate();
     }
 
+    /**
+     * execute 顺序执行测试。
+     * <p>
+     * 验证顺序执行批量操作的基本功能，包括正常执行、异常处理和进度回调。
+     */
     @Nested
     @DisplayName("execute 顺序执行测试")
     class ExecuteTests {
 
+        /**
+         * 测试顺序执行所有元素并返回正确结果。
+         */
         @Test
         @DisplayName("应该正确执行所有元素")
         void shouldExecuteAllItems() {
@@ -47,6 +62,9 @@ class BatchOperationTemplateTest {
                     .containsExactly("item-1", "item-2", "item-3", "item-4", "item-5");
         }
 
+        /**
+         * 测试空列表执行返回空结果。
+         */
         @Test
         @DisplayName("空列表应该返回空结果")
         void shouldReturnEmptyResultForEmptyList() {
@@ -64,6 +82,9 @@ class BatchOperationTemplateTest {
             assertThat(result.results()).isEmpty();
         }
 
+        /**
+         * 测试执行过程中异常被正确捕获并记录到错误列表。
+         */
         @Test
         @DisplayName("应该正确处理异常")
         void shouldHandleExceptions() {
@@ -89,6 +110,9 @@ class BatchOperationTemplateTest {
             assertThat(result.errors().get(0).error()).isEqualTo("Error at 3");
         }
 
+        /**
+         * 测试进度回调在执行过程中被正确触发。
+         */
         @Test
         @DisplayName("应该正确回调进度")
         void shouldCallbackProgress() {
@@ -125,10 +149,18 @@ class BatchOperationTemplateTest {
         }
     }
 
+    /**
+     * executeParallel 并行执行测试。
+     * <p>
+     * 验证并行执行批量操作的功能，包括并行度控制和异常处理。
+     */
     @Nested
     @DisplayName("executeParallel 并行执行测试")
     class ExecuteParallelTests {
 
+        /**
+         * 测试并行执行所有元素并返回正确结果。
+         */
         @Test
         @DisplayName("应该并行执行所有元素")
         void shouldExecuteAllItemsInParallel() {
@@ -151,6 +183,9 @@ class BatchOperationTemplateTest {
             assertThat(result.failed()).isEqualTo(0);
         }
 
+        /**
+         * 测试并行执行时异常被正确捕获并记录。
+         */
         @Test
         @DisplayName("并行执行应该正确处理异常")
         void shouldHandleExceptionsInParallel() {
@@ -172,6 +207,9 @@ class BatchOperationTemplateTest {
             assertThat(result.failed()).isEqualTo(2);
         }
 
+        /**
+         * 测试并行执行空列表返回空结果。
+         */
         @Test
         @DisplayName("空列表应该返回空结果")
         void shouldReturnEmptyResultForEmptyList() {
@@ -187,10 +225,18 @@ class BatchOperationTemplateTest {
         }
     }
 
+    /**
+     * executeWithRetry 重试测试。
+     * <p>
+     * 验证失败操作的重试机制，包括重试成功和超过最大重试次数的情况。
+     */
     @Nested
     @DisplayName("executeWithRetry 重试测试")
     class ExecuteWithRetryTests {
 
+        /**
+         * 测试失败的操作在重试后成功。
+         */
         @Test
         @DisplayName("应该重试失败的操作")
         void shouldRetryFailedOperations() {
@@ -216,6 +262,9 @@ class BatchOperationTemplateTest {
             assertThat(result.failed()).isEqualTo(0);
         }
 
+        /**
+         * 测试超过最大重试次数后记录错误。
+         */
         @Test
         @DisplayName("超过最大重试次数应该记录错误")
         void shouldRecordErrorAfterMaxRetries() {
@@ -237,10 +286,18 @@ class BatchOperationTemplateTest {
         }
     }
 
+    /**
+     * executeInBatches 分批执行测试。
+     * <p>
+     * 验证分批执行功能，包括正常分批和批次大小大于元素数量的情况。
+     */
     @Nested
     @DisplayName("executeInBatches 分批执行测试")
     class ExecuteInBatchesTests {
 
+        /**
+         * 测试按指定批次大小分批执行元素。
+         */
         @Test
         @DisplayName("应该分批执行元素")
         void shouldExecuteItemsInBatches() {
@@ -262,6 +319,9 @@ class BatchOperationTemplateTest {
             assertThat(batchLogs).hasSize(10);
         }
 
+        /**
+         * 测试批次大小大于元素数量时正常执行。
+         */
         @Test
         @DisplayName("批次大小大于元素数量时应该正常执行")
         void shouldExecuteWhenBatchSizeLargerThanItems() {
@@ -278,10 +338,18 @@ class BatchOperationTemplateTest {
         }
     }
 
+    /**
+     * 错误容忍测试。
+     * <p>
+     * 验证错误容忍率和遇到错误立即停止的功能。
+     */
     @Nested
     @DisplayName("错误容忍测试")
     class ErrorToleranceTests {
 
+        /**
+         * 测试超过错误容忍率时停止处理。
+         */
         @Test
         @DisplayName("超过错误容忍率应该停止处理")
         void shouldStopWhenExceedErrorTolerance() {
@@ -307,6 +375,9 @@ class BatchOperationTemplateTest {
             assertThat(result.total()).isEqualTo(10);
         }
 
+        /**
+         * 测试配置 stopOnError 时遇到错误立即停止。
+         */
         @Test
         @DisplayName("遇到错误立即停止")
         void shouldStopImmediatelyOnError() {
@@ -332,10 +403,18 @@ class BatchOperationTemplateTest {
         }
     }
 
+    /**
+     * BatchResult 测试。
+     * <p>
+     * 验证批量操作结果的成功率计算和状态判断。
+     */
     @Nested
     @DisplayName("BatchResult 测试")
     class BatchResultTests {
 
+        /**
+         * 测试成功率的正确计算。
+         */
         @Test
         @DisplayName("应该正确计算成功率")
         void shouldCalculateSuccessRate() {
@@ -350,6 +429,9 @@ class BatchOperationTemplateTest {
             assertThat(result.getSuccessRate()).isEqualTo(0.8);
         }
 
+        /**
+         * 测试全部成功时 isAllSuccess 返回 true。
+         */
         @Test
         @DisplayName("全部成功时 isAllSuccess 应该返回 true")
         void shouldReturnTrueWhenAllSuccess() {
@@ -365,6 +447,9 @@ class BatchOperationTemplateTest {
             assertThat(result.isAllFailed()).isFalse();
         }
 
+        /**
+         * 测试全部失败时 isAllFailed 返回 true。
+         */
         @Test
         @DisplayName("全部失败时 isAllFailed 应该返回 true")
         void shouldReturnTrueWhenAllFailed() {
@@ -380,6 +465,9 @@ class BatchOperationTemplateTest {
             assertThat(result.isAllFailed()).isTrue();
         }
 
+        /**
+         * 测试空结果返回默认值。
+         */
         @Test
         @DisplayName("空结果应该返回默认值")
         void shouldReturnDefaultForEmptyResult() {
@@ -396,10 +484,18 @@ class BatchOperationTemplateTest {
         }
     }
 
+    /**
+     * BatchError 测试。
+     * <p>
+     * 验证批量操作错误记录的创建。
+     */
     @Nested
     @DisplayName("BatchError 测试")
     class BatchErrorTests {
 
+        /**
+         * 测试创建简单的错误信息。
+         */
         @Test
         @DisplayName("应该创建简单的错误信息")
         void shouldCreateSimpleError() {
@@ -413,6 +509,9 @@ class BatchOperationTemplateTest {
             assertThat(error.cause()).isNull();
         }
 
+        /**
+         * 测试创建包含元素的错误信息。
+         */
         @Test
         @DisplayName("应该创建包含元素的错误信息")
         void shouldCreateErrorWithItem() {
@@ -425,6 +524,9 @@ class BatchOperationTemplateTest {
             assertThat(error.error()).isEqualTo("Invalid value");
         }
 
+        /**
+         * 测试创建包含异常的错误信息。
+         */
         @Test
         @DisplayName("应该创建包含异常的错误信息")
         void shouldCreateErrorWithException() {
@@ -442,10 +544,18 @@ class BatchOperationTemplateTest {
         }
     }
 
+    /**
+     * BatchProperties 测试。
+     * <p>
+     * 验证批量操作配置属性的默认值和并行度计算。
+     */
     @Nested
     @DisplayName("BatchProperties 测试")
     class BatchPropertiesTests {
 
+        /**
+         * 测试返回默认配置值。
+         */
         @Test
         @DisplayName("应该返回默认配置")
         void shouldReturnDefaultConfig() {
@@ -459,6 +569,9 @@ class BatchOperationTemplateTest {
             assertThat(props.isStopOnError()).isFalse();
         }
 
+        /**
+         * 测试实际并行度的计算，未配置时使用 CPU 核心数。
+         */
         @Test
         @DisplayName("应该计算实际并行度")
         void shouldCalculateActualParallelism() {

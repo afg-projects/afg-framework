@@ -95,7 +95,7 @@ public interface DynamicTaskConfigSource {
         /**
          * 配置变更回调
          *
-         * @param eventType 事件类型
+         * @param event 事件类型
          * @param definition 变更的任务定义
          */
         void onConfigChange(@NonNull ConfigChangeEvent event, @Nullable TaskDefinition definition);

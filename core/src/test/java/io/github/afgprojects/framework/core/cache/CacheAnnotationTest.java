@@ -13,15 +13,31 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
- * 缓存注解测试
+ * 缓存注解测试。
+ * <p>
+ * 测试 Cached、CacheEvict 和 CachePut 注解的属性和默认值。
+ * </p>
+ *
+ * @see Cached
+ * @see CacheEvict
+ * @see CachePut
  */
 @DisplayName("缓存注解测试")
 class CacheAnnotationTest {
 
+    /**
+     * Cached 注解测试。
+     * <p>
+     * 测试 Cached 注解的元注解属性和默认值配置。
+     * </p>
+     */
     @Nested
     @DisplayName("Cached 注解测试")
     class CachedTests {
 
+        /**
+         * 测试有正确的注解属性。
+         */
         @Test
         @DisplayName("应该有正确的注解属性")
         void shouldHaveCorrectAnnotationAttributes() {
@@ -32,6 +48,9 @@ class CacheAnnotationTest {
             assertThat(retention.value()).isEqualTo(RetentionPolicy.RUNTIME);
         }
 
+        /**
+         * 测试有正确的默认值。
+         */
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() throws NoSuchMethodException {
@@ -45,10 +64,19 @@ class CacheAnnotationTest {
         }
     }
 
+    /**
+     * CacheEvict 注解测试。
+     * <p>
+     * 测试 CacheEvict 注解的元注解属性和默认值配置。
+     * </p>
+     */
     @Nested
     @DisplayName("CacheEvict 注解测试")
     class CacheEvictTests {
 
+        /**
+         * 测试有正确的注解属性。
+         */
         @Test
         @DisplayName("应该有正确的注解属性")
         void shouldHaveCorrectAnnotationAttributes() {
@@ -59,6 +87,9 @@ class CacheAnnotationTest {
             assertThat(retention.value()).isEqualTo(RetentionPolicy.RUNTIME);
         }
 
+        /**
+         * 测试有正确的默认值。
+         */
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() throws NoSuchMethodException {
@@ -70,10 +101,19 @@ class CacheAnnotationTest {
         }
     }
 
+    /**
+     * CachePut 注解测试。
+     * <p>
+     * 测试 CachePut 注解的元注解属性和默认值配置。
+     * </p>
+     */
     @Nested
     @DisplayName("CachePut 注解测试")
     class CachePutTests {
 
+        /**
+         * 测试有正确的注解属性。
+         */
         @Test
         @DisplayName("应该有正确的注解属性")
         void shouldHaveCorrectAnnotationAttributes() {
@@ -84,6 +124,9 @@ class CacheAnnotationTest {
             assertThat(retention.value()).isEqualTo(RetentionPolicy.RUNTIME);
         }
 
+        /**
+         * 测试有正确的默认值。
+         */
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() throws NoSuchMethodException {

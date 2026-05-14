@@ -12,7 +12,11 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
- * OnFeatureCondition 测试类
+ * OnFeatureCondition 单元测试。
+ * 测试功能开关条件注解的匹配逻辑。
+ *
+ * @see OnFeatureCondition
+ * @see ConditionalOnFeature
  */
 class OnFeatureConditionTest {
 
@@ -30,6 +34,9 @@ class OnFeatureConditionTest {
         when(context.getEnvironment()).thenReturn(environment);
     }
 
+    /**
+     * 测试功能启用时匹配。
+     */
     @Test
     @DisplayName("功能启用时应该匹配")
     void shouldMatchWhenFeatureEnabled() {
@@ -44,6 +51,9 @@ class OnFeatureConditionTest {
         assertThat(matches).isTrue();
     }
 
+    /**
+     * 测试功能禁用且期望禁用时匹配。
+     */
     @Test
     @DisplayName("功能禁用且期望禁用时应该匹配")
     void shouldMatchWhenFeatureDisabledAndExpectedDisabled() {
@@ -58,6 +68,9 @@ class OnFeatureConditionTest {
         assertThat(matches).isTrue();
     }
 
+    /**
+     * 测试功能启用但期望禁用时不匹配。
+     */
     @Test
     @DisplayName("功能启用但期望禁用时应该不匹配")
     void shouldNotMatchWhenFeatureEnabledButExpectedDisabled() {
@@ -72,6 +85,9 @@ class OnFeatureConditionTest {
         assertThat(matches).isFalse();
     }
 
+    /**
+     * 测试功能配置缺失时不匹配。
+     */
     @Test
     @DisplayName("功能配置缺失时应该不匹配")
     void shouldNotMatchWhenFeatureConfigMissing() {
@@ -86,6 +102,9 @@ class OnFeatureConditionTest {
         assertThat(matches).isFalse();
     }
 
+    /**
+     * 测试功能配置为空字符串时不匹配。
+     */
     @Test
     @DisplayName("功能配置为空字符串时应该不匹配")
     void shouldNotMatchWhenFeatureConfigEmpty() {
@@ -100,6 +119,9 @@ class OnFeatureConditionTest {
         assertThat(matches).isFalse();
     }
 
+    /**
+     * 测试注解属性为 null 时不匹配。
+     */
     @Test
     @DisplayName("注解属性为 null 时应该不匹配")
     void shouldNotMatchWhenAnnotationAttributesNull() {
@@ -113,6 +135,9 @@ class OnFeatureConditionTest {
         assertThat(matches).isFalse();
     }
 
+    /**
+     * 测试功能名称为空时不匹配。
+     */
     @Test
     @DisplayName("功能名称为空时应该不匹配")
     void shouldNotMatchWhenFeatureNameEmpty() {
@@ -127,6 +152,9 @@ class OnFeatureConditionTest {
         assertThat(matches).isFalse();
     }
 
+    /**
+     * 测试布尔值大小写不敏感。
+     */
     @Test
     @DisplayName("布尔值大小写不敏感")
     void shouldBeCaseInsensitiveForBoolean() {

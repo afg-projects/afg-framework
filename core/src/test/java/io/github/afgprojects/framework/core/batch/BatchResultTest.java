@@ -12,15 +12,27 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
- * BatchResult 测试
+ * {@link BatchResult} 单元测试。
+ * <p>
+ * 测试批量操作结果的创建、Builder 模式、状态判断以及不可变列表特性。
+ *
+ * @see BatchResult
  */
 @DisplayName("BatchResult 测试")
 class BatchResultTest {
 
+    /**
+     * 静态工厂方法测试。
+     * <p>
+     * 验证 empty() 静态工厂方法创建空结果的正确性。
+     */
     @Nested
     @DisplayName("静态工厂方法测试")
     class StaticFactoryTests {
 
+        /**
+         * 测试创建空结果，所有计数器为零，列表为空。
+         */
         @Test
         @DisplayName("应该创建空结果")
         void shouldCreateEmptyResult() {
@@ -35,10 +47,18 @@ class BatchResultTest {
         }
     }
 
+    /**
+     * Builder 测试。
+     * <p>
+     * 验证 Builder 模式构建结果以及批量添加结果和错误的功能。
+     */
     @Nested
     @DisplayName("Builder 测试")
     class BuilderTests {
 
+        /**
+         * 测试使用 Builder 构建完整的批量操作结果。
+         */
         @Test
         @DisplayName("应该使用 Builder 构建结果")
         void shouldBuildResult() {
@@ -61,6 +81,9 @@ class BatchResultTest {
             assertThat(result.duration()).isEqualTo(Duration.ofMillis(100));
         }
 
+        /**
+         * 测试批量添加结果列表。
+         */
         @Test
         @DisplayName("应该支持批量添加结果")
         void shouldAddAllResults() {
@@ -71,6 +94,9 @@ class BatchResultTest {
             assertThat(result.results()).hasSize(3);
         }
 
+        /**
+         * 测试批量添加错误列表。
+         */
         @Test
         @DisplayName("应该支持批量添加错误")
         void shouldAddAllErrors() {
@@ -85,10 +111,18 @@ class BatchResultTest {
         }
     }
 
+    /**
+     * 状态判断测试。
+     * <p>
+     * 验证 isAllSuccess、isAllFailed 和 getSuccessRate 状态判断方法的正确性。
+     */
     @Nested
     @DisplayName("状态判断测试")
     class StatusTests {
 
+        /**
+         * 测试 isAllSuccess 方法在各种情况下的判断结果。
+         */
         @Test
         @DisplayName("isAllSuccess 应该正确判断")
         void shouldCheckAllSuccess() {
@@ -101,6 +135,9 @@ class BatchResultTest {
             assertThat(empty.isAllSuccess()).isFalse();
         }
 
+        /**
+         * 测试 isAllFailed 方法在各种情况下的判断结果。
+         */
         @Test
         @DisplayName("isAllFailed 应该正确判断")
         void shouldCheckAllFailed() {
@@ -113,6 +150,9 @@ class BatchResultTest {
             assertThat(empty.isAllFailed()).isFalse();
         }
 
+        /**
+         * 测试 getSuccessRate 方法正确计算成功率。
+         */
         @Test
         @DisplayName("getSuccessRate 应该正确计算")
         void shouldCalculateSuccessRate() {
@@ -124,10 +164,18 @@ class BatchResultTest {
         }
     }
 
+    /**
+     * 不可变列表测试。
+     * <p>
+     * 验证 results 和 errors 列表的不可变性，确保外部无法修改内部状态。
+     */
     @Nested
     @DisplayName("不可变列表测试")
     class ImmutableListTests {
 
+        /**
+         * 测试 results 列表不可修改，尝试添加元素应抛出 UnsupportedOperationException。
+         */
         @Test
         @DisplayName("results 应该是不可变的")
         void shouldHaveImmutableResults() {
@@ -139,6 +187,9 @@ class BatchResultTest {
                     .isInstanceOf(UnsupportedOperationException.class);
         }
 
+        /**
+         * 测试 errors 列表不可修改，尝试添加元素应抛出 UnsupportedOperationException。
+         */
         @Test
         @DisplayName("errors 应该是不可变的")
         void shouldHaveImmutableErrors() {

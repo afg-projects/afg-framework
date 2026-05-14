@@ -18,7 +18,10 @@ import io.github.afgprojects.framework.core.util.JacksonUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * AfgAutoConfiguration 测试
+ * AfgAutoConfiguration 单元测试。
+ * 测试 AFG 核心自动配置类的 Bean 创建功能。
+ *
+ * @see AfgAutoConfiguration
  */
 @DisplayName("AfgAutoConfiguration 测试")
 class AfgAutoConfigurationTest {
@@ -30,10 +33,17 @@ class AfgAutoConfigurationTest {
         configuration = new AfgAutoConfiguration();
     }
 
+    /**
+     * 模块注册表配置测试。
+     * 验证 moduleRegistry Bean 的创建。
+     */
     @Nested
     @DisplayName("moduleRegistry 配置测试")
     class ModuleRegistryTests {
 
+        /**
+         * 测试创建模块注册表。
+         */
         @Test
         @DisplayName("应该创建模块注册表")
         void shouldCreateModuleRegistry() {
@@ -43,10 +53,17 @@ class AfgAutoConfigurationTest {
         }
     }
 
+    /**
+     * 配置注册表配置测试。
+     * 验证 afgConfigRegistry Bean 的创建。
+     */
     @Nested
     @DisplayName("afgConfigRegistry 配置测试")
     class AfgConfigRegistryTests {
 
+        /**
+         * 测试创建配置注册表。
+         */
         @Test
         @DisplayName("应该创建配置注册表")
         void shouldCreateAfgConfigRegistry() {
@@ -56,10 +73,17 @@ class AfgAutoConfigurationTest {
         }
     }
 
+    /**
+     * 配置刷新器配置测试。
+     * 验证 configRefresher Bean 的创建。
+     */
     @Nested
     @DisplayName("configRefresher 配置测试")
     class ConfigRefresherTests {
 
+        /**
+         * 测试创建配置刷新器。
+         */
         @Test
         @DisplayName("应该创建配置刷新器")
         void shouldCreateConfigRefresher() {
@@ -71,10 +95,17 @@ class AfgAutoConfigurationTest {
         }
     }
 
+    /**
+     * 模块上下文配置测试。
+     * 验证 moduleContext Bean 的创建。
+     */
     @Nested
     @DisplayName("moduleContext 配置测试")
     class ModuleContextTests {
 
+        /**
+         * 测试创建模块上下文。
+         */
         @Test
         @DisplayName("应该创建模块上下文")
         void shouldCreateModuleContext() {
@@ -87,10 +118,17 @@ class AfgAutoConfigurationTest {
         }
     }
 
+    /**
+     * ObjectMapper 配置测试。
+     * 验证 objectMapper Bean 的创建。
+     */
     @Nested
     @DisplayName("objectMapper 配置测试")
     class ObjectMapperTests {
 
+        /**
+         * 测试创建 ObjectMapper。
+         */
         @Test
         @DisplayName("应该创建 ObjectMapper")
         void shouldCreateObjectMapper() {
@@ -100,10 +138,17 @@ class AfgAutoConfigurationTest {
         }
     }
 
+    /**
+     * JacksonUtilsBeanPostProcessor 配置测试。
+     * 验证 BeanPostProcessor 的创建和处理逻辑。
+     */
     @Nested
     @DisplayName("JacksonUtilsBeanPostProcessor 测试")
     class JacksonUtilsBeanPostProcessorTests {
 
+        /**
+         * 测试创建 BeanPostProcessor。
+         */
         @Test
         @DisplayName("应该创建 BeanPostProcessor")
         void shouldCreateBeanPostProcessor() {
@@ -112,6 +157,9 @@ class AfgAutoConfigurationTest {
             assertThat(processor).isNotNull();
         }
 
+        /**
+         * 测试处理 ObjectMapper bean 时设置 JacksonUtils。
+         */
         @Test
         @DisplayName("处理 ObjectMapper bean 应该设置 JacksonUtils")
         void shouldSetJacksonUtilsWhenProcessingObjectMapper() {
@@ -123,6 +171,9 @@ class AfgAutoConfigurationTest {
             assertThat(result).isSameAs(mapper);
         }
 
+        /**
+         * 测试处理非 ObjectMapper bean 时直接返回。
+         */
         @Test
         @DisplayName("处理非 ObjectMapper bean 应该直接返回")
         void shouldReturnOtherBeansUnchanged() {

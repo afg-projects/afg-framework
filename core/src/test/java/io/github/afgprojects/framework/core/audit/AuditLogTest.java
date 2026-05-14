@@ -7,10 +7,17 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 
 /**
- * AuditLog 单元测试
+ * AuditLog 单元测试。
+ * <p>
+ * 测试审计日志记录的构建器功能，包括成功日志、失败日志的创建以及可空字段处理。
+ *
+ * @see AuditLog
  */
 class AuditLogTest {
 
+    /**
+     * 测试使用构建器创建成功的审计日志。
+     */
     @Test
     void should_createAuditLog_when_usingBuilder() {
         // Given
@@ -57,6 +64,9 @@ class AuditLogTest {
         assertThat(auditLog.methodName()).isEqualTo("createUser");
     }
 
+    /**
+     * 测试使用失败构建器创建失败的审计日志。
+     */
     @Test
     void should_createFailureLog_when_usingFailureBuilder() {
         // When
@@ -72,6 +82,9 @@ class AuditLogTest {
         assertThat(auditLog.errorMessage()).isEqualTo("用户不存在");
     }
 
+    /**
+     * 测试未提供时间戳时是否使用当前时间。
+     */
     @Test
     void should_useCurrentTimestamp_when_notProvided() {
         // When
@@ -86,6 +99,9 @@ class AuditLogTest {
         assertThat(auditLog.timestamp()).isBeforeOrEqualTo(LocalDateTime.now());
     }
 
+    /**
+     * 测试可空字段是否正确处理 null 值。
+     */
     @Test
     void should_handleNullableFields() {
         // When

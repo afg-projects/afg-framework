@@ -11,15 +11,31 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
- * ListResult 测试
+ * {@link ListResult} 文件列表结果测试
+ *
+ * <p>测试文件列表结果的创建和属性：
+ * <ul>
+ *   <li>空结果</li>
+ *   <li>对象列表</li>
+ *   <li>公共前缀</li>
+ *   <li>分页标记</li>
+ * </ul>
+ *
+ * @see ListResult
  */
 @DisplayName("ListResult 测试")
 class ListResultTest {
 
+    /**
+     * 静态工厂方法测试
+     */
     @Nested
     @DisplayName("静态工厂方法测试")
     class StaticFactoryTests {
 
+        /**
+         * 测试创建空结果
+         */
         @Test
         @DisplayName("应该创建空结果")
         void shouldCreateEmptyResult() {
@@ -32,6 +48,9 @@ class ListResultTest {
             assertThat(result.isEmpty()).isTrue();
         }
 
+        /**
+         * 测试创建对象列表结果
+         */
         @Test
         @DisplayName("应该创建对象列表结果")
         void shouldCreateObjectListResult() {
@@ -46,6 +65,9 @@ class ListResultTest {
             assertThat(result.size()).isEqualTo(1);
         }
 
+        /**
+         * 测试创建带公共前缀的结果
+         */
         @Test
         @DisplayName("应该创建带公共前缀的结果")
         void shouldCreateResultWithCommonPrefixes() {
@@ -57,6 +79,9 @@ class ListResultTest {
             assertThat(result.isTruncated()).isFalse();
         }
 
+        /**
+         * 测试创建带分页的结果
+         */
         @Test
         @DisplayName("应该创建带分页的结果")
         void shouldCreatePaginatedResult() {
@@ -73,10 +98,16 @@ class ListResultTest {
         }
     }
 
+    /**
+     * 辅助方法测试
+     */
     @Nested
     @DisplayName("辅助方法测试")
     class HelperMethodTests {
 
+        /**
+         * 测试 isEmpty 判断
+         */
         @Test
         @DisplayName("isEmpty 应该正确判断")
         void shouldCheckIsEmpty() {
@@ -94,6 +125,9 @@ class ListResultTest {
             assertThat(withPrefix.isEmpty()).isFalse();
         }
 
+        /**
+         * 测试 size 返回对象数量
+         */
         @Test
         @DisplayName("size 应该返回对象数量")
         void shouldReturnObjectCount() {
@@ -106,10 +140,16 @@ class ListResultTest {
         }
     }
 
+    /**
+     * Record 特性测试
+     */
     @Nested
     @DisplayName("Record 特性测试")
     class RecordTests {
 
+        /**
+         * 测试 equals 实现
+         */
         @Test
         @DisplayName("应该正确实现 equals")
         void shouldImplementEquals() {
@@ -120,6 +160,9 @@ class ListResultTest {
             assertThat(result1).isEqualTo(result2);
         }
 
+        /**
+         * 测试 hashCode 实现
+         */
         @Test
         @DisplayName("应该正确实现 hashCode")
         void shouldImplementHashCode() {

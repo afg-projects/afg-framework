@@ -30,10 +30,7 @@ public class ModuleHealthIndicator implements HealthIndicator {
 
     private final ModuleRegistry moduleRegistry;
     /**
-     * -- GETTER --
      *  获取当前健康检查级别
-     *
-     * @return 健康检查级别
      */
     @Getter
     private HealthCheckLevel checkLevel = HealthCheckLevel.READINESS;

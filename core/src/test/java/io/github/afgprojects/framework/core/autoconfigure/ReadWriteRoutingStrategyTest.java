@@ -9,15 +9,25 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
- * ReadWriteRoutingStrategy 测试
+ * ReadWriteRoutingStrategy 单元测试。
+ * 测试读写分离路由策略的路由逻辑和负载均衡功能。
+ *
+ * @see ReadWriteRoutingStrategy
  */
 @DisplayName("ReadWriteRoutingStrategy 测试")
 class ReadWriteRoutingStrategyTest {
 
+    /**
+     * 路由策略测试。
+     * 验证读写操作的数据源路由逻辑。
+     */
     @Nested
     @DisplayName("路由策略测试")
     class RoutingTests {
 
+        /**
+         * 测试写操作路由到写数据源。
+         */
         @Test
         @DisplayName("写操作应该路由到写数据源")
         void shouldRouteWriteToWriteDatasource() {
@@ -30,6 +40,9 @@ class ReadWriteRoutingStrategyTest {
                     .isEqualTo("master");
         }
 
+        /**
+         * 测试读操作路由到读数据源。
+         */
         @Test
         @DisplayName("读操作应该路由到读数据源")
         void shouldRouteReadToReadDatasource() {
@@ -42,6 +55,9 @@ class ReadWriteRoutingStrategyTest {
                     .isIn("slave1", "slave2");
         }
 
+        /**
+         * 测试没有读数据源时使用写数据源。
+         */
         @Test
         @DisplayName("没有读数据源时应该使用写数据源")
         void shouldUseWriteDatasourceWhenNoReadDatasources() {
@@ -55,10 +71,17 @@ class ReadWriteRoutingStrategyTest {
         }
     }
 
+    /**
+     * 负载均衡测试。
+     * 验证读数据源的负载均衡逻辑。
+     */
     @Nested
     @DisplayName("负载均衡测试")
     class LoadBalanceTests {
 
+        /**
+         * 测试单个读数据源直接返回。
+         */
         @Test
         @DisplayName("单个读数据源应该直接返回")
         void shouldReturnSingleReadDatasource() {
@@ -71,6 +94,9 @@ class ReadWriteRoutingStrategyTest {
                     .isEqualTo("slave1");
         }
 
+        /**
+         * 测试多个读数据源轮询。
+         */
         @Test
         @DisplayName("多个读数据源应该轮询")
         void shouldRotateReadDatasources() {
@@ -89,10 +115,17 @@ class ReadWriteRoutingStrategyTest {
         }
     }
 
+    /**
+     * OperationType 枚举测试。
+     * 验证操作类型枚举的完整性。
+     */
     @Nested
     @DisplayName("OperationType 枚举测试")
     class OperationTypeTests {
 
+        /**
+         * 测试枚举包含 READ 和 WRITE。
+         */
         @Test
         @DisplayName("应该包含 READ 和 WRITE")
         void shouldContainReadAndWrite() {

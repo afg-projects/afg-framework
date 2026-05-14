@@ -17,7 +17,10 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.config.MeterFilter;
 
 /**
- * MetricsAutoConfiguration 测试
+ * MetricsAutoConfiguration 单元测试。
+ * 测试指标自动配置类的 Bean 创建功能。
+ *
+ * @see MetricsAutoConfiguration
  */
 @DisplayName("MetricsAutoConfiguration 测试")
 class MetricsAutoConfigurationTest {
@@ -31,10 +34,17 @@ class MetricsAutoConfigurationTest {
         meterRegistry = mock(MeterRegistry.class);
     }
 
+    /**
+     * 指标切面配置测试。
+     * 验证 metricsAspect Bean 的创建。
+     */
     @Nested
     @DisplayName("metricsAspect 配置测试")
     class MetricsAspectTests {
 
+        /**
+         * 测试创建指标切面。
+         */
         @Test
         @DisplayName("应该创建指标切面")
         void shouldCreateMetricsAspect() {
@@ -46,10 +56,17 @@ class MetricsAutoConfigurationTest {
         }
     }
 
+    /**
+     * 通用标签过滤器配置测试。
+     * 验证 commonTagsMeterFilter Bean 的创建和标签合并功能。
+     */
     @Nested
     @DisplayName("commonTagsMeterFilter 配置测试")
     class CommonTagsMeterFilterTests {
 
+        /**
+         * 测试创建通用标签过滤器。
+         */
         @Test
         @DisplayName("应该创建通用标签过滤器")
         void shouldCreateCommonTagsMeterFilter() {
@@ -62,6 +79,9 @@ class MetricsAutoConfigurationTest {
             assertThat(filter).isNotNull();
         }
 
+        /**
+         * 测试合并 tags 和 commonTags。
+         */
         @Test
         @DisplayName("应该合并 tags 和 commonTags")
         void shouldMergeTagsAndCommonTags() {
@@ -75,6 +95,9 @@ class MetricsAutoConfigurationTest {
             assertThat(filter).isNotNull();
         }
 
+        /**
+         * 测试空标签时创建过滤器。
+         */
         @Test
         @DisplayName("空标签时应该创建过滤器")
         void shouldCreateFilterWithEmptyTags() {
@@ -87,10 +110,17 @@ class MetricsAutoConfigurationTest {
         }
     }
 
+    /**
+     * 直方图过滤器配置测试。
+     * 验证 histogramMeterFilter Bean 的创建。
+     */
     @Nested
     @DisplayName("histogramMeterFilter 配置测试")
     class HistogramMeterFilterTests {
 
+        /**
+         * 测试启用 histogram 时创建过滤器。
+         */
         @Test
         @DisplayName("启用 histogram 时应该创建过滤器")
         void shouldCreateHistogramFilterWhenEnabled() {
@@ -103,6 +133,9 @@ class MetricsAutoConfigurationTest {
             assertThat(filter).isNotNull();
         }
 
+        /**
+         * 测试禁用 histogram 时创建 accept 过滤器。
+         */
         @Test
         @DisplayName("禁用 histogram 时应该创建 accept 过滤器")
         void shouldCreateAcceptFilterWhenDisabled() {
@@ -116,10 +149,17 @@ class MetricsAutoConfigurationTest {
         }
     }
 
+    /**
+     * 指标标签提供者配置测试。
+     * 验证 metricsTagProvider Bean 的创建。
+     */
     @Nested
     @DisplayName("metricsTagProvider 配置测试")
     class MetricsTagProviderTests {
 
+        /**
+         * 测试创建默认标签提供者。
+         */
         @Test
         @DisplayName("应该创建默认标签提供者")
         void shouldCreateDefaultMetricsTagProvider() {
@@ -130,10 +170,17 @@ class MetricsAutoConfigurationTest {
         }
     }
 
+    /**
+     * 自定义指标配置测试。
+     * 验证 customMetrics Bean 的创建。
+     */
     @Nested
     @DisplayName("customMetrics 配置测试")
     class CustomMetricsTests {
 
+        /**
+         * 测试创建自定义指标。
+         */
         @Test
         @DisplayName("应该创建自定义指标")
         void shouldCreateCustomMetrics() {

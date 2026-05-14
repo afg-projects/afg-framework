@@ -7,15 +7,31 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
- * ListOptions 测试
+ * {@link ListOptions} 文件列表选项测试
+ *
+ * <p>测试文件列表选项的创建和配置：
+ * <ul>
+ *   <li>默认选项</li>
+ *   <li>带前缀选项</li>
+ *   <li>带分隔符选项</li>
+ *   <li>Builder 构建</li>
+ * </ul>
+ *
+ * @see ListOptions
  */
 @DisplayName("ListOptions 测试")
 class ListOptionsTest {
 
+    /**
+     * 静态工厂方法测试
+     */
     @Nested
     @DisplayName("静态工厂方法测试")
     class StaticFactoryTests {
 
+        /**
+         * 测试创建默认选项
+         */
         @Test
         @DisplayName("应该创建默认选项")
         void shouldCreateDefaults() {
@@ -27,6 +43,9 @@ class ListOptionsTest {
             assertThat(options.marker()).isNull();
         }
 
+        /**
+         * 测试创建带前缀的选项
+         */
         @Test
         @DisplayName("应该创建带前缀的选项")
         void shouldCreateWithPrefix() {
@@ -38,6 +57,9 @@ class ListOptionsTest {
             assertThat(options.marker()).isNull();
         }
 
+        /**
+         * 测试创建带前缀和分隔符的选项
+         */
         @Test
         @DisplayName("应该创建带前缀和分隔符的选项")
         void shouldCreateWithPrefixAndDelimiter() {
@@ -50,10 +72,16 @@ class ListOptionsTest {
         }
     }
 
+    /**
+     * Builder 构建测试
+     */
     @Nested
     @DisplayName("Builder 测试")
     class BuilderTests {
 
+        /**
+         * 测试使用 Builder 构建选项
+         */
         @Test
         @DisplayName("应该使用 Builder 构建选项")
         void shouldBuildWithBuilder() {
@@ -70,6 +98,9 @@ class ListOptionsTest {
             assertThat(options.marker()).isEqualTo("start-key");
         }
 
+        /**
+         * 测试支持部分设置
+         */
         @Test
         @DisplayName("应该支持部分设置")
         void shouldSupportPartialSettings() {
@@ -82,10 +113,16 @@ class ListOptionsTest {
         }
     }
 
+    /**
+     * Record 特性测试
+     */
     @Nested
     @DisplayName("Record 特性测试")
     class RecordTests {
 
+        /**
+         * 测试 equals 实现
+         */
         @Test
         @DisplayName("应该正确实现 equals")
         void shouldImplementEquals() {
@@ -95,6 +132,9 @@ class ListOptionsTest {
             assertThat(options1).isEqualTo(options2);
         }
 
+        /**
+         * 测试 hashCode 实现
+         */
         @Test
         @DisplayName("应该正确实现 hashCode")
         void shouldImplementHashCode() {
@@ -104,6 +144,9 @@ class ListOptionsTest {
             assertThat(options1.hashCode()).isEqualTo(options2.hashCode());
         }
 
+        /**
+         * 测试生成正确的 toString
+         */
         @Test
         @DisplayName("应该生成正确的 toString")
         void shouldGenerateToString() {

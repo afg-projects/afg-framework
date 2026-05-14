@@ -10,15 +10,30 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
- * UploadRequest 测试
+ * {@link UploadRequest} 上传请求测试
+ *
+ * <p>测试上传请求的创建和构建：
+ * <ul>
+ *   <li>静态工厂方法</li>
+ *   <li>Builder 构建</li>
+ *   <li>必填参数验证</li>
+ * </ul>
+ *
+ * @see UploadRequest
  */
 @DisplayName("UploadRequest 测试")
 class UploadRequestTest {
 
+    /**
+     * 静态工厂方法测试
+     */
     @Nested
     @DisplayName("静态工厂方法测试")
     class StaticFactoryTests {
 
+        /**
+         * 测试创建简化上传请求
+         */
         @Test
         @DisplayName("应该创建简化上传请求")
         void shouldCreateSimpleUploadRequest() {
@@ -32,6 +47,9 @@ class UploadRequestTest {
             assertThat(request.metadata()).isNull();
         }
 
+        /**
+         * 测试创建带大小和类型的上传请求
+         */
         @Test
         @DisplayName("应该创建带大小和类型的上传请求")
         void shouldCreateUploadRequestWithSizeAndType() {
@@ -46,10 +64,16 @@ class UploadRequestTest {
         }
     }
 
+    /**
+     * Builder 构建测试
+     */
     @Nested
     @DisplayName("Builder 测试")
     class BuilderTests {
 
+        /**
+         * 测试使用 Builder 构建请求
+         */
         @Test
         @DisplayName("应该使用 Builder 构建请求")
         void shouldBuildWithBuilder() {
@@ -71,6 +95,9 @@ class UploadRequestTest {
             assertThat(request.metadata()).isSameAs(metadata);
         }
 
+        /**
+         * 测试缺少 key 时抛出异常
+         */
         @Test
         @DisplayName("应该在没有 key 时抛出异常")
         void shouldThrowWhenKeyMissing() {
@@ -83,6 +110,9 @@ class UploadRequestTest {
                     .hasMessageContaining("key and inputStream are required");
         }
 
+        /**
+         * 测试缺少 inputStream 时抛出异常
+         */
         @Test
         @DisplayName("应该在没有 inputStream 时抛出异常")
         void shouldThrowWhenStreamMissing() {
@@ -94,10 +124,16 @@ class UploadRequestTest {
         }
     }
 
+    /**
+     * Record 特性测试
+     */
     @Nested
     @DisplayName("Record 特性测试")
     class RecordTests {
 
+        /**
+         * 测试 equals 实现
+         */
         @Test
         @DisplayName("应该正确实现 equals")
         void shouldImplementEquals() {

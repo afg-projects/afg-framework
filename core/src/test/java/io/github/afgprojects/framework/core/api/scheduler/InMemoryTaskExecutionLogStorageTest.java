@@ -11,18 +11,35 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * InMemoryTaskExecutionLogStorage 测试
+ * {@link InMemoryTaskExecutionLogStorage} 内存任务执行日志存储测试
+ *
+ * <p>测试内存实现的执行日志存储功能：
+ * <ul>
+ *   <li>日志的保存、更新、查询</li>
+ *   <li>按任务 ID、时间范围、任务组查询</li>
+ *   <li>执行统计（成功/失败计数、平均执行时间）</li>
+ *   <li>存储容量限制</li>
+ * </ul>
+ *
+ * @see InMemoryTaskExecutionLogStorage
+ * @see TaskExecutionLog
  */
 @DisplayName("InMemoryTaskExecutionLogStorage Tests")
 class InMemoryTaskExecutionLogStorageTest {
 
     private InMemoryTaskExecutionLogStorage storage;
 
+    /**
+     * 初始化存储实例，容量设为 100
+     */
     @BeforeEach
     void setUp() {
         storage = new InMemoryTaskExecutionLogStorage(100);
     }
 
+    /**
+     * 测试保存和查询执行日志
+     */
     @Test
     @DisplayName("Should save and find execution log")
     void shouldSaveAndFind() {
@@ -34,6 +51,9 @@ class InMemoryTaskExecutionLogStorageTest {
         assertThat(storage.findByExecutionId("exec-1").get().taskId()).isEqualTo("task-1");
     }
 
+    /**
+     * 测试更新执行日志
+     */
     @Test
     @DisplayName("Should update execution log")
     void shouldUpdate() {
@@ -50,6 +70,9 @@ class InMemoryTaskExecutionLogStorageTest {
             .isEqualTo(true);
     }
 
+    /**
+     * 测试按任务 ID 查询
+     */
     @Test
     @DisplayName("Should find by task ID")
     void shouldFindByTaskId() {
@@ -62,6 +85,9 @@ class InMemoryTaskExecutionLogStorageTest {
         assertThat(logs).hasSize(2);
     }
 
+    /**
+     * 测试查询失败执行记录
+     */
     @Test
     @DisplayName("Should find failed executions")
     void shouldFindFailedExecutions() {
@@ -79,6 +105,9 @@ class InMemoryTaskExecutionLogStorageTest {
         assertThat(failures.get(0).executionId()).isEqualTo("exec-2");
     }
 
+    /**
+     * 测试执行统计计数
+     */
     @Test
     @DisplayName("Should count executions")
     void shouldCountExecutions() {
@@ -91,6 +120,9 @@ class InMemoryTaskExecutionLogStorageTest {
         assertThat(storage.countFailedByTaskId("task-1")).isEqualTo(1);
     }
 
+    /**
+     * 测试计算平均执行时间
+     */
     @Test
     @DisplayName("Should calculate average execution time")
     void shouldCalculateAverageExecutionTime() {
@@ -107,6 +139,9 @@ class InMemoryTaskExecutionLogStorageTest {
         assertThat(avgTime).isGreaterThanOrEqualTo(0);
     }
 
+    /**
+     * 测试按任务 ID 删除日志
+     */
     @Test
     @DisplayName("Should delete by task ID")
     void shouldDeleteByTaskId() {
@@ -119,6 +154,9 @@ class InMemoryTaskExecutionLogStorageTest {
         assertThat(storage.findByTaskId("task-2", 10)).hasSize(1);
     }
 
+    /**
+     * 测试存储容量限制
+     */
     @Test
     @DisplayName("Should respect max size limit")
     void shouldRespectMaxSize() {
@@ -133,6 +171,9 @@ class InMemoryTaskExecutionLogStorageTest {
         assertThat(storage.size()).isLessThanOrEqualTo(3);
     }
 
+    /**
+     * 测试按时间范围查询
+     */
     @Test
     @DisplayName("Should find by time range")
     void shouldFindByTimeRange() {
@@ -149,6 +190,9 @@ class InMemoryTaskExecutionLogStorageTest {
         assertThat(logs).hasSize(1);
     }
 
+    /**
+     * 测试按任务组查询
+     */
     @Test
     @DisplayName("Should find by task group")
     void shouldFindByTaskGroup() {

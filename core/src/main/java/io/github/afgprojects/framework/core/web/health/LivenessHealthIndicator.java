@@ -110,7 +110,7 @@ public class LivenessHealthIndicator implements HealthIndicator {
             for (long threadId : deadlockedThreads) {
                 threadInfo.append(threadId).append(",");
             }
-            if (threadInfo.length() > 0) {
+            if (!threadInfo.isEmpty()) {
                 threadInfo.setLength(threadInfo.length() - 1);
             }
             builder.withDetail("deadlockedThreads", threadInfo.toString());

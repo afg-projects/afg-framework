@@ -10,15 +10,29 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
- * CacheProperties 测试
+ * CacheProperties 单元测试。
+ * <p>
+ * 测试缓存属性配置的功能，包括默认值、本地缓存配置、分布式缓存配置、配置转换和命名缓存配置。
+ * </p>
+ *
+ * @see CacheProperties
  */
 @DisplayName("CacheProperties 测试")
 class CachePropertiesTest {
 
+    /**
+     * 默认值测试。
+     * <p>
+     * 测试缓存属性的默认配置值。
+     * </p>
+     */
     @Nested
     @DisplayName("默认值测试")
     class DefaultValueTests {
 
+        /**
+         * 测试默认启用缓存。
+         */
         @Test
         @DisplayName("默认应该启用缓存")
         void shouldBeEnabledByDefault() {
@@ -26,6 +40,9 @@ class CachePropertiesTest {
             assertThat(properties.isEnabled()).isTrue();
         }
 
+        /**
+         * 测试默认缓存类型为 LOCAL。
+         */
         @Test
         @DisplayName("默认缓存类型应该是 LOCAL")
         void shouldDefaultToLocalCacheType() {
@@ -33,6 +50,9 @@ class CachePropertiesTest {
             assertThat(properties.getType()).isEqualTo(CacheProperties.CacheType.LOCAL);
         }
 
+        /**
+         * 测试默认缓存 null 值。
+         */
         @Test
         @DisplayName("默认应该缓存 null 值")
         void shouldCacheNullByDefault() {
@@ -41,10 +61,19 @@ class CachePropertiesTest {
         }
     }
 
+    /**
+     * 本地缓存配置测试。
+     * <p>
+     * 测试本地缓存配置的设置。
+     * </p>
+     */
     @Nested
     @DisplayName("本地缓存配置测试")
     class LocalConfigTests {
 
+        /**
+         * 测试正确设置本地缓存配置。
+         */
         @Test
         @DisplayName("应该正确设置本地缓存配置")
         void shouldSetLocalConfig() {
@@ -59,10 +88,19 @@ class CachePropertiesTest {
         }
     }
 
+    /**
+     * 分布式缓存配置测试。
+     * <p>
+     * 测试分布式缓存配置的设置。
+     * </p>
+     */
     @Nested
     @DisplayName("分布式缓存配置测试")
     class DistributedConfigTests {
 
+        /**
+         * 测试正确设置分布式缓存配置。
+         */
         @Test
         @DisplayName("应该正确设置分布式缓存配置")
         void shouldSetDistributedConfig() {
@@ -77,10 +115,19 @@ class CachePropertiesTest {
         }
     }
 
+    /**
+     * toCacheConfig 测试。
+     * <p>
+     * 测试属性转换为 CacheConfig。
+     * </p>
+     */
     @Nested
     @DisplayName("toCacheConfig 测试")
     class ToCacheConfigTests {
 
+        /**
+         * 测试正确转换为 CacheConfig。
+         */
         @Test
         @DisplayName("应该正确转换为 CacheConfig")
         void shouldConvertToCacheConfig() {
@@ -97,10 +144,19 @@ class CachePropertiesTest {
         }
     }
 
+    /**
+     * 命名缓存配置测试。
+     * <p>
+     * 测试获取命名缓存配置的功能。
+     * </p>
+     */
     @Nested
     @DisplayName("命名缓存配置测试")
     class NamedCacheConfigTests {
 
+        /**
+         * 测试正确获取命名缓存配置。
+         */
         @Test
         @DisplayName("应该正确获取命名缓存配置")
         void shouldGetNamedCacheConfig() {
@@ -116,6 +172,9 @@ class CachePropertiesTest {
             assertThat(result.getDefaultTtl()).isEqualTo(30000);
         }
 
+        /**
+         * 测试未配置的缓存使用默认配置。
+         */
         @Test
         @DisplayName("未配置的缓存应该使用默认配置")
         void shouldUseDefaultConfigForUnconfiguredCache() {
@@ -128,10 +187,19 @@ class CachePropertiesTest {
         }
     }
 
+    /**
+     * CacheType 枚举测试。
+     * <p>
+     * 测试缓存类型枚举的完整性。
+     * </p>
+     */
     @Nested
     @DisplayName("CacheType 枚举测试")
     class CacheTypeTests {
 
+        /**
+         * 测试包含所有缓存类型。
+         */
         @Test
         @DisplayName("应该包含所有缓存类型")
         void shouldContainAllCacheTypes() {

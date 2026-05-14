@@ -9,15 +9,35 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
- * CloudNativeProperties 测试
+ * {@link CloudNativeProperties} 的单元测试。
+ * <p>
+ * 测试云原生配置属性类的默认值设置和属性读写功能，包括：
+ * <ul>
+ *   <li>Kubernetes 配置（命名空间、Pod 信息等）</li>
+ *   <li>优雅停机配置（超时时间、请求等待等）</li>
+ *   <li>配置外部化（ConfigMap、Secret 等）</li>
+ * </ul>
+ *
+ * @see CloudNativeProperties
+ * @see CloudNativeProperties.KubernetesConfig
+ * @see CloudNativeProperties.GracefulShutdownConfig
+ * @see CloudNativeProperties.ConfigExternalizationConfig
  */
 @DisplayName("CloudNativeProperties 测试")
 class CloudNativePropertiesTest {
 
+    /**
+     * 默认值测试分组。
+     * <p>
+     * 验证 CloudNativeProperties 实例化后各嵌套配置对象的默认初始化状态。
+     */
     @Nested
     @DisplayName("默认值测试")
     class DefaultValueTests {
 
+        /**
+         * 测试 CloudNativeProperties 实例化后应包含非空的嵌套配置对象。
+         */
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
@@ -29,10 +49,18 @@ class CloudNativePropertiesTest {
         }
     }
 
+    /**
+     * KubernetesConfig 配置测试分组。
+     * <p>
+     * 验证 Kubernetes 环境配置的默认值和属性设置功能。
+     */
     @Nested
     @DisplayName("KubernetesConfig 测试")
     class KubernetesConfigTests {
 
+        /**
+         * 测试 KubernetesConfig 的默认属性值。
+         */
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
@@ -46,6 +74,9 @@ class CloudNativePropertiesTest {
             assertThat(config.getNodeName()).isNull();
         }
 
+        /**
+         * 测试 KubernetesConfig 属性的 setter 和 getter 方法。
+         */
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
@@ -66,10 +97,18 @@ class CloudNativePropertiesTest {
         }
     }
 
+    /**
+     * GracefulShutdownConfig 配置测试分组。
+     * <p>
+     * 验证优雅停机配置的默认值和属性设置功能。
+     */
     @Nested
     @DisplayName("GracefulShutdownConfig 测试")
     class GracefulShutdownConfigTests {
 
+        /**
+         * 测试 GracefulShutdownConfig 的默认属性值。
+         */
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
@@ -81,6 +120,9 @@ class CloudNativePropertiesTest {
             assertThat(config.getRequestWaitTimeout()).isEqualTo(Duration.ofSeconds(10));
         }
 
+        /**
+         * 测试 GracefulShutdownConfig 属性的 setter 和 getter 方法。
+         */
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
@@ -97,10 +139,18 @@ class CloudNativePropertiesTest {
         }
     }
 
+    /**
+     * ConfigExternalizationConfig 配置测试分组。
+     * <p>
+     * 验证配置外部化（ConfigMap、Secret）的默认值和属性设置功能。
+     */
     @Nested
     @DisplayName("ConfigExternalizationConfig 测试")
     class ConfigExternalizationConfigTests {
 
+        /**
+         * 测试 ConfigExternalizationConfig 的默认属性值。
+         */
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
@@ -113,6 +163,9 @@ class CloudNativePropertiesTest {
             assertThat(config.getRefreshInterval()).isEqualTo(Duration.ofMinutes(1));
         }
 
+        /**
+         * 测试 ConfigExternalizationConfig 属性的 setter 和 getter 方法。
+         */
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {

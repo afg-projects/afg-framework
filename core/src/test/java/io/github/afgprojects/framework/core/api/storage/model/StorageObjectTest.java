@@ -9,15 +9,31 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
- * StorageObject 测试
+ * {@link StorageObject} 存储对象测试
+ *
+ * <p>测试存储对象的创建和属性提取：
+ * <ul>
+ *   <li>静态工厂方法</li>
+ *   <li>文件名提取（从路径中提取）</li>
+ *   <li>扩展名提取</li>
+ *   <li>Record 特性（equals/hashCode）</li>
+ * </ul>
+ *
+ * @see StorageObject
  */
 @DisplayName("StorageObject 测试")
 class StorageObjectTest {
 
+    /**
+     * 静态工厂方法测试
+     */
     @Nested
     @DisplayName("静态工厂方法测试")
     class StaticFactoryTests {
 
+        /**
+         * 测试创建简化的存储对象
+         */
         @Test
         @DisplayName("应该创建简化存储对象")
         void shouldCreateSimpleStorageObject() {
@@ -29,6 +45,9 @@ class StorageObjectTest {
             assertThat(obj.lastModified()).isNotNull();
         }
 
+        /**
+         * 测试创建带元数据的存储对象
+         */
         @Test
         @DisplayName("应该创建带元数据的存储对象")
         void shouldCreateStorageObjectWithMetadata() {
@@ -45,10 +64,16 @@ class StorageObjectTest {
         }
     }
 
+    /**
+     * 文件名提取测试
+     */
     @Nested
     @DisplayName("文件名提取测试")
     class FileNameExtractionTests {
 
+        /**
+         * 测试从简单路径提取文件名
+         */
         @Test
         @DisplayName("应该从简单路径提取文件名")
         void shouldExtractFileNameFromSimplePath() {
@@ -57,6 +82,9 @@ class StorageObjectTest {
             assertThat(obj.getFileName()).isEqualTo("test.txt");
         }
 
+        /**
+         * 测试从带路径的 key 提取文件名
+         */
         @Test
         @DisplayName("应该从带路径的 key 提取文件名")
         void shouldExtractFileNameFromPath() {
@@ -65,6 +93,9 @@ class StorageObjectTest {
             assertThat(obj.getFileName()).isEqualTo("avatar.jpg");
         }
 
+        /**
+         * 测试处理多层路径
+         */
         @Test
         @DisplayName("应该处理多层路径")
         void shouldHandleDeepPath() {
@@ -73,6 +104,9 @@ class StorageObjectTest {
             assertThat(obj.getFileName()).isEqualTo("file.txt");
         }
 
+        /**
+         * 测试处理以斜杠结尾的路径
+         */
         @Test
         @DisplayName("应该处理以斜杠结尾的路径")
         void shouldHandleTrailingSlash() {
@@ -83,10 +117,16 @@ class StorageObjectTest {
         }
     }
 
+    /**
+     * 扩展名提取测试
+     */
     @Nested
     @DisplayName("扩展名提取测试")
     class ExtensionExtractionTests {
 
+        /**
+         * 测试提取文件扩展名
+         */
         @Test
         @DisplayName("应该提取文件扩展名")
         void shouldExtractExtension() {
@@ -95,6 +135,9 @@ class StorageObjectTest {
             assertThat(obj.getExtension()).isEqualTo("pdf");
         }
 
+        /**
+         * 测试从带路径的 key 提取扩展名
+         */
         @Test
         @DisplayName("应该从带路径的 key 提取扩展名")
         void shouldExtractExtensionFromPath() {
@@ -103,6 +146,9 @@ class StorageObjectTest {
             assertThat(obj.getExtension()).isEqualTo("jpg");
         }
 
+        /**
+         * 测试无扩展名文件返回 null
+         */
         @Test
         @DisplayName("应该对无扩展名的文件返回 null")
         void shouldReturnNullForNoExtension() {
@@ -111,6 +157,9 @@ class StorageObjectTest {
             assertThat(obj.getExtension()).isNull();
         }
 
+        /**
+         * 测试处理多个点号的文件名
+         */
         @Test
         @DisplayName("应该处理多个点号")
         void shouldHandleMultipleDots() {
@@ -119,6 +168,9 @@ class StorageObjectTest {
             assertThat(obj.getExtension()).isEqualTo("gz");
         }
 
+        /**
+         * 测试处理隐藏文件
+         */
         @Test
         @DisplayName("应该处理隐藏文件")
         void shouldHandleHiddenFile() {
@@ -129,10 +181,16 @@ class StorageObjectTest {
         }
     }
 
+    /**
+     * Record 特性测试
+     */
     @Nested
     @DisplayName("Record 特性测试")
     class RecordTests {
 
+        /**
+         * 测试 equals 实现
+         */
         @Test
         @DisplayName("应该正确实现 equals")
         void shouldImplementEquals() {
@@ -143,6 +201,9 @@ class StorageObjectTest {
             assertThat(obj1).isEqualTo(obj2);
         }
 
+        /**
+         * 测试 hashCode 实现
+         */
         @Test
         @DisplayName("应该正确实现 hashCode")
         void shouldImplementHashCode() {

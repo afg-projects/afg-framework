@@ -9,11 +9,24 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * TaskDefinition 测试
+ * {@link TaskDefinition} 任务定义测试
+ *
+ * <p>测试任务定义的创建和配置：
+ * <ul>
+ *   <li>Cron 表达式任务</li>
+ *   <li>固定频率任务</li>
+ *   <li>固定延迟任务</li>
+ *   <li>一次性任务</li>
+ * </ul>
+ *
+ * @see TaskDefinition
  */
 @DisplayName("TaskDefinition Tests")
 class TaskDefinitionTest {
 
+    /**
+     * 测试创建 Cron 表达式任务定义
+     */
     @Test
     @DisplayName("Should create cron task definition")
     void shouldCreateCronTask() {
@@ -26,6 +39,9 @@ class TaskDefinitionTest {
         assertThat(def.isFixedDelayTask()).isFalse();
     }
 
+    /**
+     * 测试创建固定频率任务定义
+     */
     @Test
     @DisplayName("Should create fixed rate task definition")
     void shouldCreateFixedRateTask() {
@@ -37,6 +53,9 @@ class TaskDefinitionTest {
         assertThat(def.isCronTask()).isFalse();
     }
 
+    /**
+     * 测试创建固定延迟任务定义
+     */
     @Test
     @DisplayName("Should create fixed delay task definition")
     void shouldCreateFixedDelayTask() {
@@ -48,6 +67,9 @@ class TaskDefinitionTest {
         assertThat(def.isCronTask()).isFalse();
     }
 
+    /**
+     * 测试创建一次性任务定义
+     */
     @Test
     @DisplayName("Should create one-time task definition")
     void shouldCreateOnceTask() {
@@ -58,6 +80,9 @@ class TaskDefinitionTest {
         assertThat(def.metadata()).containsEntry("executeTime", executeTime.toString());
     }
 
+    /**
+     * 测试流式配置任务属性
+     */
     @Test
     @DisplayName("Should allow fluent configuration")
     void shouldAllowFluentConfiguration() {
@@ -76,6 +101,9 @@ class TaskDefinitionTest {
         assertThat(def.retryDelay()).isEqualTo(1000);
     }
 
+    /**
+     * 测试设置元数据
+     */
     @Test
     @DisplayName("Should set metadata")
     void shouldSetMetadata() {

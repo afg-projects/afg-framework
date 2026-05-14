@@ -12,7 +12,11 @@ import io.github.afgprojects.framework.core.api.config.RemoteConfigClient;
 import io.github.afgprojects.framework.core.api.config.ConfigChangeListener;
 
 /**
- * RemoteConfigAutoConfiguration 测试
+ * RemoteConfigAutoConfiguration 单元测试。
+ * 测试远程配置自动配置类的 NoOp 客户端实现。
+ *
+ * @see RemoteConfigAutoConfiguration
+ * @see RemoteConfigClient
  */
 @DisplayName("RemoteConfigAutoConfiguration 测试")
 class RemoteConfigAutoConfigurationTest {
@@ -24,10 +28,17 @@ class RemoteConfigAutoConfigurationTest {
         configuration = new RemoteConfigAutoConfiguration();
     }
 
+    /**
+     * NoOp 远程配置客户端测试。
+     * 验证 NoOp 实现的默认行为。
+     */
     @Nested
     @DisplayName("noOpRemoteConfigClient 配置测试")
     class NoOpRemoteConfigClientTests {
 
+        /**
+         * 测试创建 NoOp 远程配置客户端。
+         */
         @Test
         @DisplayName("应该创建 NoOp 远程配置客户端")
         void shouldCreateNoOpRemoteConfigClient() {
@@ -37,6 +48,9 @@ class RemoteConfigAutoConfigurationTest {
             assertThat(client.getClientName()).isEqualTo("no-op");
         }
 
+        /**
+         * 测试 getConfig 返回空值。
+         */
         @Test
         @DisplayName("getConfig 应该返回空")
         void getConfigShouldReturnEmpty() {
@@ -45,6 +59,9 @@ class RemoteConfigAutoConfigurationTest {
             assertThat(client.getConfig("any-key")).isEmpty();
         }
 
+        /**
+         * 测试带 group 的 getConfig 返回空值。
+         */
         @Test
         @DisplayName("getConfig with group 应该返回空")
         void getConfigWithGroupShouldReturnEmpty() {
@@ -53,6 +70,9 @@ class RemoteConfigAutoConfigurationTest {
             assertThat(client.getConfig("group", "key")).isEmpty();
         }
 
+        /**
+         * 测试 getConfigs 返回空 Map。
+         */
         @Test
         @DisplayName("getConfigs 应该返回空 Map")
         void getConfigsShouldReturnEmptyMap() {
@@ -61,6 +81,9 @@ class RemoteConfigAutoConfigurationTest {
             assertThat(client.getConfigs("prefix")).isEmpty();
         }
 
+        /**
+         * 测试 publishConfig 返回 false。
+         */
         @Test
         @DisplayName("publishConfig 应该返回 false")
         void publishConfigShouldReturnFalse() {
@@ -69,6 +92,9 @@ class RemoteConfigAutoConfigurationTest {
             assertThat(client.publishConfig("key", "value")).isFalse();
         }
 
+        /**
+         * 测试带 group 的 publishConfig 返回 false。
+         */
         @Test
         @DisplayName("publishConfig with group 应该返回 false")
         void publishConfigWithGroupShouldReturnFalse() {
@@ -77,6 +103,9 @@ class RemoteConfigAutoConfigurationTest {
             assertThat(client.publishConfig("group", "key", "value")).isFalse();
         }
 
+        /**
+         * 测试 addListener 不抛异常。
+         */
         @Test
         @DisplayName("addListener 应该不抛异常")
         void addListenerShouldNotThrow() {
@@ -87,6 +116,9 @@ class RemoteConfigAutoConfigurationTest {
             // 不抛异常即通过
         }
 
+        /**
+         * 测试带 group 的 addListener 不抛异常。
+         */
         @Test
         @DisplayName("addListener with group 应该不抛异常")
         void addListenerWithGroupShouldNotThrow() {
@@ -97,6 +129,9 @@ class RemoteConfigAutoConfigurationTest {
             // 不抛异常即通过
         }
 
+        /**
+         * 测试 removeListener 不抛异常。
+         */
         @Test
         @DisplayName("removeListener 应该不抛异常")
         void removeListenerShouldNotThrow() {
@@ -106,6 +141,9 @@ class RemoteConfigAutoConfigurationTest {
             // 不抛异常即通过
         }
 
+        /**
+         * 测试带 group 的 removeListener 不抛异常。
+         */
         @Test
         @DisplayName("removeListener with group 应该不抛异常")
         void removeListenerWithGroupShouldNotThrow() {
@@ -115,6 +153,9 @@ class RemoteConfigAutoConfigurationTest {
             // 不抛异常即通过
         }
 
+        /**
+         * 测试 refresh 不抛异常。
+         */
         @Test
         @DisplayName("refresh 应该不抛异常")
         void refreshShouldNotThrow() {

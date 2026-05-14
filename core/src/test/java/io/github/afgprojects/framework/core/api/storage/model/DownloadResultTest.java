@@ -11,15 +11,30 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
- * DownloadResult 测试
+ * {@link DownloadResult} 下载结果测试
+ *
+ * <p>测试下载结果的创建和资源管理：
+ * <ul>
+ *   <li>静态工厂方法</li>
+ *   <li>AutoCloseable 支持</li>
+ *   <li>try-with-resources 支持</li>
+ * </ul>
+ *
+ * @see DownloadResult
  */
 @DisplayName("DownloadResult 测试")
 class DownloadResultTest {
 
+    /**
+     * 静态工厂方法测试
+     */
     @Nested
     @DisplayName("静态工厂方法测试")
     class StaticFactoryTests {
 
+        /**
+         * 测试创建简化下载结果
+         */
         @Test
         @DisplayName("应该创建简化下载结果")
         void shouldCreateSimpleDownloadResult() {
@@ -32,6 +47,9 @@ class DownloadResultTest {
             assertThat(result.etag()).isNull();
         }
 
+        /**
+         * 测试创建带类型的下载结果
+         */
         @Test
         @DisplayName("应该创建带类型的下载结果")
         void shouldCreateDownloadResultWithType() {
@@ -45,10 +63,16 @@ class DownloadResultTest {
         }
     }
 
+    /**
+     * AutoCloseable 测试
+     */
     @Nested
     @DisplayName("AutoCloseable 测试")
     class AutoCloseableTests {
 
+        /**
+         * 测试关闭输入流
+         */
         @Test
         @DisplayName("应该关闭输入流")
         void shouldCloseInputStream() throws IOException {
@@ -62,6 +86,9 @@ class DownloadResultTest {
             assertThat(result.size()).isEqualTo(7);
         }
 
+        /**
+         * 测试支持 try-with-resources
+         */
         @Test
         @DisplayName("应该支持 try-with-resources")
         void shouldSupportTryWithResources() {
@@ -76,6 +103,9 @@ class DownloadResultTest {
             assertThat(stream.available()).isEqualTo(7);
         }
 
+        /**
+         * 测试处理已关闭的流
+         */
         @Test
         @DisplayName("应该处理已关闭的流")
         void shouldHandleClosedStream() throws IOException {
@@ -87,10 +117,16 @@ class DownloadResultTest {
         }
     }
 
+    /**
+     * Record 特性测试
+     */
     @Nested
     @DisplayName("Record 特性测试")
     class RecordTests {
 
+        /**
+         * 测试 equals 实现
+         */
         @Test
         @DisplayName("应该正确实现 equals")
         void shouldImplementEquals() {

@@ -7,10 +7,17 @@ import java.lang.annotation.Annotation;
 import org.junit.jupiter.api.Test;
 
 /**
- * Audited 注解测试
+ * Audited 注解测试。
+ * <p>
+ * 测试 {@link Audited} 注解的默认值、自定义值以及注解类型。
+ *
+ * @see Audited
  */
 class AuditedTest {
 
+    /**
+     * 测试注解的默认值是否正确。
+     */
     @Test
     void should_haveDefaultValues() throws NoSuchMethodException {
         // Given
@@ -28,6 +35,9 @@ class AuditedTest {
         assertThat(annotation.target()).isEmpty();
     }
 
+    /**
+     * 测试注解是否能够使用自定义值。
+     */
     @Test
     void should_useCustomValues() throws NoSuchMethodException {
         // Given
@@ -45,6 +55,9 @@ class AuditedTest {
         assertThat(annotation.target()).isEqualTo("#userId");
     }
 
+    /**
+     * 测试注解的 annotationType 方法是否返回正确的类型。
+     */
     @Test
     void should_returnCorrectAnnotationType() throws NoSuchMethodException {
         // Given

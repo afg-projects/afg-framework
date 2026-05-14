@@ -14,15 +14,25 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
- * RetryPolicy 测试
+ * RetryPolicy 单元测试。
+ * <p>
+ * 测试重试策略的默认配置、Builder 模式、重试判断逻辑等功能。
+ *
+ * @see RetryPolicy
  */
 @DisplayName("RetryPolicy 测试")
 class RetryPolicyTest {
 
+    /**
+     * 测试默认策略工厂方法。
+     */
     @Nested
     @DisplayName("defaultPolicy 测试")
     class DefaultPolicyTests {
 
+        /**
+         * 测试创建默认重试策略。
+         */
         @Test
         @DisplayName("应该创建默认重试策略")
         void shouldCreateDefaultPolicy() {
@@ -33,6 +43,9 @@ class RetryPolicyTest {
             assertThat(policy.getMaxAttempts()).isEqualTo(3);
         }
 
+        /**
+         * 测试默认策略在配置的状态码上重试。
+         */
         @Test
         @DisplayName("默认策略应该在配置的状态码上重试")
         void shouldRetryOnDefaultStatusCodes() {
@@ -46,6 +59,9 @@ class RetryPolicyTest {
             assertThat(policy.shouldRetry(500, null)).isFalse();
         }
 
+        /**
+         * 测试默认策略对网络异常重试。
+         */
         @Test
         @DisplayName("默认策略应该对网络异常重试")
         void shouldRetryOnNetworkException() {
@@ -62,10 +78,16 @@ class RetryPolicyTest {
         }
     }
 
+    /**
+     * 测试 Builder 模式。
+     */
     @Nested
     @DisplayName("Builder 测试")
     class BuilderTests {
 
+        /**
+         * 测试构建自定义重试策略。
+         */
         @Test
         @DisplayName("应该构建自定义重试策略")
         void shouldBuildCustomPolicy() {
@@ -85,6 +107,9 @@ class RetryPolicyTest {
             assertThat(policy.shouldRetry(503, null)).isFalse();
         }
 
+        /**
+         * 测试计算正确的等待时间（指数退避 + 抖动）。
+         */
         @Test
         @DisplayName("应该计算正确的等待时间（指数退避 + 抖动）")
         void shouldCalculateCorrectWaitDuration() {
@@ -109,6 +134,9 @@ class RetryPolicyTest {
             assertThat(d4.toMillis()).isBetween(8800L, 10000L); // 8000 + 10-25% 抖动
         }
 
+        /**
+         * 测试等待时间不超过最大间隔。
+         */
         @Test
         @DisplayName("等待时间不应该超过最大间隔")
         void shouldNotExceedMaxInterval() {
@@ -131,6 +159,9 @@ class RetryPolicyTest {
             assertThat(d3.toMillis()).isBetween(5500L, 6250L);
         }
 
+        /**
+         * 测试支持自定义异常重试谓词。
+         */
         @Test
         @DisplayName("应该支持自定义异常重试谓词")
         void shouldSupportCustomExceptionPredicate() {
@@ -144,6 +175,9 @@ class RetryPolicyTest {
             assertThat(policy.shouldRetry(200, new RuntimeException())).isFalse();
         }
 
+        /**
+         * 测试使用默认值构建策略。
+         */
         @Test
         @DisplayName("应该使用默认值构建策略")
         void shouldBuildWithDefaultValues() {
@@ -157,10 +191,16 @@ class RetryPolicyTest {
         }
     }
 
+    /**
+     * 测试 shouldRetry 方法。
+     */
     @Nested
     @DisplayName("shouldRetry 测试")
     class ShouldRetryTests {
 
+        /**
+         * 测试配置的状态码触发重试。
+         */
         @Test
         @DisplayName("配置的状态码应该触发重试")
         void shouldRetryOnConfiguredStatusCodes() {
@@ -175,6 +215,9 @@ class RetryPolicyTest {
             assertThat(policy.shouldRetry(404, null)).isFalse();
         }
 
+        /**
+         * 测试网络异常触发重试。
+         */
         @Test
         @DisplayName("网络异常应该触发重试")
         void shouldRetryOnNetworkException() {
@@ -187,6 +230,9 @@ class RetryPolicyTest {
             assertThat(policy.shouldRetry(200, new ConnectException())).isTrue();
         }
 
+        /**
+         * 测试状态码和异常同时满足时触发重试。
+         */
         @Test
         @DisplayName("状态码和异常同时满足时应该重试")
         void shouldRetryWhenEitherConditionMet() {
@@ -199,10 +245,16 @@ class RetryPolicyTest {
         }
     }
 
+    /**
+     * 测试边界条件。
+     */
     @Nested
     @DisplayName("边界条件测试")
     class EdgeCaseTests {
 
+        /**
+         * 测试空状态码集合时只依赖异常重试。
+         */
         @Test
         @DisplayName("空状态码集合应该只依赖异常重试")
         void shouldOnlyRetryOnExceptionWhenEmptyStatusCodes() {
@@ -215,6 +267,9 @@ class RetryPolicyTest {
             assertThat(policy.shouldRetry(500, new RuntimeException())).isFalse();
         }
 
+        /**
+         * 测试初始间隔等于最大间隔时返回固定值加抖动。
+         */
         @Test
         @DisplayName("初始间隔等于最大间隔时应该返回固定值加抖动")
         void shouldReturnFixedIntervalWithJitterWhenInitialEqualsMax() {

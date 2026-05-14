@@ -13,7 +13,12 @@ import org.springframework.web.client.RestClient;
 import io.github.afgprojects.framework.core.support.TestApplication;
 
 /**
- * HttpClientAutoConfiguration 集成测试
+ * HttpClientAutoConfiguration 集成测试。
+ * <p>
+ * 测试 HTTP 客户端自动配置功能，包括属性绑定、Bean 创建等。
+ *
+ * @see HttpClientAutoConfiguration
+ * @see HttpClientProperties
  */
 @DisplayName("HttpClientAutoConfiguration 集成测试")
 @SpringBootTest(
@@ -45,28 +50,43 @@ class HttpClientAutoConfigurationIntegrationTest {
     @Autowired(required = false)
     private AsyncResilienceInterceptor asyncResilienceInterceptor;
 
+    /**
+     * 测试 HTTP 客户端 Bean 自动配置。
+     */
     @Nested
     @DisplayName("HTTP 客户端配置测试")
     class HttpClientConfigTests {
 
+        /**
+         * 测试自动配置 HTTP 客户端属性 Bean。
+         */
         @Test
         @DisplayName("应该自动配置 HTTP 客户端属性")
         void shouldAutoConfigureHttpClientProperties() {
             assertThat(httpClientProperties).isNotNull();
         }
 
+        /**
+         * 测试自动配置 RestClient Builder Bean。
+         */
         @Test
         @DisplayName("应该自动配置 RestClient Builder")
         void shouldAutoConfigureRestClientBuilder() {
             assertThat(restClientBuilder).isNotNull();
         }
 
+        /**
+         * 测试自动配置 HttpClientRegistry Bean。
+         */
         @Test
         @DisplayName("应该自动配置 HttpClientRegistry")
         void shouldAutoConfigureHttpClientRegistry() {
             assertThat(httpClientRegistry).isNotNull();
         }
 
+        /**
+         * 测试自动配置 AsyncResilienceInterceptor Bean。
+         */
         @Test
         @DisplayName("应该自动配置 AsyncResilienceInterceptor")
         void shouldAutoConfigureAsyncResilienceInterceptor() {
@@ -74,16 +94,25 @@ class HttpClientAutoConfigurationIntegrationTest {
         }
     }
 
+    /**
+     * 测试连接配置属性绑定。
+     */
     @Nested
     @DisplayName("连接配置测试")
     class ConnectionConfigTests {
 
+        /**
+         * 测试正确配置连接超时。
+         */
         @Test
         @DisplayName("应该正确配置连接超时")
         void shouldConfigureConnectTimeout() {
             assertThat(httpClientProperties.getConnectTimeout()).isEqualTo(5000);
         }
 
+        /**
+         * 测试正确配置读取超时。
+         */
         @Test
         @DisplayName("应该正确配置读取超时")
         void shouldConfigureReadTimeout() {
@@ -91,22 +120,34 @@ class HttpClientAutoConfigurationIntegrationTest {
         }
     }
 
+    /**
+     * 测试重试配置属性绑定。
+     */
     @Nested
     @DisplayName("重试配置测试")
     class RetryConfigTests {
 
+        /**
+         * 测试正确配置重试启用状态。
+         */
         @Test
         @DisplayName("应该正确配置重试启用状态")
         void shouldConfigureRetryEnabled() {
             assertThat(httpClientProperties.getRetry().isEnabled()).isTrue();
         }
 
+        /**
+         * 测试正确配置最大重试次数。
+         */
         @Test
         @DisplayName("应该正确配置最大重试次数")
         void shouldConfigureMaxAttempts() {
             assertThat(httpClientProperties.getRetry().getMaxAttempts()).isEqualTo(3);
         }
 
+        /**
+         * 测试正确配置初始间隔。
+         */
         @Test
         @DisplayName("应该正确配置初始间隔")
         void shouldConfigureInitialInterval() {
@@ -114,22 +155,34 @@ class HttpClientAutoConfigurationIntegrationTest {
         }
     }
 
+    /**
+     * 测试熔断配置属性绑定。
+     */
     @Nested
     @DisplayName("熔断配置测试")
     class CircuitBreakerConfigTests {
 
+        /**
+         * 测试正确配置熔断启用状态。
+         */
         @Test
         @DisplayName("应该正确配置熔断启用状态")
         void shouldConfigureCircuitBreakerEnabled() {
             assertThat(httpClientProperties.getCircuitBreaker().isEnabled()).isTrue();
         }
 
+        /**
+         * 测试正确配置失败次数阈值。
+         */
         @Test
         @DisplayName("应该正确配置失败次数阈值")
         void shouldConfigureFailureThreshold() {
             assertThat(httpClientProperties.getCircuitBreaker().getFailureThreshold()).isEqualTo(5);
         }
 
+        /**
+         * 测试正确配置开启持续时间。
+         */
         @Test
         @DisplayName("应该正确配置开启持续时间")
         void shouldConfigureOpenDuration() {
@@ -137,10 +190,16 @@ class HttpClientAutoConfigurationIntegrationTest {
         }
     }
 
+    /**
+     * 测试 RestClient 功能。
+     */
     @Nested
     @DisplayName("RestClient 功能测试")
     class RestClientTests {
 
+        /**
+         * 测试能够创建 RestClient。
+         */
         @Test
         @DisplayName("应该能够创建 RestClient")
         void shouldCreateRestClient() {

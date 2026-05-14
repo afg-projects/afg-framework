@@ -114,7 +114,7 @@ public final class JacksonMapper {
 
             // 忽略 null 值
             if (ignoreNull) {
-                mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+                mapper.setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL);
             }
 
             // 忽略未知属性

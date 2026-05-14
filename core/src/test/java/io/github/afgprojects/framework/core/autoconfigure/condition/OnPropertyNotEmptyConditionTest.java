@@ -15,7 +15,11 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
- * OnPropertyNotEmptyCondition 测试类
+ * OnPropertyNotEmptyCondition 单元测试。
+ * 测试属性非空条件注解的匹配逻辑。
+ *
+ * @see OnPropertyNotEmptyCondition
+ * @see ConditionalOnPropertyNotEmpty
  */
 class OnPropertyNotEmptyConditionTest {
 
@@ -33,6 +37,9 @@ class OnPropertyNotEmptyConditionTest {
         when(context.getEnvironment()).thenReturn(environment);
     }
 
+    /**
+     * 测试属性存在且非空时匹配。
+     */
     @Test
     @DisplayName("属性存在且非空时应该匹配")
     void shouldMatchWhenPropertyExistsAndNotEmpty() {
@@ -47,6 +54,9 @@ class OnPropertyNotEmptyConditionTest {
         assertThat(matches).isTrue();
     }
 
+    /**
+     * 测试属性不存在时不匹配。
+     */
     @Test
     @DisplayName("属性不存在时应该不匹配")
     void shouldNotMatchWhenPropertyNotExists() {
@@ -61,6 +71,9 @@ class OnPropertyNotEmptyConditionTest {
         assertThat(matches).isFalse();
     }
 
+    /**
+     * 测试属性为空字符串时不匹配。
+     */
     @Test
     @DisplayName("属性为空字符串时应该不匹配")
     void shouldNotMatchWhenPropertyIsEmptyString() {
@@ -75,6 +88,9 @@ class OnPropertyNotEmptyConditionTest {
         assertThat(matches).isFalse();
     }
 
+    /**
+     * 测试带前缀的属性正确拼接。
+     */
     @Test
     @DisplayName("带前缀的属性应该正确拼接")
     void shouldBuildPropertyNameWithPrefix() {
@@ -89,6 +105,9 @@ class OnPropertyNotEmptyConditionTest {
         assertThat(matches).isTrue();
     }
 
+    /**
+     * 测试前缀以点结尾时正确拼接。
+     */
     @Test
     @DisplayName("前缀以点结尾时应该正确拼接")
     void shouldBuildPropertyNameWhenPrefixEndsWithDot() {
@@ -103,6 +122,9 @@ class OnPropertyNotEmptyConditionTest {
         assertThat(matches).isTrue();
     }
 
+    /**
+     * 测试空前缀时只使用 value。
+     */
     @Test
     @DisplayName("空前缀时应该只使用 value")
     void shouldUseValueOnlyWhenPrefixEmpty() {
@@ -117,6 +139,9 @@ class OnPropertyNotEmptyConditionTest {
         assertThat(matches).isTrue();
     }
 
+    /**
+     * 测试注解属性为 null 时不匹配。
+     */
     @Test
     @DisplayName("注解属性为 null 时应该不匹配")
     void shouldNotMatchWhenAnnotationAttributesNull() {
@@ -130,6 +155,9 @@ class OnPropertyNotEmptyConditionTest {
         assertThat(matches).isFalse();
     }
 
+    /**
+     * 测试 value 为空时不匹配。
+     */
     @Test
     @DisplayName("value 为空时应该不匹配")
     void shouldNotMatchWhenValueEmpty() {
@@ -144,6 +172,9 @@ class OnPropertyNotEmptyConditionTest {
         assertThat(matches).isFalse();
     }
 
+    /**
+     * 测试 null 前缀被视为空字符串。
+     */
     @Test
     @DisplayName("null 前缀应该被视为空字符串")
     void shouldTreatNullPrefixAsEmpty() {

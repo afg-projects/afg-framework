@@ -1,10 +1,10 @@
 package io.github.afgprojects.framework.core.autoconfigure;
 
 import io.github.afgprojects.framework.core.api.config.ConfigChangeListener;
+import org.jspecify.annotations.NonNull;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
 import io.github.afgprojects.framework.core.api.config.RemoteConfigClient;
@@ -28,44 +28,44 @@ public class RemoteConfigAutoConfiguration {
      */
     private static class NoOpRemoteConfigClient implements RemoteConfigClient {
         @Override
-        public java.util.Optional<String> getConfig(String key) {
+        public java.util.Optional<String> getConfig(@NonNull String key) {
             return java.util.Optional.empty();
         }
 
         @Override
-        public java.util.Optional<String> getConfig(String group, String key) {
+        public java.util.Optional<String> getConfig(@NonNull String group, @NonNull String key) {
             return java.util.Optional.empty();
         }
 
         @Override
-        public java.util.Map<String, String> getConfigs(String prefix) {
+        public java.util.Map<String, String> getConfigs(@NonNull String prefix) {
             return java.util.Map.of();
         }
 
         @Override
-        public boolean publishConfig(String key, String value) {
+        public boolean publishConfig(@NonNull String key, @NonNull String value) {
             return false;
         }
 
         @Override
-        public boolean publishConfig(String group, String key, String value) {
+        public boolean publishConfig(@NonNull String group, @NonNull String key, @NonNull String value) {
             return false;
         }
 
         @Override
-        public void addListener(String key, ConfigChangeListener listener) {
+        public void addListener(@NonNull String key, @NonNull ConfigChangeListener listener) {
         }
 
         @Override
-        public void addListener(String group, String key, ConfigChangeListener listener) {
+        public void addListener(@NonNull String group, @NonNull String key, @NonNull ConfigChangeListener listener) {
         }
 
         @Override
-        public void removeListener(String key) {
+        public void removeListener(@NonNull String key) {
         }
 
         @Override
-        public void removeListener(String group, String key) {
+        public void removeListener(@NonNull String group, @NonNull String key) {
         }
 
         @Override

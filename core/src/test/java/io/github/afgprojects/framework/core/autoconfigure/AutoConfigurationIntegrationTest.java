@@ -12,7 +12,12 @@ import org.springframework.test.annotation.DirtiesContext;
 import io.github.afgprojects.framework.core.support.TestApplication;
 
 /**
- * 自动配置集成测试
+ * 自动配置集成测试。
+ * 测试多个自动配置属性类在 Spring Boot 环境中的实际装配效果。
+ *
+ * @see MetricsProperties
+ * @see VirtualThreadProperties
+ * @see EncryptionProperties
  */
 @DisplayName("自动配置集成测试")
 @SpringBootTest(
@@ -35,10 +40,17 @@ class AutoConfigurationIntegrationTest {
     @Autowired(required = false)
     private EncryptionProperties encryptionProperties;
 
+    /**
+     * MetricsProperties 自动配置测试。
+     * 验证指标配置属性的自动装配。
+     */
     @Nested
     @DisplayName("MetricsProperties 测试")
     class MetricsPropertiesTests {
 
+        /**
+         * 测试自动配置 MetricsProperties。
+         */
         @Test
         @DisplayName("应该自动配置 MetricsProperties")
         void shouldAutoConfigureMetricsProperties() {
@@ -49,10 +61,17 @@ class AutoConfigurationIntegrationTest {
         }
     }
 
+    /**
+     * VirtualThreadProperties 自动配置测试。
+     * 验证虚拟线程配置属性的自动装配。
+     */
     @Nested
     @DisplayName("VirtualThreadProperties 测试")
     class VirtualThreadPropertiesTests {
 
+        /**
+         * 测试自动配置 VirtualThreadProperties。
+         */
         @Test
         @DisplayName("应该自动配置 VirtualThreadProperties")
         void shouldAutoConfigureVirtualThreadProperties() {
@@ -63,10 +82,17 @@ class AutoConfigurationIntegrationTest {
         }
     }
 
+    /**
+     * EncryptionProperties 自动配置测试。
+     * 验证加密配置属性的自动装配。
+     */
     @Nested
     @DisplayName("EncryptionProperties 测试")
     class EncryptionPropertiesTests {
 
+        /**
+         * 测试自动配置 EncryptionProperties。
+         */
         @Test
         @DisplayName("应该自动配置 EncryptionProperties")
         void shouldAutoConfigureEncryptionProperties() {

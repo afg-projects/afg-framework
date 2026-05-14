@@ -10,7 +10,12 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
- * DefaultCacheManager 测试
+ * DefaultCacheManager 单元测试。
+ * <p>
+ * 测试缓存管理器的功能，包括缓存获取、特定类型缓存获取、缓存管理和缓存名称等。
+ * </p>
+ *
+ * @see DefaultCacheManager
  */
 @DisplayName("DefaultCacheManager 测试")
 class CacheManagerTest {
@@ -26,10 +31,19 @@ class CacheManagerTest {
         cacheManager = new DefaultCacheManager(properties);
     }
 
+    /**
+     * 获取缓存测试。
+     * <p>
+     * 测试缓存的创建和获取，包括缓存实例的唯一性。
+     * </p>
+     */
     @Nested
     @DisplayName("获取缓存测试")
     class GetCacheTests {
 
+        /**
+         * 测试创建并返回缓存。
+         */
         @Test
         @DisplayName("应该创建并返回缓存")
         void shouldCreateAndReturnCache() {
@@ -41,6 +55,9 @@ class CacheManagerTest {
             assertThat(cache.getName()).isEqualTo("test-cache");
         }
 
+        /**
+         * 测试重复获取返回同一缓存实例。
+         */
         @Test
         @DisplayName("重复获取应该返回同一缓存实例")
         void shouldReturnSameCacheInstance() {
@@ -52,6 +69,9 @@ class CacheManagerTest {
             assertThat(cache1).isSameAs(cache2);
         }
 
+        /**
+         * 测试不同名称返回不同缓存实例。
+         */
         @Test
         @DisplayName("不同名称应该返回不同缓存实例")
         void shouldReturnDifferentCacheInstances() {
@@ -64,10 +84,19 @@ class CacheManagerTest {
         }
     }
 
+    /**
+     * 获取特定类型缓存测试。
+     * <p>
+     * 测试获取本地缓存、分布式缓存和多级缓存的功能。
+     * </p>
+     */
     @Nested
     @DisplayName("获取特定类型缓存测试")
     class GetTypedCacheTests {
 
+        /**
+         * 测试返回本地缓存。
+         */
         @Test
         @DisplayName("应该返回本地缓存")
         void shouldReturnLocalCache() {
@@ -79,6 +108,9 @@ class CacheManagerTest {
             assertThat(cache).isInstanceOf(LocalCache.class);
         }
 
+        /**
+         * 测试没有 Redisson 时获取分布式缓存抛异常。
+         */
         @Test
         @DisplayName("没有 Redisson 时获取分布式缓存应该抛异常")
         void shouldThrowExceptionForDistributedCacheWithoutRedisson() {
@@ -87,6 +119,9 @@ class CacheManagerTest {
                     .hasMessageContaining("RedissonClient is not configured");
         }
 
+        /**
+         * 测试没有 Redisson 时获取多级缓存抛异常。
+         */
         @Test
         @DisplayName("没有 Redisson 时获取多级缓存应该抛异常")
         void shouldThrowExceptionForMultiLevelCacheWithoutRedisson() {
@@ -96,10 +131,19 @@ class CacheManagerTest {
         }
     }
 
+    /**
+     * 缓存管理测试。
+     * <p>
+     * 测试缓存的注册和移除功能。
+     * </p>
+     */
     @Nested
     @DisplayName("缓存管理测试")
     class CacheManagementTests {
 
+        /**
+         * 测试正确注册缓存。
+         */
         @Test
         @DisplayName("应该正确注册缓存")
         void shouldRegisterCache() {
@@ -114,6 +158,9 @@ class CacheManagerTest {
             assertThat(cacheManager.getCache("custom-cache")).isSameAs(cache);
         }
 
+        /**
+         * 测试正确移除缓存。
+         */
         @Test
         @DisplayName("应该正确移除缓存")
         void shouldRemoveCache() {
@@ -127,6 +174,9 @@ class CacheManagerTest {
             assertThat(cacheManager.containsCache("test-cache")).isFalse();
         }
 
+        /**
+         * 测试移除缓存时清空缓存内容。
+         */
         @Test
         @DisplayName("移除缓存时应该清空缓存内容")
         void shouldClearCacheWhenRemove() {
@@ -144,10 +194,19 @@ class CacheManagerTest {
         }
     }
 
+    /**
+     * 缓存名称测试。
+     * <p>
+     * 测试获取所有缓存名称的功能。
+     * </p>
+     */
     @Nested
     @DisplayName("缓存名称测试")
     class CacheNamesTests {
 
+        /**
+         * 测试返回所有缓存名称。
+         */
         @Test
         @DisplayName("应该返回所有缓存名称")
         void shouldReturnAllCacheNames() {
@@ -164,10 +223,19 @@ class CacheManagerTest {
         }
     }
 
+    /**
+     * 清空和销毁测试。
+     * <p>
+     * 测试清空所有缓存和销毁缓存管理器的功能。
+     * </p>
+     */
     @Nested
     @DisplayName("清空和销毁测试")
     class ClearAndDestroyTests {
 
+        /**
+         * 测试清空所有缓存清除所有内容。
+         */
         @Test
         @DisplayName("清空所有缓存应该清除所有内容")
         void shouldClearAllCaches() {
@@ -186,6 +254,9 @@ class CacheManagerTest {
             assertThat(cache2.get("key2")).isNull();
         }
 
+        /**
+         * 测试销毁清空并移除所有缓存。
+         */
         @Test
         @DisplayName("销毁应该清空并移除所有缓存")
         void shouldDestroyAllCaches() {

@@ -9,6 +9,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import io.github.afgprojects.framework.core.api.ratelimit.DefaultWhitelistStrategy;
 import io.github.afgprojects.framework.core.api.ratelimit.RateLimitDimension;
 import io.github.afgprojects.framework.core.support.BaseUnitTest;
 import io.github.afgprojects.framework.core.web.context.AfgRequestContextHolder;
@@ -17,12 +18,12 @@ import io.github.afgprojects.framework.core.web.context.RequestContext;
 class RateLimitWhitelistCheckerTest extends BaseUnitTest {
 
     private RateLimitProperties properties;
-    private RateLimitWhitelistChecker checker;
+    private DefaultWhitelistStrategy checker;
 
     @BeforeEach
     void setUp() {
         properties = new RateLimitProperties();
-        checker = new RateLimitWhitelistChecker(properties);
+        checker = new DefaultWhitelistStrategy(properties);
 
         MockHttpServletRequest request = new MockHttpServletRequest();
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));

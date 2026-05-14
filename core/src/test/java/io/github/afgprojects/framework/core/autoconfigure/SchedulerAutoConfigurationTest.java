@@ -25,7 +25,10 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 /**
- * SchedulerAutoConfiguration 集成测试
+ * SchedulerAutoConfiguration 集成测试。
+ * 测试调度器自动配置类的 Bean 创建和条件装配功能。
+ *
+ * @see SchedulerAutoConfiguration
  */
 @DisplayName("SchedulerAutoConfiguration 集成测试")
 class SchedulerAutoConfigurationTest {
@@ -33,10 +36,17 @@ class SchedulerAutoConfigurationTest {
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(SchedulerAutoConfiguration.class));
 
+    /**
+     * 基本 Bean 创建测试。
+     * 验证核心调度器相关 Bean 的自动配置。
+     */
     @Nested
     @DisplayName("基本 Bean 创建测试")
     class BasicBeanTests {
 
+        /**
+         * 测试创建 TaskExecutionLogStorage Bean。
+         */
         @Test
         @DisplayName("应该创建 TaskExecutionLogStorage")
         void shouldCreateTaskExecutionLogStorage() {
@@ -49,6 +59,9 @@ class SchedulerAutoConfigurationTest {
                     });
         }
 
+        /**
+         * 测试创建 TaskExecutionMetrics Bean。
+         */
         @Test
         @DisplayName("应该创建 TaskExecutionMetrics")
         void shouldCreateTaskExecutionMetrics() {
@@ -59,6 +72,9 @@ class SchedulerAutoConfigurationTest {
                     });
         }
 
+        /**
+         * 测试创建 LocalTaskScheduler Bean。
+         */
         @Test
         @DisplayName("应该创建 LocalTaskScheduler")
         void shouldCreateLocalTaskScheduler() {
@@ -69,6 +85,9 @@ class SchedulerAutoConfigurationTest {
                     });
         }
 
+        /**
+         * 测试创建 ScheduledTaskAspect Bean。
+         */
         @Test
         @DisplayName("应该创建 ScheduledTaskAspect")
         void shouldCreateScheduledTaskAspect() {
@@ -80,10 +99,17 @@ class SchedulerAutoConfigurationTest {
         }
     }
 
+    /**
+     * DistributedTaskAspect 条件装配测试。
+     * 验证分布式任务切面的条件创建逻辑。
+     */
     @Nested
     @DisplayName("DistributedTaskAspect 测试")
     class DistributedTaskAspectTests {
 
+        /**
+         * 测试存在 DistributedLock 时创建 DistributedTaskAspect。
+         */
         @Test
         @DisplayName("有 DistributedLock 时应该创建 DistributedTaskAspect")
         void shouldCreateDistributedTaskAspectWhenLockExists() {
@@ -94,6 +120,9 @@ class SchedulerAutoConfigurationTest {
                     });
         }
 
+        /**
+         * 测试不存在 DistributedLock 时不创建 DistributedTaskAspect。
+         */
         @Test
         @DisplayName("没有 DistributedLock 时不应该创建 DistributedTaskAspect")
         void shouldNotCreateDistributedTaskAspectWhenNoLock() {
@@ -105,10 +134,17 @@ class SchedulerAutoConfigurationTest {
         }
     }
 
+    /**
+     * DynamicTaskManager 条件装配测试。
+     * 验证动态任务管理器的条件创建逻辑。
+     */
     @Nested
     @DisplayName("DynamicTaskManager 测试")
     class DynamicTaskManagerTests {
 
+        /**
+         * 测试启用动态任务时创建 DynamicTaskManager。
+         */
         @Test
         @DisplayName("启用动态任务时应该创建 DynamicTaskManager")
         void shouldCreateDynamicTaskManagerWhenEnabled() {
@@ -120,6 +156,9 @@ class SchedulerAutoConfigurationTest {
                     });
         }
 
+        /**
+         * 测试禁用动态任务时不创建 DynamicTaskManager。
+         */
         @Test
         @DisplayName("禁用动态任务时不应该创建 DynamicTaskManager")
         void shouldNotCreateDynamicTaskManagerWhenDisabled() {
@@ -132,10 +171,17 @@ class SchedulerAutoConfigurationTest {
         }
     }
 
+    /**
+     * 禁用测试。
+     * 验证调度器禁用时的行为。
+     */
     @Nested
     @DisplayName("禁用测试")
     class DisabledTests {
 
+        /**
+         * 测试禁用调度器时不创建任何 Bean。
+         */
         @Test
         @DisplayName("禁用调度器时不应该创建任何 Bean")
         void shouldNotCreateBeansWhenDisabled() {

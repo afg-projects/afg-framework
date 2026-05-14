@@ -11,7 +11,11 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
- * CodeGeneratorManager 测试
+ * {@link CodeGeneratorManager} 的单元测试。
+ * <p>
+ * 测试代码生成器管理器的单例模式、生成器注册、代码生成、批量生成等功能。
+ *
+ * @see CodeGeneratorManager
  */
 @DisplayName("CodeGeneratorManager 测试")
 class CodeGeneratorManagerTest {
@@ -23,10 +27,18 @@ class CodeGeneratorManagerTest {
         manager = CodeGeneratorManager.getInstance();
     }
 
+    /**
+     * 单例模式相关测试。
+     * <p>
+     * 验证 CodeGeneratorManager 的单例实现是否正确。
+     */
     @Nested
     @DisplayName("单例模式测试")
     class SingletonTests {
 
+        /**
+         * 测试多次调用 getInstance 应返回同一个实例。
+         */
         @Test
         @DisplayName("应该返回同一个实例")
         void shouldReturnSameInstance() {
@@ -37,10 +49,18 @@ class CodeGeneratorManagerTest {
         }
     }
 
+    /**
+     * 生成器注册相关测试。
+     * <p>
+     * 验证自定义生成器的注册和获取功能。
+     */
     @Nested
     @DisplayName("生成器注册测试")
     class RegisterTests {
 
+        /**
+         * 测试注册自定义生成器后可以正常获取。
+         */
         @Test
         @DisplayName("应该注册自定义生成器")
         void shouldRegisterCustomGenerator() {
@@ -67,10 +87,18 @@ class CodeGeneratorManagerTest {
         }
     }
 
+    /**
+     * 代码生成相关测试。
+     * <p>
+     * 验证使用管理器生成各类代码的功能。
+     */
     @Nested
     @DisplayName("代码生成测试")
     class GenerateTests {
 
+        /**
+         * 测试生成 Entity 代码。
+         */
         @Test
         @DisplayName("应该生成 Entity 代码")
         void shouldGenerateEntityCode() {
@@ -85,6 +113,9 @@ class CodeGeneratorManagerTest {
             assertThat(code).contains("public class User");
         }
 
+        /**
+         * 测试生成 DTO 代码。
+         */
         @Test
         @DisplayName("应该生成 DTO 代码")
         void shouldGenerateDtoCode() {
@@ -98,6 +129,9 @@ class CodeGeneratorManagerTest {
             assertThat(code).contains("package com.example.dto");
         }
 
+        /**
+         * 测试对不支持的模板类型抛出异常。
+         */
         @Test
         @DisplayName("应该对不支持的模板类型抛出异常")
         void shouldThrowForUnsupportedTemplateType() {
@@ -112,10 +146,18 @@ class CodeGeneratorManagerTest {
         }
     }
 
+    /**
+     * 生成器获取相关测试。
+     * <p>
+     * 验证根据模板类型获取已注册生成器的功能。
+     */
     @Nested
     @DisplayName("生成器获取测试")
     class GetGeneratorTests {
 
+        /**
+         * 测试获取已注册的生成器。
+         */
         @Test
         @DisplayName("应该获取已注册的生成器")
         void shouldGetRegisteredGenerator() {
@@ -125,6 +167,9 @@ class CodeGeneratorManagerTest {
             assertThat(generator.getName()).isEqualTo("EntityGenerator");
         }
 
+        /**
+         * 测试对未注册的类型返回 null。
+         */
         @Test
         @DisplayName("应该对未注册的类型返回 null")
         void shouldReturnNullForUnregisteredType() {
@@ -134,10 +179,18 @@ class CodeGeneratorManagerTest {
         }
     }
 
+    /**
+     * 支持的模板类型相关测试。
+     * <p>
+     * 验证获取所有支持的模板类型列表。
+     */
     @Nested
     @DisplayName("支持的模板类型测试")
     class SupportedTemplateTypesTests {
 
+        /**
+         * 测试返回所有支持的模板类型。
+         */
         @Test
         @DisplayName("应该返回所有支持的模板类型")
         void shouldReturnSupportedTemplateTypes() {
@@ -147,10 +200,18 @@ class CodeGeneratorManagerTest {
         }
     }
 
+    /**
+     * 批量生成相关测试。
+     * <p>
+     * 验证批量生成多种类型代码的功能。
+     */
     @Nested
     @DisplayName("批量生成测试")
     class GenerateAllTests {
 
+        /**
+         * 测试批量生成代码。
+         */
         @Test
         @DisplayName("应该批量生成代码")
         void shouldGenerateAll() {
@@ -165,6 +226,9 @@ class CodeGeneratorManagerTest {
             assertThat(result.get("entity")).contains("public class User");
         }
 
+        /**
+         * 测试批量生成时跳过不支持的类型。
+         */
         @Test
         @DisplayName("应该跳过不支持的类型")
         void shouldSkipUnsupportedTypes() {

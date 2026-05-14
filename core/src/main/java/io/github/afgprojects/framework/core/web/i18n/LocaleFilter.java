@@ -98,9 +98,9 @@ public class LocaleFilter extends OncePerRequestFilter {
 
         if (normalized.contains("-")) {
             String[] parts = normalized.split("-", 2);
-            return new Locale(parts[0], parts[1]);
+            return Locale.of(parts[0], parts[1]);
         }
 
-        return new Locale(normalized);
+        return Locale.of(normalized);
     }
 }

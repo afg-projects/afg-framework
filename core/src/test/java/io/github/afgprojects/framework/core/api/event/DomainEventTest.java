@@ -8,11 +8,24 @@ import java.time.Instant;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * DomainEvent 测试
+ * {@link DomainEvent} 领域事件测试
+ *
+ * <p>测试领域事件的创建和属性：
+ * <ul>
+ *   <li>简化构造函数（自动生成 eventId 和 occurredAt）</li>
+ *   <li>完整构造函数（指定所有属性）</li>
+ *   <li>自定义 source</li>
+ *   <li>eventId 唯一性</li>
+ * </ul>
+ *
+ * @see DomainEvent
  */
 @DisplayName("DomainEvent 测试")
 class DomainEventTest {
 
+    /**
+     * 测试使用简化构造函数创建事件
+     */
     @Test
     @DisplayName("应该使用简化构造函数创建 DomainEvent")
     void shouldCreateWithSimpleConstructor() {
@@ -26,6 +39,9 @@ class DomainEventTest {
         assertEquals("afg-core", event.source());
     }
 
+    /**
+     * 测试使用完整构造函数创建事件
+     */
     @Test
     @DisplayName("应该使用完整构造函数创建 DomainEvent")
     void shouldCreateWithFullConstructor() {
@@ -46,6 +62,9 @@ class DomainEventTest {
         assertEquals("order-service", event.source());
     }
 
+    /**
+     * 测试使用自定义 source 创建事件
+     */
     @Test
     @DisplayName("应该使用自定义 source 创建 DomainEvent")
     void shouldCreateWithCustomSource() {
@@ -59,6 +78,9 @@ class DomainEventTest {
         assertEquals("payment-service", event.source());
     }
 
+    /**
+     * 测试 eventId 的唯一性
+     */
     @Test
     @DisplayName("eventId 应该是唯一的")
     void eventIdShouldBeUnique() {
@@ -69,6 +91,9 @@ class DomainEventTest {
         assertNotEquals(event1.eventId(), event2.eventId());
     }
 
+    /**
+     * 测试 occurredAt 时间接近当前时间
+     */
     @Test
     @DisplayName("occurredAt 应该接近当前时间")
     void occurredAtShouldBeCloseToNow() {

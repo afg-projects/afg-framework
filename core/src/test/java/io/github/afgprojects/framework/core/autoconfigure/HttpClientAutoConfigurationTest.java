@@ -17,7 +17,10 @@ import io.github.afgprojects.framework.core.client.HttpClientRegistry;
 import io.micrometer.tracing.Tracer;
 
 /**
- * HttpClientAutoConfiguration 测试
+ * HttpClientAutoConfiguration 单元测试。
+ * 测试 HTTP 客户端自动配置类的 Bean 创建功能。
+ *
+ * @see HttpClientAutoConfiguration
  */
 @DisplayName("HttpClientAutoConfiguration 测试")
 class HttpClientAutoConfigurationTest {
@@ -29,10 +32,17 @@ class HttpClientAutoConfigurationTest {
         configuration = new HttpClientAutoConfiguration();
     }
 
+    /**
+     * RestClient Builder 配置测试。
+     * 验证 restClientBuilder Bean 的创建和拦截器配置。
+     */
     @Nested
     @DisplayName("restClientBuilder 配置测试")
     class RestClientBuilderTests {
 
+        /**
+         * 测试创建 RestClient Builder。
+         */
         @Test
         @DisplayName("应该创建 RestClient Builder")
         void shouldCreateRestClientBuilder() {
@@ -43,6 +53,9 @@ class HttpClientAutoConfigurationTest {
             assertThat(builder).isNotNull();
         }
 
+        /**
+         * 测试启用重试时添加 ResilienceInterceptor。
+         */
         @Test
         @DisplayName("启用重试时应该添加 ResilienceInterceptor")
         void shouldAddResilienceInterceptorWhenRetryEnabled() {
@@ -54,6 +67,9 @@ class HttpClientAutoConfigurationTest {
             assertThat(builder).isNotNull();
         }
 
+        /**
+         * 测试启用熔断时添加 ResilienceInterceptor。
+         */
         @Test
         @DisplayName("启用熔断时应该添加 ResilienceInterceptor")
         void shouldAddResilienceInterceptorWhenCircuitBreakerEnabled() {
@@ -66,10 +82,17 @@ class HttpClientAutoConfigurationTest {
         }
     }
 
+    /**
+     * ResilienceScheduler 配置测试。
+     * 验证弹性调度器的创建。
+     */
     @Nested
     @DisplayName("resilienceScheduler 配置测试")
     class ResilienceSchedulerTests {
 
+        /**
+         * 测试创建调度器。
+         */
         @Test
         @DisplayName("应该创建调度器")
         void shouldCreateScheduler() {
@@ -80,10 +103,17 @@ class HttpClientAutoConfigurationTest {
         }
     }
 
+    /**
+     * AsyncResilienceInterceptor 配置测试。
+     * 验证异步弹性拦截器的创建。
+     */
     @Nested
     @DisplayName("asyncResilienceInterceptor 配置测试")
     class AsyncResilienceInterceptorTests {
 
+        /**
+         * 测试创建异步弹性拦截器。
+         */
         @Test
         @DisplayName("应该创建异步弹性拦截器")
         void shouldCreateAsyncResilienceInterceptor() {
@@ -98,10 +128,17 @@ class HttpClientAutoConfigurationTest {
         }
     }
 
+    /**
+     * HttpClientRegistry 配置测试。
+     * 验证 HTTP 客户端注册表的创建。
+     */
     @Nested
     @DisplayName("httpClientRegistry 配置测试")
     class HttpClientRegistryTests {
 
+        /**
+         * 测试创建 HTTP 客户端注册表。
+         */
         @Test
         @DisplayName("应该创建 HTTP 客户端注册表")
         void shouldCreateHttpClientRegistry() {

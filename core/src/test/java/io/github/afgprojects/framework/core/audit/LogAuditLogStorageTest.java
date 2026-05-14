@@ -8,17 +8,27 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * LogAuditLogStorage 单元测试
+ * LogAuditLogStorage 单元测试。
+ * <p>
+ * 测试基于日志输出的审计日志存储实现。
+ *
+ * @see LogAuditLogStorage
  */
 class LogAuditLogStorageTest {
 
     private LogAuditLogStorage storage;
 
+    /**
+     * 初始化测试用的存储实例。
+     */
     @BeforeEach
     void setUp() {
         storage = new LogAuditLogStorage();
     }
 
+    /**
+     * 测试调用 save 方法时是否正常输出日志。
+     */
     @Test
     void should_logAuditLog_when_saveCalled() {
         // Given
@@ -38,6 +48,9 @@ class LogAuditLogStorageTest {
         assertThatCode(() -> storage.save(auditLog)).doesNotThrowAnyException();
     }
 
+    /**
+     * 测试处理包含 null 字段的审计日志时是否正常输出。
+     */
     @Test
     void should_handleNullFields_when_logging() {
         // Given

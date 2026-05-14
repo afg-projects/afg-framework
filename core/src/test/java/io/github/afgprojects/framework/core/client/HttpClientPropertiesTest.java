@@ -9,15 +9,25 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
- * HttpClientProperties 测试
+ * HttpClientProperties 单元测试。
+ * <p>
+ * 测试 HTTP 客户端配置属性类及其嵌套配置类的默认值和属性设置。
+ *
+ * @see HttpClientProperties
  */
 @DisplayName("HttpClientProperties 测试")
 class HttpClientPropertiesTest {
 
+    /**
+     * 测试默认值配置。
+     */
     @Nested
     @DisplayName("默认值测试")
     class DefaultValueTests {
 
+        /**
+         * 测试配置类有正确的默认值。
+         */
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
@@ -30,10 +40,16 @@ class HttpClientPropertiesTest {
         }
     }
 
+    /**
+     * 测试重试配置类。
+     */
     @Nested
     @DisplayName("RetryConfig 测试")
     class RetryConfigTests {
 
+        /**
+         * 测试重试配置类有正确的默认值。
+         */
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
@@ -47,6 +63,9 @@ class HttpClientPropertiesTest {
             assertThat(config.getRetryOnStatus()).containsExactlyInAnyOrder(502, 503, 504);
         }
 
+        /**
+         * 测试正确设置重试配置属性。
+         */
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
@@ -67,10 +86,16 @@ class HttpClientPropertiesTest {
         }
     }
 
+    /**
+     * 测试熔断配置类。
+     */
     @Nested
     @DisplayName("CircuitBreakerConfig 测试")
     class CircuitBreakerConfigTests {
 
+        /**
+         * 测试熔断配置类有正确的默认值。
+         */
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
@@ -83,6 +108,9 @@ class HttpClientPropertiesTest {
             assertThat(config.getSuccessThreshold()).isEqualTo(3);
         }
 
+        /**
+         * 测试正确设置熔断配置属性。
+         */
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
@@ -101,10 +129,16 @@ class HttpClientPropertiesTest {
         }
     }
 
+    /**
+     * 测试命名客户端配置类。
+     */
     @Nested
     @DisplayName("NamedClientConfig 测试")
     class NamedClientConfigTests {
 
+        /**
+         * 测试正确合并命名配置与默认配置。
+         */
         @Test
         @DisplayName("应该正确合并配置")
         void shouldMergeConfig() {
@@ -123,6 +157,9 @@ class HttpClientPropertiesTest {
             assertThat(merged.getReadTimeout()).isEqualTo(30000);
         }
 
+        /**
+         * 测试正确设置命名客户端配置属性。
+         */
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {

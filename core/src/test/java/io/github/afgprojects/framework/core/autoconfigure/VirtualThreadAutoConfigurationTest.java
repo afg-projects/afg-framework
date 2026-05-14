@@ -11,7 +11,10 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
- * VirtualThreadAutoConfiguration 测试
+ * VirtualThreadAutoConfiguration 单元测试。
+ * 测试虚拟线程自动配置类的 Bean 创建功能。
+ *
+ * @see VirtualThreadAutoConfiguration
  */
 @DisplayName("VirtualThreadAutoConfiguration 测试")
 class VirtualThreadAutoConfigurationTest {
@@ -23,10 +26,18 @@ class VirtualThreadAutoConfigurationTest {
         configuration = new VirtualThreadAutoConfiguration();
     }
 
+    /**
+     * 虚拟线程工厂配置测试。
+     * 验证 virtualThreadFactory Bean 的创建和功能。
+     */
     @Nested
     @DisplayName("virtualThreadFactory 配置测试")
     class VirtualThreadFactoryTests {
 
+        /**
+         * 测试创建虚拟线程工厂。
+         * 验证工厂能够创建虚拟线程。
+         */
         @Test
         @DisplayName("应该创建虚拟线程工厂")
         void shouldCreateVirtualThreadFactory() {
@@ -43,10 +54,17 @@ class VirtualThreadAutoConfigurationTest {
         }
     }
 
+    /**
+     * 虚拟线程执行器配置测试。
+     * 验证 afgVirtualThreadExecutor Bean 的创建和功能。
+     */
     @Nested
     @DisplayName("afgVirtualThreadExecutor 配置测试")
     class AfgVirtualThreadExecutorTests {
 
+        /**
+         * 测试创建虚拟线程执行器。
+         */
         @Test
         @DisplayName("应该创建虚拟线程执行器")
         void shouldCreateVirtualThreadExecutor() {
@@ -55,6 +73,10 @@ class VirtualThreadAutoConfigurationTest {
             assertThat(executor).isNotNull();
         }
 
+        /**
+         * 测试执行器创建虚拟线程。
+         * 验证通过执行器执行的任务在虚拟线程中运行。
+         */
         @Test
         @DisplayName("执行器应该创建虚拟线程")
         void executorShouldCreateVirtualThreads() {
@@ -77,10 +99,17 @@ class VirtualThreadAutoConfigurationTest {
         }
     }
 
+    /**
+     * 异步任务执行器测试。
+     * 验证 VirtualThreadAsyncTaskExecutor 的创建。
+     */
     @Nested
     @DisplayName("VirtualThreadAsyncTaskExecutor 测试")
     class VirtualThreadAsyncTaskExecutorTests {
 
+        /**
+         * 测试创建异步任务执行器。
+         */
         @Test
         @DisplayName("应该创建异步任务执行器")
         void shouldCreateAsyncTaskExecutor() {

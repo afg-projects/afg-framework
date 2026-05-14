@@ -6,11 +6,26 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * TaskStatus 测试
+ * {@link TaskStatus} 任务状态枚举测试
+ *
+ * <p>验证任务状态枚举包含所有定义的状态：
+ * <ul>
+ *   <li>SCHEDULED - 已调度</li>
+ *   <li>RUNNING - 运行中</li>
+ *   <li>PAUSED - 已暂停</li>
+ *   <li>COMPLETED - 已完成</li>
+ *   <li>CANCELLED - 已取消</li>
+ *   <li>FAILED - 已失败</li>
+ * </ul>
+ *
+ * @see TaskStatus
  */
 @DisplayName("TaskStatus 测试")
 class TaskStatusTest {
 
+    /**
+     * 验证枚举包含所有 6 种任务状态
+     */
     @Test
     @DisplayName("应该包含所有任务状态")
     void shouldContainAllStatuses() {
@@ -27,6 +42,9 @@ class TaskStatusTest {
         );
     }
 
+    /**
+     * 验证枚举名称正确
+     */
     @Test
     @DisplayName("应该正确获取枚举名称")
     void shouldGetName() {

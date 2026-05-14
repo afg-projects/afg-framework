@@ -12,7 +12,18 @@ import org.junit.jupiter.api.Test;
 import io.github.afgprojects.framework.core.cloud.CloudNativeProperties.GracefulShutdownConfig;
 
 /**
- * GracefulShutdownManager 测试
+ * {@link GracefulShutdownManager} 的单元测试。
+ * <p>
+ * 测试优雅停机管理器的核心功能，包括：
+ * <ul>
+ *   <li>关闭钩子的注册与执行</li>
+ *   <li>活跃请求计数管理</li>
+ *   <li>停机状态跟踪</li>
+ *   <li>阶段顺序执行</li>
+ * </ul>
+ *
+ * @see GracefulShutdownManager
+ * @see GracefulShutdownConfig
  */
 @DisplayName("GracefulShutdownManager 测试")
 class GracefulShutdownManagerTest {
@@ -29,10 +40,18 @@ class GracefulShutdownManagerTest {
         manager = new GracefulShutdownManager(config);
     }
 
+    /**
+     * 钩子注册测试分组。
+     * <p>
+     * 验证关闭钩子的注册功能。
+     */
     @Nested
     @DisplayName("注册测试")
     class RegisterTests {
 
+        /**
+         * 测试应能注册不带阶段的停机回调。
+         */
         @Test
         @DisplayName("应该注册停机回调")
         void shouldRegisterShutdownHook() {
@@ -41,6 +60,9 @@ class GracefulShutdownManagerTest {
             assertThat(manager.getShutdownStatus("test-hook")).isNull();
         }
 
+        /**
+         * 测试应能注册带阶段值的停机回调。
+         */
         @Test
         @DisplayName("应该注册带阶段的停机回调")
         void shouldRegisterShutdownHookWithPhase() {
@@ -50,10 +72,18 @@ class GracefulShutdownManagerTest {
         }
     }
 
+    /**
+     * 活跃请求测试分组。
+     * <p>
+     * 验证活跃请求计数的增减操作。
+     */
     @Nested
     @DisplayName("活跃请求测试")
     class ActiveRequestsTests {
 
+        /**
+         * 测试应能正确增加活跃请求计数。
+         */
         @Test
         @DisplayName("应该正确增加活跃请求计数")
         void shouldIncrementActiveRequests() {
@@ -62,6 +92,9 @@ class GracefulShutdownManagerTest {
             assertThat(manager.getActiveRequests()).isEqualTo(1);
         }
 
+        /**
+         * 测试应能正确减少活跃请求计数。
+         */
         @Test
         @DisplayName("应该正确减少活跃请求计数")
         void shouldDecrementActiveRequests() {
@@ -73,16 +106,27 @@ class GracefulShutdownManagerTest {
         }
     }
 
+    /**
+     * 停机状态测试分组。
+     * <p>
+     * 验证停机状态的初始值和状态转换。
+     */
     @Nested
     @DisplayName("停机状态测试")
     class ShutdownStatusTests {
 
+        /**
+         * 测试初始状态应不在停机中。
+         */
         @Test
         @DisplayName("初始状态应该不在停机中")
         void shouldNotBeShuttingDownInitially() {
             assertThat(manager.isShuttingDown()).isFalse();
         }
 
+        /**
+         * 测试调用 shutdown 后应处于停机状态。
+         */
         @Test
         @DisplayName("停机后应该处于停机状态")
         void shouldBeShuttingDownAfterShutdown() {
@@ -93,10 +137,18 @@ class GracefulShutdownManagerTest {
         }
     }
 
+    /**
+     * 停机执行测试分组。
+     * <p>
+     * 验证停机回调的执行行为，包括执行顺序、状态记录和重复调用处理。
+     */
     @Nested
     @DisplayName("停机执行测试")
     class ShutdownExecutionTests {
 
+        /**
+         * 测试停机时应执行已注册的回调。
+         */
         @Test
         @DisplayName("应该执行停机回调")
         void shouldExecuteShutdownHooks() {
@@ -110,6 +162,9 @@ class GracefulShutdownManagerTest {
                     GracefulShutdownManager.ShutdownStatus.COMPLETED);
         }
 
+        /**
+         * 测试停机回调应按阶段值从小到大顺序执行。
+         */
         @Test
         @DisplayName("应该按阶段顺序执行")
         void shouldExecuteHooksInPhaseOrder() {
@@ -123,6 +178,9 @@ class GracefulShutdownManagerTest {
             assertThat(order.toString()).isEqualTo("123");
         }
 
+        /**
+         * 测试回调执行失败时应记录 FAILED 状态。
+         */
         @Test
         @DisplayName("应该记录失败状态")
         void shouldRecordFailedStatus() {
@@ -136,6 +194,9 @@ class GracefulShutdownManagerTest {
                     GracefulShutdownManager.ShutdownStatus.FAILED);
         }
 
+        /**
+         * 测试重复调用 shutdown 应被忽略，回调只执行一次。
+         */
         @Test
         @DisplayName("重复停机应该被忽略")
         void shouldIgnoreDuplicateShutdown() {
@@ -149,10 +210,18 @@ class GracefulShutdownManagerTest {
         }
     }
 
+    /**
+     * ShutdownStatus 枚举测试分组。
+     * <p>
+     * 验证 ShutdownStatus 枚举包含所有预期的状态值。
+     */
     @Nested
     @DisplayName("ShutdownStatus 枚举测试")
     class ShutdownStatusEnumTests {
 
+        /**
+         * 测试枚举应包含 PENDING、RUNNING、COMPLETED、FAILED 四种状态。
+         */
         @Test
         @DisplayName("应该包含所有状态")
         void shouldContainAllStatuses() {
@@ -169,10 +238,18 @@ class GracefulShutdownManagerTest {
         }
     }
 
+    /**
+     * ShutdownHook 记录测试分组。
+     * <p>
+     * 验证 ShutdownHook 记录类的创建和属性访问。
+     */
     @Nested
     @DisplayName("ShutdownHook 记录测试")
     class ShutdownHookTests {
 
+        /**
+         * 测试应能正确创建 ShutdownHook 记录并访问其属性。
+         */
         @Test
         @DisplayName("应该正确创建 ShutdownHook")
         void shouldCreateShutdownHook() {

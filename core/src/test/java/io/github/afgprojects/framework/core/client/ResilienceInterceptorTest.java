@@ -28,7 +28,11 @@ import io.github.afgprojects.framework.core.client.ResilienceInterceptor.Circuit
 import io.github.afgprojects.framework.core.client.ResilienceInterceptor.RetryExhaustedException;
 
 /**
- * ResilienceInterceptor 测试
+ * ResilienceInterceptor 单元测试。
+ * <p>
+ * 测试同步弹性拦截器的重试、熔断、异常处理等功能。
+ *
+ * @see ResilienceInterceptor
  */
 @DisplayName("ResilienceInterceptor 测试")
 class ResilienceInterceptorTest {
@@ -64,10 +68,16 @@ class ResilienceInterceptorTest {
         return props;
     }
 
+    /**
+     * 测试成功请求场景。
+     */
     @Nested
     @DisplayName("成功请求测试")
     class SuccessfulRequestTests {
 
+        /**
+         * 测试成功请求返回正确的响应。
+         */
         @Test
         @DisplayName("成功请求应该返回响应")
         void shouldReturnResponseOnSuccess() throws IOException {
@@ -84,6 +94,9 @@ class ResilienceInterceptorTest {
             verify(execution, times(1)).execute(any(), any());
         }
 
+        /**
+         * 测试成功请求被记录为成功状态。
+         */
         @Test
         @DisplayName("成功请求应该记录为成功")
         void shouldRecordSuccessOnOkResponse() throws IOException {
@@ -100,10 +113,16 @@ class ResilienceInterceptorTest {
         }
     }
 
+    /**
+     * 测试重试功能。
+     */
     @Nested
     @DisplayName("重试测试")
     class RetryTests {
 
+        /**
+         * 测试在配置的状态码上触发重试。
+         */
         @Test
         @DisplayName("应该在配置的状态码上重试")
         void shouldRetryOnConfiguredStatusCodes() throws IOException {
@@ -127,6 +146,9 @@ class ResilienceInterceptorTest {
             verify(execution, times(2)).execute(any(), any());
         }
 
+        /**
+         * 测试重试耗尽后返回最终响应。
+         */
         @Test
         @DisplayName("重试耗尽应该返回最终响应")
         void shouldReturnResponseWhenRetryExhausted() throws IOException {
@@ -144,6 +166,9 @@ class ResilienceInterceptorTest {
             verify(execution, times(3)).execute(any(), any());
         }
 
+        /**
+         * 测试在 IO 异常上触发重试。
+         */
         @Test
         @DisplayName("应该在 IO 异常上重试")
         void shouldRetryOnIOException() throws IOException {
@@ -165,6 +190,9 @@ class ResilienceInterceptorTest {
             verify(execution, times(2)).execute(any(), any());
         }
 
+        /**
+         * 测试 IO 异常重试耗尽后抛出原始异常。
+         */
         @Test
         @DisplayName("IO 异常重试耗尽应该抛出原始异常")
         void shouldThrowOriginalIOExceptionWhenRetryExhausted() throws IOException {
@@ -179,10 +207,16 @@ class ResilienceInterceptorTest {
         }
     }
 
+    /**
+     * 测试熔断器功能。
+     */
     @Nested
     @DisplayName("熔断器测试")
     class CircuitBreakerTests {
 
+        /**
+         * 测试熔断器关闭时允许请求通过。
+         */
         @Test
         @DisplayName("熔断器关闭时应该允许请求")
         void shouldAllowRequestWhenCircuitBreakerClosed() throws IOException {
@@ -198,6 +232,9 @@ class ResilienceInterceptorTest {
             verify(execution, times(1)).execute(any(), any());
         }
 
+        /**
+         * 测试禁用熔断器时跳过熔断检查。
+         */
         @Test
         @DisplayName("禁用熔断器时应该跳过熔断检查")
         void shouldSkipCircuitBreakerWhenDisabled() throws IOException {
@@ -217,10 +254,16 @@ class ResilienceInterceptorTest {
         }
     }
 
+    /**
+     * 测试自定义异常类。
+     */
     @Nested
     @DisplayName("异常类测试")
     class ExceptionTests {
 
+        /**
+         * 测试 CircuitBreakerOpenException 包含错误码。
+         */
         @Test
         @DisplayName("CircuitBreakerOpenException 应该包含错误码")
         void circuitBreakerOpenExceptionShouldContainCode() {
@@ -232,6 +275,9 @@ class ResilienceInterceptorTest {
             assertThat(exception.getMessage()).isEqualTo("Circuit open");
         }
 
+        /**
+         * 测试 RetryExhaustedException 包含错误码和原因。
+         */
         @Test
         @DisplayName("RetryExhaustedException 应该包含错误码和原因")
         void retryExhaustedExceptionShouldContainCodeAndCause() {
@@ -245,6 +291,9 @@ class ResilienceInterceptorTest {
             assertThat(exception.getCause()).isEqualTo(cause);
         }
 
+        /**
+         * 测试 RetryExhaustedException 支持无原因构造。
+         */
         @Test
         @DisplayName("RetryExhaustedException 应该支持无原因构造")
         void retryExhaustedExceptionShouldSupportNoCause() {
@@ -257,10 +306,16 @@ class ResilienceInterceptorTest {
         }
     }
 
+    /**
+     * 测试 URI 提取功能。
+     */
     @Nested
     @DisplayName("URI 提取测试")
     class KeyExtractionTests {
 
+        /**
+         * 测试从 URI 提取 host 作为熔断器 key。
+         */
         @Test
         @DisplayName("应该从 URI 提取 host 作为熔断器 key")
         void shouldExtractHostFromUri() throws IOException {
@@ -276,6 +331,9 @@ class ResilienceInterceptorTest {
             verify(execution, times(1)).execute(any(), any());
         }
 
+        /**
+         * 测试 URI 没有 host 时使用 default 作为 key。
+         */
         @Test
         @DisplayName("URI 没有 host 时应该使用 default 作为 key")
         void shouldUseDefaultKeyWhenNoHost() throws IOException {
@@ -292,10 +350,16 @@ class ResilienceInterceptorTest {
         }
     }
 
+    /**
+     * 测试服务端错误处理。
+     */
     @Nested
     @DisplayName("服务端错误测试")
     class ServerErrorTests {
 
+        /**
+         * 测试 5xx 响应重试耗尽后返回最终响应。
+         */
         @Test
         @DisplayName("5xx 响应重试耗尽应该返回最终响应")
         void shouldReturnResponseOn5xxRetryExhausted() throws IOException {
@@ -313,6 +377,9 @@ class ResilienceInterceptorTest {
             verify(execution, times(3)).execute(any(), any());
         }
 
+        /**
+         * 测试 4xx 响应被记录为成功（不触发重试）。
+         */
         @Test
         @DisplayName("4xx 响应应该记录为成功")
         void shouldRecordSuccessOn4xxResponse() throws IOException {

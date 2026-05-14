@@ -9,15 +9,31 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
- * PresignedUrlOptions 测试
+ * {@link PresignedUrlOptions} 预签名 URL 选项测试
+ *
+ * <p>测试预签名 URL 选项的创建和配置：
+ * <ul>
+ *   <li>GET 请求选项</li>
+ *   <li>PUT 请求选项</li>
+ *   <li>自定义过期时间</li>
+ *   <li>Builder 构建</li>
+ * </ul>
+ *
+ * @see PresignedUrlOptions
  */
 @DisplayName("PresignedUrlOptions 测试")
 class PresignedUrlOptionsTest {
 
+    /**
+     * 静态工厂方法测试
+     */
     @Nested
     @DisplayName("静态工厂方法测试")
     class StaticFactoryTests {
 
+        /**
+         * 测试创建 GET 请求选项
+         */
         @Test
         @DisplayName("应该创建 GET 请求选项")
         void shouldCreateForGet() {
@@ -28,6 +44,9 @@ class PresignedUrlOptionsTest {
             assertThat(options.expiration()).isAfter(Instant.now());
         }
 
+        /**
+         * 测试创建带自定义过期时间的 GET 请求选项
+         */
         @Test
         @DisplayName("应该创建带自定义过期时间的 GET 请求选项")
         void shouldCreateForGetWithCustomExpiration() {
@@ -39,6 +58,9 @@ class PresignedUrlOptionsTest {
             assertThat(options.contentType()).isNull();
         }
 
+        /**
+         * 测试创建 PUT 请求选项
+         */
         @Test
         @DisplayName("应该创建 PUT 请求选项")
         void shouldCreateForPut() {
@@ -49,6 +71,9 @@ class PresignedUrlOptionsTest {
             assertThat(options.expiration()).isAfter(Instant.now());
         }
 
+        /**
+         * 测试创建带自定义过期时间的 PUT 请求选项
+         */
         @Test
         @DisplayName("应该创建带自定义过期时间的 PUT 请求选项")
         void shouldCreateForPutWithCustomExpiration() {
@@ -61,10 +86,16 @@ class PresignedUrlOptionsTest {
         }
     }
 
+    /**
+     * Builder 构建测试
+     */
     @Nested
     @DisplayName("Builder 测试")
     class BuilderTests {
 
+        /**
+         * 测试使用 Builder 构建选项
+         */
         @Test
         @DisplayName("应该使用 Builder 构建选项")
         void shouldBuildWithBuilder() {
@@ -80,6 +111,9 @@ class PresignedUrlOptionsTest {
             assertThat(options.contentType()).isEqualTo("application/json");
         }
 
+        /**
+         * 测试支持 expirationSeconds
+         */
         @Test
         @DisplayName("应该支持 expirationSeconds")
         void shouldSupportExpirationSeconds() {
@@ -91,6 +125,9 @@ class PresignedUrlOptionsTest {
             assertThat(options.expiration()).isBefore(Instant.now().plusSeconds(1900));
         }
 
+        /**
+         * 测试默认值
+         */
         @Test
         @DisplayName("应该有默认值")
         void shouldHaveDefaultValues() {
@@ -101,10 +138,16 @@ class PresignedUrlOptionsTest {
         }
     }
 
+    /**
+     * Record 特性测试
+     */
     @Nested
     @DisplayName("Record 特性测试")
     class RecordTests {
 
+        /**
+         * 测试 equals 实现
+         */
         @Test
         @DisplayName("应该正确实现 equals")
         void shouldImplementEquals() {
@@ -115,6 +158,9 @@ class PresignedUrlOptionsTest {
             assertThat(options1).isEqualTo(options2);
         }
 
+        /**
+         * 测试 hashCode 实现
+         */
         @Test
         @DisplayName("应该正确实现 hashCode")
         void shouldImplementHashCode() {

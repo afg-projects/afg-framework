@@ -28,7 +28,12 @@ import org.mockito.quality.Strictness;
 import io.github.afgprojects.framework.core.support.BaseUnitTest;
 
 /**
- * CacheAspect 单元测试
+ * CacheAspect 单元测试。
+ * <p>
+ * 测试缓存切面的核心逻辑，包括 @Cached、@CacheEvict 和 @CachePut 注解的处理。
+ * </p>
+ *
+ * @see CacheAspect
  */
 @DisplayName("CacheAspect 单元测试")
 @ExtendWith(MockitoExtension.class)
@@ -54,10 +59,19 @@ class CacheAspectTest extends BaseUnitTest {
         cacheAspect = new CacheAspect(cacheManager);
     }
 
+    /**
+     * @Cached 注解测试。
+     * <p>
+     * 测试缓存命中、未命中、条件判断、unless 条件和 null 值缓存等场景。
+     * </p>
+     */
     @Nested
     @DisplayName("@Cached 注解测试")
     class CachedTests {
 
+        /**
+         * 测试缓存命中时直接返回缓存值。
+         */
         @Test
         @DisplayName("缓存命中时应该直接返回缓存值")
         void shouldReturnCachedValueWhenHit() throws Throwable {
@@ -75,6 +89,9 @@ class CacheAspectTest extends BaseUnitTest {
             verify(joinPoint, never()).proceed();
         }
 
+        /**
+         * 测试缓存未命中时执行方法并缓存结果。
+         */
         @Test
         @DisplayName("缓存未命中时应该执行方法并缓存结果")
         void shouldExecuteAndCacheWhenMiss() throws Throwable {
@@ -94,6 +111,9 @@ class CacheAspectTest extends BaseUnitTest {
             verify(cache).put(anyString(), any(), anyLong());
         }
 
+        /**
+         * 测试条件不满足时跳过缓存。
+         */
         @Test
         @DisplayName("条件不满足时应该跳过缓存")
         void shouldSkipCacheWhenConditionNotMet() throws Throwable {
@@ -111,6 +131,9 @@ class CacheAspectTest extends BaseUnitTest {
             verify(cache, never()).get(anyString());
         }
 
+        /**
+         * 测试 unless 条件满足时不缓存结果。
+         */
         @Test
         @DisplayName("unless 条件满足时应该不缓存结果")
         void shouldNotCacheWhenUnlessMet() throws Throwable {
@@ -129,6 +152,9 @@ class CacheAspectTest extends BaseUnitTest {
             verify(cache, never()).put(anyString(), any(), anyLong());
         }
 
+        /**
+         * 测试缓存 null 值当 cacheNull 为 true。
+         */
         @Test
         @DisplayName("应该缓存 null 值当 cacheNull 为 true")
         void shouldCacheNullWhenCacheNullIsTrue() throws Throwable {
@@ -148,10 +174,19 @@ class CacheAspectTest extends BaseUnitTest {
         }
     }
 
+    /**
+     * @CacheEvict 注解测试。
+     * <p>
+     * 测试缓存清除的各种场景，包括单键清除、全部清除、方法执行前清除和条件判断。
+     * </p>
+     */
     @Nested
     @DisplayName("@CacheEvict 注解测试")
     class CacheEvictTests {
 
+        /**
+         * 测试清除指定键。
+         */
         @Test
         @DisplayName("应该清除指定键")
         void shouldEvictKey() throws Throwable {
@@ -169,6 +204,9 @@ class CacheAspectTest extends BaseUnitTest {
             verify(cache).evict(anyString());
         }
 
+        /**
+         * 测试清除所有条目。
+         */
         @Test
         @DisplayName("应该清除所有条目")
         void shouldEvictAllEntries() throws Throwable {
@@ -186,6 +224,9 @@ class CacheAspectTest extends BaseUnitTest {
             verify(cache).clear();
         }
 
+        /**
+         * 测试方法执行前清除缓存。
+         */
         @Test
         @DisplayName("方法执行前应该清除缓存")
         void shouldEvictBeforeInvocation() throws Throwable {
@@ -203,6 +244,9 @@ class CacheAspectTest extends BaseUnitTest {
             verify(cache).evict(anyString());
         }
 
+        /**
+         * 测试条件不满足时跳过清除。
+         */
         @Test
         @DisplayName("条件不满足时应该跳过清除")
         void shouldSkipEvictWhenConditionNotMet() throws Throwable {
@@ -221,10 +265,19 @@ class CacheAspectTest extends BaseUnitTest {
         }
     }
 
+    /**
+     * @CachePut 注解测试。
+     * <p>
+     * 测试缓存更新的各种场景，包括正常更新、条件判断和 unless 条件。
+     * </p>
+     */
     @Nested
     @DisplayName("@CachePut 注解测试")
     class CachePutTests {
 
+        /**
+         * 测试更新缓存。
+         */
         @Test
         @DisplayName("应该更新缓存")
         void shouldPutCache() throws Throwable {
@@ -242,6 +295,9 @@ class CacheAspectTest extends BaseUnitTest {
             verify(cache).put(anyString(), any(), anyLong());
         }
 
+        /**
+         * 测试条件不满足时跳过更新。
+         */
         @Test
         @DisplayName("条件不满足时应该跳过更新")
         void shouldSkipPutWhenConditionNotMet() throws Throwable {
@@ -259,6 +315,9 @@ class CacheAspectTest extends BaseUnitTest {
             verify(cache, never()).put(anyString(), any(), anyLong());
         }
 
+        /**
+         * 测试 unless 条件满足时跳过更新。
+         */
         @Test
         @DisplayName("unless 条件满足时应该跳过更新")
         void shouldSkipPutWhenUnlessMet() throws Throwable {

@@ -26,13 +26,23 @@ import io.github.afgprojects.framework.core.api.storage.model.StorageType;
 import io.github.afgprojects.framework.core.api.storage.model.UploadRequest;
 
 /**
- * FileStorage 测试
+ * {@link FileStorage} 文件存储接口测试
+ *
+ * <p>测试文件存储接口的默认方法和基本操作：
+ * <ul>
+ *   <li>上传、下载、删除文件</li>
+ *   <li>文件元数据管理</li>
+ *   <li>预签名 URL 生成</li>
+ *   <li>文件复制和移动</li>
+ * </ul>
+ *
+ * @see FileStorage
  */
 @DisplayName("FileStorage 测试")
 class FileStorageTest {
 
     /**
-     * 测试用 FileStorage 实现
+     * 测试用 FileStorage 实现，用于验证接口默认方法
      */
     private static class TestFileStorage implements FileStorage {
         @Override
@@ -101,10 +111,16 @@ class FileStorageTest {
         }
     }
 
+    /**
+     * 接口默认方法测试
+     */
     @Nested
     @DisplayName("默认方法测试")
     class DefaultMethodTests {
 
+        /**
+         * 测试简化的 upload 方法
+         */
         @Test
         @DisplayName("upload 简化方法应该正常工作")
         void shouldWorkWithSimplifiedUpload() {
@@ -117,6 +133,9 @@ class FileStorageTest {
             assertThat(result.key()).isEqualTo("test.txt");
         }
 
+        /**
+         * 测试 listByPrefix 方法
+         */
         @Test
         @DisplayName("listByPrefix 应该正常工作")
         void shouldWorkWithListByPrefix() {
@@ -127,6 +146,9 @@ class FileStorageTest {
             assertThat(result).isNotNull();
         }
 
+        /**
+         * 测试简化的 getPresignedUrl 方法
+         */
         @Test
         @DisplayName("getPresignedUrl 简化方法应该正常工作")
         void shouldWorkWithSimplifiedPresignedUrl() {
@@ -137,6 +159,9 @@ class FileStorageTest {
             assertThat(result).contains("test.txt");
         }
 
+        /**
+         * 测试 move 方法（基于 copy + delete 实现）
+         */
         @Test
         @DisplayName("move 应该调用 copy 和 delete")
         void shouldCallCopyAndDelete() {
@@ -151,10 +176,16 @@ class FileStorageTest {
         }
     }
 
+    /**
+     * 接口方法测试
+     */
     @Nested
     @DisplayName("接口方法测试")
     class InterfaceMethodTests {
 
+        /**
+         * 测试获取存储类型
+         */
         @Test
         @DisplayName("应该正确获取存储类型")
         void shouldGetStorageType() {
@@ -163,6 +194,9 @@ class FileStorageTest {
             assertThat(storage.getStorageType()).isEqualTo(StorageType.LOCAL);
         }
 
+        /**
+         * 测试获取存储桶名称
+         */
         @Test
         @DisplayName("应该正确获取存储桶名称")
         void shouldGetBucket() {
@@ -171,6 +205,9 @@ class FileStorageTest {
             assertThat(storage.getBucket()).isEqualTo("test-bucket");
         }
 
+        /**
+         * 测试上传文件
+         */
         @Test
         @DisplayName("应该正确上传文件")
         void shouldUploadFile() {
@@ -183,6 +220,9 @@ class FileStorageTest {
             assertThat(result.key()).isEqualTo("test.txt");
         }
 
+        /**
+         * 测试下载文件
+         */
         @Test
         @DisplayName("应该正确下载文件")
         void shouldDownloadFile() {
@@ -193,6 +233,9 @@ class FileStorageTest {
             assertThat(result).isNotNull();
         }
 
+        /**
+         * 测试删除文件
+         */
         @Test
         @DisplayName("应该正确删除文件")
         void shouldDeleteFile() {
@@ -201,6 +244,9 @@ class FileStorageTest {
             assertThat(storage.delete("test.txt")).isTrue();
         }
 
+        /**
+         * 测试批量删除文件
+         */
         @Test
         @DisplayName("应该正确批量删除文件")
         void shouldDeleteBatch() {
@@ -209,6 +255,9 @@ class FileStorageTest {
             assertThat(storage.deleteBatch(Collections.singletonList("test.txt"))).isEqualTo(1);
         }
 
+        /**
+         * 测试检查文件是否存在
+         */
         @Test
         @DisplayName("应该正确检查文件是否存在")
         void shouldCheckExists() {
@@ -217,6 +266,9 @@ class FileStorageTest {
             assertThat(storage.exists("test.txt")).isTrue();
         }
 
+        /**
+         * 测试获取文件信息
+         */
         @Test
         @DisplayName("应该正确获取文件信息")
         void shouldGetFileInfo() {
@@ -228,6 +280,9 @@ class FileStorageTest {
             assertThat(result.key()).isEqualTo("test.txt");
         }
 
+        /**
+         * 测试列出文件
+         */
         @Test
         @DisplayName("应该正确列出文件")
         void shouldListFiles() {
@@ -238,6 +293,9 @@ class FileStorageTest {
             assertThat(result).isNotNull();
         }
 
+        /**
+         * 测试获取 URL
+         */
         @Test
         @DisplayName("应该正确获取 URL")
         void shouldGetUrl() {
@@ -246,6 +304,9 @@ class FileStorageTest {
             assertThat(storage.getUrl("test.txt")).contains("test.txt");
         }
 
+        /**
+         * 测试更新元数据
+         */
         @Test
         @DisplayName("应该正确更新元数据")
         void shouldUpdateMetadata() {
@@ -258,6 +319,9 @@ class FileStorageTest {
             assertThat(result).isNotNull();
         }
 
+        /**
+         * 测试复制文件
+         */
         @Test
         @DisplayName("应该正确复制文件")
         void shouldCopyFile() {

@@ -14,7 +14,16 @@ import org.springframework.test.annotation.DirtiesContext;
 import io.github.afgprojects.framework.core.support.TestApplication;
 
 /**
- * GracefulShutdownManager 集成测试
+ * {@link GracefulShutdownManager} 的集成测试。
+ * <p>
+ * 在 Spring Boot 环境中测试优雅停机管理器的自动配置和功能，包括：
+ * <ul>
+ *   <li>关闭钩子的注册</li>
+ *   <li>活跃请求计数</li>
+ *   <li>停机状态查询</li>
+ * </ul>
+ *
+ * @see GracefulShutdownManager
  */
 @DisplayName("GracefulShutdownManager 集成测试")
 @SpringBootTest(
@@ -32,10 +41,18 @@ class GracefulShutdownManagerIntegrationTest {
     @Autowired(required = false)
     private GracefulShutdownManager shutdownManager;
 
+    /**
+     * 关闭管理器配置测试分组。
+     * <p>
+     * 验证 Spring Boot 自动配置是否正确注入 GracefulShutdownManager。
+     */
     @Nested
     @DisplayName("关闭管理器配置测试")
     class ShutdownManagerConfigTests {
 
+        /**
+         * 测试 Spring Boot 应自动配置并注入 GracefulShutdownManager。
+         */
         @Test
         @DisplayName("应该自动配置关闭管理器")
         void shouldAutoConfigureShutdownManager() {
@@ -45,10 +62,18 @@ class GracefulShutdownManagerIntegrationTest {
         }
     }
 
+    /**
+     * 关闭钩子测试分组。
+     * <p>
+     * 验证关闭钩子的注册功能，包括带阶段和不带阶段的钩子。
+     */
     @Nested
     @DisplayName("关闭钩子测试")
     class ShutdownHookTests {
 
+        /**
+         * 测试应能注册不带阶段的关闭钩子。
+         */
         @Test
         @DisplayName("应该能够注册关闭钩子")
         void shouldRegisterShutdownHook() {
@@ -63,6 +88,9 @@ class GracefulShutdownManagerIntegrationTest {
             });
         }
 
+        /**
+         * 测试应能注册带阶段值的关闭钩子。
+         */
         @Test
         @DisplayName("应该能够注册带阶段的关闭钩子")
         void shouldRegisterShutdownHookWithPhase() {
@@ -75,10 +103,18 @@ class GracefulShutdownManagerIntegrationTest {
         }
     }
 
+    /**
+     * 活跃请求测试分组。
+     * <p>
+     * 验证活跃请求计数的增减操作。
+     */
     @Nested
     @DisplayName("活跃请求测试")
     class ActiveRequestsTests {
 
+        /**
+         * 测试应能正确增加活跃请求计数。
+         */
         @Test
         @DisplayName("应该能够增加活跃请求计数")
         void shouldIncrementActiveRequests() {
@@ -96,6 +132,9 @@ class GracefulShutdownManagerIntegrationTest {
             shutdownManager.decrementActiveRequests();
         }
 
+        /**
+         * 测试应能正确减少活跃请求计数。
+         */
         @Test
         @DisplayName("应该能够减少活跃请求计数")
         void shouldDecrementActiveRequests() {
@@ -115,10 +154,18 @@ class GracefulShutdownManagerIntegrationTest {
         }
     }
 
+    /**
+     * 停机状态测试分组。
+     * <p>
+     * 验证停机状态的查询功能。
+     */
     @Nested
     @DisplayName("停机状态测试")
     class ShutdownStatusTests {
 
+        /**
+         * 测试应能获取指定钩子的停机状态。
+         */
         @Test
         @DisplayName("应该能够获取停机状态")
         void shouldGetShutdownStatus() {
@@ -131,6 +178,9 @@ class GracefulShutdownManagerIntegrationTest {
             assertThat(status).isNull();
         }
 
+        /**
+         * 测试应能检查当前是否正在停机。
+         */
         @Test
         @DisplayName("应该能够检查是否正在停机")
         void shouldCheckIsShuttingDown() {

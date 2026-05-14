@@ -15,7 +15,12 @@ import io.github.afgprojects.framework.core.support.TestApplication;
 import org.springframework.test.annotation.DirtiesContext;
 
 /**
- * 缓存自动配置集成测试
+ * 缓存自动配置集成测试。
+ * <p>
+ * 测试缓存自动配置与 Spring Boot 的集成，包括自动配置和缓存操作。
+ * </p>
+ *
+ * @see io.github.afgprojects.framework.core.cache.config.CacheAutoConfiguration
  */
 @DisplayName("缓存自动配置集成测试")
 @SpringBootTest(
@@ -46,22 +51,37 @@ class CacheAutoConfigurationIntegrationTest {
     @Autowired(required = false)
     private CacheProperties cacheProperties;
 
+    /**
+     * 自动配置测试。
+     * <p>
+     * 测试缓存管理器、切面和属性的自动配置。
+     * </p>
+     */
     @Nested
     @DisplayName("自动配置测试")
     class AutoConfigurationTests {
 
+        /**
+         * 测试自动配置 CacheManager。
+         */
         @Test
         @DisplayName("应该自动配置 CacheManager")
         void shouldAutoConfigureCacheManager() {
             assertThat(cacheManager).isNotNull();
         }
 
+        /**
+         * 测试自动配置 CacheAspect。
+         */
         @Test
         @DisplayName("应该自动配置 CacheAspect")
         void shouldAutoConfigureCacheAspect() {
             assertThat(cacheAspect).isNotNull();
         }
 
+        /**
+         * 测试自动配置 CacheProperties。
+         */
         @Test
         @DisplayName("应该自动配置 CacheProperties")
         void shouldAutoConfigureCacheProperties() {
@@ -72,10 +92,19 @@ class CacheAutoConfigurationIntegrationTest {
         }
     }
 
+    /**
+     * 缓存操作集成测试。
+     * <p>
+     * 测试缓存的创建、使用和配置的默认 TTL。
+     * </p>
+     */
     @Nested
     @DisplayName("缓存操作集成测试")
     class CacheOperationIntegrationTests {
 
+        /**
+         * 测试能够创建和使用缓存。
+         */
         @Test
         @DisplayName("应该能够创建和使用缓存")
         void shouldCreateAndUseCache() {
@@ -87,6 +116,9 @@ class CacheAutoConfigurationIntegrationTest {
             assertThat(cache.get("key1")).isEqualTo("value1");
         }
 
+        /**
+         * 测试使用配置的默认 TTL。
+         */
         @Test
         @DisplayName("应该使用配置的默认 TTL")
         void shouldUseConfiguredDefaultTtl() {

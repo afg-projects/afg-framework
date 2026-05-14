@@ -26,7 +26,12 @@ import org.redisson.api.RedissonClient;
 import io.github.afgprojects.framework.core.support.BaseUnitTest;
 
 /**
- * DistributedCache 单元测试
+ * DistributedCache 单元测试。
+ * <p>
+ * 测试分布式缓存的基本操作，包括 get、put、evict、containsKey、putIfAbsent、getOrLoad 等方法。
+ * </p>
+ *
+ * @see DistributedCache
  */
 @DisplayName("DistributedCache 单元测试")
 @ExtendWith(MockitoExtension.class)
@@ -54,28 +59,46 @@ class DistributedCacheTest extends BaseUnitTest {
         cache = new DistributedCache<>("test-cache", config, redissonClient);
     }
 
+    /**
+     * 基本操作测试。
+     * <p>
+     * 测试缓存名称获取、配置获取、Redisson 客户端获取和指标获取等基本功能。
+     * </p>
+     */
     @Nested
     @DisplayName("基本操作测试")
     class BasicOperationTests {
 
+        /**
+         * 测试获取缓存名称。
+         */
         @Test
         @DisplayName("应该正确获取缓存名称")
         void shouldGetName() {
             assertThat(cache.getName()).isEqualTo("test-cache");
         }
 
+        /**
+         * 测试获取缓存配置。
+         */
         @Test
         @DisplayName("应该正确获取配置")
         void shouldGetConfig() {
             assertThat(cache.getConfig()).isNotNull();
         }
 
+        /**
+         * 测试获取 Redisson 客户端。
+         */
         @Test
         @DisplayName("应该正确获取 Redisson 客户端")
         void shouldGetRedissonClient() {
             assertThat(cache.getRedissonClient()).isEqualTo(redissonClient);
         }
 
+        /**
+         * 测试获取缓存指标。
+         */
         @Test
         @DisplayName("应该正确获取指标")
         void shouldGetMetrics() {
@@ -83,10 +106,19 @@ class DistributedCacheTest extends BaseUnitTest {
         }
     }
 
+    /**
+     * get 操作测试。
+     * <p>
+     * 测试缓存值的获取，包括正常获取、缓存不存在和 NullValue 处理等场景。
+     * </p>
+     */
     @Nested
     @DisplayName("get 操作测试")
     class GetTests {
 
+        /**
+         * 测试正常获取缓存值。
+         */
         @Test
         @DisplayName("应该获取缓存值")
         void shouldGetValue() {
@@ -100,6 +132,9 @@ class DistributedCacheTest extends BaseUnitTest {
             assertThat(value).isEqualTo("test-value");
         }
 
+        /**
+         * 测试缓存不存在时返回 null。
+         */
         @Test
         @DisplayName("缓存不存在时应该返回 null")
         void shouldReturnNullWhenNotExists() {
@@ -113,6 +148,9 @@ class DistributedCacheTest extends BaseUnitTest {
             assertThat(value).isNull();
         }
 
+        /**
+         * 测试正确处理 NullValue 占位符。
+         */
         @Test
         @DisplayName("应该正确处理 NullValue")
         void shouldHandleNullValue() {
@@ -127,10 +165,19 @@ class DistributedCacheTest extends BaseUnitTest {
         }
     }
 
+    /**
+     * put 操作测试。
+     * <p>
+     * 测试缓存值的存储，包括基本存储和自定义 TTL 存储。
+     * </p>
+     */
     @Nested
     @DisplayName("put 操作测试")
     class PutTests {
 
+        /**
+         * 测试存储缓存值。
+         */
         @Test
         @DisplayName("应该存储值")
         void shouldPutValue() {
@@ -141,6 +188,9 @@ class DistributedCacheTest extends BaseUnitTest {
             verify(bucket).set(any());
         }
 
+        /**
+         * 测试使用自定义 TTL 存储缓存值。
+         */
         @Test
         @DisplayName("应该支持自定义 TTL")
         void shouldPutWithTtl() {
@@ -152,10 +202,19 @@ class DistributedCacheTest extends BaseUnitTest {
         }
     }
 
+    /**
+     * evict 操作测试。
+     * <p>
+     * 测试缓存键的删除操作。
+     * </p>
+     */
     @Nested
     @DisplayName("evict 操作测试")
     class EvictTests {
 
+        /**
+         * 测试删除缓存键。
+         */
         @Test
         @DisplayName("应该删除缓存键")
         void shouldEvictKey() {
@@ -167,10 +226,19 @@ class DistributedCacheTest extends BaseUnitTest {
         }
     }
 
+    /**
+     * containsKey 操作测试。
+     * <p>
+     * 测试缓存键的存在性检查。
+     * </p>
+     */
     @Nested
     @DisplayName("containsKey 操作测试")
     class ContainsKeyTests {
 
+        /**
+         * 测试键存在时返回 true。
+         */
         @Test
         @DisplayName("应该检查键是否存在")
         void shouldCheckKeyExists() {
@@ -184,6 +252,9 @@ class DistributedCacheTest extends BaseUnitTest {
             assertThat(exists).isTrue();
         }
 
+        /**
+         * 测试键不存在时返回 false。
+         */
         @Test
         @DisplayName("键不存在时应该返回 false")
         void shouldReturnFalseWhenKeyNotExists() {
@@ -198,10 +269,19 @@ class DistributedCacheTest extends BaseUnitTest {
         }
     }
 
+    /**
+     * putIfAbsent 操作测试。
+     * <p>
+     * 测试仅在键不存在时设置值的操作。
+     * </p>
+     */
     @Nested
     @DisplayName("putIfAbsent 操作测试")
     class PutIfAbsentTests {
 
+        /**
+         * 测试成功设置不存在的键。
+         */
         @Test
         @DisplayName("应该成功设置不存在的键")
         void shouldPutIfAbsent() {
@@ -215,6 +295,9 @@ class DistributedCacheTest extends BaseUnitTest {
             assertThat(result).isNull();
         }
 
+        /**
+         * 测试键已存在时返回已存在的值。
+         */
         @Test
         @DisplayName("键已存在时应该返回已存在的值")
         void shouldReturnExistingWhenKeyExists() {
@@ -230,10 +313,19 @@ class DistributedCacheTest extends BaseUnitTest {
         }
     }
 
+    /**
+     * getOrLoad 操作测试。
+     * <p>
+     * 测试缓存未命中时自动加载数据的功能。
+     * </p>
+     */
     @Nested
     @DisplayName("getOrLoad 操作测试")
     class GetOrLoadTests {
 
+        /**
+         * 测试缓存命中时直接返回缓存值。
+         */
         @Test
         @DisplayName("缓存命中时应该返回缓存值")
         void shouldReturnCachedValueWhenHit() {
@@ -247,6 +339,9 @@ class DistributedCacheTest extends BaseUnitTest {
             assertThat(value).isEqualTo("cached-value");
         }
 
+        /**
+         * 测试缓存未命中时加载并缓存数据。
+         */
         @Test
         @DisplayName("缓存未命中时应该加载并缓存")
         void shouldLoadAndCacheWhenMiss() {
@@ -262,10 +357,19 @@ class DistributedCacheTest extends BaseUnitTest {
         }
     }
 
+    /**
+     * clear 操作测试。
+     * <p>
+     * 测试清空缓存的功能。
+     * </p>
+     */
     @Nested
     @DisplayName("clear 操作测试")
     class ClearTests {
 
+        /**
+         * 测试清空缓存。
+         */
         @Test
         @DisplayName("应该清空缓存")
         void shouldClearCache() {
@@ -280,10 +384,19 @@ class DistributedCacheTest extends BaseUnitTest {
         }
     }
 
+    /**
+     * size 操作测试。
+     * <p>
+     * 测试获取缓存大小。
+     * </p>
+     */
     @Nested
     @DisplayName("size 操作测试")
     class SizeTests {
 
+        /**
+         * 测试返回缓存大小。
+         */
         @Test
         @DisplayName("应该返回缓存大小")
         void shouldReturnSize() {
@@ -298,10 +411,19 @@ class DistributedCacheTest extends BaseUnitTest {
         }
     }
 
+    /**
+     * 静态工厂方法测试。
+     * <p>
+     * 测试 createDefault 静态工厂方法。
+     * </p>
+     */
     @Nested
     @DisplayName("静态工厂方法测试")
     class StaticFactoryTests {
 
+        /**
+         * 测试创建默认配置的缓存。
+         */
         @Test
         @DisplayName("应该创建默认配置的缓存")
         void shouldCreateDefaultCache() {

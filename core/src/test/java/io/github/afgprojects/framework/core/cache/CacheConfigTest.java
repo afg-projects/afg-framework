@@ -8,15 +8,29 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
- * CacheConfig 测试
+ * CacheConfig 单元测试。
+ * <p>
+ * 测试缓存配置的功能，包括默认配置和构建器模式。
+ * </p>
+ *
+ * @see CacheConfig
  */
 @DisplayName("CacheConfig 测试")
 class CacheConfigTest {
 
+    /**
+     * 默认配置测试。
+     * <p>
+     * 测试默认配置的各项属性值。
+     * </p>
+     */
     @Nested
     @DisplayName("默认配置测试")
     class DefaultConfigTests {
 
+        /**
+         * 测试创建默认配置。
+         */
         @Test
         @DisplayName("应该创建默认配置")
         void shouldCreateDefaultConfig() {
@@ -33,6 +47,12 @@ class CacheConfigTest {
         }
     }
 
+    /**
+     * 构建器模式测试。
+     * <p>
+     * 测试构建器模式设置各项配置属性。
+     * </p>
+     */
     @Nested
     @DisplayName("构建器模式测试")
     class BuilderPatternTests {
@@ -50,36 +70,54 @@ class CacheConfigTest {
                     .recordStats(false);
         }
 
+        /**
+         * 测试正确设置默认过期时间。
+         */
         @Test
         @DisplayName("应该正确设置默认过期时间")
         void shouldSetDefaultTtl() {
             assertThat(config.getDefaultTtl()).isEqualTo(300000);
         }
 
+        /**
+         * 测试正确设置最大容量。
+         */
         @Test
         @DisplayName("应该正确设置最大容量")
         void shouldSetMaximumSize() {
             assertThat(config.getMaximumSize()).isEqualTo(5000);
         }
 
+        /**
+         * 测试正确设置是否缓存 null。
+         */
         @Test
         @DisplayName("应该正确设置是否缓存 null")
         void shouldSetCacheNull() {
             assertThat(config.isCacheNull()).isFalse();
         }
 
+        /**
+         * 测试正确设置空值过期时间。
+         */
         @Test
         @DisplayName("应该正确设置空值过期时间")
         void shouldSetNullValueTtl() {
             assertThat(config.getNullValueTtl()).isEqualTo(30000);
         }
 
+        /**
+         * 测试正确设置初始容量。
+         */
         @Test
         @DisplayName("应该正确设置初始容量")
         void shouldSetInitialCapacity() {
             assertThat(config.getInitialCapacity()).isEqualTo(256);
         }
 
+        /**
+         * 测试正确设置是否开启统计。
+         */
         @Test
         @DisplayName("应该正确设置是否开启统计")
         void shouldSetRecordStats() {

@@ -15,7 +15,11 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
- * OnTenantCondition 测试类
+ * OnTenantCondition 单元测试。
+ * 测试多租户条件注解的匹配逻辑。
+ *
+ * @see OnTenantCondition
+ * @see ConditionalOnTenant
  */
 class OnTenantConditionTest {
 
@@ -33,6 +37,9 @@ class OnTenantConditionTest {
         when(context.getEnvironment()).thenReturn(environment);
     }
 
+    /**
+     * 测试租户 ID 匹配时匹配。
+     */
     @Test
     @DisplayName("租户 ID 匹配时应该匹配")
     void shouldMatchWhenTenantIdMatches() {
@@ -47,6 +54,9 @@ class OnTenantConditionTest {
         assertThat(matches).isTrue();
     }
 
+    /**
+     * 测试租户 ID 不匹配时不匹配。
+     */
     @Test
     @DisplayName("租户 ID 不匹配时应该不匹配")
     void shouldNotMatchWhenTenantIdNotMatches() {
@@ -61,6 +71,9 @@ class OnTenantConditionTest {
         assertThat(matches).isFalse();
     }
 
+    /**
+     * 测试租户 ID 缺失且 matchIfMissing 为 true 时匹配。
+     */
     @Test
     @DisplayName("租户 ID 缺失且 matchIfMissing 为 true 时应该匹配")
     void shouldMatchWhenTenantIdMissingAndMatchIfMissingTrue() {
@@ -76,6 +89,9 @@ class OnTenantConditionTest {
         assertThat(matches).isTrue();
     }
 
+    /**
+     * 测试租户 ID 缺失且 matchIfMissing 为 false 时不匹配。
+     */
     @Test
     @DisplayName("租户 ID 缺失且 matchIfMissing 为 false 时应该不匹配")
     void shouldNotMatchWhenTenantIdMissingAndMatchIfMissingFalse() {
@@ -91,6 +107,9 @@ class OnTenantConditionTest {
         assertThat(matches).isFalse();
     }
 
+    /**
+     * 测试从环境变量获取租户 ID。
+     */
     @Test
     @DisplayName("从环境变量获取租户 ID")
     void shouldGetTenantIdFromEnvironmentVariable() {
@@ -106,6 +125,9 @@ class OnTenantConditionTest {
         assertThat(matches).isTrue();
     }
 
+    /**
+     * 测试配置属性优先于环境变量。
+     */
     @Test
     @DisplayName("配置属性优先于环境变量")
     void propertyShouldTakePrecedenceOverEnvVariable() {
@@ -121,6 +143,9 @@ class OnTenantConditionTest {
         assertThat(matches).isTrue();
     }
 
+    /**
+     * 测试单一租户 ID 匹配。
+     */
     @Test
     @DisplayName("单一租户 ID 匹配")
     void shouldMatchSingleTenantId() {
@@ -135,6 +160,9 @@ class OnTenantConditionTest {
         assertThat(matches).isTrue();
     }
 
+    /**
+     * 测试注解属性为 null 时不匹配。
+     */
     @Test
     @DisplayName("注解属性为 null 时应该不匹配")
     void shouldNotMatchWhenAnnotationAttributesNull() {
@@ -148,6 +176,9 @@ class OnTenantConditionTest {
         assertThat(matches).isFalse();
     }
 
+    /**
+     * 测试租户 ID 数组为空时不匹配。
+     */
     @Test
     @DisplayName("租户 ID 数组为空时应该不匹配")
     void shouldNotMatchWhenTenantIdArrayEmpty() {
