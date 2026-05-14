@@ -63,10 +63,6 @@ dependencies {
     // Logback (结构化日志)
     api(libs.logback.classic)
 
-    // Redisson (分布式存储，功能开关)
-    compileOnly(libs.redisson)
-    compileOnly(libs.redisson.core)
-
     // Caffeine (本地缓存)
     api(libs.caffeine)
 
@@ -109,10 +105,6 @@ dependencies {
     testImplementation(libs.aspectj.weaver)
     testImplementation(libs.spring.boot.test)
     testImplementation(libs.spring.test)
-
-    // Redisson for test
-    testImplementation(libs.redisson)
-    testImplementation(libs.redisson.core)
 
     // Caffeine for test
     testImplementation(libs.caffeine)
