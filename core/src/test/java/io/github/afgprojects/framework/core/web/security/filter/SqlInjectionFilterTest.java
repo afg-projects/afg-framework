@@ -14,8 +14,18 @@ import org.junit.jupiter.api.Test;
 
 import io.github.afgprojects.framework.core.model.exception.BusinessException;
 
+/**
+ * SqlInjectionFilter 单元测试。
+ * <p>
+ * 测试 SQL 注入过滤器的功能，验证 SQL 注入模式检测和请求放行逻辑。
+ *
+ * @see SqlInjectionFilter
+ */
 class SqlInjectionFilterTest {
 
+    /**
+     * 测试无 SQL 注入时请求通过过滤器。
+     */
     @Test
     void should_passThrough_when_noSqlInjection() throws Exception {
         SqlInjectionFilter filter = new SqlInjectionFilter();

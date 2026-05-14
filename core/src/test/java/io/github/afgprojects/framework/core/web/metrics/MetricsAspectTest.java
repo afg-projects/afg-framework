@@ -18,6 +18,13 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
+/**
+ * MetricsAspect 单元测试。
+ * <p>
+ * 测试指标切面的功能，验证 @TimedMetric 和 @CountedMetric 注解的处理逻辑。
+ *
+ * @see MetricsAspect
+ */
 @ExtendWith(MockitoExtension.class)
 class MetricsAspectTest {
 
@@ -38,6 +45,9 @@ class MetricsAspectTest {
         metricsAspect = new MetricsAspect(meterRegistry, properties);
     }
 
+    /**
+     * 测试当有 @TimedMetric 注解时记录计时器指标。
+     */
     @Test
     void should_recordTimer_when_timedMetricAnnotation() throws Throwable {
         // Given

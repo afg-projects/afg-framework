@@ -17,6 +17,13 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
+/**
+ * LocaleFilter 单元测试。
+ * <p>
+ * 测试国际化区域过滤器的功能，验证 Accept-Language 头解析和 LocaleContextHolder 设置。
+ *
+ * @see LocaleFilter
+ */
 class LocaleFilterTest {
 
     private LocaleFilter localeFilter;
@@ -34,10 +41,18 @@ class LocaleFilterTest {
         LocaleContextHolder.resetLocaleContext();
     }
 
+    /**
+     * resolveLocale 方法测试分组。
+     * <p>
+     * 测试从请求头解析区域设置的各种场景。
+     */
     @Nested
     @DisplayName("resolveLocale 测试")
     class ResolveLocaleTests {
 
+        /**
+         * 测试解析 zh-CN 区域设置。
+         */
         @Test
         @DisplayName("应解析 zh-CN")
         void shouldParseChineseSimple() {
@@ -122,10 +137,18 @@ class LocaleFilterTest {
         }
     }
 
+    /**
+     * doFilter 方法测试分组。
+     * <p>
+     * 测试过滤器执行过程中 LocaleContextHolder 的设置和清理。
+     */
     @Nested
     @DisplayName("doFilter 测试")
     class DoFilterTests {
 
+        /**
+         * 测试过滤器执行时设置 LocaleContextHolder。
+         */
         @Test
         @DisplayName("应设置 LocaleContextHolder")
         void shouldSetLocaleContextHolder() throws Exception {

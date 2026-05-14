@@ -22,6 +22,13 @@ import io.github.afgprojects.framework.core.model.exception.BusinessException;
 import io.github.afgprojects.framework.core.model.exception.CommonErrorCode;
 import io.github.afgprojects.framework.core.support.BaseUnitTest;
 
+/**
+ * RateLimitInterceptor 单元测试。
+ * <p>
+ * 测试限流拦截器的功能，验证限流检查、降级方法和异常处理逻辑。
+ *
+ * @see RateLimitInterceptor
+ */
 class RateLimitInterceptorTest extends BaseUnitTest {
 
     @Mock
@@ -55,6 +62,9 @@ class RateLimitInterceptorTest extends BaseUnitTest {
         when(rateLimiterBuilder.windowSize(any(long.class))).thenReturn(rateLimiterBuilder);
     }
 
+    /**
+     * 测试当限流禁用时直接执行方法。
+     */
     @Test
     void should_proceed_when_rateLimitDisabled() throws Throwable {
         properties.setEnabled(false);

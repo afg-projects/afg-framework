@@ -9,6 +9,13 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+/**
+ * AfgRequestContextHolder 单元测试。
+ * <p>
+ * 测试请求上下文持有器的功能，验证上下文的设置、获取和清除操作。
+ *
+ * @see AfgRequestContextHolder
+ */
 class AfgRequestContextHolderTest {
 
     @BeforeEach
@@ -24,6 +31,9 @@ class AfgRequestContextHolderTest {
         RequestContextHolder.resetRequestAttributes();
     }
 
+    /**
+     * 测试设置和获取上下文。
+     */
     @Test
     void should_setAndGetContext_when_contextMethodsCalled() {
         // Given
@@ -44,6 +54,9 @@ class AfgRequestContextHolderTest {
         assertThat(retrieved.getUserId()).isEqualTo(1L);
     }
 
+    /**
+     * 测试未设置上下文时返回 null。
+     */
     @Test
     void should_returnNull_when_contextNotSet() {
         // When
@@ -53,6 +66,9 @@ class AfgRequestContextHolderTest {
         assertThat(context).isNull();
     }
 
+    /**
+     * 测试调用 clear 方法清除上下文。
+     */
     @Test
     void should_clearContext_when_clearCalled() {
         // Given

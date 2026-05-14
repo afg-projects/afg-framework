@@ -12,6 +12,13 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import io.github.afgprojects.framework.core.support.BaseUnitTest;
 
+/**
+ * PhoneValidator 单元测试。
+ * <p>
+ * 测试手机号校验器的功能，验证中国大陆手机号格式的校验逻辑。
+ *
+ * @see PhoneValidator
+ */
 @DisplayName("PhoneValidator 测试")
 class PhoneValidatorTest extends BaseUnitTest {
 

@@ -9,8 +9,18 @@ import org.junit.jupiter.api.Test;
 import io.github.afgprojects.framework.core.api.ratelimit.RateLimitAlgorithm;
 import io.github.afgprojects.framework.core.api.ratelimit.RateLimitDimension;
 
+/**
+ * RateLimit 注解单元测试。
+ * <p>
+ * 测试限流注解的功能，验证注解属性、可重复性和元注解配置。
+ *
+ * @see RateLimit
+ */
 class RateLimitTest {
 
+    /**
+     * 测试注解声明时具有默认值。
+     */
     @Test
     void should_haveDefaultValues_when_annotationDeclared() throws NoSuchMethodException {
         Method method = TestClass.class.getMethod("defaultMethod");

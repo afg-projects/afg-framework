@@ -22,6 +22,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import io.github.afgprojects.framework.core.model.exception.BusinessException;
 
+/**
+ * AbstractSecurityFilter 单元测试。
+ * <p>
+ * 测试安全过滤器抽象基类的功能，验证参数检查、威胁检测和过滤器链执行逻辑。
+ *
+ * @see AbstractSecurityFilter
+ */
 @ExtendWith(MockitoExtension.class)
 class AbstractSecurityFilterTest {
 
@@ -44,10 +51,18 @@ class AbstractSecurityFilterTest {
         filter = new TestSecurityFilter(checker);
     }
 
+    /**
+     * doFilterInternal 方法测试分组。
+     * <p>
+     * 测试过滤器内部处理逻辑的各种场景。
+     */
     @Nested
     @DisplayName("doFilterInternal tests")
     class DoFilterInternalTests {
 
+        /**
+         * 测试正常请求通过过滤器。
+         */
         @Test
         @DisplayName("Normal request should pass through filter")
         void shouldPassWhenNoThreat() throws ServletException, IOException {

@@ -12,6 +12,13 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.classic.spi.ThrowableProxy;
 
+/**
+ * StructuredLogbackLayout 单元测试。
+ * <p>
+ * 测试结构化日志布局的功能，验证 JSON 格式输出、异常信息包含、MDC 字段和敏感信息脱敏。
+ *
+ * @see StructuredLogbackLayout
+ */
 class StructuredLogbackLayoutTest {
 
     private StructuredLogbackLayout layout;
@@ -24,6 +31,9 @@ class StructuredLogbackLayoutTest {
         MDC.clear();
     }
 
+    /**
+     * 测试调用 doLayout 时输出 JSON 格式。
+     */
     @Test
     void should_outputJsonFormat_when_doLayoutCalled() {
         // Given

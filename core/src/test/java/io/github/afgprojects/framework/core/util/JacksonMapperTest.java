@@ -14,8 +14,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
+/**
+ * JacksonMapper 构建器测试。
+ * <p>
+ * 测试 JacksonMapper.Builder 的各种配置选项，包括默认配置、自定义配置以及多次构建的独立性。
+ *
+ * @see JacksonMapper
+ * @see JacksonMapper.Builder
+ */
 class JacksonMapperTest {
 
+    /**
+     * 测试默认配置是否正确设置。
+     * <p>
+     * 验证默认配置下：禁用日期时间戳格式、允许单引号、允许未加引号的字段名。
+     */
     @Test
     @DisplayName("默认配置应该正确设置")
     void defaultConfig_shouldSetupCorrectly() {
@@ -29,6 +42,11 @@ class JacksonMapperTest {
                 .isTrue();
     }
 
+    /**
+     * 测试是否正确注册 JavaTimeModule。
+     * <p>
+     * 验证构建的 ObjectMapper 包含 JSR-310 时间模块，支持 Java 8 日期时间类型。
+     */
     @Test
     @DisplayName("应该注册 JavaTimeModule")
     void shouldRegisterJavaTimeModule() {
@@ -37,6 +55,11 @@ class JacksonMapperTest {
         assertThat(mapper.getRegisteredModuleIds()).contains("jackson-datatype-jsr310");
     }
 
+    /**
+     * 测试默认配置是否忽略 null 值。
+     * <p>
+     * 验证序列化时默认不输出值为 null 的字段。
+     */
     @Test
     @DisplayName("默认应该忽略 null 值")
     void default_shouldIgnoreNull() {
@@ -46,6 +69,11 @@ class JacksonMapperTest {
                 .isEqualTo(JsonInclude.Include.NON_NULL);
     }
 
+    /**
+     * 测试默认配置是否忽略未知属性。
+     * <p>
+     * 验证反序列化时遇到未知属性不会抛出异常。
+     */
     @Test
     @DisplayName("默认应该忽略未知属性")
     void default_shouldIgnoreUnknownProperties() {
@@ -55,6 +83,11 @@ class JacksonMapperTest {
                 .isFalse();
     }
 
+    /**
+     * 测试自定义日期格式是否生效。
+     * <p>
+     * 验证通过 dateFormat 方法设置的日期格式能正确应用到 ObjectMapper。
+     */
     @Test
     @DisplayName("自定义日期格式应该生效")
     void customDateFormat_shouldWork() {
@@ -65,6 +98,11 @@ class JacksonMapperTest {
         assertThat(sdf.toPattern()).isEqualTo("yyyy/MM/dd");
     }
 
+    /**
+     * 测试自定义忽略 null 配置是否生效。
+     * <p>
+     * 验证通过 ignoreNull(false) 可以禁用默认的 null 值忽略行为。
+     */
     @Test
     @DisplayName("自定义忽略 null 配置应该生效")
     void customIgnoreNull_shouldWork() {
@@ -75,6 +113,11 @@ class JacksonMapperTest {
                 .isNotEqualTo(JsonInclude.Include.NON_NULL);
     }
 
+    /**
+     * 测试自定义忽略未知属性配置是否生效。
+     * <p>
+     * 验证通过 ignoreUnknownProperties(false) 可以在遇到未知属性时抛出异常。
+     */
     @Test
     @DisplayName("自定义忽略未知属性配置应该生效")
     void customIgnoreUnknownProperties_shouldWork() {
@@ -85,6 +128,11 @@ class JacksonMapperTest {
                 .isTrue();
     }
 
+    /**
+     * 测试自定义命名策略是否生效。
+     * <p>
+     * 验证通过 namingStrategy 方法设置的属性命名策略能正确应用到 ObjectMapper。
+     */
     @Test
     @DisplayName("自定义命名策略应该生效")
     void customNamingStrategy_shouldWork() {
@@ -95,6 +143,12 @@ class JacksonMapperTest {
         assertThat(mapper.getPropertyNamingStrategy()).isEqualTo(PropertyNamingStrategies.SNAKE_CASE);
     }
 
+    /**
+     * 测试多次 build 是否返回独立实例。
+     * <p>
+     * 验证同一个 Builder 多次调用 build() 会返回独立的 ObjectMapper 实例，
+     * 且各实例的配置互不影响。
+     */
     @Test
     @DisplayName("多次 build 应该返回独立实例")
     void multipleBuild_shouldReturnIndependentInstances() {

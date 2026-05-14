@@ -9,6 +9,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+/**
+ * SecurityHeaderFilter 单元测试。
+ * <p>
+ * 测试安全响应头过滤器的功能，验证 X-Content-Type-Options、X-Frame-Options、
+ * X-XSS-Protection 和 Content-Security-Policy 头的设置。
+ *
+ * @see SecurityHeaderFilter
+ */
 class SecurityHeaderFilterTest {
 
     private SecurityHeaderFilter filter;

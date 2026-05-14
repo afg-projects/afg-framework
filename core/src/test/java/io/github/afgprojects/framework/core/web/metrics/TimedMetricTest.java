@@ -6,8 +6,18 @@ import java.lang.reflect.Method;
 
 import org.junit.jupiter.api.Test;
 
+/**
+ * TimedMetric 注解单元测试。
+ * <p>
+ * 测试计时指标注解的功能，验证注解属性、百分位数配置和元注解配置。
+ *
+ * @see TimedMetric
+ */
 class TimedMetricTest {
 
+    /**
+     * 测试注解声明时具有默认值。
+     */
     @Test
     void should_haveDefaultValues_when_annotationDeclared() throws NoSuchMethodException {
         Method method = TestClass.class.getMethod("annotatedMethod");

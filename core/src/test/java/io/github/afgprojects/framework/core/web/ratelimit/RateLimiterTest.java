@@ -23,6 +23,13 @@ import io.github.afgprojects.framework.core.support.BaseUnitTest;
 import io.github.afgprojects.framework.core.web.context.AfgRequestContextHolder;
 import io.github.afgprojects.framework.core.web.context.RequestContext;
 
+/**
+ * RateLimiter 单元测试。
+ * <p>
+ * 测试限流器的功能，验证令牌获取、维度解析、白名单检查和算法选择。
+ *
+ * @see RateLimiter
+ */
 class RateLimiterTest extends BaseUnitTest {
 
     private RateLimitStorage storage;

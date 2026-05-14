@@ -18,6 +18,13 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import io.github.afgprojects.framework.core.web.context.AfgRequestContextHolder;
 import io.github.afgprojects.framework.core.web.context.RequestContext;
 
+/**
+ * MdcFilter 单元测试。
+ * <p>
+ * 测试 MDC（Mapped Diagnostic Context）过滤器的功能，验证日志上下文字段的设置和清理。
+ *
+ * @see MdcFilter
+ */
 class MdcFilterTest {
 
     private MdcFilter filter;
@@ -37,6 +44,9 @@ class MdcFilterTest {
         MDC.clear();
     }
 
+    /**
+     * 测试当上下文可用时填充 MDC。
+     */
     @Test
     void should_populateMdc_when_contextAvailable() throws Exception {
         // Given
@@ -61,6 +71,9 @@ class MdcFilterTest {
         verify(chain).doFilter(request, response);
     }
 
+    /**
+     * 测试当上下文为 null 时不设置 MDC。
+     */
     @Test
     void should_notSetMdc_when_contextNull() throws Exception {
         // Given

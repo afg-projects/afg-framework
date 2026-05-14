@@ -4,8 +4,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
+/**
+ * LoggingProperties 单元测试。
+ * <p>
+ * 测试日志配置属性的功能，验证 MDC 配置、结构化日志配置、文件配置和异步配置的默认值和设置。
+ *
+ * @see LoggingProperties
+ */
 class LoggingPropertiesTest {
 
+    /**
+     * 测试创建时具有默认值。
+     */
     @Test
     void should_haveDefaultValues_when_created() {
         LoggingProperties properties = new LoggingProperties();

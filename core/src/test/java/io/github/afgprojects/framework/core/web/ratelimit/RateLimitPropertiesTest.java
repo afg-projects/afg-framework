@@ -6,8 +6,18 @@ import org.junit.jupiter.api.Test;
 
 import io.github.afgprojects.framework.core.api.ratelimit.RateLimitAlgorithm;
 
+/**
+ * RateLimitProperties 单元测试。
+ * <p>
+ * 测试限流配置属性的功能，验证默认配置、维度配置、白名单配置和响应头配置。
+ *
+ * @see RateLimitProperties
+ */
 class RateLimitPropertiesTest {
 
+    /**
+     * 测试创建时具有默认值。
+     */
     @Test
     void should_haveDefaultValues_when_created() {
         RateLimitProperties properties = new RateLimitProperties();

@@ -6,14 +6,29 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+/**
+ * InputSanitizer 单元测试。
+ * <p>
+ * 测试输入净化器的功能，验证 XSS 检测、SQL 注入检测和 HTML 净化逻辑。
+ *
+ * @see InputSanitizer
+ */
 class InputSanitizerTest {
 
     // --- containsXss ---
 
+    /**
+     * containsXss 方法测试分组。
+     * <p>
+     * 测试 XSS 攻击检测的各种场景。
+     */
     @Nested
     @DisplayName("containsXss tests")
     class ContainsXssTests {
 
+        /**
+         * 测试检测 script 标签中的 XSS。
+         */
         @Test
         @DisplayName("Should detect XSS in script tag")
         void should_detectXss_when_scriptTag() {
@@ -97,12 +112,18 @@ class InputSanitizerTest {
         }
     }
 
-    // --- sanitizeHtml ---
-
+    /**
+     * sanitizeHtml 方法测试分组。
+     * <p>
+     * 测试 HTML 净化的各种场景。
+     */
     @Nested
     @DisplayName("sanitizeHtml tests")
     class SanitizeHtmlTests {
 
+        /**
+         * 测试从 HTML 中移除 script 标签。
+         */
         @Test
         @DisplayName("Should remove script tag from HTML")
         void should_sanitizeHtml_when_scriptTag() {
@@ -139,12 +160,18 @@ class InputSanitizerTest {
         }
     }
 
-    // --- containsSqlInjection ---
-
+    /**
+     * containsSqlInjection 方法测试分组。
+     * <p>
+     * 测试 SQL 注入检测的各种场景。
+     */
     @Nested
     @DisplayName("containsSqlInjection tests")
     class ContainsSqlInjectionTests {
 
+        /**
+         * 测试检测 OR 条件注入。
+         */
         @Test
         @DisplayName("Should detect SQL injection with OR condition")
         void should_detectSqlInjection_when_orCondition() {
@@ -222,12 +249,18 @@ class InputSanitizerTest {
         }
     }
 
-    // --- sanitizeSql ---
-
+    /**
+     * sanitizeSql 方法测试分组。
+     * <p>
+     * 测试 SQL 净化的各种场景。
+     */
     @Nested
     @DisplayName("sanitizeSql tests")
     class SanitizeSqlTests {
 
+        /**
+         * 测试转义单引号。
+         */
         @Test
         @DisplayName("Should escape single quotes")
         void should_sanitizeSql_when_singleQuote() {

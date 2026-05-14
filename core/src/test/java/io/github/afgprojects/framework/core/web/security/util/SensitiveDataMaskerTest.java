@@ -8,8 +8,20 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+/**
+ * SensitiveDataMasker 单元测试。
+ * <p>
+ * 测试敏感数据脱敏器的功能，验证敏感字段识别和数据脱敏逻辑。
+ *
+ * @see SensitiveDataMasker
+ */
 class SensitiveDataMaskerTest {
 
+    /**
+     * isSensitive 方法测试分组。
+     * <p>
+     * 测试敏感字段识别的各种场景。
+     */
     @Nested
     @DisplayName("isSensitive 测试")
     class IsSensitiveTests {
@@ -98,10 +110,18 @@ class SensitiveDataMaskerTest {
         }
     }
 
+    /**
+     * mask 方法测试分组。
+     * <p>
+     * 测试数据脱敏的各种场景。
+     */
     @Nested
     @DisplayName("mask 测试")
     class MaskTests {
 
+        /**
+         * 测试敏感字段值应脱敏。
+         */
         @Test
         @DisplayName("敏感字段值应脱敏")
         void shouldMaskSensitiveValue() {

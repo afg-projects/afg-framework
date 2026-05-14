@@ -14,10 +14,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.github.afgprojects.framework.core.support.BaseUnitTest;
 
+/**
+ * JacksonUtils 工具类测试。
+ * <p>
+ * 测试 JSON 序列化、反序列化、对象与 Map 互转、深拷贝等功能。
+ *
+ * @see JacksonUtils
+ */
 @DisplayName("JacksonUtils 测试")
 class JacksonUtilsTest extends BaseUnitTest {
 
-    // 测试用简单类
+    /**
+     * 测试用简单类，用于验证序列化和反序列化功能。
+     */
     static class TestUser {
         private String name;
         private Integer age;
@@ -59,7 +68,9 @@ class JacksonUtilsTest extends BaseUnitTest {
         }
     }
 
-    // 带时间字段的测试类
+    /**
+     * 带时间字段的测试类，用于验证 Java 8 日期时间类型的序列化和反序列化。
+     */
     static class TestEvent {
         private String title;
         private LocalDateTime eventTime;
@@ -88,6 +99,11 @@ class JacksonUtilsTest extends BaseUnitTest {
         }
     }
 
+    /**
+     * 测试 toJson 方法正确序列化对象。
+     * <p>
+     * 验证对象能被正确转换为 JSON 字符串，字段值正确输出。
+     */
     @Test
     @DisplayName("toJson - 应该正确序列化对象")
     void toJson_shouldSerializeObject() {
@@ -98,6 +114,11 @@ class JacksonUtilsTest extends BaseUnitTest {
         assertThat(json).contains("\"age\":25");
     }
 
+    /**
+     * 测试 toJson 方法忽略 null 值。
+     * <p>
+     * 验证序列化时值为 null 的字段不会出现在 JSON 输出中。
+     */
     @Test
     @DisplayName("toJson - null 值应该被忽略")
     void toJson_nullValueShouldBeIgnored() {
@@ -108,6 +129,11 @@ class JacksonUtilsTest extends BaseUnitTest {
         assertThat(json).doesNotContain("age");
     }
 
+    /**
+     * 测试 toJson 方法正确序列化 LocalDateTime。
+     * <p>
+     * 验证 Java 8 日期时间类型能被正确序列化为 ISO-8601 格式字符串。
+     */
     @Test
     @DisplayName("toJson - 应该正确序列化 LocalDateTime")
     void toJson_shouldSerializeLocalDateTime() {
@@ -120,6 +146,11 @@ class JacksonUtilsTest extends BaseUnitTest {
         assertThat(json).contains("\"eventTime\":\"2024-01-15T10:30:45\"");
     }
 
+    /**
+     * 测试 parse 方法正确反序列化为对象。
+     * <p>
+     * 验证 JSON 字符串能被正确解析为指定类型的对象。
+     */
     @Test
     @DisplayName("parse - 应该正确反序列化为对象")
     void parse_shouldDeserializeToObject() {
@@ -130,6 +161,11 @@ class JacksonUtilsTest extends BaseUnitTest {
         assertThat(user.getAge()).isEqualTo(30);
     }
 
+    /**
+     * 测试 parse 方法支持单引号 JSON。
+     * <p>
+     * 验证解析器能正确处理使用单引号的 JSON 字符串。
+     */
     @Test
     @DisplayName("parse - 应该支持单引号 JSON")
     void parse_shouldSupportSingleQuotes() {
@@ -140,6 +176,11 @@ class JacksonUtilsTest extends BaseUnitTest {
         assertThat(user.getAge()).isEqualTo(28);
     }
 
+    /**
+     * 测试 parse 方法忽略未知属性。
+     * <p>
+     * 验证 JSON 中包含目标类不存在的字段时，反序列化不会抛出异常。
+     */
     @Test
     @DisplayName("parse - 应该忽略未知属性")
     void parse_shouldIgnoreUnknownProperties() {
@@ -150,6 +191,11 @@ class JacksonUtilsTest extends BaseUnitTest {
         assertThat(user.getAge()).isEqualTo(35);
     }
 
+    /**
+     * 测试 parse 方法对无效 JSON 抛出异常。
+     * <p>
+     * 验证解析无效 JSON 字符串时会抛出 RuntimeException。
+     */
     @Test
     @DisplayName("parse - 无效 JSON 应该抛出异常")
     void parse_invalidJsonShouldThrowException() {
@@ -160,6 +206,11 @@ class JacksonUtilsTest extends BaseUnitTest {
                 .hasMessageContaining("Failed to deserialize JSON to object");
     }
 
+    /**
+     * 测试 parseList 方法正确反序列化为 List。
+     * <p>
+     * 验证 JSON 数组能被正确解析为指定元素类型的 List。
+     */
     @Test
     @DisplayName("parseList - 应该正确反序列化为 List")
     void parseList_shouldDeserializeToList() {
@@ -173,6 +224,11 @@ class JacksonUtilsTest extends BaseUnitTest {
         assertThat(users.get(1).getAge()).isEqualTo(25);
     }
 
+    /**
+     * 测试 parseList 方法处理空数组。
+     * <p>
+     * 验证空 JSON 数组能被正确解析为空 List。
+     */
     @Test
     @DisplayName("parseList - 空数组应该返回空 List")
     void parseList_emptyArrayShouldReturnEmptyList() {
@@ -182,6 +238,11 @@ class JacksonUtilsTest extends BaseUnitTest {
         assertThat(users).isEmpty();
     }
 
+    /**
+     * 测试 parseMap 方法正确反序列化为 Map。
+     * <p>
+     * 验证 JSON 对象能被正确解析为 Map&lt;String, Object&gt;。
+     */
     @Test
     @DisplayName("parseMap - 应该正确反序列化为 Map")
     void parseMap_shouldDeserializeToMap() {
@@ -193,6 +254,11 @@ class JacksonUtilsTest extends BaseUnitTest {
         assertThat(map.get("active")).isEqualTo(true);
     }
 
+    /**
+     * 测试 parseMap 方法处理嵌套对象。
+     * <p>
+     * 验证 JSON 中的嵌套对象能被正确解析为嵌套的 Map。
+     */
     @Test
     @DisplayName("parseMap - 嵌套对象应该转为 Map")
     void parseMap_nestedObjectShouldBeMap() {
@@ -205,6 +271,11 @@ class JacksonUtilsTest extends BaseUnitTest {
         assertThat(detail.get("key")).isEqualTo("value");
     }
 
+    /**
+     * 测试 toMap 方法正确将对象转换为 Map。
+     * <p>
+     * 验证对象的属性能被正确转换为 Map 的键值对。
+     */
     @Test
     @DisplayName("toMap - 应该正确将对象转换为 Map")
     void toMap_shouldConvertObjectToMap() {
@@ -215,6 +286,11 @@ class JacksonUtilsTest extends BaseUnitTest {
         assertThat(map.get("age")).isEqualTo(28);
     }
 
+    /**
+     * 测试 toMap 方法忽略 null 值字段。
+     * <p>
+     * 验证值为 null 的字段不会出现在转换后的 Map 中。
+     */
     @Test
     @DisplayName("toMap - null 值字段应该被忽略")
     void toMap_nullValueShouldBeIgnored() {
@@ -225,6 +301,11 @@ class JacksonUtilsTest extends BaseUnitTest {
         assertThat(map).doesNotContainKey("age");
     }
 
+    /**
+     * 测试 toObject 方法正确将 Map 转换为对象。
+     * <p>
+     * 验证 Map 的键值对能被正确转换为对象的属性。
+     */
     @Test
     @DisplayName("toObject - 应该正确将 Map 转换为对象")
     void toObject_shouldConvertMapToObject() {
@@ -235,6 +316,11 @@ class JacksonUtilsTest extends BaseUnitTest {
         assertThat(user.getAge()).isEqualTo(30);
     }
 
+    /**
+     * 测试 toObject 方法忽略 Map 中的多余字段。
+     * <p>
+     * 验证 Map 中目标类不存在的字段会被忽略，不影响转换。
+     */
     @Test
     @DisplayName("toObject - Map 多余字段应该被忽略")
     void toObject_extraFieldsShouldBeIgnored() {
@@ -245,6 +331,11 @@ class JacksonUtilsTest extends BaseUnitTest {
         assertThat(user.getAge()).isEqualTo(30);
     }
 
+    /**
+     * 测试 deepCopy 方法正确深拷贝对象。
+     * <p>
+     * 验证深拷贝后的对象与原对象相等但不是同一个实例。
+     */
     @Test
     @DisplayName("deepCopy - 应该正确深拷贝对象")
     void deepCopy_shouldDeepCopyObject() {
@@ -255,6 +346,11 @@ class JacksonUtilsTest extends BaseUnitTest {
         assertThat(copy).isNotSameAs(original);
     }
 
+    /**
+     * 测试 deepCopy 方法修改拷贝不影响原对象。
+     * <p>
+     * 验证深拷贝后的对象修改不会影响原对象的状态。
+     */
     @Test
     @DisplayName("deepCopy - 修改拷贝不应影响原对象")
     void deepCopy_modificationShouldNotAffectOriginal() {
@@ -268,6 +364,11 @@ class JacksonUtilsTest extends BaseUnitTest {
         assertThat(original.getAge()).isEqualTo(25);
     }
 
+    /**
+     * 测试 setObjectMapper 方法的幂等行为。
+     * <p>
+     * 验证：相同实例重复设置会被忽略（幂等），不同实例设置会抛出 IllegalStateException。
+     */
     @Test
     @DisplayName("setObjectMapper - 幂等设置：相同实例忽略，不同实例抛异常")
     void setObjectMapper_idempotentBehavior() {
@@ -316,6 +417,11 @@ class JacksonUtilsTest extends BaseUnitTest {
         }
     }
 
+    /**
+     * 测试 LocalDateTime 的完整序列化/反序列化流程。
+     * <p>
+     * 验证 LocalDateTime 经过序列化和反序列化后能正确还原。
+     */
     @Test
     @DisplayName("LocalDateTime 完整序列化/反序列化流程")
     void localDateTime_fullRoundTrip() {
@@ -332,6 +438,11 @@ class JacksonUtilsTest extends BaseUnitTest {
         assertThat(parsed.getEventTime()).isEqualTo(original);
     }
 
+    /**
+     * 测试复杂嵌套对象的序列化和反序列化。
+     * <p>
+     * 验证包含嵌套对象和数组的复杂 JSON 能被正确解析。
+     */
     @Test
     @DisplayName("复杂嵌套对象序列化和反序列化")
     void complexNestedObject_shouldWork() {

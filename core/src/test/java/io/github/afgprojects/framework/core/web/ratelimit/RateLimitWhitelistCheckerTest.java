@@ -15,6 +15,13 @@ import io.github.afgprojects.framework.core.support.BaseUnitTest;
 import io.github.afgprojects.framework.core.web.context.AfgRequestContextHolder;
 import io.github.afgprojects.framework.core.web.context.RequestContext;
 
+/**
+ * RateLimitWhitelistChecker 单元测试。
+ * <p>
+ * 测试限流白名单检查器的功能，验证 IP、用户 ID、用户名和租户 ID 的白名单匹配。
+ *
+ * @see DefaultWhitelistStrategy
+ */
 class RateLimitWhitelistCheckerTest extends BaseUnitTest {
 
     private RateLimitProperties properties;
