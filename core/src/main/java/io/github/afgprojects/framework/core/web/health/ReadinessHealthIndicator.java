@@ -12,7 +12,6 @@ import javax.sql.DataSource;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.health.contributor.Health;
@@ -22,6 +21,8 @@ import org.springframework.boot.health.contributor.Status;
 import io.github.afgprojects.framework.core.module.ModuleDefinition;
 import io.github.afgprojects.framework.core.module.ModuleRegistry;
 import io.github.afgprojects.framework.core.module.ModuleState;
+import io.github.afgprojects.framework.core.web.health.spi.RedisHealthChecker;
+import io.github.afgprojects.framework.core.web.health.spi.RedisHealthResult;
 
 /**
  * 就绪探针健康指示器
@@ -43,25 +44,25 @@ public class ReadinessHealthIndicator implements HealthIndicator {
 
     private final HealthCheckProperties properties;
     private final @Nullable DataSource dataSource;
-    private final @Nullable RedissonClient redissonClient;
+    private final @NonNull RedisHealthChecker redisHealthChecker;
     private final @Nullable ModuleRegistry moduleRegistry;
 
     /**
      * 构造函数
      *
-     * @param properties     健康检查配置
-     * @param dataSource     数据源（可为 null）
-     * @param redissonClient Redis 客户端（可为 null）
-     * @param moduleRegistry 模块注册表（可为 null）
+     * @param properties         健康检查配置
+     * @param dataSource         数据源（可为 null）
+     * @param redisHealthChecker Redis 健康检查器（SPI 实现）
+     * @param moduleRegistry     模块注册表（可为 null）
      */
     public ReadinessHealthIndicator(
             @NonNull HealthCheckProperties properties,
             @Nullable DataSource dataSource,
-            @Nullable RedissonClient redissonClient,
+            @NonNull RedisHealthChecker redisHealthChecker,
             @Nullable ModuleRegistry moduleRegistry) {
         this.properties = properties;
         this.dataSource = dataSource;
-        this.redissonClient = redissonClient;
+        this.redisHealthChecker = redisHealthChecker;
         this.moduleRegistry = moduleRegistry;
     }
 
@@ -136,34 +137,27 @@ public class ReadinessHealthIndicator implements HealthIndicator {
      * @return true 表示健康，false 表示不健康
      */
     private boolean checkRedis(Health.Builder builder) {
-        if (redissonClient == null) {
-            builder.withDetail("redis", "NOT_CONFIGURED");
+        if (!properties.getReadiness().isRedisCheckEnabled()) {
             return true;
         }
 
         long startTime = System.currentTimeMillis();
-        long timeoutMs = properties.getReadiness().getRedisCheckTimeout().toMillis();
 
         try {
-            // Redisson 4.x: 使用简单的 get/set 操作检查连接
-            // 使用一个特殊的健康检查 key
-            String healthCheckKey = "__redis_health_check__";
+            RedisHealthResult result = redisHealthChecker.check();
 
-            // 执行简单的 ping 命令
-            redissonClient.getBucket(healthCheckKey).set("ping");
-            String value = (String) redissonClient.getBucket(healthCheckKey).get();
-            boolean connected = "ping".equals(value);
-
-            long duration = System.currentTimeMillis() - startTime;
-
-            if (connected) {
+            if (RedisHealthResult.UP.equals(result.status())) {
                 builder.withDetail("redis", "UP")
-                        .withDetail("redisResponseTime", duration + "ms");
+                        .withDetail("redisResponseTime", result.responseTimeMs() + "ms");
+                return true;
+            } else if (RedisHealthResult.NOT_CONFIGURED.equals(result.status())) {
+                builder.withDetail("redis", "NOT_CONFIGURED");
                 return true;
             } else {
-                log.error("Redis ping 失败");
+                log.error("Redis 健康检查失败: {}", result.message());
                 builder.withDetail("redis", "DOWN")
-                        .withDetail("redisError", "Ping failed");
+                        .withDetail("redisError", result.message())
+                        .withDetail("redisResponseTime", result.responseTimeMs() + "ms");
                 return false;
             }
         } catch (Exception e) {
