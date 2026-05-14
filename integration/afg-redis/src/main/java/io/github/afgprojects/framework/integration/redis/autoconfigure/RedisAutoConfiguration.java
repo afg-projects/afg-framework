@@ -2,6 +2,7 @@ package io.github.afgprojects.framework.integration.redis.autoconfigure;
 
 import io.github.afgprojects.framework.core.api.ratelimit.RateLimitStorage;
 import io.github.afgprojects.framework.core.cache.CacheManager;
+import io.github.afgprojects.framework.core.cache.spi.CacheStorageProvider;
 import io.github.afgprojects.framework.core.api.scheduler.DelayQueue;
 import io.github.afgprojects.framework.core.api.scheduler.DistributedTaskScheduler;
 import io.github.afgprojects.framework.core.audit.AuditLogProperties;
@@ -9,12 +10,15 @@ import io.github.afgprojects.framework.core.audit.AuditLogStorage;
 import io.github.afgprojects.framework.core.feature.FeatureFlagManager;
 import io.github.afgprojects.framework.core.feature.FeatureFlagProperties;
 import io.github.afgprojects.framework.core.lock.DistributedLock;
+import io.github.afgprojects.framework.core.web.health.spi.RedisHealthChecker;
 import io.github.afgprojects.framework.integration.redis.audit.RedisAuditLogStorage;
 import io.github.afgprojects.framework.integration.redis.cache.RedisCacheManager;
 import io.github.afgprojects.framework.integration.redis.cache.RedisCacheProperties;
+import io.github.afgprojects.framework.integration.redis.cache.RedisCacheStorageProvider;
 import io.github.afgprojects.framework.integration.redis.feature.RedissonStorageClient;
 import io.github.afgprojects.framework.integration.redis.health.RedisHealthIndicator;
 import io.github.afgprojects.framework.integration.redis.health.RedisHealthProperties;
+import io.github.afgprojects.framework.integration.redis.health.RedissonHealthChecker;
 import io.github.afgprojects.framework.integration.redis.lock.LockAspect;
 import io.github.afgprojects.framework.integration.redis.lock.LockProperties;
 import io.github.afgprojects.framework.integration.redis.lock.RedisDistributedLock;
@@ -120,6 +124,17 @@ public class RedisAutoConfiguration {
                 properties.getDefaultTtl(),
                 properties.getCaches()
         );
+    }
+
+    // ==================== Cache Storage Configuration ====================
+
+    /**
+     * 配置 Redis 缓存存储提供者
+     */
+    @Bean
+    @ConditionalOnMissingBean(CacheStorageProvider.class)
+    public CacheStorageProvider cacheStorageProvider(RedissonClient redissonClient) {
+        return new RedisCacheStorageProvider(redissonClient);
     }
 
     // ==================== Lock Configuration ====================
@@ -270,6 +285,17 @@ public class RedisAutoConfiguration {
             @NonNull RedissonClient redissonClient,
             @NonNull RedisHealthProperties properties) {
         return new RedisHealthIndicator(redissonClient, properties);
+    }
+
+    // ==================== Health Check Configuration ====================
+
+    /**
+     * 配置 Redis 健康检查器
+     */
+    @Bean
+    @ConditionalOnMissingBean(RedisHealthChecker.class)
+    public RedisHealthChecker redisHealthChecker(RedissonClient redissonClient) {
+        return new RedissonHealthChecker(redissonClient);
     }
 
     // ==================== Rate Limit Configuration ====================
