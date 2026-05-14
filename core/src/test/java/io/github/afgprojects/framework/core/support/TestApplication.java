@@ -6,11 +6,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 /**
  * 集成测试应用配置
  * 提供 Spring Boot 测试上下文所需的配置类
- * 排除 Redisson 自动配置，使用 Testcontainers 提供的 Redis 容器
  */
 @SpringBootConfiguration
-@EnableAutoConfiguration(exclude = {
-        org.redisson.spring.starter.RedissonAutoConfigurationV2.class,
-        org.redisson.spring.starter.RedissonAutoConfigurationV4.class
-})
+@EnableAutoConfiguration
 public class TestApplication {}

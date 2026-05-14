@@ -9,7 +9,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.redisson.api.RedissonClient;
 
 import io.github.afgprojects.framework.core.cache.CacheAspect;
 import io.github.afgprojects.framework.core.cache.CacheConfig;
