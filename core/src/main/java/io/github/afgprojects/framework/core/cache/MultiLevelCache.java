@@ -6,6 +6,7 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import io.github.afgprojects.framework.core.cache.metrics.CacheMetrics;
+import io.github.afgprojects.framework.core.cache.spi.DistributedCacheStorage;
 
 /**
  * 多级缓存实现
@@ -267,18 +268,18 @@ public class MultiLevelCache<V> implements LoadingCache<V> {
     /**
      * 创建多级缓存
      *
-     * @param name           缓存名称
-     * @param config         缓存配置
-     * @param redissonClient Redisson 客户端
+     * @param name    缓存名称
+     * @param config  缓存配置
+     * @param storage 分布式缓存存储
      * @return 多级缓存实例
      */
     @NonNull
     public static <V> MultiLevelCache<V> create(
             @NonNull String name,
             @NonNull CacheConfig config,
-            org.redisson.api.RedissonClient redissonClient) {
+            @NonNull DistributedCacheStorage storage) {
         LocalCache<V> localCache = new LocalCache<>(name, config);
-        DistributedCache<V> distributedCache = new DistributedCache<>(name, config, redissonClient);
+        DistributedCache<V> distributedCache = new DistributedCache<>(name, config, storage);
         return new MultiLevelCache<>(name, localCache, distributedCache);
     }
 }
