@@ -1,5 +1,7 @@
 package io.github.afgprojects.framework.core.web.ratelimit;
 
+import io.github.afgprojects.framework.core.api.ratelimit.RateLimitResult;
+
 import java.io.IOException;
 
 import org.jspecify.annotations.Nullable;
