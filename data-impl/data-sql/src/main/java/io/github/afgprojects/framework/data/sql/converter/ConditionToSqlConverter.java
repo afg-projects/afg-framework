@@ -9,6 +9,8 @@ import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.BiConsumer;
 
 /**
  * Condition 到 SQL WHERE 子句的转换器
@@ -18,6 +20,16 @@ public class ConditionToSqlConverter {
     /** 合法字段名正则：字母/下划线开头，后跟字母/数字/下划线/点（支持 table.field 格式） */
     private static final java.util.regex.Pattern FIELD_NAME_PATTERN =
             java.util.regex.Pattern.compile("^[a-zA-Z_][a-zA-Z0-9_.]*$");
+
+    /** 操作符处理器映射 */
+    private final Map<Operator, BiConsumer<StringBuilder, List<Object>>> simpleOperators = Map.of(
+            Operator.EQ, (sql, params) -> { sql.append(" = ?"); },
+            Operator.NE, (sql, params) -> { sql.append(" != ?"); },
+            Operator.GT, (sql, params) -> { sql.append(" > ?"); },
+            Operator.GE, (sql, params) -> { sql.append(" >= ?"); },
+            Operator.LT, (sql, params) -> { sql.append(" < ?"); },
+            Operator.LE, (sql, params) -> { sql.append(" <= ?"); }
+    );
 
     /**
      * 验证字段名是否合法，防止 SQL 注入
@@ -117,100 +129,100 @@ public class ConditionToSqlConverter {
         validateFieldName(field);
         sql.append(field);
 
+        // 处理简单比较操作符
+        if (handleSimpleOperator(operator, sql, parameters, value)) {
+            return;
+        }
+
+        // 处理特殊操作符
         switch (operator) {
-            case EQ -> {
-                sql.append(" = ?");
-                parameters.add(value);
-            }
-            case NE -> {
-                sql.append(" != ?");
-                parameters.add(value);
-            }
-            case GT -> {
-                sql.append(" > ?");
-                parameters.add(value);
-            }
-            case GE -> {
-                sql.append(" >= ?");
-                parameters.add(value);
-            }
-            case LT -> {
-                sql.append(" < ?");
-                parameters.add(value);
-            }
-            case LE -> {
-                sql.append(" <= ?");
-                parameters.add(value);
-            }
-            case LIKE, LIKE_LEFT, LIKE_RIGHT -> {
-                sql.append(" LIKE ?");
-                parameters.add(value);
-            }
-            case NOT_LIKE -> {
-                sql.append(" NOT LIKE ?");
-                parameters.add(value);
-            }
-            case IN -> {
-                sql.append(" IN (");
-                if (value instanceof Iterable<?> iterable) {
-                    boolean first = true;
-                    for (Object v : iterable) {
-                        if (!first) sql.append(", ");
-                        sql.append("?");
-                        parameters.add(v);
-                        first = false;
-                    }
-                }
-                sql.append(")");
-            }
-            case NOT_IN -> {
-                sql.append(" NOT IN (");
-                if (value instanceof Iterable<?> iterable) {
-                    boolean first = true;
-                    for (Object v : iterable) {
-                        if (!first) sql.append(", ");
-                        sql.append("?");
-                        parameters.add(v);
-                        first = false;
-                    }
-                }
-                sql.append(")");
-            }
+            case LIKE, LIKE_LEFT, LIKE_RIGHT -> handleLike(sql, parameters, value, false);
+            case NOT_LIKE -> handleLike(sql, parameters, value, true);
+            case IN -> handleIn(sql, parameters, value, false);
+            case NOT_IN -> handleIn(sql, parameters, value, true);
             case IS_NULL -> sql.append(" IS NULL");
             case IS_NOT_NULL -> sql.append(" IS NOT NULL");
-            case BETWEEN -> {
-                if (value instanceof Comparable<?>[] arr && arr.length == 2) {
-                    sql.append(" BETWEEN ? AND ?");
-                    parameters.add(arr[0]);
-                    parameters.add(arr[1]);
-                }
-            }
-            case NOT_BETWEEN -> {
-                if (value instanceof Comparable<?>[] arr && arr.length == 2) {
-                    sql.append(" NOT BETWEEN ? AND ?");
-                    parameters.add(arr[0]);
-                    parameters.add(arr[1]);
-                }
-            }
-            case JSON_CONTAINS -> {
-                // PostgreSQL JSON 包含操作符
-                sql.append(" @> ?::jsonb");
-                parameters.add(value);
-            }
-            case JSON_CONTAINED -> {
-                // PostgreSQL JSON 被包含操作符
-                sql.append(" <@ ?::jsonb");
-                parameters.add(value);
-            }
-            case JSON_PATH -> {
-                // PostgreSQL JSON 路径存在操作符
-                sql.append(" ?? ?");
-                parameters.add(value);
-            }
-            case NOT -> {
-                // 已在上面处理
+            case BETWEEN -> handleBetween(sql, parameters, value, false);
+            case NOT_BETWEEN -> handleBetween(sql, parameters, value, true);
+            case JSON_CONTAINS -> handleJsonContains(sql, parameters, value);
+            case JSON_CONTAINED -> handleJsonContained(sql, parameters, value);
+            case JSON_PATH -> handleJsonPath(sql, parameters, value);
+            case NOT -> { /* 已在上面处理 */ }
+            default -> { /* 其他操作符已在 handleSimpleOperator 中处理 */ }
+        }
+    }
+
+    /**
+     * 处理简单比较操作符（EQ, NE, GT, GE, LT, LE）
+     */
+    private boolean handleSimpleOperator(Operator operator, StringBuilder sql, List<Object> parameters, Object value) {
+        BiConsumer<StringBuilder, List<Object>> handler = simpleOperators.get(operator);
+        if (handler != null) {
+            handler.accept(sql, parameters);
+            parameters.add(value);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 处理 LIKE 操作符
+     */
+    private void handleLike(StringBuilder sql, List<Object> parameters, Object value, boolean negate) {
+        sql.append(negate ? " NOT LIKE ?" : " LIKE ?");
+        parameters.add(value);
+    }
+
+    /**
+     * 处理 IN 操作符
+     */
+    private void handleIn(StringBuilder sql, List<Object> parameters, Object value, boolean negate) {
+        sql.append(negate ? " NOT IN (" : " IN (");
+        if (value instanceof Iterable<?> iterable) {
+            boolean first = true;
+            for (Object v : iterable) {
+                if (!first) sql.append(", ");
+                sql.append("?");
+                parameters.add(v);
+                first = false;
             }
         }
+        sql.append(")");
+    }
+
+    /**
+     * 处理 BETWEEN 操作符
+     */
+    private void handleBetween(StringBuilder sql, List<Object> parameters, Object value, boolean negate) {
+        if (value instanceof Comparable<?>[] arr && arr.length == 2) {
+            sql.append(negate ? " NOT BETWEEN ? AND ?" : " BETWEEN ? AND ?");
+            parameters.add(arr[0]);
+            parameters.add(arr[1]);
+        }
+    }
+
+    /**
+     * 处理 JSON 包含操作符（PostgreSQL）
+     */
+    private void handleJsonContains(StringBuilder sql, List<Object> parameters, Object value) {
+        sql.append(" @> ?::jsonb");
+        parameters.add(value);
+    }
+
+    /**
+     * 处理 JSON 被包含操作符（PostgreSQL）
+     */
+    private void handleJsonContained(StringBuilder sql, List<Object> parameters, Object value) {
+        sql.append(" <@ ?::jsonb");
+        parameters.add(value);
+    }
+
+    /**
+     * 处理 JSON 路径操作符（PostgreSQL）
+     */
+    private void handleJsonPath(StringBuilder sql, List<Object> parameters, Object value) {
+        sql.append(" ?? ?");
+        parameters.add(value);
     }
 
     /**

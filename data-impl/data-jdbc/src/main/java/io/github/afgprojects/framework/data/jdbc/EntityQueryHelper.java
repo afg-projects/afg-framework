@@ -403,9 +403,10 @@ class EntityQueryHelper<T> {
                         return enumConstant;
                     }
                 } catch (NoSuchMethodException e) {
-                    // 枚举没有 getCode 方法，使用 ordinal
-                } catch (Exception e) {
-                    // 忽略其他异常
+                    // 枚举没有 getCode 方法，跳出循环使用 ordinal 匹配
+                    break;
+                } catch (ReflectiveOperationException e) {
+                    // 反射调用失败，忽略并继续尝试下一个枚举值
                 }
             }
             // 回退到 ordinal 匹配
