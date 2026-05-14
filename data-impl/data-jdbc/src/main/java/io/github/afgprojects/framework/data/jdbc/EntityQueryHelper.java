@@ -391,6 +391,29 @@ class EntityQueryHelper<T> {
         if (targetType == java.time.LocalDate.class && value instanceof java.sql.Date date) {
             return date.toLocalDate();
         }
+        // 处理枚举类型转换
+        if (targetType.isEnum() && value instanceof Number num) {
+            int codeValue = num.intValue();
+            // 尝试通过 code 字段匹配
+            for (Object enumConstant : targetType.getEnumConstants()) {
+                try {
+                    java.lang.reflect.Method getCodeMethod = enumConstant.getClass().getMethod("getCode");
+                    Object codeResult = getCodeMethod.invoke(enumConstant);
+                    if (codeResult instanceof Number codeNum && codeNum.intValue() == codeValue) {
+                        return enumConstant;
+                    }
+                } catch (NoSuchMethodException e) {
+                    // 枚举没有 getCode 方法，使用 ordinal
+                } catch (Exception e) {
+                    // 忽略其他异常
+                }
+            }
+            // 回退到 ordinal 匹配
+            Object[] enumConstants = targetType.getEnumConstants();
+            if (codeValue >= 0 && codeValue < enumConstants.length) {
+                return enumConstants[codeValue];
+            }
+        }
         return value;
     }
 
@@ -402,7 +425,7 @@ class EntityQueryHelper<T> {
     String columnNameToFieldName(String columnName) {
         StringBuilder fieldName = new StringBuilder();
         boolean nextUpper = false;
-        for (char c : columnName.toCharArray()) {
+        for (char c : columnName.toLowerCase().toCharArray()) {
             if (c == '_') {
                 nextUpper = true;
             } else {
