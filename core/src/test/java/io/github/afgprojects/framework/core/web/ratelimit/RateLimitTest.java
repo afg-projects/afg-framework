@@ -6,6 +6,8 @@ import java.lang.reflect.Method;
 
 import org.junit.jupiter.api.Test;
 
+import io.github.afgprojects.framework.core.api.ratelimit.RateLimitAlgorithm;
+
 class RateLimitTest {
 
     @Test

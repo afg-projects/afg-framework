@@ -12,7 +12,7 @@
  *   <li>{@link io.github.afgprojects.framework.core.web.ratelimit.RateLimitInterceptor} - 限流切面</li>
  *   <li>{@link io.github.afgprojects.framework.core.web.ratelimit.RateLimitProperties} - 配置属性</li>
  *   <li>{@link io.github.afgprojects.framework.core.web.ratelimit.RateLimitDimension} - 限流维度枚举</li>
- *   <li>{@link io.github.afgprojects.framework.core.web.ratelimit.RateLimitAlgorithm} - 限流算法枚举</li>
+ *   <li>{@link io.github.afgprojects.framework.core.api.ratelimit.RateLimitAlgorithm} - 限流算法枚举</li>
  *   <li>{@link io.github.afgprojects.framework.core.web.ratelimit.RateLimitResult} - 限流结果</li>
  *   <li>{@link io.github.afgprojects.framework.core.web.ratelimit.RateLimitWhitelistChecker} - 白名单检查器</li>
  *   <li>{@link io.github.afgprojects.framework.core.web.ratelimit.RateLimitResponseHeaderFilter} - 响应头过滤器</li>

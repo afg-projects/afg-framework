@@ -21,6 +21,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import io.github.afgprojects.framework.core.api.ratelimit.RateLimitAlgorithm;
 import io.github.afgprojects.framework.core.model.exception.CommonErrorCode;
 import io.github.afgprojects.framework.core.support.BaseUnitTest;
 import io.github.afgprojects.framework.core.web.context.AfgRequestContextHolder;

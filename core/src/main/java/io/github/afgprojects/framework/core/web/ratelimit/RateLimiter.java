@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
+import io.github.afgprojects.framework.core.api.ratelimit.RateLimitAlgorithm;
 import io.github.afgprojects.framework.core.model.exception.CommonErrorCode;
 import io.github.afgprojects.framework.core.web.context.AfgRequestContextHolder;
 import io.github.afgprojects.framework.core.web.context.RequestContext;

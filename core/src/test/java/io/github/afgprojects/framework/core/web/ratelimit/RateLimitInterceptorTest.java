@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import io.github.afgprojects.framework.core.api.ratelimit.RateLimitAlgorithm;
 import io.github.afgprojects.framework.core.model.exception.BusinessException;
 import io.github.afgprojects.framework.core.model.exception.CommonErrorCode;
 import io.github.afgprojects.framework.core.support.BaseUnitTest;

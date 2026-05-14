@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import io.github.afgprojects.framework.core.api.ratelimit.RateLimitAlgorithm;
 import lombok.Data;
 
 /**
@@ -54,6 +55,11 @@ public class RateLimitProperties {
      * Redis key 前缀
      */
     private String keyPrefix = "rateLimit";
+
+    /**
+     * 存储类型：redis, hazelcast, local
+     */
+    private String storageType = "local";
 
     /**
      * 回退配置

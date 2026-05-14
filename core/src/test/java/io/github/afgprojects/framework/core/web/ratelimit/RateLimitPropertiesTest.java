@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
+import io.github.afgprojects.framework.core.api.ratelimit.RateLimitAlgorithm;
+
 class RateLimitPropertiesTest {
 
     @Test
