@@ -6,6 +6,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import io.github.afgprojects.framework.core.api.ratelimit.RateLimitAlgorithm;
+
 /**
  * 限流注解
  * <p>
