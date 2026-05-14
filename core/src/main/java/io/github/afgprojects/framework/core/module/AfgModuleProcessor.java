@@ -12,6 +12,8 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.Ordered;
+import org.springframework.core.PriorityOrdered;
 
 import io.github.afgprojects.framework.core.config.ModuleConfigLoader;
 import io.github.afgprojects.framework.core.module.exception.ModuleContextPathConflictException;
@@ -23,8 +25,12 @@ import io.github.afgprojects.framework.module.AfgModuleAnnotation;
  *
  * 自动扫描并注册带有 @AfgModuleAnnotation 注解的类到模块注册表
  * 同时加载模块的配置文件到 Spring Environment
+ *
+ * <p>实现 {@link PriorityOrdered} 接口，确保在 WebMvc 初始化之前处理模块配置类，
+ * 这样 {@link io.github.afgprojects.framework.core.web.module.ModuleWebAutoConfiguration}
+ * 可以在配置路径前缀时获取到已注册的模块列表。
  */
-public class AfgModuleProcessor implements BeanPostProcessor {
+public class AfgModuleProcessor implements BeanPostProcessor, PriorityOrdered {
 
     private static final Logger log = LoggerFactory.getLogger(AfgModuleProcessor.class);
 
@@ -38,6 +44,11 @@ public class AfgModuleProcessor implements BeanPostProcessor {
         this.applicationContext = applicationContext;
         // 初始化配置加载器
         this.configLoader = createConfigLoader();
+    }
+
+    @Override
+    public int getOrder() {
+        return Ordered.HIGHEST_PRECEDENCE;
     }
 
     private ModuleConfigLoader createConfigLoader() {
