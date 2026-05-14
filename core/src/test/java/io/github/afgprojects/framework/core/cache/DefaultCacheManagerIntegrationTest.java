@@ -246,7 +246,7 @@ class DefaultCacheManagerIntegrationTest {
         void shouldThrowExceptionWithoutRedisson() {
             assertThatThrownBy(() -> cacheManager.getDistributedCache("dist-test"))
                     .isInstanceOf(CacheException.class)
-                    .hasMessageContaining("RedissonClient is not configured");
+                    .hasMessageContaining("CacheStorageProvider is not configured");
         }
     }
 
@@ -268,7 +268,7 @@ class DefaultCacheManagerIntegrationTest {
         void shouldThrowExceptionWithoutRedisson() {
             assertThatThrownBy(() -> cacheManager.getMultiLevelCache("multi-test"))
                     .isInstanceOf(CacheException.class)
-                    .hasMessageContaining("RedissonClient is not configured");
+                    .hasMessageContaining("CacheStorageProvider is not configured");
         }
     }
 

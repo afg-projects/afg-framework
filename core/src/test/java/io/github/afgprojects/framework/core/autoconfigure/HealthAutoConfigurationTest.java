@@ -9,7 +9,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.redisson.api.RedissonClient;
 
 import io.github.afgprojects.framework.core.module.ModuleRegistry;
 import io.github.afgprojects.framework.core.web.health.DataSourceHealthProperties;
@@ -17,6 +16,7 @@ import io.github.afgprojects.framework.core.web.health.HealthCheckProperties;
 import io.github.afgprojects.framework.core.web.health.LivenessHealthIndicator;
 import io.github.afgprojects.framework.core.web.health.ModuleHealthIndicator;
 import io.github.afgprojects.framework.core.web.health.ReadinessHealthIndicator;
+import io.github.afgprojects.framework.core.web.health.spi.RedisHealthChecker;
 
 /**
  * HealthAutoConfiguration 单元测试。
@@ -139,16 +139,16 @@ class HealthAutoConfigurationTest {
         }
 
         /**
-         * 测试使用 RedissonClient 创建就绪探针健康指示器。
+         * 测试使用 RedisHealthChecker 创建就绪探针健康指示器。
          */
         @Test
-        @DisplayName("应该使用 RedissonClient 创建就绪探针健康指示器")
-        void shouldCreateReadinessHealthIndicatorWithRedissonClient() {
+        @DisplayName("应该使用 RedisHealthChecker 创建就绪探针健康指示器")
+        void shouldCreateReadinessHealthIndicatorWithRedisHealthChecker() {
             HealthCheckProperties properties = new HealthCheckProperties();
-            RedissonClient redissonClient = mock(RedissonClient.class);
+            RedisHealthChecker redisHealthChecker = mock(RedisHealthChecker.class);
 
             ReadinessHealthIndicator indicator = configuration.readinessHealthIndicator(
-                    properties, null, redissonClient, null);
+                    properties, null, redisHealthChecker, null);
 
             assertThat(indicator).isNotNull();
         }
@@ -161,11 +161,11 @@ class HealthAutoConfigurationTest {
         void shouldCreateReadinessHealthIndicatorWithAllComponents() {
             HealthCheckProperties properties = new HealthCheckProperties();
             DataSource dataSource = mock(DataSource.class);
-            RedissonClient redissonClient = mock(RedissonClient.class);
+            RedisHealthChecker redisHealthChecker = mock(RedisHealthChecker.class);
             ModuleRegistry moduleRegistry = new ModuleRegistry();
 
             ReadinessHealthIndicator indicator = configuration.readinessHealthIndicator(
-                    properties, dataSource, redissonClient, moduleRegistry);
+                    properties, dataSource, redisHealthChecker, moduleRegistry);
 
             assertThat(indicator).isNotNull();
         }

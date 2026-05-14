@@ -7,6 +7,9 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import io.github.afgprojects.framework.core.cache.exception.CacheException;
+import io.github.afgprojects.framework.core.cache.spi.CacheStorageProvider;
+import io.github.afgprojects.framework.core.cache.spi.DistributedCacheStorage;
+import io.github.afgprojects.framework.core.cache.spi.LocalDistributedCacheStorage;
 
 /**
  * 默认缓存管理器
@@ -33,8 +36,15 @@ public class DefaultCacheManager implements CacheManager {
     /**
      * Redisson 客户端（可选，用于分布式缓存）
      * 通过 afg-redis 模块注入
+     * @deprecated 使用 {@link #storageProvider} 替代
      */
+    @Deprecated(since = "1.0.0", forRemoval = true)
     private volatile @Nullable Object redissonClient;
+
+    /**
+     * 缓存存储提供者（可选，用于分布式缓存）
+     */
+    private volatile @Nullable CacheStorageProvider storageProvider;
 
     /**
      * 构造缓存管理器（仅本地缓存）
@@ -49,7 +59,9 @@ public class DefaultCacheManager implements CacheManager {
      * 设置 Redisson 客户端（由 afg-redis 模块调用）
      *
      * @param redissonClient Redisson 客户端
+     * @deprecated 使用 {@link #setCacheStorageProvider(CacheStorageProvider)} 替代
      */
+    @Deprecated(since = "1.0.0", forRemoval = true)
     public void setRedissonClient(@Nullable Object redissonClient) {
         this.redissonClient = redissonClient;
     }
@@ -58,10 +70,31 @@ public class DefaultCacheManager implements CacheManager {
      * 获取 Redisson 客户端
      *
      * @return Redisson 客户端，可能为 null
+     * @deprecated 使用 {@link #getCacheStorageProvider()} 替代
      */
+    @Deprecated(since = "1.0.0", forRemoval = true)
     @Nullable
     public Object getRedissonClient() {
         return redissonClient;
+    }
+
+    /**
+     * 设置缓存存储提供者（由 afg-redis 模块调用）
+     *
+     * @param provider 缓存存储提供者
+     */
+    public void setCacheStorageProvider(@Nullable CacheStorageProvider provider) {
+        this.storageProvider = provider;
+    }
+
+    /**
+     * 获取缓存存储提供者
+     *
+     * @return 缓存存储提供者，可能为 null
+     */
+    @Nullable
+    public CacheStorageProvider getCacheStorageProvider() {
+        return storageProvider;
     }
 
     /**
@@ -143,8 +176,8 @@ public class DefaultCacheManager implements CacheManager {
      */
     @NonNull
     public <V> AfgCache<V> getDistributedCache(@NonNull String cacheName) {
-        if (redissonClient == null) {
-            throw new CacheException("RedissonClient is not configured. Please add afg-redis module dependency.");
+        if (storageProvider == null && redissonClient == null) {
+            throw new CacheException("CacheStorageProvider is not configured. Please add afg-redis module dependency.");
         }
         return getCache(cacheName, CacheProperties.CacheType.DISTRIBUTED);
     }
@@ -161,8 +194,8 @@ public class DefaultCacheManager implements CacheManager {
      */
     @NonNull
     public <V> AfgCache<V> getMultiLevelCache(@NonNull String cacheName) {
-        if (redissonClient == null) {
-            throw new CacheException("RedissonClient is not configured. Please add afg-redis module dependency.");
+        if (storageProvider == null && redissonClient == null) {
+            throw new CacheException("CacheStorageProvider is not configured. Please add afg-redis module dependency.");
         }
         return getCache(cacheName, CacheProperties.CacheType.MULTI_LEVEL);
     }
@@ -194,15 +227,48 @@ public class DefaultCacheManager implements CacheManager {
                 return new LocalCache<>(cacheName, config);
             case DISTRIBUTED:
             case MULTI_LEVEL:
-                if (redissonClient == null) {
-                    // Redisson 未配置时，回退到本地缓存
-                    return new LocalCache<>(cacheName, config);
-                }
-                // 分布式缓存由 afg-redis 模块提供，这里使用本地缓存作为后备
-                return new LocalCache<>(cacheName, config);
+                return createDistributedCache(cacheName, config, type);
             default:
                 throw new CacheException("Unknown cache type: " + type);
         }
+    }
+
+    /**
+     * 创建分布式或多级缓存
+     *
+     * @param cacheName 缓存名称
+     * @param config    缓存配置
+     * @param type      缓存类型
+     * @return 缓存实例
+     */
+    @NonNull
+    private AfgCache<?> createDistributedCache(
+            @NonNull String cacheName, CacheConfig config, CacheProperties.CacheType type) {
+        DistributedCacheStorage storage = getOrCreateStorage(cacheName, cacheName + ":");
+
+        if (type == CacheProperties.CacheType.MULTI_LEVEL) {
+            // 多级缓存：本地 + 分布式
+            return MultiLevelCache.create(cacheName, config, storage);
+        } else {
+            // 纯分布式缓存
+            return new DistributedCache<>(cacheName, config, storage);
+        }
+    }
+
+    /**
+     * 获取或创建分布式缓存存储
+     *
+     * @param cacheName 缓存名称
+     * @param keyPrefix 键前缀
+     * @return 分布式缓存存储
+     */
+    @NonNull
+    private DistributedCacheStorage getOrCreateStorage(String cacheName, String keyPrefix) {
+        if (storageProvider != null && storageProvider.isAvailable()) {
+            return storageProvider.createStorage(cacheName, keyPrefix);
+        }
+        // 降级到本地存储
+        return new LocalDistributedCacheStorage(cacheName);
     }
 
     /**

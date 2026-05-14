@@ -17,8 +17,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.redisson.api.RedissonClient;
 
+import io.github.afgprojects.framework.core.cache.spi.DistributedCacheStorage;
 import io.github.afgprojects.framework.core.support.BaseUnitTest;
 
 /**
@@ -41,7 +41,7 @@ class MultiLevelCacheTest extends BaseUnitTest {
     private DistributedCache<String> distributedCache;
 
     @Mock
-    private RedissonClient redissonClient;
+    private DistributedCacheStorage storage;
 
     private MultiLevelCache<String> cache;
 
@@ -491,7 +491,7 @@ class MultiLevelCacheTest extends BaseUnitTest {
             MultiLevelCache<String> createdCache = MultiLevelCache.create(
                     "new-cache",
                     CacheConfig.defaultConfig(),
-                    redissonClient
+                    storage
             );
 
             // then

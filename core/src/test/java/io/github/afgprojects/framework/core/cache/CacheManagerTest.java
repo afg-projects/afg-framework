@@ -116,7 +116,7 @@ class CacheManagerTest {
         void shouldThrowExceptionForDistributedCacheWithoutRedisson() {
             assertThatThrownBy(() -> cacheManager.getDistributedCache("test-cache"))
                     .isInstanceOf(CacheException.class)
-                    .hasMessageContaining("RedissonClient is not configured");
+                    .hasMessageContaining("CacheStorageProvider is not configured");
         }
 
         /**
@@ -127,7 +127,7 @@ class CacheManagerTest {
         void shouldThrowExceptionForMultiLevelCacheWithoutRedisson() {
             assertThatThrownBy(() -> cacheManager.getMultiLevelCache("test-cache"))
                     .isInstanceOf(CacheException.class)
-                    .hasMessageContaining("RedissonClient is not configured");
+                    .hasMessageContaining("CacheStorageProvider is not configured");
         }
     }
 

@@ -53,6 +53,11 @@ public class CacheConfig {
     private boolean recordStats = true;
 
     /**
+     * 键前缀（用于分布式缓存）
+     */
+    private String keyPrefix;
+
+    /**
      * 创建默认配置
      *
      * @return 默认配置
@@ -227,6 +232,27 @@ public class CacheConfig {
     @NonNull
     public CacheConfig recordStats(boolean recordStats) {
         this.recordStats = recordStats;
+        return this;
+    }
+
+    /**
+     * 获取键前缀
+     *
+     * @return 键前缀
+     */
+    public String getKeyPrefix() {
+        return keyPrefix;
+    }
+
+    /**
+     * 设置键前缀
+     *
+     * @param keyPrefix 键前缀
+     * @return this
+     */
+    @NonNull
+    public CacheConfig keyPrefix(String keyPrefix) {
+        this.keyPrefix = keyPrefix;
         return this;
     }
 }

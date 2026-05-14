@@ -63,6 +63,16 @@ public class CacheMetrics {
     private final AtomicLong loadFailureCount = new AtomicLong(0);
 
     /**
+     * L1 缓存命中次数（多级缓存专用）
+     */
+    private final AtomicLong l1HitCount = new AtomicLong(0);
+
+    /**
+     * L2 缓存命中次数（多级缓存专用）
+     */
+    private final AtomicLong l2HitCount = new AtomicLong(0);
+
+    /**
      * 构造缓存指标
      *
      * @param cacheName 缓存名称
@@ -127,6 +137,20 @@ public class CacheMetrics {
      */
     public void recordLoadFailure() {
         loadFailureCount.incrementAndGet();
+    }
+
+    /**
+     * 记录 L1 缓存命中（多级缓存专用）
+     */
+    public void recordL1Hit() {
+        l1HitCount.incrementAndGet();
+    }
+
+    /**
+     * 记录 L2 缓存命中（多级缓存专用）
+     */
+    public void recordL2Hit() {
+        l2HitCount.incrementAndGet();
     }
 
     /**
@@ -222,6 +246,24 @@ public class CacheMetrics {
     }
 
     /**
+     * 获取 L1 缓存命中次数
+     *
+     * @return L1 缓存命中次数
+     */
+    public long getL1HitCount() {
+        return l1HitCount.get();
+    }
+
+    /**
+     * 获取 L2 缓存命中次数
+     *
+     * @return L2 缓存命中次数
+     */
+    public long getL2HitCount() {
+        return l2HitCount.get();
+    }
+
+    /**
      * 计算命中率
      *
      * @return 命中率（0.0 ~ 1.0）
@@ -268,6 +310,8 @@ public class CacheMetrics {
         clearCount.set(0);
         loadCount.set(0);
         loadFailureCount.set(0);
+        l1HitCount.set(0);
+        l2HitCount.set(0);
     }
 
     @Override
