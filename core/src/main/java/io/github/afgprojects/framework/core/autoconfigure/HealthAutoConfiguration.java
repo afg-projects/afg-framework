@@ -3,7 +3,6 @@ package io.github.afgprojects.framework.core.autoconfigure;
 import javax.sql.DataSource;
 
 import org.jspecify.annotations.Nullable;
-import org.redisson.api.RedissonClient;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -22,6 +21,8 @@ import io.github.afgprojects.framework.core.web.health.HealthCheckProperties;
 import io.github.afgprojects.framework.core.web.health.LivenessHealthIndicator;
 import io.github.afgprojects.framework.core.web.health.ModuleHealthIndicator;
 import io.github.afgprojects.framework.core.web.health.ReadinessHealthIndicator;
+import io.github.afgprojects.framework.core.web.health.spi.NoOpRedisHealthChecker;
+import io.github.afgprojects.framework.core.web.health.spi.RedisHealthChecker;
 
 /**
  * 健康检查自动配置类
@@ -83,6 +84,15 @@ public class HealthAutoConfiguration {
     }
 
     /**
+     * Redis 健康检查器（默认空实现）
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public RedisHealthChecker redisHealthChecker() {
+        return new NoOpRedisHealthChecker();
+    }
+
+    /**
      * 就绪探针健康指示器
      * 用于 Kubernetes Readiness Probe
      * 注意：Bean 名称使用 afgReadiness 避免与 Spring Boot 4.0 内置 readiness 组冲突
@@ -93,8 +103,8 @@ public class HealthAutoConfiguration {
     public ReadinessHealthIndicator readinessHealthIndicator(
             HealthCheckProperties properties,
             @Nullable DataSource dataSource,
-            @Nullable RedissonClient redissonClient,
+            RedisHealthChecker redisHealthChecker,
             @Nullable ModuleRegistry moduleRegistry) {
-        return new ReadinessHealthIndicator(properties, dataSource, redissonClient, moduleRegistry);
+        return new ReadinessHealthIndicator(properties, dataSource, redisHealthChecker, moduleRegistry);
     }
 }
