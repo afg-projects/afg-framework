@@ -40,7 +40,6 @@
  * v1.isMajorChange(v2);    // 返回 true
  * }</pre>
  *
- * @see io.github.afgprojects.core.web.version Web 层版本管理（运行时版本路由）
  * @since 1.0.0
  */
 package io.github.afgprojects.framework.core.model.version;

@@ -15,7 +15,6 @@ io.github.afgprojects.framework.core.autoconfigure.VirtualThreadAutoConfiguratio
 io.github.afgprojects.framework.core.trace.TracingAutoConfiguration
 io.github.afgprojects.framework.core.web.security.autoconfigure.AfgSecurityAutoConfiguration
 io.github.afgprojects.framework.core.web.security.signature.SignatureAutoConfiguration
-io.github.afgprojects.framework.core.web.version.ApiVersionAutoConfiguration
 io.github.afgprojects.framework.core.web.ratelimit.RateLimitAutoConfiguration
 io.github.afgprojects.framework.core.web.module.ModuleWebAutoConfiguration
 io.github.afgprojects.framework.core.security.datascope.autoconfigure.DataScopeAutoConfiguration

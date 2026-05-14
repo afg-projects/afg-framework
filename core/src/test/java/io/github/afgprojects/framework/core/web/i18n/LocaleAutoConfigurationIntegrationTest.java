@@ -8,26 +8,16 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.MessageSource;
-import org.springframework.test.annotation.DirtiesContext;
 
-import io.github.afgprojects.framework.core.support.TestApplication;
+import io.github.afgprojects.framework.core.support.BaseIntegrationTest;
 
 /**
  * LocaleAutoConfiguration 集成测试
+ * 继承 BaseIntegrationTest 以使用 Testcontainers 提供的 Redis 容器
  */
 @DisplayName("LocaleAutoConfiguration 集成测试")
-@SpringBootTest(
-        classes = TestApplication.class,
-        properties = {
-                "afg.i18n.enabled=true",
-                "afg.i18n.default-locale=zh_CN",
-                "afg.i18n.fallback-locale=en_US"
-        }
-)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-class LocaleAutoConfigurationIntegrationTest {
+class LocaleAutoConfigurationIntegrationTest extends BaseIntegrationTest {
 
     @Autowired(required = false)
     private LocaleFilter localeFilter;
