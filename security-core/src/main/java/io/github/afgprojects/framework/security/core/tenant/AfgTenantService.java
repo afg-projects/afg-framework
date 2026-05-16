@@ -1,6 +1,7 @@
 package io.github.afgprojects.framework.security.core.tenant;
 
-import java.util.Optional;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 /**
  * 租户服务 SPI 接口。
@@ -14,15 +15,17 @@ import java.util.Optional;
  *     private final TenantRepository tenantRepository;
  *
  *     @Override
- *     public Optional<Tenant> findById(String tenantId) {
+ *     public @Nullable Tenant getTenant(@NonNull String tenantId) {
  *         return tenantRepository.findById(tenantId)
- *             .map(this::toTenant);
+ *             .map(this::toTenant)
+ *             .orElse(null);
  *     }
  *
  *     @Override
- *     public Optional<Tenant> findByDomain(String domain) {
+ *     public @Nullable Tenant resolveByDomain(@NonNull String domain) {
  *         return tenantRepository.findByDomain(domain)
- *             .map(this::toTenant);
+ *             .map(this::toTenant)
+ *             .orElse(null);
  *     }
  * }
  * }</pre>
@@ -32,18 +35,45 @@ import java.util.Optional;
 public interface AfgTenantService {
 
     /**
-     * 根据租户 ID 查找租户。
+     * 根据租户 ID 获取租户。
      *
-     * @param tenantId 租户 ID
-     * @return 租户信息，如果不存在则返回 empty
+     * @param tenantId 租户 ID（非空）
+     * @return 租户信息，如果不存在则返回 null
      */
-    Optional<Tenant> findById(String tenantId);
+    @Nullable
+    Tenant getTenant(@NonNull String tenantId);
 
     /**
-     * 根据域名查找租户。
+     * 检查租户是否活跃。
      *
-     * @param domain 租户域名
-     * @return 租户信息，如果不存在则返回 empty
+     * <p>租户活跃需要满足以下条件：
+     * <ul>
+     *   <li>租户存在</li>
+     *   <li>租户状态为 ACTIVE</li>
+     *   <li>租户未过期（过期时间为 null 或未到达）</li>
+     * </ul>
+     *
+     * @param tenantId 租户 ID（非空）
+     * @return 如果租户活跃则返回 true，否则返回 false
      */
-    Optional<Tenant> findByDomain(String domain);
+    default boolean isTenantActive(@NonNull String tenantId) {
+        Tenant tenant = getTenant(tenantId);
+        return tenant != null
+            && tenant.getStatus().isActive()
+            && (tenant.getExpiresAt() == null || tenant.getExpiresAt().isAfter(java.time.Instant.now()));
+    }
+
+    /**
+     * 根据域名解析租户。
+     *
+     * <p>用于基于域名的多租户场景，如 SaaS 应用。
+     * 默认返回 null，如果需要域名解析功能，需要重写此方法。
+     *
+     * @param domain 租户域名（非空）
+     * @return 租户信息，如果不存在则返回 null
+     */
+    @Nullable
+    default Tenant resolveByDomain(@NonNull String domain) {
+        return null;
+    }
 }

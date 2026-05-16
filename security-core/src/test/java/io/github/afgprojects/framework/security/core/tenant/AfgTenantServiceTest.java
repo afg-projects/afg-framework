@@ -1,44 +1,67 @@
 package io.github.afgprojects.framework.security.core.tenant;
 
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
-import java.util.Optional;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class AfgTenantServiceTest {
 
     @Test
-    void shouldFindTenantById() {
+    void shouldGetTenantById() {
         AfgTenantService tenantService = new TestTenantService();
-        Optional<Tenant> tenant = tenantService.findById("tenant-001");
+        Tenant tenant = tenantService.getTenant("tenant-001");
 
-        assertThat(tenant).isPresent();
-        assertThat(tenant.get().getId()).isEqualTo("tenant-001");
-        assertThat(tenant.get().getName()).isEqualTo("测试租户");
+        assertThat(tenant).isNotNull();
+        assertThat(tenant.getTenantId()).isEqualTo("tenant-001");
+        assertThat(tenant.getTenantName()).isEqualTo("测试租户");
     }
 
     @Test
-    void shouldReturnEmptyWhenTenantNotFound() {
+    void shouldReturnNullWhenTenantNotFound() {
         AfgTenantService tenantService = new TestTenantService();
-        Optional<Tenant> tenant = tenantService.findById("non-existent");
+        Tenant tenant = tenantService.getTenant("non-existent");
 
-        assertThat(tenant).isEmpty();
+        assertThat(tenant).isNull();
     }
 
     @Test
-    void shouldFindTenantByDomain() {
+    void shouldResolveTenantByDomain() {
         AfgTenantService tenantService = new TestTenantService();
-        Optional<Tenant> tenant = tenantService.findByDomain("tenant-001.example.com");
+        Tenant tenant = tenantService.resolveByDomain("tenant-001.example.com");
 
-        assertThat(tenant).isPresent();
-        assertThat(tenant.get().getId()).isEqualTo("tenant-001");
+        assertThat(tenant).isNotNull();
+        assertThat(tenant.getTenantId()).isEqualTo("tenant-001");
     }
 
     @Test
-    void shouldReturnEmptyWhenDomainNotFound() {
+    void shouldReturnNullWhenDomainNotFound() {
         AfgTenantService tenantService = new TestTenantService();
-        Optional<Tenant> tenant = tenantService.findByDomain("non-existent.example.com");
+        Tenant tenant = tenantService.resolveByDomain("non-existent.example.com");
 
-        assertThat(tenant).isEmpty();
+        assertThat(tenant).isNull();
+    }
+
+    @Test
+    void shouldCheckIfTenantIsActive() {
+        AfgTenantService tenantService = new TestTenantService();
+
+        // 活跃租户
+        assertThat(tenantService.isTenantActive("tenant-001")).isTrue();
+
+        // 不存在的租户
+        assertThat(tenantService.isTenantActive("non-existent")).isFalse();
+
+        // 已禁用的租户
+        assertThat(tenantService.isTenantActive("tenant-disabled")).isFalse();
+
+        // 已过期的租户
+        assertThat(tenantService.isTenantActive("tenant-expired")).isFalse();
     }
 
     /**
@@ -47,31 +70,53 @@ class AfgTenantServiceTest {
     private static class TestTenantService implements AfgTenantService {
 
         @Override
-        public Optional<Tenant> findById(String tenantId) {
-            if ("tenant-001".equals(tenantId)) {
-                return Optional.of(new TestTenant(
-                    "tenant-001",
-                    "测试租户",
-                    TenantStatus.ACTIVE,
-                    "tenant-001.example.com",
-                    null
-                ));
+        public @Nullable Tenant getTenant(@NonNull String tenantId) {
+            switch (tenantId) {
+                case "tenant-001":
+                    return new TestTenant(
+                        "tenant-001",
+                        "acme",
+                        "测试租户",
+                        TenantStatus.ACTIVE,
+                        null,
+                        Map.of()
+                    );
+                case "tenant-disabled":
+                    return new TestTenant(
+                        "tenant-disabled",
+                        null,
+                        "禁用租户",
+                        TenantStatus.DISABLED,
+                        null,
+                        Map.of()
+                    );
+                case "tenant-expired":
+                    return new TestTenant(
+                        "tenant-expired",
+                        null,
+                        "过期租户",
+                        TenantStatus.ACTIVE,
+                        Instant.now().minus(1, ChronoUnit.HOURS),
+                        Map.of()
+                    );
+                default:
+                    return null;
             }
-            return Optional.empty();
         }
 
         @Override
-        public Optional<Tenant> findByDomain(String domain) {
+        public @Nullable Tenant resolveByDomain(@NonNull String domain) {
             if ("tenant-001.example.com".equals(domain)) {
-                return Optional.of(new TestTenant(
+                return new TestTenant(
                     "tenant-001",
+                    "acme",
                     "测试租户",
                     TenantStatus.ACTIVE,
-                    "tenant-001.example.com",
-                    null
-                ));
+                    null,
+                    Map.of()
+                );
             }
-            return Optional.empty();
+            return null;
         }
     }
 
@@ -79,43 +124,51 @@ class AfgTenantServiceTest {
      * Test implementation of Tenant.
      */
     private static class TestTenant implements Tenant {
-        private final String id;
-        private final String name;
+        private final String tenantId;
+        private final String tenantCode;
+        private final String tenantName;
         private final TenantStatus status;
-        private final String domain;
-        private final String contactEmail;
+        private final Instant expiresAt;
+        private final Map<String, Object> attributes;
 
-        TestTenant(String id, String name, TenantStatus status, String domain, String contactEmail) {
-            this.id = id;
-            this.name = name;
+        TestTenant(String tenantId, String tenantCode, String tenantName, TenantStatus status,
+                   Instant expiresAt, Map<String, Object> attributes) {
+            this.tenantId = tenantId;
+            this.tenantCode = tenantCode;
+            this.tenantName = tenantName;
             this.status = status;
-            this.domain = domain;
-            this.contactEmail = contactEmail;
+            this.expiresAt = expiresAt;
+            this.attributes = attributes;
         }
 
         @Override
-        public String getId() {
-            return id;
+        public @NonNull String getTenantId() {
+            return tenantId;
         }
 
         @Override
-        public String getName() {
-            return name;
+        public @Nullable String getTenantCode() {
+            return tenantCode;
         }
 
         @Override
-        public TenantStatus getStatus() {
+        public @Nullable String getTenantName() {
+            return tenantName;
+        }
+
+        @Override
+        public @NonNull TenantStatus getStatus() {
             return status;
         }
 
         @Override
-        public Optional<String> getDomain() {
-            return Optional.ofNullable(domain);
+        public @Nullable Instant getExpiresAt() {
+            return expiresAt;
         }
 
         @Override
-        public Optional<String> getContactEmail() {
-            return Optional.ofNullable(contactEmail);
+        public @NonNull Map<String, Object> getAttributes() {
+            return attributes;
         }
     }
 }
