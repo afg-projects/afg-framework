@@ -8,7 +8,7 @@ import io.github.afgprojects.framework.data.core.entity.TimestampSoftDeletable;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCache;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheManager;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheProperties;
-import io.github.afgprojects.framework.data.jdbc.metadata.SimpleEntityMetadata;
+import io.github.afgprojects.framework.data.jdbc.metadata.ReflectiveEntityMetadata;
 import io.github.afgprojects.framework.core.cache.CacheProperties;
 import io.github.afgprojects.framework.core.cache.DefaultCacheManager;
 import lombok.Data;
@@ -47,13 +47,13 @@ import static org.mockito.Mockito.*;
 class EntitySoftDeleteHandlerTest {
 
     @Mock
-    private SimpleEntityMetadata<TimestampSoftDeleteEntity> timestampMetadata;
+    private ReflectiveEntityMetadata<TimestampSoftDeleteEntity> timestampMetadata;
 
     @Mock
-    private SimpleEntityMetadata<BooleanSoftDeleteEntity> booleanMetadata;
+    private ReflectiveEntityMetadata<BooleanSoftDeleteEntity> booleanMetadata;
 
     @Mock
-    private SimpleEntityMetadata<NonSoftDeleteEntity> nonSoftDeleteMetadata;
+    private ReflectiveEntityMetadata<NonSoftDeleteEntity> nonSoftDeleteMetadata;
 
     @Mock
     private JdbcClient jdbcClient;
@@ -363,9 +363,9 @@ class EntitySoftDeleteHandlerTest {
         private DataSource dataSource;
         private JdbcClient jdbcClient;
         private Dialect dialect;
-        private SimpleEntityMetadata<TimestampSoftDeleteEntity> timestampMetadata;
-        private SimpleEntityMetadata<BooleanSoftDeleteEntity> booleanMetadata;
-        private SimpleEntityMetadata<NonSoftDeleteEntity> nonSoftDeleteMetadata;
+        private ReflectiveEntityMetadata<TimestampSoftDeleteEntity> timestampMetadata;
+        private ReflectiveEntityMetadata<BooleanSoftDeleteEntity> booleanMetadata;
+        private ReflectiveEntityMetadata<NonSoftDeleteEntity> nonSoftDeleteMetadata;
 
         @BeforeEach
         void setUp() {
@@ -374,15 +374,15 @@ class EntitySoftDeleteHandlerTest {
             dialect = new H2Dialect();
 
             // Create metadata mocks with proper stubbing
-            timestampMetadata = mock(SimpleEntityMetadata.class);
+            timestampMetadata = mock(ReflectiveEntityMetadata.class);
             when(timestampMetadata.getTableName()).thenReturn("timestamp_entity");
             when(timestampMetadata.getEntityClass()).thenReturn(TimestampSoftDeleteEntity.class);
 
-            booleanMetadata = mock(SimpleEntityMetadata.class);
+            booleanMetadata = mock(ReflectiveEntityMetadata.class);
             when(booleanMetadata.getTableName()).thenReturn("boolean_entity");
             when(booleanMetadata.getEntityClass()).thenReturn(BooleanSoftDeleteEntity.class);
 
-            nonSoftDeleteMetadata = mock(SimpleEntityMetadata.class);
+            nonSoftDeleteMetadata = mock(ReflectiveEntityMetadata.class);
             when(nonSoftDeleteMetadata.getTableName()).thenReturn("non_soft_delete_entity");
             when(nonSoftDeleteMetadata.getEntityClass()).thenReturn(NonSoftDeleteEntity.class);
 

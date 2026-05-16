@@ -4,9 +4,9 @@ import io.github.afgprojects.framework.data.core.dialect.Dialect;
 import io.github.afgprojects.framework.data.core.entity.SoftDeletable;
 import io.github.afgprojects.framework.data.core.entity.SoftDeleteStrategy;
 import io.github.afgprojects.framework.data.core.entity.TimestampSoftDeletable;
+import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCache;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheManager;
-import io.github.afgprojects.framework.data.jdbc.metadata.SimpleEntityMetadata;
 import org.jspecify.annotations.Nullable;
 import org.springframework.jdbc.core.simple.JdbcClient;
 
@@ -19,12 +19,12 @@ class EntitySoftDeleteHandler<T> {
 
     private final Class<T> entityClass;
     private final Dialect dialect;
-    private final SimpleEntityMetadata<T> metadata;
+    private final EntityMetadata<T> metadata;
     private final JdbcClient jdbcClient;
     private final @Nullable SoftDeleteStrategy softDeleteStrategy;
     private final EntityCacheManager cacheManager;
 
-    EntitySoftDeleteHandler(Class<T> entityClass, Dialect dialect, SimpleEntityMetadata<T> metadata,
+    EntitySoftDeleteHandler(Class<T> entityClass, Dialect dialect, EntityMetadata<T> metadata,
                             JdbcClient jdbcClient, @Nullable EntityCacheManager cacheManager) {
         this.entityClass = entityClass;
         this.dialect = dialect;

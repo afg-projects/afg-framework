@@ -989,8 +989,8 @@ class JdbcEntityProxyIntegrationTest {
                         name VARCHAR(100) NOT NULL,
                         email VARCHAR(200),
                         version BIGINT DEFAULT 0,
-                        create_time TIMESTAMP,
-                        update_time TIMESTAMP
+                        created_at TIMESTAMP,
+                        updated_at TIMESTAMP
                     )
                     """);
             } catch (Exception e) {

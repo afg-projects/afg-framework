@@ -5,6 +5,7 @@ import io.github.afgprojects.framework.data.core.EntityProxy;
 import io.github.afgprojects.framework.data.core.context.TenantContextHolder;
 import io.github.afgprojects.framework.data.core.dialect.*;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
+import io.github.afgprojects.framework.data.core.metadata.EntityMetadataCache;
 import io.github.afgprojects.framework.data.core.scope.TenantScope;
 import io.github.afgprojects.framework.data.core.sql.SqlDeleteBuilder;
 import io.github.afgprojects.framework.data.core.sql.SqlInsertBuilder;
@@ -12,7 +13,6 @@ import io.github.afgprojects.framework.data.core.sql.SqlQueryBuilder;
 import io.github.afgprojects.framework.data.core.sql.SqlUpdateBuilder;
 import io.github.afgprojects.framework.data.core.transaction.TransactionAdapter;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheManager;
-import io.github.afgprojects.framework.data.jdbc.metadata.SimpleEntityMetadata;
 import io.github.afgprojects.framework.data.sql.builder.SqlDeleteBuilderImpl;
 import io.github.afgprojects.framework.data.sql.builder.SqlInsertBuilderImpl;
 import io.github.afgprojects.framework.data.sql.builder.SqlQueryBuilderImpl;
@@ -66,6 +66,11 @@ public class JdbcDataManager implements DataManager {
      */
     private @Nullable TransactionAdapter transactionAdapter;
 
+    /**
+     * 实体元数据缓存
+     */
+    private final EntityMetadataCache metadataCache = new EntityMetadataCache();
+
     public JdbcDataManager(DataSource dataSource) {
         this.dataSource = dataSource;
         this.jdbcTemplate = new JdbcTemplate(dataSource);
@@ -107,7 +112,7 @@ public class JdbcDataManager implements DataManager {
 
     @Override
     public <T> @NonNull EntityMetadata<T> getEntityMetadata(@NonNull Class<T> entityClass) {
-        return new SimpleEntityMetadata<>(entityClass);
+        return metadataCache.get(entityClass);
     }
 
     @Override

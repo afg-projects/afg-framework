@@ -55,11 +55,13 @@ public class ReflectiveEntityMetadata<T> implements DatabaseEntityMetadata<T> {
     private final Class<T> entityClass;
     private final String tableName;
     private final List<DatabaseFieldMetadata> fields;
+    private final List<RelationMetadata> relations;
 
     private ReflectiveEntityMetadata(Class<T> entityClass) {
         this.entityClass = entityClass;
         this.tableName = inferTableName(entityClass);
         this.fields = extractFields(entityClass);
+        this.relations = extractRelations(entityClass);
     }
 
     /**
@@ -145,22 +147,26 @@ public class ReflectiveEntityMetadata<T> implements DatabaseEntityMetadata<T> {
         return getField("version") != null;
     }
 
-    // ==================== 关联元数据（暂不支持） ====================
+    // ==================== 关联元数据 ====================
 
     @Override
     public List<RelationMetadata> getRelations() {
-        // 反射元数据暂不支持关联关系解析
-        return Collections.emptyList();
+        return relations;
     }
 
     @Override
     public Optional<RelationMetadata> getRelation(String fieldName) {
+        for (RelationMetadata relation : relations) {
+            if (relation.getFieldName().equals(fieldName)) {
+                return Optional.of(relation);
+            }
+        }
         return Optional.empty();
     }
 
     @Override
     public boolean hasRelation(String fieldName) {
-        return false;
+        return getRelation(fieldName).isPresent();
     }
 
     /**
@@ -193,7 +199,7 @@ public class ReflectiveEntityMetadata<T> implements DatabaseEntityMetadata<T> {
     /**
      * 提取字段元数据
      * <p>
-     * 遍历类层次结构，收集所有非静态字段。
+     * 遍历类层次结构，收集所有非静态字段，跳过关联字段。
      *
      * @param clazz 实体类
      * @return 字段元数据列表
@@ -209,7 +215,41 @@ public class ReflectiveEntityMetadata<T> implements DatabaseEntityMetadata<T> {
                 if (Modifier.isStatic(field.getModifiers())) {
                     continue;
                 }
+                // 跳过关联字段（@ManyToOne, @OneToMany, @OneToOne, @ManyToMany）
+                if (ReflectiveFieldMetadata.isAssociationField(field)) {
+                    continue;
+                }
                 result.add(new ReflectiveFieldMetadata(field));
+            }
+            currentClass = currentClass.getSuperclass();
+        }
+
+        return result;
+    }
+
+    /**
+     * 提取关联元数据
+     * <p>
+     * 遍历类层次结构，收集所有关联字段。
+     *
+     * @param clazz 实体类
+     * @return 关联元数据列表
+     */
+    private static List<RelationMetadata> extractRelations(Class<?> clazz) {
+        List<RelationMetadata> result = new ArrayList<>();
+
+        // 遍历类层次结构
+        Class<?> currentClass = clazz;
+        while (currentClass != null && currentClass != Object.class) {
+            for (Field field : currentClass.getDeclaredFields()) {
+                // 跳过静态字段
+                if (Modifier.isStatic(field.getModifiers())) {
+                    continue;
+                }
+                // 只处理关联字段
+                if (ReflectiveFieldMetadata.isAssociationField(field)) {
+                    result.add(new ReflectiveRelationMetadata(clazz, field));
+                }
             }
             currentClass = currentClass.getSuperclass();
         }

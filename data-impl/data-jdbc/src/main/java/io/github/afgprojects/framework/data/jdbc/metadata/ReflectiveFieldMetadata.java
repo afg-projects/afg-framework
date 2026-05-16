@@ -56,6 +56,28 @@ public class ReflectiveFieldMetadata implements DatabaseFieldMetadata {
         this.fieldAccessor = new io.github.afgprojects.framework.data.jdbc.metadata.CachedFieldAccessor(field);
     }
 
+    /**
+     * 检查字段是否为关联字段
+     * <p>
+     * 关联字段不应作为普通数据库列处理。
+     * 支持框架自定义注解和 Jakarta Persistence 注解。
+     *
+     * @param field 反射字段
+     * @return 是否为关联字段
+     */
+    public static boolean isAssociationField(Field field) {
+        // 框架自定义关联注解
+        return hasAnnotation(field, "io.github.afgprojects.framework.data.core.relation.ManyToOne")
+                || hasAnnotation(field, "io.github.afgprojects.framework.data.core.relation.OneToMany")
+                || hasAnnotation(field, "io.github.afgprojects.framework.data.core.relation.OneToOne")
+                || hasAnnotation(field, "io.github.afgprojects.framework.data.core.relation.ManyToMany")
+                // Jakarta Persistence 关联注解
+                || hasAnnotation(field, "jakarta.persistence.ManyToOne")
+                || hasAnnotation(field, "jakarta.persistence.OneToMany")
+                || hasAnnotation(field, "jakarta.persistence.OneToOne")
+                || hasAnnotation(field, "jakarta.persistence.ManyToMany");
+    }
+
     @Override
     public String getPropertyName() {
         return propertyName;

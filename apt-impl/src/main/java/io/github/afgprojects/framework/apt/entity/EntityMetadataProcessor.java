@@ -1,10 +1,15 @@
 package io.github.afgprojects.framework.apt.entity;
 
+import io.github.afgprojects.framework.commons.naming.NamingUtils;
+
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
+import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
@@ -14,8 +19,17 @@ import java.util.*;
 /**
  * 实体元数据注解处理器
  * <p>
- * 扫描所有带有 @AfEntity 注解的类，生成元数据类。
+ * 扫描所有带有 @AfEntity 注解的类，生成完整的元数据类。
  * 生成的元数据类实现 DatabaseEntityMetadata 接口，提供编译时确定的实体元数据。
+ *
+ * <p>支持的特性：
+ * <ul>
+ *   <li>表名解析：@Table 注解或类名转 snake_case</li>
+ *   <li>字段解析：@Column 注解或属性名转 snake_case</li>
+ *   <li>主键识别：@Id 注解或名为 id 的字段</li>
+ *   <li>关联关系：@ManyToOne、@OneToMany、@OneToOne、@ManyToMany</li>
+ *   <li>特性检测：软删除、多租户、审计、版本化</li>
+ * </ul>
  *
  * <pre>
  * 示例输入：
@@ -26,10 +40,11 @@ import java.util.*;
  *     @Id
  *     private Long id;
  *
- *     @Column(name = "is_deleted")
- *     private Boolean deleted;
- *
+ *     @Column(name = "user_name")
  *     private String userName;
+ *
+ *     @ManyToOne
+ *     private Department department;
  * }
  * }
  *
@@ -47,9 +62,12 @@ import java.util.*;
 @SupportedSourceVersion(SourceVersion.RELEASE_25)
 public class EntityMetadataProcessor extends AbstractProcessor {
 
+    private Types typeUtils;
+
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
+        this.typeUtils = processingEnv.getTypeUtils();
         processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE,
             "AFG Entity Metadata Processor initialized");
     }
@@ -104,12 +122,15 @@ public class EntityMetadataProcessor extends AbstractProcessor {
     private String generateMetadataClass(TypeElement typeElement, String packageName, String metadataClassName) {
         StringBuilder sb = new StringBuilder();
 
+        // 读取 @AfEntity 注解属性
+        AfEntityConfig afEntityConfig = extractAfEntityConfig(typeElement);
+
         // 包声明
         sb.append("package ").append(packageName).append(".metadata;\n\n");
 
         // 导入
         sb.append("import io.github.afgprojects.framework.data.core.metadata.*;\n");
-        sb.append("import io.github.afgprojects.framework.data.core.relation.RelationMetadata;\n");
+        sb.append("import io.github.afgprojects.framework.data.core.relation.*;\n");
         sb.append("import java.util.*;\n");
         sb.append("import java.util.stream.Collectors;\n");
         sb.append("import ").append(typeElement.getQualifiedName()).append(";\n\n");
@@ -125,20 +146,33 @@ public class EntityMetadataProcessor extends AbstractProcessor {
         sb.append("public class ").append(metadataClassName)
           .append(" implements DatabaseEntityMetadata<").append(typeElement.getSimpleName()).append("> {\n\n");
 
-        // 表名
-        String tableName = extractTableName(typeElement);
+        // 表名（优先使用 @AfEntity.tableName）
+        String tableName = afEntityConfig.tableName != null && !afEntityConfig.tableName.isEmpty()
+            ? afEntityConfig.tableName
+            : extractTableName(typeElement);
         sb.append("    private static final String TABLE_NAME = \"").append(tableName).append("\";\n\n");
 
         // 实体类引用
         sb.append("    private final Class<").append(typeElement.getSimpleName()).append("> entityClass = ")
           .append(typeElement.getSimpleName()).append(".class;\n\n");
 
-        // 字段列表
+        // 提取字段和关联
         List<FieldInfo> fields = extractFields(typeElement);
+        List<RelationInfo> relations = afEntityConfig.generateRelations
+            ? extractRelations(typeElement, tableName)
+            : Collections.emptyList();
+
+        // 特性检测（自动检测）
+        boolean softDeletable = detectSoftDeletable(fields);
+        boolean tenantAware = detectTenantAware(fields);
+        boolean auditable = detectAuditable(fields);
+        boolean versioned = detectVersioned(fields);
+
+        // 字段列表
         sb.append("    private static final List<FieldMetadata> FIELDS = List.of(\n");
         for (int i = 0; i < fields.size(); i++) {
             FieldInfo field = fields.get(i);
-            sb.append("        new Field").append(i).append("Metadata()");
+            sb.append("        new ").append(capitalize(field.propertyName)).append("FieldMetadata()");
             if (i < fields.size() - 1) {
                 sb.append(",");
             }
@@ -146,8 +180,21 @@ public class EntityMetadataProcessor extends AbstractProcessor {
         }
         sb.append("    );\n\n");
 
-        // 关联列表（空实现）
-        sb.append("    private static final List<RelationMetadata> RELATIONS = Collections.emptyList();\n\n");
+        // 关联列表
+        if (!relations.isEmpty()) {
+            sb.append("    private static final List<RelationMetadata> RELATIONS = List.of(\n");
+            for (int i = 0; i < relations.size(); i++) {
+                RelationInfo relation = relations.get(i);
+                sb.append("        ").append(generateRelationMetadata(relation, typeElement.getSimpleName().toString()));
+                if (i < relations.size() - 1) {
+                    sb.append(",");
+                }
+                sb.append("\n");
+            }
+            sb.append("    );\n\n");
+        } else {
+            sb.append("    private static final List<RelationMetadata> RELATIONS = Collections.emptyList();\n\n");
+        }
 
         // ==================== EntityMetadata 接口方法 ====================
 
@@ -161,18 +208,13 @@ public class EntityMetadataProcessor extends AbstractProcessor {
         sb.append("        return TABLE_NAME;\n");
         sb.append("    }\n\n");
 
-        // 主键字段 - 返回 DatabaseFieldMetadata
-        FieldInfo idField = fields.stream().filter(f -> f.isId).findFirst().orElse(null);
+        // 主键字段
         sb.append("    @Override\n");
         sb.append("    public DatabaseFieldMetadata getIdField() {\n");
-        if (idField != null) {
-            sb.append("        return (DatabaseFieldMetadata) FIELDS.stream()\n");
-            sb.append("            .filter(FieldMetadata::isId)\n");
-            sb.append("            .findFirst()\n");
-            sb.append("            .orElse(null);\n");
-        } else {
-            sb.append("        return null;\n");
-        }
+        sb.append("        return (DatabaseFieldMetadata) FIELDS.stream()\n");
+        sb.append("            .filter(FieldMetadata::isId)\n");
+        sb.append("            .findFirst()\n");
+        sb.append("            .orElse(null);\n");
         sb.append("    }\n\n");
 
         sb.append("    @Override\n");
@@ -180,7 +222,6 @@ public class EntityMetadataProcessor extends AbstractProcessor {
         sb.append("        return FIELDS;\n");
         sb.append("    }\n\n");
 
-        // getField 返回 DatabaseFieldMetadata
         sb.append("    @Override\n");
         sb.append("    public DatabaseFieldMetadata getField(String propertyName) {\n");
         sb.append("        return (DatabaseFieldMetadata) FIELDS.stream()\n");
@@ -192,22 +233,22 @@ public class EntityMetadataProcessor extends AbstractProcessor {
         // 特性标记方法
         sb.append("    @Override\n");
         sb.append("    public boolean isSoftDeletable() {\n");
-        sb.append("        return false;\n");
+        sb.append("        return ").append(softDeletable).append(";\n");
         sb.append("    }\n\n");
 
         sb.append("    @Override\n");
         sb.append("    public boolean isTenantAware() {\n");
-        sb.append("        return false;\n");
+        sb.append("        return ").append(tenantAware).append(";\n");
         sb.append("    }\n\n");
 
         sb.append("    @Override\n");
         sb.append("    public boolean isAuditable() {\n");
-        sb.append("        return false;\n");
+        sb.append("        return ").append(auditable).append(";\n");
         sb.append("    }\n\n");
 
         sb.append("    @Override\n");
         sb.append("    public boolean isVersioned() {\n");
-        sb.append("        return false;\n");
+        sb.append("        return ").append(versioned).append(";\n");
         sb.append("    }\n\n");
 
         // 关联方法
@@ -218,12 +259,15 @@ public class EntityMetadataProcessor extends AbstractProcessor {
 
         sb.append("    @Override\n");
         sb.append("    public Optional<RelationMetadata> getRelation(String fieldName) {\n");
-        sb.append("        return Optional.empty();\n");
+        sb.append("        return RELATIONS.stream()\n");
+        sb.append("            .filter(r -> r.getFieldName().equals(fieldName))\n");
+        sb.append("            .findFirst();\n");
         sb.append("    }\n\n");
 
         sb.append("    @Override\n");
         sb.append("    public boolean hasRelation(String fieldName) {\n");
-        sb.append("        return false;\n");
+        sb.append("        return RELATIONS.stream()\n");
+        sb.append("            .anyMatch(r -> r.getFieldName().equals(fieldName));\n");
         sb.append("    }\n\n");
 
         // ==================== ColumnNameAware 接口方法 ====================
@@ -234,7 +278,6 @@ public class EntityMetadataProcessor extends AbstractProcessor {
         sb.append("        if (field != null) {\n");
         sb.append("            return field.getColumnName();\n");
         sb.append("        }\n");
-        sb.append("        // 降级：转换为 snake_case\n");
         sb.append("        return toSnakeCase(propertyName);\n");
         sb.append("    }\n\n");
 
@@ -252,8 +295,8 @@ public class EntityMetadataProcessor extends AbstractProcessor {
 
         // ==================== 字段元数据内部类 ====================
 
-        for (int i = 0; i < fields.size(); i++) {
-            sb.append(generateFieldMetadataClass(fields.get(i), i));
+        for (FieldInfo field : fields) {
+            sb.append(generateFieldMetadataClass(field));
         }
 
         sb.append("}\n");
@@ -264,12 +307,13 @@ public class EntityMetadataProcessor extends AbstractProcessor {
     /**
      * 生成字段元数据内部类
      */
-    private String generateFieldMetadataClass(FieldInfo field, int index) {
+    private String generateFieldMetadataClass(FieldInfo field) {
+        String className = capitalize(field.propertyName) + "FieldMetadata";
         StringBuilder sb = new StringBuilder();
         sb.append("    /**\n");
         sb.append("     * 字段 ").append(field.propertyName).append(" 的元数据\n");
         sb.append("     */\n");
-        sb.append("    private static class Field").append(index).append("Metadata implements DatabaseFieldMetadata {\n");
+        sb.append("    private static class ").append(className).append(" implements DatabaseFieldMetadata {\n");
 
         sb.append("        @Override\n");
         sb.append("        public String getPropertyName() {\n");
@@ -301,6 +345,55 @@ public class EntityMetadataProcessor extends AbstractProcessor {
     }
 
     /**
+     * 生成关联元数据创建代码
+     */
+    private String generateRelationMetadata(RelationInfo relation, String entitySimpleName) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("RelationMetadataImpl.builder()\n");
+        sb.append("                .relationType(RelationType.").append(relation.relationType).append(")\n");
+        sb.append("                .entityClass(").append(entitySimpleName).append(".class)\n");
+        sb.append("                .targetEntityClass(").append(relation.targetEntity).append(".class)\n");
+        sb.append("                .fieldName(\"").append(relation.fieldName).append("\")\n");
+
+        if (relation.mappedBy != null && !relation.mappedBy.isEmpty()) {
+            sb.append("                .mappedBy(\"").append(relation.mappedBy).append("\")\n");
+        }
+
+        sb.append("                .foreignKeyColumn(\"").append(relation.foreignKeyColumn).append("\")\n");
+
+        if (relation.joinTable != null && !relation.joinTable.isEmpty()) {
+            sb.append("                .joinTable(\"").append(relation.joinTable).append("\")\n");
+        }
+        if (relation.joinColumn != null && !relation.joinColumn.isEmpty()) {
+            sb.append("                .joinColumn(\"").append(relation.joinColumn).append("\")\n");
+        }
+        if (relation.inverseJoinColumn != null && !relation.inverseJoinColumn.isEmpty()) {
+            sb.append("                .inverseJoinColumn(\"").append(relation.inverseJoinColumn).append("\")\n");
+        }
+
+        // 级联类型
+        sb.append("                .cascadeTypes(");
+        if (relation.cascadeTypes.isEmpty()) {
+            sb.append("Collections.emptySet()");
+        } else {
+            sb.append("EnumSet.of(");
+            for (int i = 0; i < relation.cascadeTypes.size(); i++) {
+                if (i > 0) sb.append(", ");
+                sb.append("CascadeType.").append(relation.cascadeTypes.get(i));
+            }
+            sb.append(")");
+        }
+        sb.append(")\n");
+
+        sb.append("                .fetchType(FetchType.").append(relation.fetchType).append(")\n");
+        sb.append("                .orphanRemoval(").append(relation.orphanRemoval).append(")\n");
+        sb.append("                .optional(").append(relation.optional).append(")\n");
+        sb.append("                .build()");
+
+        return sb.toString();
+    }
+
+    /**
      * 提取表名
      */
     private String extractTableName(TypeElement typeElement) {
@@ -315,7 +408,7 @@ public class EntityMetadataProcessor extends AbstractProcessor {
             }
         }
         // 默认：类名转 snake_case
-        return toSnakeCase(typeElement.getSimpleName().toString());
+        return NamingUtils.toSnakeCase(typeElement.getSimpleName().toString());
     }
 
     /**
@@ -324,27 +417,383 @@ public class EntityMetadataProcessor extends AbstractProcessor {
     private List<FieldInfo> extractFields(TypeElement typeElement) {
         List<FieldInfo> fields = new ArrayList<>();
 
-        for (VariableElement field : ElementFilter.fieldsIn(typeElement.getEnclosedElements())) {
-            if (field.getModifiers().contains(Modifier.STATIC)) {
-                continue;
+        // 构建类型参数映射（处理泛型父类）
+        Map<String, TypeMirror> typeParamMap = buildTypeParameterMap(typeElement);
+
+        // 遍历类层次结构
+        TypeElement currentClass = typeElement;
+        while (currentClass != null && !currentClass.getQualifiedName().toString().equals("java.lang.Object")) {
+            for (VariableElement field : ElementFilter.fieldsIn(currentClass.getEnclosedElements())) {
+                if (field.getModifiers().contains(Modifier.STATIC)) {
+                    continue;
+                }
+
+                // 跳过关联字段
+                if (isRelationField(field)) {
+                    continue;
+                }
+
+                String propertyName = field.getSimpleName().toString();
+                String columnName = extractColumnName(field);
+                // 解析字段类型（处理泛型参数）
+                String fieldType = resolveFieldType(field.asType(), typeParamMap);
+                boolean isId = hasIdAnnotation(field);
+                boolean isGenerated = isId;
+
+                fields.add(new FieldInfo(
+                    propertyName,
+                    columnName,
+                    fieldType,
+                    isId,
+                    isGenerated
+                ));
             }
 
-            String propertyName = field.getSimpleName().toString();
-            String columnName = extractColumnName(field);
-            String fieldType = normalizeFieldType(field.asType().toString());
-            boolean isId = hasIdAnnotation(field);
-            boolean isGenerated = isId;
-
-            fields.add(new FieldInfo(
-                propertyName,
-                columnName,
-                fieldType,
-                isId,
-                isGenerated
-            ));
+            // 移动到父类
+            TypeMirror superclass = currentClass.getSuperclass();
+            if (superclass.getKind() == TypeKind.DECLARED) {
+                currentClass = (TypeElement) ((DeclaredType) superclass).asElement();
+            } else {
+                break;
+            }
         }
 
         return fields;
+    }
+
+    /**
+     * 构建类型参数映射
+     * <p>
+     * 用于解析泛型父类中的类型参数。
+     * 例如：AuthUserDevice extends BaseEntity<Long> → {"ID": Long}
+     */
+    private Map<String, TypeMirror> buildTypeParameterMap(TypeElement typeElement) {
+        Map<String, TypeMirror> typeParamMap = new HashMap<>();
+
+        TypeMirror superclass = typeElement.getSuperclass();
+        if (superclass.getKind() == TypeKind.DECLARED) {
+            DeclaredType declaredSuper = (DeclaredType) superclass;
+            TypeElement superElement = (TypeElement) declaredSuper.asElement();
+
+            List<? extends TypeParameterElement> typeParams = superElement.getTypeParameters();
+            List<? extends TypeMirror> typeArgs = declaredSuper.getTypeArguments();
+
+            for (int i = 0; i < typeParams.size() && i < typeArgs.size(); i++) {
+                typeParamMap.put(typeParams.get(i).getSimpleName().toString(), typeArgs.get(i));
+            }
+        }
+
+        return typeParamMap;
+    }
+
+    /**
+     * 解析字段类型（处理泛型类型参数）
+     */
+    private String resolveFieldType(TypeMirror fieldType, Map<String, TypeMirror> typeParamMap) {
+        // 如果是类型变量（如 ID），查找实际类型
+        if (fieldType.getKind() == TypeKind.TYPEVAR) {
+            String varName = fieldType.toString();
+            if (typeParamMap.containsKey(varName)) {
+                fieldType = typeParamMap.get(varName);
+            } else {
+                // 调试：类型变量名不在映射中
+                processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE,
+                    "Type variable '" + varName + "' not found in typeParamMap. Keys: " + typeParamMap.keySet());
+            }
+        } else if (fieldType.getKind() == TypeKind.DECLARED) {
+            // 处理带泛型的声明类型
+            DeclaredType declaredType = (DeclaredType) fieldType;
+            TypeMirror enclosingType = declaredType.getEnclosingType();
+            if (enclosingType != null && enclosingType.getKind() == TypeKind.DECLARED) {
+                // 检查外部类型的类型参数
+                String result = resolveFieldType(enclosingType, typeParamMap);
+                if (!result.equals(enclosingType.toString())) {
+                    return result;
+                }
+            }
+        }
+
+        return normalizeFieldType(fieldType.toString());
+    }
+
+    /**
+     * 提取关联关系
+     */
+    private List<RelationInfo> extractRelations(TypeElement typeElement, String tableName) {
+        List<RelationInfo> relations = new ArrayList<>();
+
+        TypeElement currentClass = typeElement;
+        while (currentClass != null && !currentClass.getQualifiedName().toString().equals("java.lang.Object")) {
+            for (VariableElement field : ElementFilter.fieldsIn(currentClass.getEnclosedElements())) {
+                if (field.getModifiers().contains(Modifier.STATIC)) {
+                    continue;
+                }
+
+                RelationInfo relation = extractRelationInfo(field, tableName);
+                if (relation != null) {
+                    relations.add(relation);
+                }
+            }
+
+            // 移动到父类
+            TypeMirror superclass = currentClass.getSuperclass();
+            if (superclass.getKind() == TypeKind.DECLARED) {
+                currentClass = (TypeElement) ((DeclaredType) superclass).asElement();
+            } else {
+                break;
+            }
+        }
+
+        return relations;
+    }
+
+    /**
+     * 从字段提取关联信息
+     */
+    private RelationInfo extractRelationInfo(VariableElement field, String tableName) {
+        String fieldName = field.getSimpleName().toString();
+
+        // 检查 @ManyToOne
+        for (AnnotationMirror am : field.getAnnotationMirrors()) {
+            String annotationType = am.getAnnotationType().toString();
+
+            if (annotationType.endsWith("ManyToOne")) {
+                return extractManyToOne(field, am, fieldName);
+            }
+
+            if (annotationType.endsWith("OneToMany")) {
+                return extractOneToMany(field, am, fieldName, tableName);
+            }
+
+            if (annotationType.endsWith("OneToOne")) {
+                return extractOneToOne(field, am, fieldName);
+            }
+
+            if (annotationType.endsWith("ManyToMany")) {
+                return extractManyToMany(field, am, fieldName, tableName);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * 提取 ManyToOne 关联信息
+     */
+    private RelationInfo extractManyToOne(VariableElement field, AnnotationMirror am, String fieldName) {
+        String targetEntity = extractTargetEntity(field, am);
+        String foreignKey = extractAnnotationValue(am, "foreignKey", fieldName + "_id");
+        List<String> cascadeTypes = extractCascadeTypes(am);
+        FetchType fetchType = extractFetchType(am, FetchType.EAGER);
+        boolean optional = extractAnnotationValue(am, "optional", true);
+
+        return new RelationInfo(
+            "MANY_TO_ONE",
+            targetEntity,
+            fieldName,
+            null, // mappedBy
+            foreignKey,
+            null, // joinTable
+            null, // joinColumn
+            null, // inverseJoinColumn
+            cascadeTypes,
+            fetchType,
+            false, // orphanRemoval
+            optional
+        );
+    }
+
+    /**
+     * 提取 OneToMany 关联信息
+     */
+    private RelationInfo extractOneToMany(VariableElement field, AnnotationMirror am, String fieldName, String tableName) {
+        String targetEntity = extractGenericTargetEntity(field, am);
+        String mappedBy = extractAnnotationValue(am, "mappedBy", "");
+        String foreignKey = extractAnnotationValue(am, "foreignKey", tableName + "_id");
+        List<String> cascadeTypes = extractCascadeTypes(am);
+        FetchType fetchType = extractFetchType(am, FetchType.LAZY);
+        boolean orphanRemoval = extractAnnotationValue(am, "orphanRemoval", false);
+
+        return new RelationInfo(
+            "ONE_TO_MANY",
+            targetEntity,
+            fieldName,
+            mappedBy,
+            foreignKey,
+            null, // joinTable
+            null, // joinColumn
+            null, // inverseJoinColumn
+            cascadeTypes,
+            fetchType,
+            orphanRemoval,
+            true // optional
+        );
+    }
+
+    /**
+     * 提取 OneToOne 关联信息
+     */
+    private RelationInfo extractOneToOne(VariableElement field, AnnotationMirror am, String fieldName) {
+        String targetEntity = extractTargetEntity(field, am);
+        String mappedBy = extractAnnotationValue(am, "mappedBy", "");
+        String foreignKey = extractAnnotationValue(am, "foreignKey", fieldName + "_id");
+        List<String> cascadeTypes = extractCascadeTypes(am);
+        FetchType fetchType = extractFetchType(am, FetchType.LAZY);
+
+        return new RelationInfo(
+            "ONE_TO_ONE",
+            targetEntity,
+            fieldName,
+            mappedBy,
+            foreignKey,
+            null, // joinTable
+            null, // joinColumn
+            null, // inverseJoinColumn
+            cascadeTypes,
+            fetchType,
+            false, // orphanRemoval
+            true // optional
+        );
+    }
+
+    /**
+     * 提取 ManyToMany 关联信息
+     */
+    private RelationInfo extractManyToMany(VariableElement field, AnnotationMirror am, String fieldName, String tableName) {
+        String targetEntity = extractGenericTargetEntity(field, am);
+        String mappedBy = extractAnnotationValue(am, "mappedBy", "");
+        String targetTableName = NamingUtils.toSnakeCase(targetEntity.substring(targetEntity.lastIndexOf('.') + 1));
+
+        String joinTable = extractAnnotationValue(am, "joinTable", tableName + "_" + targetTableName);
+        String joinColumn = extractAnnotationValue(am, "joinColumn", tableName + "_id");
+        String inverseJoinColumn = extractAnnotationValue(am, "inverseJoinColumn", targetTableName + "_id");
+        List<String> cascadeTypes = extractCascadeTypes(am);
+        FetchType fetchType = extractFetchType(am, FetchType.LAZY);
+
+        return new RelationInfo(
+            "MANY_TO_MANY",
+            targetEntity,
+            fieldName,
+            mappedBy,
+            "", // foreignKeyColumn - not used for ManyToMany
+            joinTable,
+            joinColumn,
+            inverseJoinColumn,
+            cascadeTypes,
+            fetchType,
+            false, // orphanRemoval
+            true // optional
+        );
+    }
+
+    /**
+     * 提取目标实体类（非泛型字段）
+     */
+    private String extractTargetEntity(VariableElement field, AnnotationMirror am) {
+        // 先检查 targetEntity 属性
+        String targetEntity = extractAnnotationValue(am, "targetEntity", "");
+        if (!targetEntity.isEmpty() && !targetEntity.equals("void")) {
+            return targetEntity;
+        }
+
+        // 使用字段类型
+        return normalizeFieldType(field.asType().toString());
+    }
+
+    /**
+     * 提取泛型目标实体类（Collection/Set/List 字段）
+     */
+    private String extractGenericTargetEntity(VariableElement field, AnnotationMirror am) {
+        // 先检查 targetEntity 属性
+        String targetEntity = extractAnnotationValue(am, "targetEntity", "");
+        if (!targetEntity.isEmpty() && !targetEntity.equals("void")) {
+            return targetEntity;
+        }
+
+        // 尝试从泛型参数提取
+        TypeMirror fieldType = field.asType();
+        if (fieldType.getKind() == TypeKind.DECLARED) {
+            DeclaredType declaredType = (DeclaredType) fieldType;
+            List<? extends TypeMirror> typeArgs = declaredType.getTypeArguments();
+            if (!typeArgs.isEmpty()) {
+                return normalizeFieldType(typeArgs.get(0).toString());
+            }
+        }
+
+        // 降级：使用字段类型本身
+        return normalizeFieldType(fieldType.toString());
+    }
+
+    /**
+     * 提取级联类型
+     */
+    private List<String> extractCascadeTypes(AnnotationMirror am) {
+        List<String> result = new ArrayList<>();
+        for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : am.getElementValues().entrySet()) {
+            if (entry.getKey().getSimpleName().contentEquals("cascade")) {
+                AnnotationValue value = entry.getValue();
+                if (value.getValue() instanceof List<?> list) {
+                    for (Object item : list) {
+                        if (item instanceof AnnotationValue av) {
+                            String cascadeStr = av.getValue().toString();
+                            // 提取枚举名称，如 CascadeType.PERSIST -> PERSIST
+                            if (cascadeStr.contains(".")) {
+                                cascadeStr = cascadeStr.substring(cascadeStr.lastIndexOf('.') + 1);
+                            }
+                            result.add(cascadeStr);
+                        }
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 提取抓取策略
+     */
+    private FetchType extractFetchType(AnnotationMirror am, FetchType defaultValue) {
+        String fetchTypeStr = extractAnnotationValue(am, "fetch", "");
+        if (fetchTypeStr.isEmpty()) {
+            return defaultValue;
+        }
+        // 提取枚举名称
+        if (fetchTypeStr.contains(".")) {
+            fetchTypeStr = fetchTypeStr.substring(fetchTypeStr.lastIndexOf('.') + 1);
+        }
+        return "EAGER".equals(fetchTypeStr) ? FetchType.EAGER : FetchType.LAZY;
+    }
+
+    /**
+     * 提取注解属性值
+     */
+    @SuppressWarnings("unchecked")
+    private <T> T extractAnnotationValue(AnnotationMirror am, String attributeName, T defaultValue) {
+        for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : am.getElementValues().entrySet()) {
+            if (entry.getKey().getSimpleName().contentEquals(attributeName)) {
+                Object value = entry.getValue().getValue();
+                if (value != null) {
+                    return (T) value;
+                }
+            }
+        }
+        return defaultValue;
+    }
+
+    /**
+     * 检查字段是否为关联字段
+     */
+    private boolean isRelationField(VariableElement field) {
+        for (AnnotationMirror am : field.getAnnotationMirrors()) {
+            String annotationType = am.getAnnotationType().toString();
+            if (annotationType.endsWith("ManyToOne")
+                || annotationType.endsWith("OneToMany")
+                || annotationType.endsWith("OneToOne")
+                || annotationType.endsWith("ManyToMany")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -362,7 +811,7 @@ public class EntityMetadataProcessor extends AbstractProcessor {
             }
         }
         // 默认：camelCase → snake_case
-        return toSnakeCase(field.getSimpleName().toString());
+        return NamingUtils.toSnakeCase(field.getSimpleName().toString());
     }
 
     /**
@@ -378,48 +827,69 @@ public class EntityMetadataProcessor extends AbstractProcessor {
     }
 
     /**
+     * 检测是否支持软删除
+     */
+    private boolean detectSoftDeletable(List<FieldInfo> fields) {
+        return fields.stream().anyMatch(f ->
+            "deleted".equals(f.propertyName) || "deletedAt".equals(f.propertyName));
+    }
+
+    /**
+     * 检测是否支持多租户
+     */
+    private boolean detectTenantAware(List<FieldInfo> fields) {
+        return fields.stream().anyMatch(f -> "tenantId".equals(f.propertyName));
+    }
+
+    /**
+     * 检测是否支持审计
+     */
+    private boolean detectAuditable(List<FieldInfo> fields) {
+        boolean hasCreatedAt = fields.stream().anyMatch(f -> "createdAt".equals(f.propertyName));
+        boolean hasUpdatedAt = fields.stream().anyMatch(f -> "updatedAt".equals(f.propertyName));
+        return hasCreatedAt && hasUpdatedAt;
+    }
+
+    /**
+     * 检测是否支持版本化
+     */
+    private boolean detectVersioned(List<FieldInfo> fields) {
+        return fields.stream().anyMatch(f -> "version".equals(f.propertyName));
+    }
+
+    /**
      * 标准化字段类型
-     * <p>
-     * 将类型字符串转换为可编译的形式，移除注解
      */
     private String normalizeFieldType(String type) {
-        // 移除类型注解（如 @org.jspecify.annotations.Nullable）
-        // 类型注解格式：java.lang.@org.jspecify.annotations.Nullable String
+        // 移除类型注解
         if (type.contains("@")) {
-            // 提取注解后的实际类型
             int atIndex = type.indexOf("@");
-            // 注解后面跟着包名，直到空格或结束
             int spaceIndex = type.indexOf(" ", atIndex);
             if (spaceIndex > 0) {
                 type = type.substring(0, atIndex) + type.substring(spaceIndex + 1);
             } else {
-                // 没有空格，注解在类型名之前
-                // 例如：@org.jspecify.annotations.Nullable String
                 type = type.substring(type.lastIndexOf(" ") + 1);
             }
         }
 
-        // 处理基本类型
-        switch (type) {
-            case "long":
-                return "Long";
-            case "int":
-                return "Integer";
-            case "short":
-                return "Short";
-            case "byte":
-                return "Byte";
-            case "float":
-                return "Float";
-            case "double":
-                return "Double";
-            case "boolean":
-                return "Boolean";
-            case "char":
-                return "Character";
-            default:
-                return type;
+        // 处理泛型
+        int genericIndex = type.indexOf('<');
+        if (genericIndex > 0) {
+            type = type.substring(0, genericIndex);
         }
+
+        // 处理基本类型
+        return switch (type) {
+            case "long" -> "Long";
+            case "int" -> "Integer";
+            case "short" -> "Short";
+            case "byte" -> "Byte";
+            case "float" -> "Float";
+            case "double" -> "Double";
+            case "boolean" -> "Boolean";
+            case "char" -> "Character";
+            default -> type;
+        };
     }
 
     /**
@@ -441,18 +911,13 @@ public class EntityMetadataProcessor extends AbstractProcessor {
     }
 
     /**
-     * camelCase 转 snake_case
+     * 首字母大写
      */
-    private String toSnakeCase(String name) {
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < name.length(); i++) {
-            char c = name.charAt(i);
-            if (i > 0 && Character.isUpperCase(c)) {
-                result.append('_');
-            }
-            result.append(Character.toLowerCase(c));
+    private String capitalize(String str) {
+        if (str == null || str.isEmpty()) {
+            return str;
         }
-        return result.toString();
+        return Character.toUpperCase(str.charAt(0)) + str.substring(1);
     }
 
     /**
@@ -465,4 +930,62 @@ public class EntityMetadataProcessor extends AbstractProcessor {
         boolean isId,
         boolean isGenerated
     ) {}
+
+    /**
+     * 关联信息
+     */
+    private record RelationInfo(
+        String relationType,
+        String targetEntity,
+        String fieldName,
+        String mappedBy,
+        String foreignKeyColumn,
+        String joinTable,
+        String joinColumn,
+        String inverseJoinColumn,
+        List<String> cascadeTypes,
+        FetchType fetchType,
+        boolean orphanRemoval,
+        boolean optional
+    ) {}
+
+    /**
+     * AfEntity 注解配置
+     */
+    private record AfEntityConfig(
+        String tableName,
+        boolean generateRelations
+    ) {}
+
+    /**
+     * 提取 @AfEntity 注解配置
+     */
+    private AfEntityConfig extractAfEntityConfig(TypeElement typeElement) {
+        String tableName = null;
+        boolean generateRelations = true;
+
+        for (AnnotationMirror am : typeElement.getAnnotationMirrors()) {
+            if (am.getAnnotationType().toString().endsWith("AfEntity")) {
+                for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : am.getElementValues().entrySet()) {
+                    String key = entry.getKey().getSimpleName().toString();
+                    Object value = entry.getValue().getValue();
+
+                    switch (key) {
+                        case "tableName" -> tableName = value.toString();
+                        case "generateRelations" -> generateRelations = (Boolean) value;
+                    }
+                }
+                break;
+            }
+        }
+
+        return new AfEntityConfig(tableName, generateRelations);
+    }
+
+    /**
+     * 抓取策略枚举（内部使用）
+     */
+    private enum FetchType {
+        LAZY, EAGER
+    }
 }

@@ -19,6 +19,9 @@ dependencyResolutionManagement {
 // Gradle 插件
 include("gradle-plugin")
 
+// 通用工具模块（最底层，无依赖）
+include("commons")
+
 // APT 注解和处理器（统一模块）
 include("apt-api")
 include("apt-impl")

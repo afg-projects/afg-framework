@@ -5,9 +5,9 @@ import io.github.afgprojects.framework.data.core.condition.Conditions;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
 import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
+import io.github.afgprojects.framework.data.core.metadata.FieldMetadata;
 import io.github.afgprojects.framework.data.core.relation.RelationMetadata;
 import io.github.afgprojects.framework.data.core.relation.RelationType;
-import io.github.afgprojects.framework.data.jdbc.metadata.SimpleFieldMetadata;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Field;
@@ -128,10 +128,10 @@ class AssociationLoader {
                                Class<?> targetEntityClass, EntityMetadata<?> metadata) {
         // 收集所有外键值
         Set<Object> foreignKeyValues = new LinkedHashSet<>();
-        SimpleFieldMetadata foreignKeyFieldMetadata = findForeignKeyField(relation, metadata);
+        String foreignKeyFieldName = findForeignKeyFieldName(relation, metadata);
 
         for (T entity : entities) {
-            Object foreignKeyValue = foreignKeyFieldMetadata.getValue(entity);
+            Object foreignKeyValue = getFieldValueByReflection(entity, foreignKeyFieldName);
             if (foreignKeyValue != null) {
                 foreignKeyValues.add(foreignKeyValue);
             }
@@ -154,7 +154,7 @@ class AssociationLoader {
         // 将关联实体设置到源实体
         String fieldName = relation.getFieldName();
         for (T entity : entities) {
-            Object foreignKeyValue = foreignKeyFieldMetadata.getValue(entity);
+            Object foreignKeyValue = getFieldValueByReflection(entity, foreignKeyFieldName);
             if (foreignKeyValue != null) {
                 Object target = targetEntityMap.get(foreignKeyValue);
                 setFieldValue(entity, fieldName, target);
@@ -311,39 +311,57 @@ class AssociationLoader {
      */
     private @Nullable Object getForeignKeyValue(Object entity, RelationMetadata relation,
                                                 EntityMetadata<?> metadata) {
-        SimpleFieldMetadata foreignKeyFieldMetadata = findForeignKeyField(relation, metadata);
-        return foreignKeyFieldMetadata.getValue(entity);
+        String foreignKeyFieldName = findForeignKeyFieldName(relation, metadata);
+        return getFieldValueByReflection(entity, foreignKeyFieldName);
     }
 
     /**
-     * 查找外键字段元数据
+     * 查找外键字段名
      */
-    SimpleFieldMetadata findForeignKeyField(RelationMetadata relation, EntityMetadata<?> metadata) {
+    String findForeignKeyFieldName(RelationMetadata relation, EntityMetadata<?> metadata) {
         String foreignKeyColumn = relation.getForeignKeyColumn();
         String foreignKeyField = columnNameToFieldName(foreignKeyColumn);
 
-        SimpleFieldMetadata foreignKeyFieldMetadata = findFieldByName(metadata, foreignKeyField);
-        if (foreignKeyFieldMetadata == null) {
+        FieldMetadata field = metadata.getField(foreignKeyField);
+        if (field == null) {
             foreignKeyField = relation.getFieldName() + "Id";
-            foreignKeyFieldMetadata = findFieldByName(metadata, foreignKeyField);
+            field = metadata.getField(foreignKeyField);
         }
 
-        if (foreignKeyFieldMetadata == null) {
+        if (field == null) {
             throw new IllegalStateException(
                     "Foreign key field not found for association '" + relation.getFieldName() +
                     "' in entity " + metadata.getEntityClass().getSimpleName());
         }
 
-        return foreignKeyFieldMetadata;
+        return field.getPropertyName();
     }
 
     /**
-     * 根据属性名查找字段
+     * 通过反射获取字段值
      */
-    private @Nullable SimpleFieldMetadata findFieldByName(EntityMetadata<?> metadata, String propertyName) {
-        for (var field : metadata.getFields()) {
-            if (field.getPropertyName().equals(propertyName) && field instanceof SimpleFieldMetadata sf) {
-                return sf;
+    private @Nullable Object getFieldValueByReflection(Object entity, String fieldName) {
+        try {
+            Field field = findDeclaredField(entity.getClass(), fieldName);
+            if (field != null) {
+                field.setAccessible(true);
+                return field.get(entity);
+            }
+            return null;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to get field value: " + fieldName, e);
+        }
+    }
+
+    /**
+     * 在类层次结构中查找字段
+     */
+    private Field findDeclaredField(Class<?> clazz, String fieldName) {
+        while (clazz != null && clazz != Object.class) {
+            try {
+                return clazz.getDeclaredField(fieldName);
+            } catch (NoSuchFieldException e) {
+                clazz = clazz.getSuperclass();
             }
         }
         return null;

@@ -1,13 +1,10 @@
 package io.github.afgprojects.framework.data.jdbc.metadata;
 
-import io.github.afgprojects.framework.data.core.metadata.DatabaseEntityMetadata;
 import io.github.afgprojects.framework.data.core.metadata.DatabaseFieldMetadata;
 import io.github.afgprojects.framework.data.core.metadata.FieldMetadata;
 import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

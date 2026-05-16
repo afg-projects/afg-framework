@@ -3,13 +3,12 @@ package io.github.afgprojects.framework.data.jdbc;
 import io.github.afgprojects.framework.data.core.EntityQuery;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
 import io.github.afgprojects.framework.data.core.entity.SoftDeleteStrategy;
+import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
 import io.github.afgprojects.framework.data.core.page.PageRequest;
 import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.query.Page;
 import io.github.afgprojects.framework.data.core.query.Sort;
 import io.github.afgprojects.framework.data.core.scope.DataScope;
-import io.github.afgprojects.framework.data.jdbc.metadata.SimpleEntityMetadata;
-import io.github.afgprojects.framework.data.jdbc.metadata.SimpleFieldMetadata;
 import io.github.afgprojects.framework.data.sql.converter.ConditionToSqlConverter;
 import org.jspecify.annotations.NonNull;
 import org.springframework.jdbc.core.RowMapper;
@@ -29,7 +28,7 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
     private final JdbcClient jdbcClient;
     private final Dialect dialect;
     private final JdbcDataManager dataManager;
-    private final SimpleEntityMetadata<T> metadata;
+    private final EntityMetadata<T> metadata;
     private final RowMapper<T> rowMapper;
     private final JdbcEntityProxy<T> parentProxy;
 
@@ -60,7 +59,7 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
         this.jdbcClient = parentProxy.getJdbcClient();
         this.dialect = parentProxy.getDialect();
         this.dataManager = parentProxy.dataManager;
-        this.metadata = new SimpleEntityMetadata<>(entityClass);
+        this.metadata = dataManager.getEntityMetadata(entityClass);
         this.rowMapper = parentProxy.getRowMapper();
     }
 

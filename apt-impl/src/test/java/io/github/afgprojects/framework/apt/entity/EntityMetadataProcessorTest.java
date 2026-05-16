@@ -240,9 +240,9 @@ class EntityMetadataProcessorTest {
                 """
             );
 
-            assertThat(generatedSource).contains("class Field0Metadata implements DatabaseFieldMetadata");
-            assertThat(generatedSource).contains("class Field1Metadata implements DatabaseFieldMetadata");
-            assertThat(generatedSource).contains("class Field2Metadata implements DatabaseFieldMetadata");
+            assertThat(generatedSource).contains("class IdFieldMetadata implements DatabaseFieldMetadata");
+            assertThat(generatedSource).contains("class FirstNameFieldMetadata implements DatabaseFieldMetadata");
+            assertThat(generatedSource).contains("class LastNameFieldMetadata implements DatabaseFieldMetadata");
         }
     }
 
@@ -344,7 +344,8 @@ class EntityMetadataProcessorTest {
 
             assertThat(generatedSource).contains("FIELDS = List.of(");
             assertThat(generatedSource).contains("getIdField()");
-            assertThat(generatedSource).contains("return null");
+            // 空实体的主键字段通过流式查找返回 null
+            assertThat(generatedSource).contains(".orElse(null)");
         }
 
         @Test
@@ -367,8 +368,8 @@ class EntityMetadataProcessorTest {
             );
 
             // 只应该有 id 和 name 两个字段
-            assertThat(generatedSource).contains("class Field0Metadata");
-            assertThat(generatedSource).contains("class Field1Metadata");
+            assertThat(generatedSource).contains("class IdFieldMetadata");
+            assertThat(generatedSource).contains("class NameFieldMetadata");
             assertThat(generatedSource).doesNotContain("CONSTANT");
         }
     }

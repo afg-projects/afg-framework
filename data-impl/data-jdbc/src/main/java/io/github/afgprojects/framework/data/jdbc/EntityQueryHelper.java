@@ -1,8 +1,10 @@
 package io.github.afgprojects.framework.data.jdbc;
 
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
-import io.github.afgprojects.framework.data.jdbc.metadata.SimpleEntityMetadata;
-import io.github.afgprojects.framework.data.jdbc.metadata.SimpleFieldMetadata;
+import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
+import io.github.afgprojects.framework.data.core.metadata.FieldAccessor;
+import io.github.afgprojects.framework.data.core.metadata.FieldMetadata;
+import io.github.afgprojects.framework.data.jdbc.metadata.CachedFieldAccessor;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Field;
@@ -10,6 +12,8 @@ import java.sql.ResultSet;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 实体查询辅助类
@@ -20,7 +24,12 @@ class EntityQueryHelper<T> {
 
     private final Class<T> entityClass;
     private final Dialect dialect;
-    private final SimpleEntityMetadata<T> metadata;
+    private final EntityMetadata<T> metadata;
+
+    /**
+     * 字段访问器缓存
+     */
+    private final Map<String, FieldAccessor> fieldAccessorCache = new ConcurrentHashMap<>();
 
     /**
      * SQL 缓存（延迟初始化）
@@ -31,10 +40,71 @@ class EntityQueryHelper<T> {
     private volatile String updateVersionedSql;
     private volatile String selectBaseSql;
 
-    EntityQueryHelper(Class<T> entityClass, Dialect dialect, SimpleEntityMetadata<T> metadata) {
+    EntityQueryHelper(Class<T> entityClass, Dialect dialect, EntityMetadata<T> metadata) {
         this.entityClass = entityClass;
         this.dialect = dialect;
         this.metadata = metadata;
+        // 初始化字段访问器缓存
+        initFieldAccessors();
+    }
+
+    /**
+     * 初始化字段访问器缓存
+     */
+    private void initFieldAccessors() {
+        try {
+            for (FieldMetadata fieldMeta : metadata.getFields()) {
+                String propertyName = fieldMeta.getPropertyName();
+                Field field = findDeclaredField(entityClass, propertyName);
+                if (field != null) {
+                    fieldAccessorCache.put(propertyName, new CachedFieldAccessor(field));
+                }
+            }
+        } catch (Exception e) {
+            // 忽略初始化错误，延迟到使用时再处理
+        }
+    }
+
+    /**
+     * 在类层次结构中查找字段
+     */
+    private Field findDeclaredField(Class<?> clazz, String fieldName) {
+        while (clazz != null && clazz != Object.class) {
+            try {
+                return clazz.getDeclaredField(fieldName);
+            } catch (NoSuchFieldException e) {
+                clazz = clazz.getSuperclass();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 获取字段访问器
+     */
+    private FieldAccessor getFieldAccessor(String propertyName) {
+        return fieldAccessorCache.get(propertyName);
+    }
+
+    /**
+     * 获取字段值
+     */
+    private Object getFieldValue(T entity, String propertyName) {
+        FieldAccessor accessor = getFieldAccessor(propertyName);
+        if (accessor != null) {
+            return accessor.getValue(entity);
+        }
+        return null;
+    }
+
+    /**
+     * 设置字段值
+     */
+    private void setFieldValue(T entity, String propertyName, Object value) {
+        FieldAccessor accessor = getFieldAccessor(propertyName);
+        if (accessor != null) {
+            accessor.setValue(entity, value);
+        }
     }
 
     // ==================== SQL 构建（带缓存） ====================
@@ -231,8 +301,8 @@ class EntityQueryHelper<T> {
     List<Object> extractInsertParams(T entity) {
         List<Object> params = new ArrayList<>();
         for (var field : metadata.getFields()) {
-            if (!field.isGenerated() && field instanceof SimpleFieldMetadata simpleField) {
-                params.add(simpleField.getValue(entity));
+            if (!field.isGenerated()) {
+                params.add(getFieldValue(entity, field.getPropertyName()));
             }
         }
         return params;
@@ -244,9 +314,7 @@ class EntityQueryHelper<T> {
     List<Object> extractInsertWithIdParams(T entity) {
         List<Object> params = new ArrayList<>();
         for (var field : metadata.getFields()) {
-            if (field instanceof SimpleFieldMetadata simpleField) {
-                params.add(simpleField.getValue(entity));
-            }
+            params.add(getFieldValue(entity, field.getPropertyName()));
         }
         return params;
     }
@@ -265,23 +333,18 @@ class EntityQueryHelper<T> {
                 if (isVersioned && "version".equals(field.getPropertyName())) {
                     continue;
                 }
-                if (field instanceof SimpleFieldMetadata simpleField) {
-                    params.add(simpleField.getValue(entity));
-                }
+                params.add(getFieldValue(entity, field.getPropertyName()));
             }
         }
         // 添加 ID 用于 WHERE 子句
-        SimpleFieldMetadata idField = getIdField();
+        FieldMetadata idField = metadata.getIdField();
         if (idField != null) {
-            params.add(idField.getValue(entity));
+            params.add(getFieldValue(entity, idField.getPropertyName()));
         }
 
         // 添加版本号用于乐观锁条件
         if (isVersioned) {
-            SimpleFieldMetadata versionField = findFieldByName("version");
-            if (versionField != null) {
-                params.add(versionField.getValue(entity));
-            }
+            params.add(getFieldValue(entity, "version"));
         }
         return params;
     }
@@ -289,19 +352,12 @@ class EntityQueryHelper<T> {
     // ==================== 字段访问 ====================
 
     /**
-     * 获取 ID 字段
-     */
-    @Nullable SimpleFieldMetadata getIdField() {
-        return metadata.getIdField() instanceof SimpleFieldMetadata sf ? sf : null;
-    }
-
-    /**
      * 获取 ID 值
      */
     @Nullable Object getIdValue(T entity) {
-        SimpleFieldMetadata idField = getIdField();
+        FieldMetadata idField = metadata.getIdField();
         if (idField != null) {
-            return idField.getValue(entity);
+            return getFieldValue(entity, idField.getPropertyName());
         }
         return null;
     }
@@ -310,29 +366,17 @@ class EntityQueryHelper<T> {
      * 设置 ID 值
      */
     void setIdValue(T entity, long id) {
-        SimpleFieldMetadata idField = getIdField();
+        FieldMetadata idField = metadata.getIdField();
         if (idField != null) {
             Class<?> fieldType = idField.getFieldType();
             if (fieldType == Long.class || fieldType == long.class) {
-                idField.setValue(entity, id);
+                setFieldValue(entity, idField.getPropertyName(), id);
             } else if (fieldType == Integer.class || fieldType == int.class) {
-                idField.setValue(entity, (int) id);
+                setFieldValue(entity, idField.getPropertyName(), (int) id);
             } else {
-                idField.setValue(entity, id);
+                setFieldValue(entity, idField.getPropertyName(), id);
             }
         }
-    }
-
-    /**
-     * 根据属性名查找字段
-     */
-    @Nullable SimpleFieldMetadata findFieldByName(String propertyName) {
-        for (var field : metadata.getFields()) {
-            if (field.getPropertyName().equals(propertyName) && field instanceof SimpleFieldMetadata sf) {
-                return sf;
-            }
-        }
-        return null;
     }
 
     // ==================== 结果映射 ====================
@@ -349,10 +393,10 @@ class EntityQueryHelper<T> {
                 String fieldName = columnNameToFieldName(columnName);
                 Object value = rs.getObject(i);
 
-                SimpleFieldMetadata field = findFieldByName(fieldName);
+                FieldMetadata field = metadata.getField(fieldName);
                 if (field != null) {
                     value = convertValue(value, field.getFieldType());
-                    field.setValue(entity, value);
+                    setFieldValue(entity, fieldName, value);
                 }
             }
             return entity;
@@ -447,7 +491,7 @@ class EntityQueryHelper<T> {
         // 例如：is_active → active, is_deleted → deleted
         if (result.startsWith("is") && result.length() > 2 && Character.isUpperCase(result.charAt(2))) {
             String strippedName = Character.toLowerCase(result.charAt(2)) + result.substring(3);
-            if (findFieldByName(strippedName) != null) {
+            if (metadata.getField(strippedName) != null) {
                 return strippedName;
             }
         }
@@ -471,22 +515,6 @@ class EntityQueryHelper<T> {
     }
 
     /**
-     * 设置实体字段值
-     */
-    void setFieldValue(T entity, String fieldName, Object value) {
-        try {
-            Field field = entityClass.getDeclaredField(fieldName);
-            field.setAccessible(true);
-            field.set(entity, value);
-        } catch (Exception e) {
-            throw new RuntimeException(
-                    "Failed to set field '" + fieldName + "' on entity " + entityClass.getSimpleName(),
-                    e
-            );
-        }
-    }
-
-    /**
      * 获取表名
      */
     String getTableName() {
@@ -503,7 +531,7 @@ class EntityQueryHelper<T> {
     /**
      * 获取元数据
      */
-    SimpleEntityMetadata<T> getMetadata() {
+    EntityMetadata<T> getMetadata() {
         return metadata;
     }
 

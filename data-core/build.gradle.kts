@@ -3,7 +3,10 @@ plugins {
 }
 
 dependencies {
-    // 依赖core模块
+    // 依赖 commons 模块（通用工具）
+    api(project(":commons"))
+
+    // 依赖 core 模块
     api(project(":core"))
 
     // JSpecify 空安全注解

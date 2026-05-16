@@ -487,8 +487,8 @@ class TimestampSoftDeleteIntegrationTest {
                     name VARCHAR(100) NOT NULL,
                     email VARCHAR(200),
                     deleted_at TIMESTAMP,
-                    create_time TIMESTAMP,
-                    update_time TIMESTAMP
+                    created_at TIMESTAMP,
+                    updated_at TIMESTAMP
                 )
                 """);
         } catch (Exception e) {

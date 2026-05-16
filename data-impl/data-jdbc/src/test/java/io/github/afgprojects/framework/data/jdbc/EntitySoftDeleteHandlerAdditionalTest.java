@@ -8,7 +8,7 @@ import io.github.afgprojects.framework.data.core.entity.TimestampSoftDeletable;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCache;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheManager;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheProperties;
-import io.github.afgprojects.framework.data.jdbc.metadata.SimpleEntityMetadata;
+import io.github.afgprojects.framework.data.jdbc.metadata.ReflectiveEntityMetadata;
 import io.github.afgprojects.framework.core.cache.DefaultCacheManager;
 import io.github.afgprojects.framework.core.cache.CacheProperties;
 import org.h2.jdbcx.JdbcDataSource;
@@ -66,7 +66,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
             insertTimestampEntity(1L, "test", null); // Not deleted
             insertTimestampEntity(2L, "deleted_entity", java.time.LocalDateTime.now()); // Deleted
 
-            var metadata = new SimpleEntityMetadata<>(TimestampSoftDeleteEntity.class);
+            var metadata = ReflectiveEntityMetadata.create(TimestampSoftDeleteEntity.class);
             var handler = new EntitySoftDeleteHandler<>(
                     TimestampSoftDeleteEntity.class, dialect, metadata, jdbcClient, null
             );
@@ -89,7 +89,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
             insertBooleanEntity(1L, "test", false);
             insertBooleanEntity(2L, "deleted_entity", true);
 
-            var metadata = new SimpleEntityMetadata<>(BooleanSoftDeleteEntity.class);
+            var metadata = ReflectiveEntityMetadata.create(BooleanSoftDeleteEntity.class);
             var handler = new EntitySoftDeleteHandler<>(
                     BooleanSoftDeleteEntity.class, dialect, metadata, jdbcClient, null
             );
@@ -110,7 +110,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
         void testRestoreByIdEvictsCache() {
             // Given
             insertTimestampEntity(1L, "cached_entity", java.time.LocalDateTime.now());
-            var metadata = new SimpleEntityMetadata<>(TimestampSoftDeleteEntity.class);
+            var metadata = ReflectiveEntityMetadata.create(TimestampSoftDeleteEntity.class);
             timestampCache = cacheManager.getCache(TimestampSoftDeleteEntity.class);
 
             // Pre-populate cache
@@ -134,7 +134,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
         @Test
         @DisplayName("restoreById should throw UnsupportedOperationException for non-soft-deletable entity")
         void testRestoreByIdNonSoftDeletableThrows() {
-            var metadata = new SimpleEntityMetadata<>(NonSoftDeleteEntity.class);
+            var metadata = ReflectiveEntityMetadata.create(NonSoftDeleteEntity.class);
             var handler = new EntitySoftDeleteHandler<>(
                     NonSoftDeleteEntity.class, dialect, metadata, jdbcClient, null
             );
@@ -157,7 +157,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
             insertTimestampEntity(2L, "entity2", java.time.LocalDateTime.now());
             insertTimestampEntity(3L, "entity3", java.time.LocalDateTime.now());
 
-            var metadata = new SimpleEntityMetadata<>(TimestampSoftDeleteEntity.class);
+            var metadata = ReflectiveEntityMetadata.create(TimestampSoftDeleteEntity.class);
             var handler = new EntitySoftDeleteHandler<>(
                     TimestampSoftDeleteEntity.class, dialect, metadata, jdbcClient, null
             );
@@ -175,7 +175,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
         @Test
         @DisplayName("restoreAllById with empty list should do nothing")
         void testRestoreAllByIdEmpty() {
-            var metadata = new SimpleEntityMetadata<>(TimestampSoftDeleteEntity.class);
+            var metadata = ReflectiveEntityMetadata.create(TimestampSoftDeleteEntity.class);
             var handler = new EntitySoftDeleteHandler<>(
                     TimestampSoftDeleteEntity.class, dialect, metadata, jdbcClient, null
             );
@@ -198,7 +198,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
             insertTimestampEntity(1L, "to_delete", null);
             insertTimestampEntity(2L, "keep", null);
 
-            var metadata = new SimpleEntityMetadata<>(TimestampSoftDeleteEntity.class);
+            var metadata = ReflectiveEntityMetadata.create(TimestampSoftDeleteEntity.class);
             var handler = new EntitySoftDeleteHandler<>(
                     TimestampSoftDeleteEntity.class, dialect, metadata, jdbcClient, null
             );
@@ -226,7 +226,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
             insertNonSoftDeleteEntity(1L, "to_delete");
             insertNonSoftDeleteEntity(2L, "keep");
 
-            var metadata = new SimpleEntityMetadata<>(NonSoftDeleteEntity.class);
+            var metadata = ReflectiveEntityMetadata.create(NonSoftDeleteEntity.class);
             var handler = new EntitySoftDeleteHandler<>(
                     NonSoftDeleteEntity.class, dialect, metadata, jdbcClient, null
             );
@@ -246,7 +246,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
         void testHardDeleteByIdEvictsCache() {
             // Given
             insertTimestampEntity(1L, "cached_entity", null);
-            var metadata = new SimpleEntityMetadata<>(TimestampSoftDeleteEntity.class);
+            var metadata = ReflectiveEntityMetadata.create(TimestampSoftDeleteEntity.class);
             timestampCache = cacheManager.getCache(TimestampSoftDeleteEntity.class);
 
             // Pre-populate cache
@@ -272,7 +272,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
         void testHardDeleteByIdNoCache() {
             // Given
             insertTimestampEntity(1L, "test", null);
-            var metadata = new SimpleEntityMetadata<>(TimestampSoftDeleteEntity.class);
+            var metadata = ReflectiveEntityMetadata.create(TimestampSoftDeleteEntity.class);
 
             var handler = new EntitySoftDeleteHandler<>(
                     TimestampSoftDeleteEntity.class, dialect, metadata, jdbcClient, cacheManager
@@ -297,7 +297,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
             insertTimestampEntity(2L, "entity2", null);
             insertTimestampEntity(3L, "entity3", null);
 
-            var metadata = new SimpleEntityMetadata<>(TimestampSoftDeleteEntity.class);
+            var metadata = ReflectiveEntityMetadata.create(TimestampSoftDeleteEntity.class);
             var handler = new EntitySoftDeleteHandler<>(
                     TimestampSoftDeleteEntity.class, dialect, metadata, jdbcClient, null
             );
@@ -315,7 +315,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
         @Test
         @DisplayName("hardDeleteAllById with empty list should do nothing")
         void testHardDeleteAllByIdEmpty() {
-            var metadata = new SimpleEntityMetadata<>(TimestampSoftDeleteEntity.class);
+            var metadata = ReflectiveEntityMetadata.create(TimestampSoftDeleteEntity.class);
             var handler = new EntitySoftDeleteHandler<>(
                     TimestampSoftDeleteEntity.class, dialect, metadata, jdbcClient, null
             );
@@ -336,7 +336,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
         void testCacheKeyBuildBoolean() {
             // Given
             insertBooleanEntity(42L, "test", true);
-            var metadata = new SimpleEntityMetadata<>(BooleanSoftDeleteEntity.class);
+            var metadata = ReflectiveEntityMetadata.create(BooleanSoftDeleteEntity.class);
             var booleanCache = cacheManager.getCache(BooleanSoftDeleteEntity.class);
 
             // Pre-populate cache
@@ -362,7 +362,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
         void testHardDeleteCacheKeyBuild() {
             // Given
             insertTimestampEntity(99L, "test", null);
-            var metadata = new SimpleEntityMetadata<>(TimestampSoftDeleteEntity.class);
+            var metadata = ReflectiveEntityMetadata.create(TimestampSoftDeleteEntity.class);
             timestampCache = cacheManager.getCache(TimestampSoftDeleteEntity.class);
 
             // Pre-populate cache
@@ -391,7 +391,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
         @Test
         @DisplayName("appendSoftDeleteFilter should not modify SQL for non-soft-deletable with includeDeleted=false")
         void testAppendSoftDeleteFilterNonSoftDeletable() {
-            var metadata = new SimpleEntityMetadata<>(NonSoftDeleteEntity.class);
+            var metadata = ReflectiveEntityMetadata.create(NonSoftDeleteEntity.class);
             var handler = new EntitySoftDeleteHandler<>(
                     NonSoftDeleteEntity.class, dialect, metadata, jdbcClient, null
             );
@@ -406,7 +406,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
         @Test
         @DisplayName("appendSoftDeleteFilter should append correct clause for timestamp entity with WHERE")
         void testAppendSoftDeleteFilterTimestampWithWhereClause() {
-            var metadata = new SimpleEntityMetadata<>(TimestampSoftDeleteEntity.class);
+            var metadata = ReflectiveEntityMetadata.create(TimestampSoftDeleteEntity.class);
             var handler = new EntitySoftDeleteHandler<>(
                     TimestampSoftDeleteEntity.class, dialect, metadata, jdbcClient, null
             );
@@ -420,7 +420,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
         @Test
         @DisplayName("appendSoftDeleteFilter should append correct clause for timestamp entity without WHERE")
         void testAppendSoftDeleteFilterTimestampWithoutWhereClause() {
-            var metadata = new SimpleEntityMetadata<>(TimestampSoftDeleteEntity.class);
+            var metadata = ReflectiveEntityMetadata.create(TimestampSoftDeleteEntity.class);
             var handler = new EntitySoftDeleteHandler<>(
                     TimestampSoftDeleteEntity.class, dialect, metadata, jdbcClient, null
             );
@@ -434,7 +434,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
         @Test
         @DisplayName("appendSoftDeleteFilter should append correct clause for boolean entity with WHERE")
         void testAppendSoftDeleteFilterBooleanWithWhereClause() {
-            var metadata = new SimpleEntityMetadata<>(BooleanSoftDeleteEntity.class);
+            var metadata = ReflectiveEntityMetadata.create(BooleanSoftDeleteEntity.class);
             var handler = new EntitySoftDeleteHandler<>(
                     BooleanSoftDeleteEntity.class, dialect, metadata, jdbcClient, null
             );
@@ -448,7 +448,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
         @Test
         @DisplayName("appendSoftDeleteFilter should append correct clause for boolean entity without WHERE")
         void testAppendSoftDeleteFilterBooleanWithoutWhereClause() {
-            var metadata = new SimpleEntityMetadata<>(BooleanSoftDeleteEntity.class);
+            var metadata = ReflectiveEntityMetadata.create(BooleanSoftDeleteEntity.class);
             var handler = new EntitySoftDeleteHandler<>(
                     BooleanSoftDeleteEntity.class, dialect, metadata, jdbcClient, null
             );
@@ -467,7 +467,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
         @Test
         @DisplayName("buildSoftDeleteSetClause should return correct clause for timestamp entity")
         void testBuildSoftDeleteSetClauseTimestamp() {
-            var metadata = new SimpleEntityMetadata<>(TimestampSoftDeleteEntity.class);
+            var metadata = ReflectiveEntityMetadata.create(TimestampSoftDeleteEntity.class);
             var handler = new EntitySoftDeleteHandler<>(
                     TimestampSoftDeleteEntity.class, dialect, metadata, jdbcClient, null
             );
@@ -478,7 +478,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
         @Test
         @DisplayName("buildSoftDeleteSetClause should return correct clause for boolean entity")
         void testBuildSoftDeleteSetClauseBoolean() {
-            var metadata = new SimpleEntityMetadata<>(BooleanSoftDeleteEntity.class);
+            var metadata = ReflectiveEntityMetadata.create(BooleanSoftDeleteEntity.class);
             var handler = new EntitySoftDeleteHandler<>(
                     BooleanSoftDeleteEntity.class, dialect, metadata, jdbcClient, null
             );
@@ -489,7 +489,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
         @Test
         @DisplayName("buildSoftDeleteSetClause should throw for non-soft-deletable entity")
         void testBuildSoftDeleteSetClauseNonSoftDeletable() {
-            var metadata = new SimpleEntityMetadata<>(NonSoftDeleteEntity.class);
+            var metadata = ReflectiveEntityMetadata.create(NonSoftDeleteEntity.class);
             var handler = new EntitySoftDeleteHandler<>(
                     NonSoftDeleteEntity.class, dialect, metadata, jdbcClient, null
             );
@@ -508,7 +508,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
         @Test
         @DisplayName("getSoftDeleteStrategy should return TIMESTAMP for TimestampSoftDeletable")
         void testGetStrategyTimestamp() {
-            var metadata = new SimpleEntityMetadata<>(TimestampSoftDeleteEntity.class);
+            var metadata = ReflectiveEntityMetadata.create(TimestampSoftDeleteEntity.class);
             var handler = new EntitySoftDeleteHandler<>(
                     TimestampSoftDeleteEntity.class, dialect, metadata, jdbcClient, null
             );
@@ -519,7 +519,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
         @Test
         @DisplayName("getSoftDeleteStrategy should return BOOLEAN for SoftDeletable")
         void testGetStrategyBoolean() {
-            var metadata = new SimpleEntityMetadata<>(BooleanSoftDeleteEntity.class);
+            var metadata = ReflectiveEntityMetadata.create(BooleanSoftDeleteEntity.class);
             var handler = new EntitySoftDeleteHandler<>(
                     BooleanSoftDeleteEntity.class, dialect, metadata, jdbcClient, null
             );
@@ -530,7 +530,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
         @Test
         @DisplayName("getSoftDeleteStrategy should return null for non-soft-deletable")
         void testGetStrategyNull() {
-            var metadata = new SimpleEntityMetadata<>(NonSoftDeleteEntity.class);
+            var metadata = ReflectiveEntityMetadata.create(NonSoftDeleteEntity.class);
             var handler = new EntitySoftDeleteHandler<>(
                     NonSoftDeleteEntity.class, dialect, metadata, jdbcClient, null
             );
@@ -546,7 +546,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
         @Test
         @DisplayName("isSoftDeletable should return true for timestamp entity")
         void testIsSoftDeletableTimestamp() {
-            var metadata = new SimpleEntityMetadata<>(TimestampSoftDeleteEntity.class);
+            var metadata = ReflectiveEntityMetadata.create(TimestampSoftDeleteEntity.class);
             var handler = new EntitySoftDeleteHandler<>(
                     TimestampSoftDeleteEntity.class, dialect, metadata, jdbcClient, null
             );
@@ -557,7 +557,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
         @Test
         @DisplayName("isSoftDeletable should return true for boolean entity")
         void testIsSoftDeletableBoolean() {
-            var metadata = new SimpleEntityMetadata<>(BooleanSoftDeleteEntity.class);
+            var metadata = ReflectiveEntityMetadata.create(BooleanSoftDeleteEntity.class);
             var handler = new EntitySoftDeleteHandler<>(
                     BooleanSoftDeleteEntity.class, dialect, metadata, jdbcClient, null
             );
@@ -568,7 +568,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
         @Test
         @DisplayName("isSoftDeletable should return false for non-soft-deletable entity")
         void testIsSoftDeletableFalse() {
-            var metadata = new SimpleEntityMetadata<>(NonSoftDeleteEntity.class);
+            var metadata = ReflectiveEntityMetadata.create(NonSoftDeleteEntity.class);
             var handler = new EntitySoftDeleteHandler<>(
                     NonSoftDeleteEntity.class, dialect, metadata, jdbcClient, null
             );

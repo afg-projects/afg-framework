@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.data.core.naming;
 
+import io.github.afgprojects.framework.commons.naming.NamingUtils;
 import io.github.afgprojects.framework.data.core.condition.Conditions;
 import io.github.afgprojects.framework.data.core.condition.SFunction;
 import io.github.afgprojects.framework.data.core.metadata.ColumnNameAware;
@@ -74,32 +75,6 @@ public class FieldNameResolver {
         }
 
         // 4. 降级：camelCase → snake_case
-        return toSnakeCase(propertyName);
-    }
-
-    /**
-     * camelCase 转 snake_case
-     * <p>
-     * 示例：
-     *
-     * <ul>
-     *   <li>"userName" → "user_name"</li>
-     *   <li>"id" → "id"</li>
-     *   <li>"URL" → "u_r_l"</li>
-     * </ul>
-     *
-     * @param propertyName 属性名（camelCase）
-     * @return 列名（snake_case）
-     */
-    private String toSnakeCase(String propertyName) {
-        StringBuilder columnName = new StringBuilder();
-        for (int i = 0; i < propertyName.length(); i++) {
-            char c = propertyName.charAt(i);
-            if (i > 0 && Character.isUpperCase(c)) {
-                columnName.append('_');
-            }
-            columnName.append(Character.toLowerCase(c));
-        }
-        return columnName.toString();
+        return NamingUtils.toSnakeCase(propertyName);
     }
 }

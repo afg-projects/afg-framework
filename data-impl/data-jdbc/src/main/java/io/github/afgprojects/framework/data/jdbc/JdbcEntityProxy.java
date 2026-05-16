@@ -6,6 +6,7 @@ import io.github.afgprojects.framework.data.core.dialect.Dialect;
 import io.github.afgprojects.framework.data.core.entity.SoftDeleteStrategy;
 import io.github.afgprojects.framework.data.core.entity.Versioned;
 import io.github.afgprojects.framework.data.core.exception.OptimisticLockException;
+import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
 import io.github.afgprojects.framework.data.core.page.PageRequest;
 import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.query.Page;
@@ -14,8 +15,6 @@ import io.github.afgprojects.framework.data.core.relation.RelationType;
 import io.github.afgprojects.framework.data.core.scope.DataScope;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCache;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheManager;
-import io.github.afgprojects.framework.data.jdbc.metadata.SimpleEntityMetadata;
-import io.github.afgprojects.framework.data.jdbc.metadata.SimpleFieldMetadata;
 import io.github.afgprojects.framework.data.sql.converter.ConditionToSqlConverter;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -47,7 +46,7 @@ public class JdbcEntityProxy<T> implements EntityProxy<T> {
     private final JdbcClient jdbcClient;
     private final Dialect dialect;
     final JdbcDataManager dataManager;
-    private final SimpleEntityMetadata<T> metadata;
+    private final EntityMetadata<T> metadata;
     final RowMapper<T> rowMapper;
 
     /**
@@ -93,7 +92,7 @@ public class JdbcEntityProxy<T> implements EntityProxy<T> {
         this.dialect = dialect;
         this.dataManager = dataManager;
         this.cacheManager = cacheManager;
-        this.metadata = new SimpleEntityMetadata<>(entityClass);
+        this.metadata = dataManager.getEntityMetadata(entityClass);
         this.queryHelper = new EntityQueryHelper<>(entityClass, dialect, metadata);
         this.rowMapper = queryHelper::mapRow;
         this.softDeleteHandler = new EntitySoftDeleteHandler<>(entityClass, dialect, metadata, jdbcClient, cacheManager);
@@ -286,11 +285,7 @@ public class JdbcEntityProxy<T> implements EntityProxy<T> {
     private <S extends T> List<Object> extractBatchInsertParams(List<S> entities) {
         List<Object> params = new ArrayList<>();
         for (S entity : entities) {
-            for (var field : metadata.getFields()) {
-                if (!field.isGenerated() && field instanceof SimpleFieldMetadata simpleField) {
-                    params.add(simpleField.getValue(entity));
-                }
-            }
+            params.addAll(queryHelper.extractInsertParams(entity));
         }
         return params;
     }

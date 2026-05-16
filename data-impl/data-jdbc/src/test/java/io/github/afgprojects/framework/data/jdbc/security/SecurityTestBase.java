@@ -70,7 +70,7 @@ public abstract class SecurityTestBase {
                     password VARCHAR(200),
                     tenant_id VARCHAR(50),
                     dept_id VARCHAR(50),
-                    create_time TIMESTAMP
+                    created_at TIMESTAMP
                 )
                 """);
         } catch (Exception e) {
