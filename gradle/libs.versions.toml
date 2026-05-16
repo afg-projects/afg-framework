@@ -204,6 +204,9 @@ jsqlparser = { module = "com.github.jsqlparser:jsqlparser", version.ref = "jsqlp
 # Reactor Core (响应式编程)
 reactor-core = { module = "io.projectreactor:reactor-core" }
 
+# Spring WebFlux (响应式 Web)
+spring-webflux = { module = "org.springframework:spring-webflux" }
+
 # H2 Database (版本由 Spring Boot BOM 管理)
 h2 = { module = "com.h2database:h2" }
 

@@ -28,6 +28,8 @@ include("core")
 
 // AI 模块
 include("ai-core")
+include("ai-impl:ai-llm")           // LLM 实现（OpenAI, Anthropic, Ollama）
+include("ai-impl:ai-agent")         // Agent 实现（ToolRegistry, ReAct, Plan-Execute）
 
 // 数据访问模块
 include("data-core")
