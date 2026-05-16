@@ -161,31 +161,29 @@ public class EntityMetadataProcessor extends AbstractProcessor {
         sb.append("        return TABLE_NAME;\n");
         sb.append("    }\n\n");
 
-        // 主键字段
+        // 主键字段 - 返回 DatabaseFieldMetadata
         FieldInfo idField = fields.stream().filter(f -> f.isId).findFirst().orElse(null);
+        sb.append("    @Override\n");
+        sb.append("    public DatabaseFieldMetadata getIdField() {\n");
         if (idField != null) {
-            sb.append("    @Override\n");
-            sb.append("    public FieldMetadata getIdField() {\n");
-            sb.append("        return FIELDS.stream()\n");
+            sb.append("        return (DatabaseFieldMetadata) FIELDS.stream()\n");
             sb.append("            .filter(FieldMetadata::isId)\n");
             sb.append("            .findFirst()\n");
             sb.append("            .orElse(null);\n");
-            sb.append("    }\n\n");
         } else {
-            sb.append("    @Override\n");
-            sb.append("    public FieldMetadata getIdField() {\n");
             sb.append("        return null;\n");
-            sb.append("    }\n\n");
         }
+        sb.append("    }\n\n");
 
         sb.append("    @Override\n");
         sb.append("    public List<FieldMetadata> getFields() {\n");
         sb.append("        return FIELDS;\n");
         sb.append("    }\n\n");
 
+        // getField 返回 DatabaseFieldMetadata
         sb.append("    @Override\n");
-        sb.append("    public FieldMetadata getField(String propertyName) {\n");
-        sb.append("        return FIELDS.stream()\n");
+        sb.append("    public DatabaseFieldMetadata getField(String propertyName) {\n");
+        sb.append("        return (DatabaseFieldMetadata) FIELDS.stream()\n");
         sb.append("            .filter(f -> f.getPropertyName().equals(propertyName))\n");
         sb.append("            .findFirst()\n");
         sb.append("            .orElse(null);\n");
@@ -271,7 +269,7 @@ public class EntityMetadataProcessor extends AbstractProcessor {
         sb.append("    /**\n");
         sb.append("     * 字段 ").append(field.propertyName).append(" 的元数据\n");
         sb.append("     */\n");
-        sb.append("    private static class Field").append(index).append("Metadata implements FieldMetadata {\n");
+        sb.append("    private static class Field").append(index).append("Metadata implements DatabaseFieldMetadata {\n");
 
         sb.append("        @Override\n");
         sb.append("        public String getPropertyName() {\n");

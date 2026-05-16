@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    // 依赖 core 模块（用于缓存集成）
+    // 依赖 core 模块
     api(project(":core"))
 
     // JSpecify 空安全注解

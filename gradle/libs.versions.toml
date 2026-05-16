@@ -121,6 +121,9 @@ jmh-generator-annprocess = { module = "org.openjdk.jmh:jmh-generator-annprocess"
 # ArchUnit (架构测试)
 archunit-junit5 = { module = "com.tngtech.archunit:archunit-junit5", version = "1.4.2" }
 
+# Google Compile Testing (APT 测试)
+compile-testing = { module = "com.google.testing.compile:compile-testing", version = "0.21.0" }
+
 # jsoup (HTML 清洗)
 jsoup = { module = "org.jsoup:jsoup", version = "1.22.2" }
 

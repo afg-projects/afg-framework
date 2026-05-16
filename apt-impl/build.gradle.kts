@@ -16,8 +16,12 @@ dependencies {
     implementation("com.google.auto.service:auto-service:1.1.1")
     annotationProcessor("com.google.auto.service:auto-service:1.1.1")
 
-    // Test
+    // Test dependencies
     testImplementation(libs.bundles.testing)
+    testImplementation(libs.compile.testing)
+
+    // APT 测试需要 data-core 模块的类
+    testImplementation(project(":data-core"))
 }
 
 tasks.withType<JavaCompile> {
