@@ -16,6 +16,7 @@ import org.jspecify.annotations.Nullable;
  * @param deviceId 设备 ID
  * @param deviceName 设备名称
  * @param clientId 客户端 ID
+ * @param ip 登录 IP 地址
  * @param extra 扩展信息
  * @author afg-projects
  * @since 1.0.0
@@ -32,6 +33,7 @@ public record LoginRequest(
         @Nullable String deviceId,
         @Nullable String deviceName,
         @Nullable String clientId,
+        @Nullable String ip,
         @Nullable String extra) {
 
     /**
@@ -67,7 +69,7 @@ public record LoginRequest(
      * @return 登录请求
      */
     public static LoginRequest ofUsername(String username, String password) {
-        return new LoginRequest(LoginType.USERNAME, username, password, null, null, null, null, null, null, null, null, null);
+        return new LoginRequest(LoginType.USERNAME, username, password, null, null, null, null, null, null, null, null, null, null);
     }
 
     /**
@@ -78,7 +80,7 @@ public record LoginRequest(
      * @return 登录请求
      */
     public static LoginRequest ofMobile(String mobile, String captchaValue) {
-        return new LoginRequest(LoginType.MOBILE, null, null, mobile, null, null, captchaValue, null, null, null, null, null);
+        return new LoginRequest(LoginType.MOBILE, null, null, mobile, null, null, captchaValue, null, null, null, null, null, null);
     }
 
     /**
@@ -89,6 +91,6 @@ public record LoginRequest(
      * @return 登录请求
      */
     public static LoginRequest ofEmail(String email, String captchaValue) {
-        return new LoginRequest(LoginType.EMAIL, null, null, null, email, null, captchaValue, null, null, null, null, null);
+        return new LoginRequest(LoginType.EMAIL, null, null, null, email, null, captchaValue, null, null, null, null, null, null);
     }
 }

@@ -25,7 +25,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import io.github.afgprojects.framework.security.core.authentication.AfgUserDetails;
 import io.github.afgprojects.framework.security.core.authentication.AfgUserDetailsService;
@@ -36,6 +35,7 @@ import io.github.afgprojects.framework.security.core.login.model.CaptchaResponse
 import io.github.afgprojects.framework.security.core.login.model.CaptchaType;
 import io.github.afgprojects.framework.security.core.login.model.LoginRequest;
 import io.github.afgprojects.framework.security.core.login.model.LoginResponse;
+import io.github.afgprojects.framework.security.core.login.strategy.LoginStrategy;
 import io.github.afgprojects.framework.security.core.login.strategy.LoginStrategyFactory;
 import io.github.afgprojects.framework.security.core.token.TokenValidationException;
 
@@ -59,7 +59,7 @@ class DefaultLoginServiceTest {
     private CaptchaService captchaService;
 
     @Mock
-    private PasswordEncoder passwordEncoder;
+    private LoginStrategy loginStrategy;
 
     private DefaultLoginService loginService;
 
@@ -78,15 +78,14 @@ class DefaultLoginServiceTest {
             // given
             String username = "testuser";
             String password = "password123";
-            String encodedPassword = "$2a$10$encoded";
             String accessToken = "access-token-123";
             String refreshToken = "refresh-token-456";
 
-            AfgUserDetails userDetails = createMockUserDetails("user-1", username, encodedPassword, Set.of("USER"), Set.of("read:user"));
+            AfgUserDetails userDetails = createMockUserDetails("user-1", username, Set.of("USER"), Set.of("read:user"));
             LoginRequest request = LoginRequest.ofUsername(username, password);
 
-            when(userDetailsService.loadUserByUsername(username)).thenReturn(userDetails);
-            when(passwordEncoder.matches(password, encodedPassword)).thenReturn(true);
+            when(strategyFactory.getStrategy(request)).thenReturn(java.util.Optional.of(loginStrategy));
+            when(loginStrategy.authenticate(request)).thenReturn(userDetails);
             when(tokenService.generateAccessToken(eq("user-1"), eq(username), any(), any(), any())).thenReturn(accessToken);
             when(tokenService.generateRefreshToken(eq("user-1"), any())).thenReturn(refreshToken);
             when(tokenService.getAccessTokenTtl()).thenReturn(7200L);
@@ -105,125 +104,38 @@ class DefaultLoginServiceTest {
         }
 
         @Test
-        @DisplayName("用户名密码登录失败 - 用户不存在")
-        void shouldFailLoginWhenUserNotFound() {
-            // given
-            String username = "nonexistent";
-            String password = "password123";
-            LoginRequest request = LoginRequest.ofUsername(username, password);
-
-            when(userDetailsService.loadUserByUsername(username))
-                    .thenThrow(new UsernameNotFoundException("User not found"));
-
-            // when & then
-            assertThatThrownBy(() -> loginService.login(request))
-                    .isInstanceOf(UsernameNotFoundException.class)
-                    .hasMessageContaining("User not found");
-
-            verify(tokenService, never()).generateAccessToken(anyString(), anyString(), any(), any(), any());
-        }
-
-        @Test
-        @DisplayName("用户名密码登录失败 - 密码错误")
-        void shouldFailLoginWhenPasswordIncorrect() {
+        @DisplayName("用户名密码登录失败 - 认证失败")
+        void shouldFailLoginWhenAuthenticationFails() {
             // given
             String username = "testuser";
             String password = "wrongpassword";
-            String encodedPassword = "$2a$10$encoded";
-
-            AfgUserDetails userDetails = createMockUserDetails("user-1", username, encodedPassword, Set.of("USER"), Set.of());
             LoginRequest request = LoginRequest.ofUsername(username, password);
 
-            when(userDetailsService.loadUserByUsername(username)).thenReturn(userDetails);
-            when(passwordEncoder.matches(password, encodedPassword)).thenReturn(false);
+            when(strategyFactory.getStrategy(request)).thenReturn(java.util.Optional.of(loginStrategy));
+            when(loginStrategy.authenticate(request)).thenThrow(new RuntimeException("认证失败"));
 
             // when & then
             assertThatThrownBy(() -> loginService.login(request))
                     .isInstanceOf(RuntimeException.class)
-                    .hasMessageContaining("密码错误");
+                    .hasMessageContaining("认证失败");
 
             verify(tokenService, never()).generateAccessToken(anyString(), anyString(), any(), any(), any());
         }
-    }
-
-    @Nested
-    @DisplayName("用户名密码验证码登录测试")
-    class UsernamePasswordCaptchaLoginTests {
 
         @Test
-        @DisplayName("用户名密码验证码登录成功")
-        void shouldLoginSuccessfullyWithUsernamePasswordAndCaptcha() {
+        @DisplayName("不支持的登录类型")
+        void shouldFailWhenLoginTypeNotSupported() {
             // given
-            String username = "testuser";
-            String password = "password123";
-            String encodedPassword = "$2a$10$encoded";
-            String captchaKey = "captcha-key-123";
-            String captchaValue = "1234";
-            String accessToken = "access-token-123";
-            String refreshToken = "refresh-token-456";
+            LoginRequest request = LoginRequest.ofUsername("testuser", "password");
 
-            AfgUserDetails userDetails = createMockUserDetails("user-1", username, encodedPassword, Set.of("USER"), Set.of());
-            LoginRequest request = new LoginRequest(
-                    LoginRequest.LoginType.USERNAME,
-                    username,
-                    password,
-                    null,
-                    null,
-                    captchaKey,
-                    captchaValue,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null);
-
-            when(captchaService.validate(captchaKey, captchaValue)).thenReturn(true);
-            when(userDetailsService.loadUserByUsername(username)).thenReturn(userDetails);
-            when(passwordEncoder.matches(password, encodedPassword)).thenReturn(true);
-            when(tokenService.generateAccessToken(eq("user-1"), eq(username), any(), any(), any())).thenReturn(accessToken);
-            when(tokenService.generateRefreshToken(eq("user-1"), any())).thenReturn(refreshToken);
-            when(tokenService.getAccessTokenTtl()).thenReturn(7200L);
-
-            // when
-            LoginResponse response = loginService.login(request);
-
-            // then
-            assertThat(response).isNotNull();
-            assertThat(response.accessToken()).isEqualTo(accessToken);
-            verify(captchaService).validate(captchaKey, captchaValue);
-        }
-
-        @Test
-        @DisplayName("验证码错误拒绝登录")
-        void shouldRejectLoginWhenCaptchaIncorrect() {
-            // given
-            String username = "testuser";
-            String password = "password123";
-            String captchaKey = "captcha-key-123";
-            String captchaValue = "wrong";
-
-            LoginRequest request = new LoginRequest(
-                    LoginRequest.LoginType.USERNAME,
-                    username,
-                    password,
-                    null,
-                    null,
-                    captchaKey,
-                    captchaValue,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null);
-
-            when(captchaService.validate(captchaKey, captchaValue)).thenReturn(false);
+            when(strategyFactory.getStrategy(request)).thenReturn(java.util.Optional.empty());
 
             // when & then
             assertThatThrownBy(() -> loginService.login(request))
-                    .isInstanceOf(RuntimeException.class)
-                    .hasMessageContaining("验证码错误");
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("不支持的登录类型");
 
-            verify(userDetailsService, never()).loadUserByUsername(anyString());
+            verify(tokenService, never()).generateAccessToken(anyString(), anyString(), any(), any(), any());
         }
     }
 
@@ -240,12 +152,11 @@ class DefaultLoginServiceTest {
             String accessToken = "access-token-123";
             String refreshToken = "refresh-token-456";
 
-            AfgUserDetails userDetails = createMockUserDetails("user-1", "mobileuser", "N/A", Set.of("USER"), Set.of());
+            AfgUserDetails userDetails = createMockUserDetails("user-1", "mobileuser", Set.of("USER"), Set.of());
             LoginRequest request = LoginRequest.ofMobile(mobile, captchaValue);
 
-            // For mobile login, captchaKey is the mobile number
-            when(captchaService.validate("sms:" + mobile, captchaValue)).thenReturn(true);
-            when(userDetailsService.loadUserByMobile(mobile)).thenReturn(userDetails);
+            when(strategyFactory.getStrategy(request)).thenReturn(java.util.Optional.of(loginStrategy));
+            when(loginStrategy.authenticate(request)).thenReturn(userDetails);
             when(tokenService.generateAccessToken(eq("user-1"), eq("mobileuser"), any(), any(), any())).thenReturn(accessToken);
             when(tokenService.generateRefreshToken(eq("user-1"), any())).thenReturn(refreshToken);
             when(tokenService.getAccessTokenTtl()).thenReturn(7200L);
@@ -273,12 +184,11 @@ class DefaultLoginServiceTest {
             String accessToken = "access-token-123";
             String refreshToken = "refresh-token-456";
 
-            AfgUserDetails userDetails = createMockUserDetails("user-1", "emailuser", "N/A", Set.of("USER"), Set.of());
+            AfgUserDetails userDetails = createMockUserDetails("user-1", "emailuser", Set.of("USER"), Set.of());
             LoginRequest request = LoginRequest.ofEmail(email, captchaValue);
 
-            // For email login, captchaKey is the email address
-            when(captchaService.validate("email:" + email, captchaValue)).thenReturn(true);
-            when(userDetailsService.loadUserByEmail(email)).thenReturn(userDetails);
+            when(strategyFactory.getStrategy(request)).thenReturn(java.util.Optional.of(loginStrategy));
+            when(loginStrategy.authenticate(request)).thenReturn(userDetails);
             when(tokenService.generateAccessToken(eq("user-1"), eq("emailuser"), any(), any(), any())).thenReturn(accessToken);
             when(tokenService.generateRefreshToken(eq("user-1"), any())).thenReturn(refreshToken);
             when(tokenService.getAccessTokenTtl()).thenReturn(7200L);
@@ -325,7 +235,7 @@ class DefaultLoginServiceTest {
             String userId = "user-1";
             String username = "testuser";
 
-            AfgUserDetails userDetails = createMockUserDetails(userId, username, "N/A", Set.of("USER"), Set.of("read:user"));
+            AfgUserDetails userDetails = createMockUserDetails(userId, username, Set.of("USER"), Set.of("read:user"));
 
             when(tokenService.validateRefreshToken(oldRefreshToken)).thenReturn(true);
             when(tokenService.extractUserId(oldRefreshToken)).thenReturn(userId);
@@ -425,7 +335,6 @@ class DefaultLoginServiceTest {
     private AfgUserDetails createMockUserDetails(
             String userId,
             String username,
-            String password,
             Set<String> roles,
             Set<String> permissions) {
 
@@ -464,7 +373,7 @@ class DefaultLoginServiceTest {
 
             @Override
             public String getPassword() {
-                return password;
+                return "encoded-password";
             }
 
             @Override
