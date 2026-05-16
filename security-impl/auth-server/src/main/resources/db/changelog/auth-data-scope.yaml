@@ -1,0 +1,46 @@
+databaseChangeLog:
+  - changeSet:
+      id: auth-data-scope
+      author: afg
+      changes:
+        - createTable:
+            tableName: auth_data_scope
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: user_id
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: scope_type
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: scope_value
+                  type: VARCHAR(500)
+              - column:
+                  name: tenant_id
+                  type: VARCHAR(50)
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+        - createIndex:
+            tableName: auth_data_scope
+            indexName: idx_user_scope_tenant
+            columns:
+              - column:
+                  name: user_id
+              - column:
+                  name: tenant_id
+            unique: true
