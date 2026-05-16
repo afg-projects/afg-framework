@@ -20,6 +20,7 @@ import io.github.afgprojects.framework.core.api.storage.model.StorageType;
 import io.github.afgprojects.framework.core.api.storage.model.UploadRequest;
 import io.github.afgprojects.framework.integration.storage.model.StorageErrorCode;
 import io.github.afgprojects.framework.integration.storage.model.StorageException;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.Delete;
@@ -47,9 +48,8 @@ import lombok.extern.slf4j.Slf4j;
  * 使用 AWS S3 SDK 连接 MinIO 服务。
  * MinIO 是兼容 S3 API 的开源对象存储服务。
  */
+@Slf4j
 public class MinioFileStorage implements FileStorage {
-
-    private static final Logger log = LoggerFactory.getLogger(MinioFileStorage.class);
 
     private final String bucket;
     private final S3Client s3Client;

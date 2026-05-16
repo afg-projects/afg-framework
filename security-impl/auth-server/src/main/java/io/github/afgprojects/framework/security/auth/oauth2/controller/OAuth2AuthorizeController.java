@@ -48,7 +48,6 @@ public class OAuth2AuthorizeController {
      *
      * <p>客户端发起授权请求，用户确认后重定向到客户端回调地址。
      *
-     * @param request 授权请求参数
      * @param userId 已认证用户 ID（从安全上下文获取）
      * @return 重定向到客户端回调地址
      */

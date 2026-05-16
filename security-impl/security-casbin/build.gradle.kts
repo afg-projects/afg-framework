@@ -3,14 +3,9 @@ plugins {
 }
 
 dependencies {
-    api(project(":core"))
-    api(libs.jcasbin)
+    api(project(":security-core"))
+    api("org.casbin:jcasbin:1.55.0")
     api(libs.jspecify)
-
-    // Spring Boot (用于自动配置)
-    compileOnly(libs.spring.boot.autoconfigure)
-    compileOnly(libs.spring.context)
-
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
     testCompileOnly(libs.lombok)
