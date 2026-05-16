@@ -1,0 +1,98 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: afg-framework
+      comment: Create auth_login_failure table for login failure records
+      changes:
+        - createTable:
+            tableName: auth_login_failure
+            remarks: Login failure records table for account lockout and security audit
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  remarks: Primary key
+                  autoIncrement: true
+              - column:
+                  name: user_id
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+                  remarks: User ID
+              - column:
+                  name: username
+                  type: varchar(128)
+                  constraints:
+                    nullable: false
+                  remarks: Username
+              - column:
+                  name: tenant_id
+                  type: varchar(64)
+                  remarks: Tenant ID (nullable for single-tenant scenarios)
+              - column:
+                  name: failure_count
+                  type: int
+                  constraints:
+                    nullable: false
+                  remarks: Cumulative login failure count
+                  defaultValueNumeric: 0
+              - column:
+                  name: last_failure_ip
+                  type: varchar(64)
+                  remarks: Last failure IP address
+              - column:
+                  name: last_failure_time
+                  type: timestamp
+                  remarks: Last failure time
+              - column:
+                  name: locked_until
+                  type: timestamp
+                  remarks: Account lock expiration time (null if not locked)
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+                  remarks: Record creation time
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+                  remarks: Record last update time
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+  - changeSet:
+      id: 2
+      author: afg-framework
+      comment: Create indexes for auth_login_failure table
+      changes:
+        - createIndex:
+            indexName: idx_login_failure_user_id
+            tableName: auth_login_failure
+            columns:
+              - column:
+                  name: user_id
+            unique: true
+        - createIndex:
+            indexName: idx_login_failure_username
+            tableName: auth_login_failure
+            columns:
+              - column:
+                  name: username
+        - createIndex:
+            indexName: idx_login_failure_tenant_id
+            tableName: auth_login_failure
+            columns:
+              - column:
+                  name: tenant_id
+        - createIndex:
+            indexName: idx_login_failure_locked_until
+            tableName: auth_login_failure
+            columns:
+              - column:
+                  name: locked_until

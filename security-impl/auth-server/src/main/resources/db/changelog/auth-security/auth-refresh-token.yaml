@@ -1,0 +1,86 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: afg-framework
+      comment: Create auth_refresh_token table for refresh token storage
+      changes:
+        - createTable:
+            tableName: auth_refresh_token
+            remarks: Refresh Token storage table
+            columns:
+              - column:
+                  name: token_id
+                  type: varchar(64)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  remarks: Token unique identifier (UUID)
+              - column:
+                  name: token_hash
+                  type: varchar(128)
+                  constraints:
+                    nullable: false
+                    unique: true
+                  remarks: Token hash value (SHA-256)
+              - column:
+                  name: user_id
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+                  remarks: User ID
+              - column:
+                  name: tenant_id
+                  type: varchar(64)
+                  remarks: Tenant ID (nullable for single-tenant scenarios)
+              - column:
+                  name: client_id
+                  type: varchar(128)
+                  remarks: Client ID (optional)
+              - column:
+                  name: device_id
+                  type: varchar(64)
+                  remarks: Device ID (optional)
+              - column:
+                  name: expires_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+                  remarks: Token expiration time
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+                  remarks: Token creation time
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+  - changeSet:
+      id: 2
+      author: afg-framework
+      comment: Create indexes for auth_refresh_token table
+      changes:
+        - createIndex:
+            indexName: idx_refresh_token_hash
+            tableName: auth_refresh_token
+            columns:
+              - column:
+                  name: token_hash
+            unique: true
+        - createIndex:
+            indexName: idx_refresh_token_user_id
+            tableName: auth_refresh_token
+            columns:
+              - column:
+                  name: user_id
+        - createIndex:
+            indexName: idx_refresh_token_expires_at
+            tableName: auth_refresh_token
+            columns:
+              - column:
+                  name: expires_at
+        - createIndex:
+            indexName: idx_refresh_token_tenant_id
+            tableName: auth_refresh_token
+            columns:
+              - column:
+                  name: tenant_id

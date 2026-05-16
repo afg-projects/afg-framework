@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - include:
+      file: auth-refresh-token.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: auth-token-blacklist.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: auth-captcha.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: auth-login-failure.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: auth-user-device.yaml
+      relativeToChangelogFile: true
