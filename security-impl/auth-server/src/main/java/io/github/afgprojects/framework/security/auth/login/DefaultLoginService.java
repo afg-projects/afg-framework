@@ -1,13 +1,5 @@
 package io.github.afgprojects.framework.security.auth.login;
 
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
-
 import io.github.afgprojects.framework.security.core.authentication.AfgUserDetails;
 import io.github.afgprojects.framework.security.core.authentication.AfgUserDetailsService;
 import io.github.afgprojects.framework.security.core.login.CaptchaService;
@@ -17,66 +9,103 @@ import io.github.afgprojects.framework.security.core.login.model.CaptchaRequest;
 import io.github.afgprojects.framework.security.core.login.model.CaptchaResponse;
 import io.github.afgprojects.framework.security.core.login.model.LoginRequest;
 import io.github.afgprojects.framework.security.core.login.model.LoginResponse;
+import io.github.afgprojects.framework.security.core.login.strategy.LoginStrategy;
+import io.github.afgprojects.framework.security.core.login.strategy.LoginStrategyFactory;
 import io.github.afgprojects.framework.security.core.token.TokenValidationException;
+import org.jspecify.annotations.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 默认登录服务实现。
  *
- * <p>支持多种登录方式：
+ * <p>使用策略模式支持多种登录方式，通过 {@link LoginStrategyFactory} 查找和执行登录策略。
+ *
+ * <p>内置策略：
  * <ul>
- *   <li>用户名密码登录</li>
- *   <li>用户名密码验证码登录</li>
- *   <li>手机号验证码登录</li>
- *   <li>邮箱验证码登录</li>
+ *   <li>USERNAME - 用户名密码登录</li>
+ *   <li>MOBILE - 手机号验证码登录</li>
+ *   <li>EMAIL - 邮箱验证码登录</li>
  * </ul>
+ *
+ * <p>自定义策略示例：
+ * <pre>{@code
+ * @Component
+ * public class WechatLoginStrategy implements LoginStrategy {
+ *     @Override
+ *     public String getLoginType() {
+ *         return "WECHAT";
+ *     }
+ *
+ *     @Override
+ *     public AfgUserDetails authenticate(LoginRequest request) {
+ *         // 微信登录逻辑
+ *     }
+ * }
+ * }</pre>
  *
  * @since 1.0.0
  */
 public class DefaultLoginService implements LoginService {
 
+    private static final Logger log = LoggerFactory.getLogger(DefaultLoginService.class);
+
+    private final LoginStrategyFactory strategyFactory;
     private final AfgUserDetailsService userDetailsService;
     private final TokenService tokenService;
     private final CaptchaService captchaService;
-    private final PasswordEncoder passwordEncoder;
 
     /**
      * 构造函数。
      *
+     * @param strategyFactory 登录策略工厂
      * @param userDetailsService 用户详情服务
      * @param tokenService 令牌服务
      * @param captchaService 验证码服务
-     * @param passwordEncoder 密码编码器
      */
     public DefaultLoginService(
+            @NonNull LoginStrategyFactory strategyFactory,
             @NonNull AfgUserDetailsService userDetailsService,
             @NonNull TokenService tokenService,
-            @NonNull CaptchaService captchaService,
-            @NonNull PasswordEncoder passwordEncoder) {
+            @NonNull CaptchaService captchaService) {
+        this.strategyFactory = strategyFactory;
         this.userDetailsService = userDetailsService;
         this.tokenService = tokenService;
         this.captchaService = captchaService;
-        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     @NonNull
     public LoginResponse login(@NonNull LoginRequest request) {
-        return switch (request.loginType()) {
-            case USERNAME -> handleUsernameLogin(request);
-            case MOBILE -> handleMobileLogin(request);
-            case EMAIL -> handleEmailLogin(request);
-            case THIRD_PARTY -> throw new UnsupportedOperationException("第三方登录暂不支持");
-        };
+        log.debug("Processing login request: type={}", request.loginType());
+
+        // 查找登录策略
+        LoginStrategy strategy = strategyFactory.getStrategy(request)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "不支持的登录类型: " + request.loginType()));
+
+        // 执行认证
+        AfgUserDetails userDetails = strategy.authenticate(request);
+
+        // 生成登录响应
+        return generateLoginResponse(userDetails);
     }
 
     @Override
     public void logout(@NonNull String token) {
+        log.debug("Processing logout request");
         tokenService.invalidateToken(token);
+        log.info("User logged out successfully");
     }
 
     @Override
     @NonNull
     public LoginResponse refreshToken(@NonNull String refreshToken) {
+        log.debug("Processing refresh token request");
+
         // 验证刷新令牌
         if (!tokenService.validateRefreshToken(refreshToken)) {
             throw TokenValidationException.invalid();
@@ -90,6 +119,9 @@ public class DefaultLoginService implements LoginService {
 
         // 加载用户详情
         AfgUserDetails userDetails = userDetailsService.loadUserByUserId(userId);
+
+        // 检查账号状态
+        validateAccountStatus(userDetails);
 
         // 生成新的令牌
         return generateLoginResponse(userDetails);
@@ -107,109 +139,20 @@ public class DefaultLoginService implements LoginService {
     }
 
     /**
-     * 处理用户名密码登录。
-     */
-    private LoginResponse handleUsernameLogin(LoginRequest request) {
-        String username = request.username();
-        String password = request.password();
-
-        // 验证验证码（如果提供）
-        if (request.captchaKey() != null && request.captchaValue() != null) {
-            if (!captchaService.validate(request.captchaKey(), request.captchaValue())) {
-                throw new RuntimeException("验证码错误");
-            }
-        }
-
-        // 加载用户详情
-        AfgUserDetails userDetails = userDetailsService.loadUserByUsername(username);
-
-        // 验证密码
-        if (!passwordEncoder.matches(password, userDetails.getPassword())) {
-            throw new RuntimeException("密码错误");
-        }
-
-        // 检查账号状态
-        if (!userDetails.isEnabled()) {
-            throw new RuntimeException("账号已被禁用");
-        }
-
-        if (!userDetails.isAccountNonLocked()) {
-            throw new RuntimeException("账号已被锁定");
-        }
-
-        if (!userDetails.isAccountNonExpired()) {
-            throw new RuntimeException("账号已过期");
-        }
-
-        if (!userDetails.isCredentialsNonExpired()) {
-            throw new RuntimeException("凭证已过期");
-        }
-
-        return generateLoginResponse(userDetails);
-    }
-
-    /**
-     * 处理手机号验证码登录。
-     */
-    private LoginResponse handleMobileLogin(LoginRequest request) {
-        String mobile = request.mobile();
-        String captchaValue = request.captchaValue();
-
-        // 验证验证码
-        String captchaKey = "sms:" + mobile;
-        if (!captchaService.validate(captchaKey, captchaValue)) {
-            throw new RuntimeException("验证码错误");
-        }
-
-        // 加载用户详情
-        AfgUserDetails userDetails = userDetailsService.loadUserByMobile(mobile);
-
-        // 检查账号状态
-        validateAccountStatus(userDetails);
-
-        return generateLoginResponse(userDetails);
-    }
-
-    /**
-     * 处理邮箱验证码登录。
-     */
-    private LoginResponse handleEmailLogin(LoginRequest request) {
-        String email = request.email();
-        String captchaValue = request.captchaValue();
-
-        // 验证验证码
-        String captchaKey = "email:" + email;
-        if (!captchaService.validate(captchaKey, captchaValue)) {
-            throw new RuntimeException("验证码错误");
-        }
-
-        // 加载用户详情
-        AfgUserDetails userDetails = userDetailsService.loadUserByEmail(email);
-
-        // 检查账号状态
-        validateAccountStatus(userDetails);
-
-        return generateLoginResponse(userDetails);
-    }
-
-    /**
      * 验证账号状态。
      */
     private void validateAccountStatus(AfgUserDetails userDetails) {
         if (!userDetails.isEnabled()) {
-            throw new RuntimeException("账号已被禁用");
+            throw new IllegalArgumentException("账号已被禁用");
         }
-
         if (!userDetails.isAccountNonLocked()) {
-            throw new RuntimeException("账号已被锁定");
+            throw new IllegalArgumentException("账号已被锁定");
         }
-
         if (!userDetails.isAccountNonExpired()) {
-            throw new RuntimeException("账号已过期");
+            throw new IllegalArgumentException("账号已过期");
         }
-
         if (!userDetails.isCredentialsNonExpired()) {
-            throw new RuntimeException("凭证已过期");
+            throw new IllegalArgumentException("凭证已过期");
         }
     }
 
@@ -233,6 +176,9 @@ public class DefaultLoginService implements LoginService {
         String refreshToken = tokenService.generateRefreshToken(
                 userDetails.getUserId(),
                 userDetails.getTenantId());
+
+        log.info("User logged in successfully: userId={}, username={}",
+                userDetails.getUserId(), userDetails.getUsername());
 
         // 构建响应
         return LoginResponse.builder()

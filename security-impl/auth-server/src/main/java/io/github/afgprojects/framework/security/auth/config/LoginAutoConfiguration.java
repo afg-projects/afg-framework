@@ -1,9 +1,20 @@
 package io.github.afgprojects.framework.security.auth.config;
 
+import io.github.afgprojects.framework.security.auth.login.DefaultLoginService;
+import io.github.afgprojects.framework.security.auth.login.strategy.EmailCaptchaLoginStrategy;
+import io.github.afgprojects.framework.security.auth.login.strategy.MobileCaptchaLoginStrategy;
+import io.github.afgprojects.framework.security.auth.login.strategy.UsernamePasswordLoginStrategy;
+import io.github.afgprojects.framework.security.core.authentication.AfgUserDetailsService;
+import io.github.afgprojects.framework.security.core.login.CaptchaService;
+import io.github.afgprojects.framework.security.core.login.LoginService;
+import io.github.afgprojects.framework.security.core.login.TokenService;
+import io.github.afgprojects.framework.security.core.login.strategy.LoginStrategy;
+import io.github.afgprojects.framework.security.core.login.strategy.LoginStrategyFactory;
+import io.github.afgprojects.framework.security.core.storage.AfgCaptchaStorage;
 import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -11,40 +22,21 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
-import io.github.afgprojects.framework.security.core.authentication.AfgUserDetailsService;
-import io.github.afgprojects.framework.security.core.login.CaptchaService;
-import io.github.afgprojects.framework.security.core.login.LoginService;
-import io.github.afgprojects.framework.security.core.login.TokenService;
-import io.github.afgprojects.framework.security.core.login.model.CaptchaRequest;
-import io.github.afgprojects.framework.security.core.login.model.CaptchaResponse;
-import io.github.afgprojects.framework.security.core.login.model.LoginRequest;
-import io.github.afgprojects.framework.security.core.login.model.LoginResponse;
-import io.github.afgprojects.framework.security.core.storage.AfgCaptchaStorage;
-
-import java.time.Duration;
-import java.util.Set;
+import java.util.List;
 
 /**
  * 登录服务自动配置类
  *
  * <p>配置登录服务的核心组件：
  * <ul>
+ *   <li>{@link LoginStrategyFactory} - 登录策略工厂</li>
  *   <li>{@link TokenService} - 令牌服务</li>
  *   <li>{@link CaptchaService} - 验证码服务</li>
  *   <li>{@link LoginService} - 登录服务</li>
+ *   <li>内置登录策略 - 用户名密码、手机号、邮箱</li>
  * </ul>
  *
- * <p>配置示例：
- * <pre>
- * afg:
- *   auth:
- *     login:
- *       enabled: true
- *       access-token-ttl: 2h
- *       refresh-token-ttl: 7d
- *       captcha-ttl: 5m
- *       captcha-length: 4
- * </pre>
+ * <p>支持通过实现 {@link LoginStrategy} 接口扩展自定义登录方式。
  *
  * @since 1.0.0
  */
@@ -56,29 +48,79 @@ public class LoginAutoConfiguration {
     private static final Logger log = LoggerFactory.getLogger(LoginAutoConfiguration.class);
 
     /**
-     * 创建令牌服务
+     * 创建登录策略工厂。
      *
-     * <p>当业务系统提供 {@link AfgUserDetailsService} 实现时，
-     * 自动创建默认的 {@link TokenService}
+     * <p>自动注入所有 {@link LoginStrategy} 实现。
      *
-     * @param authServerProperties 授权服务器配置属性
-     * @param loginProperties 登录配置属性
-     * @return TokenService 实例
+     * @param strategies 登录策略列表（自动注入）
+     * @return LoginStrategyFactory 实例
      */
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnBean(AfgUserDetailsService.class)
-    public TokenService tokenService(AuthServerProperties authServerProperties, LoginProperties loginProperties) {
-        log.info("Initializing TokenService with accessTokenTtl={}, refreshTokenTtl={}",
-                loginProperties.getAccessTokenTtl(), loginProperties.getRefreshTokenTtl());
-        return new DefaultTokenService(authServerProperties, loginProperties);
+    public LoginStrategyFactory loginStrategyFactory(@Autowired(required = false) List<LoginStrategy> strategies) {
+        LoginStrategyFactory factory = new LoginStrategyFactory();
+        if (strategies != null) {
+            factory.registerAll(strategies);
+            log.info("Registered {} login strategies: {}", strategies.size(), factory.getRegisteredTypes());
+        }
+        return factory;
+    }
+
+    /**
+     * 创建用户名密码登录策略。
+     *
+     * @param userDetailsService 用户详情服务
+     * @param passwordEncoder 密码编码器
+     * @param captchaService 验证码服务（可选）
+     * @return UsernamePasswordLoginStrategy 实例
+     */
+    @Bean
+    @ConditionalOnMissingBean(name = "usernamePasswordLoginStrategy")
+    @ConditionalOnBean({AfgUserDetailsService.class})
+    public UsernamePasswordLoginStrategy usernamePasswordLoginStrategy(
+            AfgUserDetailsService userDetailsService,
+            org.springframework.security.crypto.password.PasswordEncoder passwordEncoder,
+            @Autowired(required = false) CaptchaService captchaService) {
+        log.info("Initializing UsernamePasswordLoginStrategy");
+        return new UsernamePasswordLoginStrategy(userDetailsService, passwordEncoder, captchaService);
+    }
+
+    /**
+     * 创建手机号验证码登录策略。
+     *
+     * @param userDetailsService 用户详情服务
+     * @param captchaService 验证码服务
+     * @return MobileCaptchaLoginStrategy 实例
+     */
+    @Bean
+    @ConditionalOnMissingBean(name = "mobileCaptchaLoginStrategy")
+    @ConditionalOnBean({AfgUserDetailsService.class, CaptchaService.class})
+    public MobileCaptchaLoginStrategy mobileCaptchaLoginStrategy(
+            AfgUserDetailsService userDetailsService,
+            CaptchaService captchaService) {
+        log.info("Initializing MobileCaptchaLoginStrategy");
+        return new MobileCaptchaLoginStrategy(userDetailsService, captchaService);
+    }
+
+    /**
+     * 创建邮箱验证码登录策略。
+     *
+     * @param userDetailsService 用户详情服务
+     * @param captchaService 验证码服务
+     * @return EmailCaptchaLoginStrategy 实例
+     */
+    @Bean
+    @ConditionalOnMissingBean(name = "emailCaptchaLoginStrategy")
+    @ConditionalOnBean({AfgUserDetailsService.class, CaptchaService.class})
+    public EmailCaptchaLoginStrategy emailCaptchaLoginStrategy(
+            AfgUserDetailsService userDetailsService,
+            CaptchaService captchaService) {
+        log.info("Initializing EmailCaptchaLoginStrategy");
+        return new EmailCaptchaLoginStrategy(userDetailsService, captchaService);
     }
 
     /**
      * 创建验证码服务
-     *
-     * <p>当业务系统提供 {@link AfgCaptchaStorage} 实现时，
-     * 自动创建默认的 {@link CaptchaService}
      *
      * @param loginProperties 登录配置属性
      * @param captchaStorage 验证码存储
@@ -88,17 +130,14 @@ public class LoginAutoConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnBean(AfgCaptchaStorage.class)
     public CaptchaService captchaService(LoginProperties loginProperties, AfgCaptchaStorage captchaStorage) {
-        log.info("Initializing CaptchaService with captchaTtl={}, captchaLength={}",
-                loginProperties.getCaptchaTtl(), loginProperties.getCaptchaLength());
+        log.info("Initializing CaptchaService with captchaTtl={}", loginProperties.getCaptchaTtl());
         return new DefaultCaptchaService(loginProperties, captchaStorage);
     }
 
     /**
-     * 创建登录服务
+     * 创建登录服务。
      *
-     * <p>当业务系统提供 {@link AfgUserDetailsService}、{@link TokenService} 和 {@link CaptchaService} 实现时，
-     * 自动创建默认的 {@link LoginService}
-     *
+     * @param strategyFactory 登录策略工厂
      * @param userDetailsService 用户详情服务
      * @param tokenService 令牌服务
      * @param captchaService 验证码服务
@@ -106,115 +145,14 @@ public class LoginAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnBean({AfgUserDetailsService.class, TokenService.class, CaptchaService.class})
+    @ConditionalOnBean({LoginStrategyFactory.class, AfgUserDetailsService.class, TokenService.class, CaptchaService.class})
     public LoginService loginService(
+            LoginStrategyFactory strategyFactory,
             AfgUserDetailsService userDetailsService,
             TokenService tokenService,
             CaptchaService captchaService) {
-        log.info("Initializing LoginService");
-        return new DefaultLoginService(userDetailsService, tokenService, captchaService);
-    }
-
-    /**
-     * 默认令牌服务实现
-     */
-    private static class DefaultTokenService implements TokenService {
-
-        private final AuthServerProperties authServerProperties;
-        private final LoginProperties loginProperties;
-
-        DefaultTokenService(AuthServerProperties authServerProperties, LoginProperties loginProperties) {
-            this.authServerProperties = authServerProperties;
-            this.loginProperties = loginProperties;
-        }
-
-        @Override
-        @NonNull
-        public String generateAccessToken(
-                @NonNull String userId,
-                @NonNull String username,
-                @NonNull Set<String> roles,
-                @NonNull Set<String> permissions,
-                @Nullable String tenantId) {
-            // TODO: Implement JWT token generation
-            throw new UnsupportedOperationException("TokenService implementation pending");
-        }
-
-        @Override
-        @NonNull
-        public String generateRefreshToken(@NonNull String userId, @Nullable String tenantId) {
-            // TODO: Implement refresh token generation
-            throw new UnsupportedOperationException("TokenService implementation pending");
-        }
-
-        @Override
-        public boolean validateAccessToken(@NonNull String token) {
-            // TODO: Implement token validation
-            throw new UnsupportedOperationException("TokenService implementation pending");
-        }
-
-        @Override
-        public boolean validateRefreshToken(@NonNull String refreshToken) {
-            // TODO: Implement refresh token validation
-            throw new UnsupportedOperationException("TokenService implementation pending");
-        }
-
-        @Override
-        @Nullable
-        public String extractUserId(@NonNull String token) {
-            // TODO: Implement user ID extraction
-            throw new UnsupportedOperationException("TokenService implementation pending");
-        }
-
-        @Override
-        @Nullable
-        public String extractUsername(@NonNull String token) {
-            // TODO: Implement username extraction
-            throw new UnsupportedOperationException("TokenService implementation pending");
-        }
-
-        @Override
-        @NonNull
-        public Set<String> extractRoles(@NonNull String token) {
-            // TODO: Implement roles extraction
-            throw new UnsupportedOperationException("TokenService implementation pending");
-        }
-
-        @Override
-        @NonNull
-        public Set<String> extractPermissions(@NonNull String token) {
-            // TODO: Implement permissions extraction
-            throw new UnsupportedOperationException("TokenService implementation pending");
-        }
-
-        @Override
-        @Nullable
-        public String extractTenantId(@NonNull String token) {
-            // TODO: Implement tenant ID extraction
-            throw new UnsupportedOperationException("TokenService implementation pending");
-        }
-
-        @Override
-        public void invalidateToken(@NonNull String token) {
-            // TODO: Implement token invalidation
-            throw new UnsupportedOperationException("TokenService implementation pending");
-        }
-
-        @Override
-        public void invalidateAllTokens(@NonNull String userId) {
-            // TODO: Implement all tokens invalidation
-            throw new UnsupportedOperationException("TokenService implementation pending");
-        }
-
-        @Override
-        public long getAccessTokenTtl() {
-            return loginProperties.getAccessTokenTtl().toSeconds();
-        }
-
-        @Override
-        public long getRefreshTokenTtl() {
-            return loginProperties.getRefreshTokenTtl().toSeconds();
-        }
+        log.info("Initializing DefaultLoginService with {} strategies", strategyFactory.getRegisteredTypes().size());
+        return new DefaultLoginService(strategyFactory, userDetailsService, tokenService, captchaService);
     }
 
     /**
@@ -231,71 +169,21 @@ public class LoginAutoConfiguration {
         }
 
         @Override
-        @NonNull
-        public CaptchaResponse generate(@NonNull CaptchaRequest request) {
+        public io.github.afgprojects.framework.security.core.login.model.CaptchaResponse generate(
+                io.github.afgprojects.framework.security.core.login.model.CaptchaRequest request) {
             // TODO: Implement captcha generation
             throw new UnsupportedOperationException("CaptchaService implementation pending");
         }
 
         @Override
-        public boolean validate(@NonNull String captchaKey, @NonNull String captchaValue) {
+        public boolean validate(String captchaKey, String captchaValue) {
             // TODO: Implement captcha validation
             throw new UnsupportedOperationException("CaptchaService implementation pending");
         }
 
         @Override
-        public void delete(@NonNull String captchaKey) {
+        public void delete(String captchaKey) {
             captchaStorage.delete(captchaKey);
-        }
-    }
-
-    /**
-     * 默认登录服务实现
-     */
-    private static class DefaultLoginService implements LoginService {
-
-        private final AfgUserDetailsService userDetailsService;
-        private final TokenService tokenService;
-        private final CaptchaService captchaService;
-
-        DefaultLoginService(
-                AfgUserDetailsService userDetailsService,
-                TokenService tokenService,
-                CaptchaService captchaService) {
-            this.userDetailsService = userDetailsService;
-            this.tokenService = tokenService;
-            this.captchaService = captchaService;
-        }
-
-        @Override
-        @NonNull
-        public LoginResponse login(@NonNull LoginRequest request) {
-            // TODO: Implement login logic
-            throw new UnsupportedOperationException("LoginService implementation pending");
-        }
-
-        @Override
-        public void logout(@NonNull String token) {
-            // TODO: Implement logout logic
-            throw new UnsupportedOperationException("LoginService implementation pending");
-        }
-
-        @Override
-        @NonNull
-        public LoginResponse refreshToken(@NonNull String refreshToken) {
-            // TODO: Implement token refresh logic
-            throw new UnsupportedOperationException("LoginService implementation pending");
-        }
-
-        @Override
-        @NonNull
-        public CaptchaResponse generateCaptcha(@NonNull CaptchaRequest request) {
-            return captchaService.generate(request);
-        }
-
-        @Override
-        public boolean validateCaptcha(@NonNull String captchaKey, @NonNull String captchaValue) {
-            return captchaService.validate(captchaKey, captchaValue);
         }
     }
 }
