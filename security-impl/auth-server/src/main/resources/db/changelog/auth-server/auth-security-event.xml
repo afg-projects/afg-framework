@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.26.xsd">
+
+    <changeSet id="auth-security-event" author="afg">
+        <createTable tableName="auth_security_event" remarks="安全事件表">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_auth_security_event"/>
+            </column>
+            <column name="event_type" type="VARCHAR(50)" remarks="事件类型">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="VARCHAR(50)" remarks="用户ID"/>
+            <column name="tenant_id" type="VARCHAR(50)" remarks="租户ID"/>
+            <column name="ip" type="VARCHAR(50)" remarks="IP地址"/>
+            <column name="details" type="TEXT" remarks="事件详情"/>
+            <column name="created_at" type="TIMESTAMP" remarks="创建时间">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex indexName="idx_security_event_type" tableName="auth_security_event">
+            <column name="event_type"/>
+        </createIndex>
+
+        <createIndex indexName="idx_security_event_time" tableName="auth_security_event">
+            <column name="created_at"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.26.xsd">
+
+    <changeSet id="auth-refresh-token" author="afg">
+        <createTable tableName="auth_refresh_token" remarks="刷新令牌表">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_auth_refresh_token"/>
+            </column>
+            <column name="token_id" type="VARCHAR(100)" remarks="令牌ID">
+                <constraints unique="true" uniqueConstraintName="uk_refresh_token_id"/>
+            </column>
+            <column name="user_id" type="VARCHAR(50)" remarks="用户ID"/>
+            <column name="tenant_id" type="VARCHAR(50)" remarks="租户ID"/>
+            <column name="client_id" type="VARCHAR(100)" remarks="客户端ID"/>
+            <column name="device_id" type="VARCHAR(100)" remarks="设备ID"/>
+            <column name="token_hash" type="VARCHAR(255)" remarks="令牌哈希"/>
+            <column name="expires_at" type="TIMESTAMP" remarks="过期时间"/>
+            <column name="created_at" type="TIMESTAMP" remarks="创建时间"/>
+        </createTable>
+
+        <createIndex indexName="idx_refresh_token_user" tableName="auth_refresh_token">
+            <column name="user_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_refresh_token_expires" tableName="auth_refresh_token">
+            <column name="expires_at"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.26.xsd">
+
+    <changeSet id="auth-captcha" author="afg">
+        <createTable tableName="auth_captcha" remarks="验证码表">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_auth_captcha"/>
+            </column>
+            <column name="captcha_key" type="VARCHAR(100)" remarks="验证码Key">
+                <constraints unique="true" uniqueConstraintName="uk_captcha_key"/>
+            </column>
+            <column name="captcha_value" type="VARCHAR(50)" remarks="验证码值">
+                <constraints nullable="false"/>
+            </column>
+            <column name="captcha_type" type="VARCHAR(20)" remarks="验证码类型">
+                <constraints nullable="false"/>
+            </column>
+            <column name="target" type="VARCHAR(200)" remarks="目标（手机号/邮箱）"/>
+            <column name="expires_at" type="TIMESTAMP" remarks="过期时间">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" remarks="创建时间"/>
+        </createTable>
+
+        <createIndex indexName="idx_captcha_expires" tableName="auth_captcha">
+            <column name="expires_at"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

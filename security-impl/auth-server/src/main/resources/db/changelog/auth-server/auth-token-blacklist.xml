@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.26.xsd">
+
+    <changeSet id="auth-token-blacklist" author="afg">
+        <createTable tableName="auth_token_blacklist" remarks="令牌黑名单表">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_auth_token_blacklist"/>
+            </column>
+            <column name="token_hash" type="VARCHAR(255)" remarks="令牌哈希">
+                <constraints unique="true" uniqueConstraintName="uk_token_blacklist_hash"/>
+            </column>
+            <column name="user_id" type="VARCHAR(50)" remarks="用户ID"/>
+            <column name="reason" type="VARCHAR(100)" remarks="撤销原因"/>
+            <column name="expires_at" type="TIMESTAMP" remarks="过期时间"/>
+            <column name="created_at" type="TIMESTAMP" remarks="创建时间"/>
+        </createTable>
+
+        <createIndex indexName="idx_token_blacklist_expires" tableName="auth_token_blacklist">
+            <column name="expires_at"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

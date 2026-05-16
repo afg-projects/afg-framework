@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.26.xsd">
+
+    <changeSet id="auth-data-scope" author="afg">
+        <createTable tableName="auth_data_scope" remarks="数据权限表">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_auth_data_scope"/>
+            </column>
+            <column name="user_id" type="VARCHAR(50)" remarks="用户ID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="scope_type" type="VARCHAR(20)" remarks="数据范围类型">
+                <constraints nullable="false"/>
+            </column>
+            <column name="scope_value" type="VARCHAR(500)" remarks="数据范围值"/>
+            <column name="tenant_id" type="VARCHAR(50)" remarks="租户ID"/>
+            <column name="created_at" type="TIMESTAMP" remarks="创建时间"/>
+            <column name="updated_at" type="TIMESTAMP" remarks="更新时间"/>
+        </createTable>
+
+        <createIndex indexName="uk_user_scope_tenant" tableName="auth_data_scope" unique="true">
+            <column name="user_id"/>
+            <column name="tenant_id"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>
