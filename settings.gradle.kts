@@ -30,7 +30,7 @@ include("core")
 include("ai-core")
 include("ai-impl:ai-llm")           // LLM 实现（OpenAI, Anthropic, Ollama）
 include("ai-impl:ai-agent")         // Agent 实现（ToolRegistry, ReAct, Plan-Execute）
-// include("ai-impl:ai-rag")        // RAG 实现（VectorStore, Embedding, Retriever） - 待实现
+include("ai-impl:ai-rag")           // RAG 实现（VectorStore, Embedding, Retriever）
 include("ai-spring-boot-starter")   // Spring Boot 自动配置
 
 // 数据访问模块
