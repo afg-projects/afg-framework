@@ -1,0 +1,56 @@
+databaseChangeLog:
+  - changeSet:
+      id: auth-client
+      author: afg
+      changes:
+        - createTable:
+            tableName: auth_client
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: client_id
+                  type: VARCHAR(100)
+                  constraints:
+                    unique: true
+                    uniqueConstraintName: uk_client_id
+              - column:
+                  name: client_secret
+                  type: VARCHAR(255)
+              - column:
+                  name: client_name
+                  type: VARCHAR(200)
+              - column:
+                  name: redirect_uris
+                  type: TEXT
+              - column:
+                  name: scopes
+                  type: VARCHAR(500)
+              - column:
+                  name: grant_types
+                  type: VARCHAR(200)
+              - column:
+                  name: require_pkce
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+              - column:
+                  name: access_token_ttl
+                  type: BIGINT
+                  defaultValueNumeric: 7200
+              - column:
+                  name: refresh_token_ttl
+                  type: BIGINT
+                  defaultValueNumeric: 604800
+              - column:
+                  name: status
+                  type: TINYINT
+                  defaultValueNumeric: 1
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP

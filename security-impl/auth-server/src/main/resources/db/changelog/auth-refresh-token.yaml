@@ -1,0 +1,52 @@
+databaseChangeLog:
+  - changeSet:
+      id: auth-refresh-token
+      author: afg
+      changes:
+        - createTable:
+            tableName: auth_refresh_token
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: token_id
+                  type: VARCHAR(100)
+                  constraints:
+                    unique: true
+                    uniqueConstraintName: uk_refresh_token_id
+              - column:
+                  name: user_id
+                  type: VARCHAR(50)
+              - column:
+                  name: tenant_id
+                  type: VARCHAR(50)
+              - column:
+                  name: client_id
+                  type: VARCHAR(100)
+              - column:
+                  name: device_id
+                  type: VARCHAR(100)
+              - column:
+                  name: token_hash
+                  type: VARCHAR(255)
+              - column:
+                  name: expires_at
+                  type: TIMESTAMP
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+        - createIndex:
+            tableName: auth_refresh_token
+            indexName: idx_refresh_token_user
+            columns:
+              - column:
+                  name: user_id
+        - createIndex:
+            tableName: auth_refresh_token
+            indexName: idx_refresh_token_expires
+            columns:
+              - column:
+                  name: expires_at

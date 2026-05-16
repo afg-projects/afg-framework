@@ -1,0 +1,40 @@
+databaseChangeLog:
+  - changeSet:
+      id: auth-captcha
+      author: afg
+      changes:
+        - createTable:
+            tableName: auth_captcha
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: captcha_key
+                  type: VARCHAR(100)
+                  constraints:
+                    unique: true
+                    uniqueConstraintName: uk_captcha_key
+              - column:
+                  name: captcha_value
+                  type: VARCHAR(50)
+              - column:
+                  name: captcha_type
+                  type: VARCHAR(20)
+              - column:
+                  name: target
+                  type: VARCHAR(200)
+              - column:
+                  name: expires_at
+                  type: TIMESTAMP
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+        - createIndex:
+            tableName: auth_captcha
+            indexName: idx_captcha_expires
+            columns:
+              - column:
+                  name: expires_at
