@@ -1,1 +1,2 @@
 io.github.afgprojects.framework.security.auth.config.AuthServerAutoConfiguration
+io.github.afgprojects.framework.security.auth.config.LoginAutoConfiguration
