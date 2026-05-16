@@ -97,6 +97,10 @@ dependencies {
     testImplementation(libs.spring.boot.test)
     testImplementation(libs.spring.test)
 
+    // Lombok for test
+    testCompileOnly(libs.lombok)
+    testAnnotationProcessor(libs.lombok)
+
     // Caffeine for test
     testImplementation(libs.caffeine)
 

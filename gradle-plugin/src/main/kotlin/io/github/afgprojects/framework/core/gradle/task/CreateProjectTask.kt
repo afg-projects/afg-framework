@@ -146,7 +146,7 @@ abstract class CreateProjectTask : DefaultTask() {
         createApplicationClass(srcMainJava, pkg, name)
 
         // 4. 创建配置文件
-        createApplicationConfig(srcMainResources, name, dbType, modType)
+        createApplicationConfig(srcMainResources, name, dbType, modType, pkg)
 
         // 5. 创建数据库迁移目录
         createMigrationFiles(srcMainResources)
@@ -306,7 +306,8 @@ public class $className {
         srcMainResources: Path,
         name: String,
         dbType: String,
-        modType: String
+        modType: String,
+        pkg: String
     ) {
         val (driver, url, username, password, dialect) = when (dbType.lowercase()) {
             "mysql" -> listOf(

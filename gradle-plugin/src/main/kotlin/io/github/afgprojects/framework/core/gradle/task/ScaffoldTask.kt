@@ -1,6 +1,7 @@
 package io.github.afgprojects.framework.core.gradle.task
 
 import io.github.afgprojects.framework.core.gradle.service.*
+import io.github.afgprojects.framework.core.gradle.service.impl.DefaultScaffoldService
 import org.gradle.api.DefaultTask
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property

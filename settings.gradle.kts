@@ -23,9 +23,6 @@ include("gradle-plugin")
 include("apt-api")
 include("apt-impl")
 
-// 模块处理器（待迁移到 apt-impl）
-include("module-processor")
-
 // 核心模块
 include("core")
 
