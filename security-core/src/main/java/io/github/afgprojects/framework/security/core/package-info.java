@@ -7,6 +7,8 @@
  * <ul>
  *   <li>{@link io.github.afgprojects.framework.security.core.authentication} - 认证核心接口</li>
  *   <li>{@link io.github.afgprojects.framework.security.core.authorization} - 授权核心接口</li>
+ *   <li>{@link io.github.afgprojects.framework.security.core.login} - 登录相关接口</li>
+ *   <li>{@link io.github.afgprojects.framework.security.core.storage} - 存储 SPI 接口</li>
  *   <li>{@link io.github.afgprojects.framework.security.core.tenant} - 多租户抽象</li>
  *   <li>{@link io.github.afgprojects.framework.security.core.token} - Token 抽象</li>
  * </ul>
