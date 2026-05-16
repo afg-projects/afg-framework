@@ -10,7 +10,7 @@ import java.util.List;
  */
 public interface AlertService {
 
-    void checkAndAlert(@NonNull SecurityEventService.SecurityEventInfo event);
+    void checkAndAlert(SecurityEventService.@NonNull SecurityEventInfo event);
 
-    void sendAlert(@NonNull SecurityEventService.SecurityEventInfo event, @NonNull List<String> channels);
+    void sendAlert(SecurityEventService.@NonNull SecurityEventInfo event, @NonNull List<String> channels);
 }

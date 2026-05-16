@@ -12,6 +12,9 @@ dependencies {
     // Spring Security（版本由 Spring Boot BOM 管理）
     api(libs.spring.boot.starter.security)
 
+    // Spring Data Commons (for Page and Pageable)
+    implementation("org.springframework.data:spring-data-commons")
+
     // Jakarta Servlet API (for TenantResolver - compile only, provided by web container，版本由 Spring Boot BOM 管理)
     compileOnly(libs.jakarta.servlet.api)
 

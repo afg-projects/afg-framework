@@ -1,5 +1,7 @@
 package io.github.afgprojects.framework.security.core.audit.model;
 
+import io.github.afgprojects.framework.security.core.audit.LoginLogService.LoginLogInfo;
+
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -41,7 +43,7 @@ public record LoginLog(
         @NonNull String result,
         @Nullable String failReason,
         @NonNull Instant loginTime,
-        @Nullable Instant logoutTime) {
+        @Nullable Instant logoutTime) implements LoginLogInfo {
 
     /**
      * 登录成功常量。
@@ -52,6 +54,72 @@ public record LoginLog(
      * 登录失败常量。
      */
     public static final String FAILURE = "FAILURE";
+
+    // Implement LoginLogInfo interface methods with getXxx naming convention
+    @Override
+    public String getUserId() {
+        return userId;
+    }
+
+    @Override
+    public String getUsername() {
+        return username;
+    }
+
+    @Override
+    public String getTenantId() {
+        return tenantId;
+    }
+
+    @Override
+    public String getIp() {
+        return ip;
+    }
+
+    @Override
+    public String getDeviceId() {
+        return deviceId;
+    }
+
+    @Override
+    public String getDeviceName() {
+        return deviceName;
+    }
+
+    @Override
+    public String getBrowser() {
+        return browser;
+    }
+
+    @Override
+    public String getOs() {
+        return os;
+    }
+
+    @Override
+    public String getLocation() {
+        return location;
+    }
+
+    @Override
+    public String getResult() {
+        return result;
+    }
+
+    @Override
+    public String getFailReason() {
+        return failReason;
+    }
+
+    @Override
+    public Instant getLoginTime() {
+        return loginTime;
+    }
+
+    @Override
+    public Instant getLogoutTime() {
+        return logoutTime;
+    }
 
     /**
      * 创建成功登录日志。
