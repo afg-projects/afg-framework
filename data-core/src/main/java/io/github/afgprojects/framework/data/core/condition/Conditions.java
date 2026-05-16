@@ -1,5 +1,7 @@
 package io.github.afgprojects.framework.data.core.condition;
 
+import io.github.afgprojects.framework.data.core.metadata.EntityMetadataCache;
+import io.github.afgprojects.framework.data.core.naming.FieldNameResolver;
 import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.query.ConditionImpl;
 import io.github.afgprojects.framework.data.core.query.Criterion;
@@ -23,6 +25,11 @@ public final class Conditions {
      * Lambda 字段名解析缓存
      */
     private static final ConcurrentHashMap<String, String> FIELD_NAME_CACHE = new ConcurrentHashMap<>();
+
+    /**
+     * 字段名解析器（用于 Lambda → 列名转换）
+     */
+    private static final FieldNameResolver FIELD_NAME_RESOLVER = new FieldNameResolver(new EntityMetadataCache());
 
     private Conditions() {}
 
@@ -465,97 +472,97 @@ public final class Conditions {
 
         @Override
         public <R> TypedConditionBuilder<T> eq(SFunction<T, R> getter, @Nullable Object value) {
-            delegate.eq(getFieldName(getter), value);
+            delegate.eq(resolveColumnName(getter), value);
             return this;
         }
 
         @Override
         public <R> TypedConditionBuilder<T> ne(SFunction<T, R> getter, @Nullable Object value) {
-            delegate.ne(getFieldName(getter), value);
+            delegate.ne(resolveColumnName(getter), value);
             return this;
         }
 
         @Override
         public <R extends Comparable<?>> TypedConditionBuilder<T> gt(SFunction<T, R> getter, @Nullable R value) {
-            delegate.gt(getFieldName(getter), value);
+            delegate.gt(resolveColumnName(getter), value);
             return this;
         }
 
         @Override
         public <R extends Comparable<?>> TypedConditionBuilder<T> ge(SFunction<T, R> getter, @Nullable R value) {
-            delegate.ge(getFieldName(getter), value);
+            delegate.ge(resolveColumnName(getter), value);
             return this;
         }
 
         @Override
         public <R extends Comparable<?>> TypedConditionBuilder<T> lt(SFunction<T, R> getter, @Nullable R value) {
-            delegate.lt(getFieldName(getter), value);
+            delegate.lt(resolveColumnName(getter), value);
             return this;
         }
 
         @Override
         public <R extends Comparable<?>> TypedConditionBuilder<T> le(SFunction<T, R> getter, @Nullable R value) {
-            delegate.le(getFieldName(getter), value);
+            delegate.le(resolveColumnName(getter), value);
             return this;
         }
 
         @Override
         public TypedConditionBuilder<T> like(SFunction<T, String> getter, @Nullable String value) {
-            delegate.like(getFieldName(getter), value);
+            delegate.like(resolveColumnName(getter), value);
             return this;
         }
 
         @Override
         public TypedConditionBuilder<T> likeLeft(SFunction<T, String> getter, @Nullable String value) {
-            delegate.likeLeft(getFieldName(getter), value);
+            delegate.likeLeft(resolveColumnName(getter), value);
             return this;
         }
 
         @Override
         public TypedConditionBuilder<T> likeRight(SFunction<T, String> getter, @Nullable String value) {
-            delegate.likeRight(getFieldName(getter), value);
+            delegate.likeRight(resolveColumnName(getter), value);
             return this;
         }
 
         @Override
         public TypedConditionBuilder<T> notLike(SFunction<T, String> getter, @Nullable String value) {
-            delegate.notLike(getFieldName(getter), value);
+            delegate.notLike(resolveColumnName(getter), value);
             return this;
         }
 
         @Override
         public <R> TypedConditionBuilder<T> in(SFunction<T, R> getter, @Nullable Iterable<?> values) {
-            delegate.in(getFieldName(getter), values);
+            delegate.in(resolveColumnName(getter), values);
             return this;
         }
 
         @Override
         public <R> TypedConditionBuilder<T> notIn(SFunction<T, R> getter, @Nullable Iterable<?> values) {
-            delegate.notIn(getFieldName(getter), values);
+            delegate.notIn(resolveColumnName(getter), values);
             return this;
         }
 
         @Override
         public <R> TypedConditionBuilder<T> isNull(SFunction<T, R> getter) {
-            delegate.isNull(getFieldName(getter));
+            delegate.isNull(resolveColumnName(getter));
             return this;
         }
 
         @Override
         public <R> TypedConditionBuilder<T> isNotNull(SFunction<T, R> getter) {
-            delegate.isNotNull(getFieldName(getter));
+            delegate.isNotNull(resolveColumnName(getter));
             return this;
         }
 
         @Override
         public <R extends Comparable<?>> TypedConditionBuilder<T> between(SFunction<T, R> getter, @Nullable R from, @Nullable R to) {
-            delegate.between(getFieldName(getter), from, to);
+            delegate.between(resolveColumnName(getter), from, to);
             return this;
         }
 
         @Override
         public <R extends Comparable<?>> TypedConditionBuilder<T> notBetween(SFunction<T, R> getter, @Nullable R from, @Nullable R to) {
-            delegate.notBetween(getFieldName(getter), from, to);
+            delegate.notBetween(resolveColumnName(getter), from, to);
             return this;
         }
 
@@ -574,6 +581,16 @@ public final class Conditions {
         @Override
         public Condition build() {
             return delegate.build();
+        }
+
+        /**
+         * 使用 FieldNameResolver 解析 Lambda 对应的数据库列名
+         *
+         * @param getter Lambda 方法引用
+         * @return 数据库列名
+         */
+        private <R> String resolveColumnName(SFunction<T, R> getter) {
+            return FIELD_NAME_RESOLVER.resolveColumnName(entityClass, getter);
         }
     }
 }
