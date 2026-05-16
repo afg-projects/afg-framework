@@ -891,25 +891,27 @@ public class EntityMetadataProcessor extends AbstractProcessor {
      * 标准化字段类型
      */
     private String normalizeFieldType(String type) {
+        String result = type;
+
         // 移除类型注解
-        if (type.contains("@")) {
-            int atIndex = type.indexOf("@");
-            int spaceIndex = type.indexOf(" ", atIndex);
+        if (result.contains("@")) {
+            int atIndex = result.indexOf('@');
+            int spaceIndex = result.indexOf(' ', atIndex);
             if (spaceIndex > 0) {
-                type = type.substring(0, atIndex) + type.substring(spaceIndex + 1);
+                result = result.substring(0, atIndex) + result.substring(spaceIndex + 1);
             } else {
-                type = type.substring(type.lastIndexOf(" ") + 1);
+                result = result.substring(result.lastIndexOf(' ') + 1);
             }
         }
 
         // 处理泛型
-        int genericIndex = type.indexOf('<');
+        int genericIndex = result.indexOf('<');
         if (genericIndex > 0) {
-            type = type.substring(0, genericIndex);
+            result = result.substring(0, genericIndex);
         }
 
         // 处理基本类型
-        return switch (type) {
+        return switch (result) {
             case "long" -> "Long";
             case "int" -> "Integer";
             case "short" -> "Short";
@@ -918,7 +920,7 @@ public class EntityMetadataProcessor extends AbstractProcessor {
             case "double" -> "Double";
             case "boolean" -> "Boolean";
             case "char" -> "Character";
-            default -> type;
+            default -> result;
         };
     }
 
@@ -1035,9 +1037,10 @@ public class EntityMetadataProcessor extends AbstractProcessor {
                     String key = entry.getKey().getSimpleName().toString();
                     Object value = entry.getValue().getValue();
 
-                    switch (key) {
-                        case "tableName" -> tableName = value.toString();
-                        case "generateRelations" -> generateRelations = (Boolean) value;
+                    if ("tableName".equals(key)) {
+                        tableName = value.toString();
+                    } else if ("generateRelations".equals(key)) {
+                        generateRelations = (Boolean) value;
                     }
                 }
                 break;

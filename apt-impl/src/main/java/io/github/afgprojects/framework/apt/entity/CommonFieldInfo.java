@@ -102,14 +102,14 @@ record CommonFieldInfo(
         boolean isId,
         boolean isGenerated
     ) {
-        if (columnName == null || columnName.isEmpty()) {
-            columnName = NamingUtils.toSnakeCase(propertyName);
-        }
+        String resolvedColumnName = (columnName == null || columnName.isEmpty())
+            ? NamingUtils.toSnakeCase(propertyName)
+            : columnName;
 
         return new CommonFieldInfo(
             name,
             propertyName,
-            columnName,
+            resolvedColumnName,
             fieldType,
             isId,
             isGenerated,

@@ -38,9 +38,8 @@ class CommonFieldConfigLoader {
         List<CommonFieldInfo> fields = new ArrayList<>();
 
         try {
-            Enumeration<URL> resources = processingEnv.getFiler()
-                .getClass()
-                .getClassLoader()
+            Enumeration<URL> resources = Thread.currentThread()
+                .getContextClassLoader()
                 .getResources(CONFIG_LOCATION);
 
             while (resources.hasMoreElements()) {
