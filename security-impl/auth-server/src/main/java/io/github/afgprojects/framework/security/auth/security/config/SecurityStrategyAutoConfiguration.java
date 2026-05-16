@@ -1,11 +1,10 @@
 package io.github.afgprojects.framework.security.auth.security.config;
 
+import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -58,13 +57,11 @@ import io.github.afgprojects.framework.security.core.storage.AfgDeviceStorage;
  *
  * @since 1.0.0
  */
+@Slf4j
 @AutoConfiguration
 @EnableConfigurationProperties(SecurityStrategyProperties.class)
 @ConditionalOnProperty(prefix = "afg.auth.security", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class SecurityStrategyAutoConfiguration {
-
-    private static final Logger log = LoggerFactory.getLogger(SecurityStrategyAutoConfiguration.class);
-
     /**
      * 创建登录失败追踪器。
      *

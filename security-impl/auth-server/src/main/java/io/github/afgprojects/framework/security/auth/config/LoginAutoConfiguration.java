@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.security.auth.config;
 
+import lombok.extern.slf4j.Slf4j;
 import io.github.afgprojects.framework.security.auth.login.DefaultLoginService;
 import io.github.afgprojects.framework.security.auth.login.strategy.EmailCaptchaLoginStrategy;
 import io.github.afgprojects.framework.security.auth.login.strategy.MobileCaptchaLoginStrategy;
@@ -12,8 +13,6 @@ import io.github.afgprojects.framework.security.core.login.strategy.LoginStrateg
 import io.github.afgprojects.framework.security.core.login.strategy.LoginStrategyFactory;
 import io.github.afgprojects.framework.security.core.storage.AfgCaptchaStorage;
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -40,12 +39,11 @@ import java.util.List;
  *
  * @since 1.0.0
  */
+@Slf4j
 @AutoConfiguration
 @EnableConfigurationProperties({AuthServerProperties.class, LoginProperties.class})
 @ConditionalOnProperty(prefix = "afg.auth.login", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class LoginAutoConfiguration {
-
-    private static final Logger log = LoggerFactory.getLogger(LoginAutoConfiguration.class);
 
     /**
      * 创建登录策略工厂。

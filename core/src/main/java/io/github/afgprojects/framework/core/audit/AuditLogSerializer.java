@@ -2,12 +2,11 @@ package io.github.afgprojects.framework.core.audit;
 
 import java.util.Set;
 
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.github.afgprojects.framework.core.util.JsonProcessingException;
 import io.github.afgprojects.framework.core.util.JacksonUtils;
@@ -18,10 +17,9 @@ import io.github.afgprojects.framework.core.util.JacksonUtils;
  * 负责序列化方法参数和返回值，支持敏感字段脱敏
  * </p>
  */
+@Slf4j
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
 class AuditLogSerializer {
-
-    private static final Logger log = LoggerFactory.getLogger(AuditLogSerializer.class);
 
     private final SensitiveFieldProcessor sensitiveFieldProcessor;
 

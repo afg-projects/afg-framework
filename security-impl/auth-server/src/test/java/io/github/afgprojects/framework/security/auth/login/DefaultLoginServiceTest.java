@@ -36,6 +36,7 @@ import io.github.afgprojects.framework.security.core.login.model.CaptchaResponse
 import io.github.afgprojects.framework.security.core.login.model.CaptchaType;
 import io.github.afgprojects.framework.security.core.login.model.LoginRequest;
 import io.github.afgprojects.framework.security.core.login.model.LoginResponse;
+import io.github.afgprojects.framework.security.core.login.strategy.LoginStrategyFactory;
 import io.github.afgprojects.framework.security.core.token.TokenValidationException;
 
 /**
@@ -44,6 +45,9 @@ import io.github.afgprojects.framework.security.core.token.TokenValidationExcept
 @DisplayName("DefaultLoginService 测试")
 @ExtendWith(MockitoExtension.class)
 class DefaultLoginServiceTest {
+
+    @Mock
+    private LoginStrategyFactory strategyFactory;
 
     @Mock
     private AfgUserDetailsService userDetailsService;
@@ -61,7 +65,7 @@ class DefaultLoginServiceTest {
 
     @BeforeEach
     void setUp() {
-        loginService = new DefaultLoginService(userDetailsService, tokenService, captchaService, passwordEncoder);
+        loginService = new DefaultLoginService(strategyFactory, userDetailsService, tokenService, captchaService);
     }
 
     @Nested

@@ -1,7 +1,6 @@
 package io.github.afgprojects.framework.core.api.ratelimit;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import io.github.afgprojects.framework.core.web.ratelimit.RateLimitProperties;
 
@@ -20,9 +19,8 @@ import io.github.afgprojects.framework.core.web.ratelimit.RateLimitProperties;
  *     .tryAcquire();
  * }</pre>
  */
+@Slf4j
 public class RateLimiter {
-
-    private static final Logger log = LoggerFactory.getLogger(RateLimiter.class);
 
     private final RateLimitStorage storage;
     private final RateLimitProperties properties;

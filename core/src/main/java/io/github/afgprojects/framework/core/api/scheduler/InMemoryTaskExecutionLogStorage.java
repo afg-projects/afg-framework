@@ -12,9 +12,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * 内存执行日志存储
@@ -31,9 +30,8 @@ import org.slf4j.LoggerFactory;
  *
  * @since 1.0.0
  */
+@Slf4j
 public class InMemoryTaskExecutionLogStorage implements TaskExecutionLogStorage {
-
-    private static final Logger log = LoggerFactory.getLogger(InMemoryTaskExecutionLogStorage.class);
 
     private final int maxSize;
     private final ConcurrentMap<String, ConcurrentLinkedDeque<TaskExecutionLog>> logsByTaskId = new ConcurrentHashMap<>();

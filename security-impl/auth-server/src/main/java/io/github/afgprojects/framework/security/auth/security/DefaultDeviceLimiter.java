@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.security.auth.security;
 
+import lombok.extern.slf4j.Slf4j;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -9,8 +10,6 @@ import java.util.stream.Collectors;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.github.afgprojects.framework.security.core.security.DeviceLimiter;
 import io.github.afgprojects.framework.security.core.storage.AfgDeviceStorage;
@@ -53,10 +52,8 @@ import io.github.afgprojects.framework.security.core.storage.AfgDeviceStorage;
  *
  * @since 1.0.0
  */
+@Slf4j
 public class DefaultDeviceLimiter implements DeviceLimiter {
-
-    private static final Logger log = LoggerFactory.getLogger(DefaultDeviceLimiter.class);
-
     private final AfgDeviceStorage deviceStorage;
     private final int maxDevices;
 

@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.security.auth.login;
 
+import lombok.extern.slf4j.Slf4j;
 import io.github.afgprojects.framework.security.core.authentication.AfgUserDetails;
 import io.github.afgprojects.framework.security.core.authentication.AfgUserDetailsService;
 import io.github.afgprojects.framework.security.core.login.CaptchaService;
@@ -13,9 +14,6 @@ import io.github.afgprojects.framework.security.core.login.strategy.LoginStrateg
 import io.github.afgprojects.framework.security.core.login.strategy.LoginStrategyFactory;
 import io.github.afgprojects.framework.security.core.token.TokenValidationException;
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -49,10 +47,8 @@ import java.util.stream.Collectors;
  *
  * @since 1.0.0
  */
+@Slf4j
 public class DefaultLoginService implements LoginService {
-
-    private static final Logger log = LoggerFactory.getLogger(DefaultLoginService.class);
-
     private final LoginStrategyFactory strategyFactory;
     private final AfgUserDetailsService userDetailsService;
     private final TokenService tokenService;

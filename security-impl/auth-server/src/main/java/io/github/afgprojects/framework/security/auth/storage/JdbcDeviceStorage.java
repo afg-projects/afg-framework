@@ -1,8 +1,9 @@
 package io.github.afgprojects.framework.security.auth.storage;
 
+import lombok.extern.slf4j.Slf4j;
 import io.github.afgprojects.framework.security.core.security.model.DeviceInfo;
 import io.github.afgprojects.framework.security.core.storage.AfgDeviceStorage;
-import lombok.extern.slf4j.Slf4j;
+
 import org.jspecify.annotations.NonNull;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -19,28 +20,28 @@ import java.util.Optional;
 /**
  * 基于 JDBC 的设备存储。
  *
- * <p>将用户设备信息持久化到关系型数据库，支持：
+ * <p>将设备信息持久化到关系型数据库，支持：
  * <ul>
  *   <li>设备信息保存与查询</li>
- *   <li>按用户查询设备列表</li>
- *   <li>统计用户活跃设备数量</li>
- *   <li>设备删除与状态更新</li>
+ *   <li>设备删除</li>
+ *   <li>设备活跃状态管理</li>
  * </ul>
  *
  * <h3>表结构</h3>
  * <pre>
- * CREATE TABLE auth_user_device (
- *     device_id VARCHAR(100) NOT NULL UNIQUE,
+ * CREATE TABLE auth_device (
+ *     device_id VARCHAR(128) PRIMARY KEY,
  *     user_id VARCHAR(64) NOT NULL,
  *     tenant_id VARCHAR(64),
- *     device_name VARCHAR(200),
- *     device_type VARCHAR(50),
- *     last_login_ip VARCHAR(50),
+ *     device_name VARCHAR(256),
+ *     device_type VARCHAR(64),
+ *     last_login_ip VARCHAR(64),
  *     last_login_time TIMESTAMP,
- *     active BOOLEAN DEFAULT TRUE,
+ *     active BOOLEAN NOT NULL DEFAULT TRUE,
  *     created_at TIMESTAMP NOT NULL,
  *     updated_at TIMESTAMP NOT NULL,
- *     INDEX idx_user_id (user_id)
+ *     INDEX idx_user_id (user_id),
+ *     INDEX idx_active (active)
  * );
  * </pre>
  *
@@ -50,7 +51,7 @@ import java.util.Optional;
 public class JdbcDeviceStorage implements AfgDeviceStorage {
 
     /** 默认表名 */
-    private static final String DEFAULT_TABLE_NAME = "auth_user_device";
+    private static final String DEFAULT_TABLE_NAME = "auth_device";
 
     private final JdbcTemplate jdbcTemplate;
     private final String tableName;
@@ -81,44 +82,57 @@ public class JdbcDeviceStorage implements AfgDeviceStorage {
     @Override
     public void save(@NonNull DeviceInfo deviceInfo) {
         Instant now = Instant.now();
+        Timestamp lastLoginTime = deviceInfo.getLastLoginTime() != null
+                ? Timestamp.from(deviceInfo.getLastLoginTime())
+                : null;
 
-        String sql = String.format(
-                "INSERT INTO %s (device_id, user_id, tenant_id, device_name, device_type, "
-                        + "last_login_ip, last_login_time, active, created_at, updated_at) "
-                        + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
-                        + "ON DUPLICATE KEY UPDATE "
-                        + "user_id = VALUES(user_id), "
-                        + "tenant_id = VALUES(tenant_id), "
-                        + "device_name = VALUES(device_name), "
-                        + "device_type = VALUES(device_type), "
-                        + "last_login_ip = VALUES(last_login_ip), "
-                        + "last_login_time = VALUES(last_login_time), "
-                        + "active = VALUES(active), "
-                        + "updated_at = VALUES(updated_at)",
-                tableName
-        );
+        // 先检查是否存在记录
+        String checkSql = String.format("SELECT COUNT(*) FROM %s WHERE device_id = ?", tableName);
+        Integer count = jdbcTemplate.queryForObject(checkSql, Integer.class, deviceInfo.getDeviceId());
+        boolean exists = count != null && count > 0;
 
-        try {
+        if (exists) {
+            // 更新现有记录
+            String updateSql = String.format(
+                    "UPDATE %s SET user_id = ?, tenant_id = ?, device_name = ?, device_type = ?, "
+                            + "last_login_ip = ?, last_login_time = ?, active = ?, updated_at = ? "
+                            + "WHERE device_id = ?",
+                    tableName
+            );
             jdbcTemplate.update(
-                    sql,
+                    updateSql,
+                    deviceInfo.getUserId(),
+                    deviceInfo.getTenantId(),
+                    deviceInfo.getDeviceName(),
+                    deviceInfo.getDeviceType(),
+                    deviceInfo.getLastLoginIp(),
+                    lastLoginTime,
+                    deviceInfo.isActive(),
+                    Timestamp.from(now),
+                    deviceInfo.getDeviceId()
+            );
+            log.debug("Updated device: deviceId={}, userId={}", deviceInfo.getDeviceId(), deviceInfo.getUserId());
+        } else {
+            // 插入新记录
+            String insertSql = String.format(
+                    "INSERT INTO %s (device_id, user_id, tenant_id, device_name, device_type, last_login_ip, "
+                            + "last_login_time, active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    tableName
+            );
+            jdbcTemplate.update(
+                    insertSql,
                     deviceInfo.getDeviceId(),
                     deviceInfo.getUserId(),
                     deviceInfo.getTenantId(),
                     deviceInfo.getDeviceName(),
                     deviceInfo.getDeviceType(),
                     deviceInfo.getLastLoginIp(),
-                    deviceInfo.getLastLoginTime() != null
-                            ? Timestamp.from(deviceInfo.getLastLoginTime())
-                            : null,
+                    lastLoginTime,
                     deviceInfo.isActive(),
                     Timestamp.from(now),
                     Timestamp.from(now)
             );
             log.debug("Saved device: deviceId={}, userId={}", deviceInfo.getDeviceId(), deviceInfo.getUserId());
-        } catch (DataAccessException e) {
-            log.error("Failed to save device: deviceId={}, userId={}",
-                    deviceInfo.getDeviceId(), deviceInfo.getUserId(), e);
-            throw e;
         }
     }
 
@@ -126,9 +140,8 @@ public class JdbcDeviceStorage implements AfgDeviceStorage {
     @NonNull
     public Optional<DeviceInfo> findById(@NonNull String deviceId) {
         String sql = String.format(
-                "SELECT device_id, user_id, tenant_id, device_name, device_type, "
-                        + "last_login_ip, last_login_time, active, created_at, updated_at "
-                        + "FROM %s WHERE device_id = ?",
+                "SELECT device_id, user_id, tenant_id, device_name, device_type, last_login_ip, "
+                        + "last_login_time, active FROM %s WHERE device_id = ?",
                 tableName
         );
 
@@ -147,9 +160,8 @@ public class JdbcDeviceStorage implements AfgDeviceStorage {
     @NonNull
     public List<DeviceInfo> findByUserId(@NonNull String userId) {
         String sql = String.format(
-                "SELECT device_id, user_id, tenant_id, device_name, device_type, "
-                        + "last_login_ip, last_login_time, active, created_at, updated_at "
-                        + "FROM %s WHERE user_id = ? ORDER BY last_login_time DESC",
+                "SELECT device_id, user_id, tenant_id, device_name, device_type, last_login_ip, "
+                        + "last_login_time, active FROM %s WHERE user_id = ? ORDER BY updated_at DESC",
                 tableName
         );
 
@@ -172,7 +184,7 @@ public class JdbcDeviceStorage implements AfgDeviceStorage {
             Integer count = jdbcTemplate.queryForObject(sql, Integer.class, userId);
             return count != null ? count : 0;
         } catch (DataAccessException e) {
-            log.error("Failed to count active devices by user: userId={}", userId, e);
+            log.error("Failed to count active devices: userId={}", userId, e);
             throw e;
         }
     }
@@ -218,7 +230,7 @@ public class JdbcDeviceStorage implements AfgDeviceStorage {
                 log.debug("Updated device active status: deviceId={}, active={}", deviceId, active);
             }
         } catch (DataAccessException e) {
-            log.error("Failed to update device active status: deviceId={}, active={}", deviceId, active, e);
+            log.error("Failed to update device active status: deviceId={}", deviceId, e);
             throw e;
         }
     }

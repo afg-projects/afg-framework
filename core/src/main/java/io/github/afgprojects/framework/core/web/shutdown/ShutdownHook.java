@@ -12,9 +12,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -27,6 +26,7 @@ import org.springframework.context.ApplicationContextAware;
  * 实现 BeanPostProcessor 扫描并注册 @ShutdownOrder 注解的方法。
  * 实现 DisposableBean 在销毁时执行关闭回调。
  */
+@Slf4j
 @EnableConfigurationProperties(ShutdownProperties.class)
 @SuppressWarnings({
     "PMD.AvoidAccessibilityAlteration",
@@ -35,8 +35,6 @@ import org.springframework.context.ApplicationContextAware;
     "PMD.AvoidCatchingGenericException"
 })
 public class ShutdownHook implements DisposableBean, ApplicationContextAware, BeanPostProcessor {
-
-    private static final Logger LOG = LoggerFactory.getLogger(ShutdownHook.class);
 
     private final ShutdownProperties properties;
 
@@ -67,7 +65,7 @@ public class ShutdownHook implements DisposableBean, ApplicationContextAware, Be
                 int order = annotation.order();
                 Runnable callback = createCallback(bean, method, beanName, method.getName());
                 addCallback(phase, order, callback);
-                LOG.debug(
+                log.debug(
                         "Registered shutdown callback: bean={}, method={}, phase={}, order={}",
                         beanName,
                         method.getName(),
@@ -83,7 +81,7 @@ public class ShutdownHook implements DisposableBean, ApplicationContextAware, Be
             try {
                 method.invoke(bean);
             } catch (Exception e) {
-                LOG.error("Failed to execute shutdown callback: bean={}, method={}", beanName, methodName, e);
+                log.error("Failed to execute shutdown callback: bean={}, method={}", beanName, methodName, e);
             }
         };
     }
@@ -101,13 +99,13 @@ public class ShutdownHook implements DisposableBean, ApplicationContextAware, Be
      */
     @Override
     public void destroy() {
-        LOG.info(
+        log.info(
                 "Starting graceful shutdown with {} phases",
                 properties.getPhases().size());
         for (ShutdownProperties.Phase phase : properties.getPhases()) {
             executePhaseWithTimeout(phase.getName(), phase.getTimeout());
         }
-        LOG.info("Graceful shutdown completed");
+        log.info("Graceful shutdown completed");
     }
 
     /**
@@ -116,19 +114,19 @@ public class ShutdownHook implements DisposableBean, ApplicationContextAware, Be
     void executePhaseWithTimeout(String phaseName, Duration timeout) {
         List<ShutdownCallback> phaseCallbacks = callbacks.get(phaseName);
         if (phaseCallbacks == null || phaseCallbacks.isEmpty()) {
-            LOG.debug("Skipping phase '{}' - no callbacks registered", phaseName);
+            log.debug("Skipping phase '{}' - no callbacks registered", phaseName);
             return;
         }
 
-        LOG.info("Executing shutdown phase '{}' with timeout {}ms", phaseName, timeout.toMillis());
+        log.info("Executing shutdown phase '{}' with timeout {}ms", phaseName, timeout.toMillis());
 
         try {
             CompletableFuture.runAsync(() -> executePhase(phaseName)).get(timeout.toMillis(), TimeUnit.MILLISECONDS);
-            LOG.info("Phase '{}' completed successfully", phaseName);
+            log.info("Phase '{}' completed successfully", phaseName);
         } catch (TimeoutException e) {
-            LOG.warn("Phase '{}' timed out after {}ms", phaseName, timeout.toMillis());
+            log.warn("Phase '{}' timed out after {}ms", phaseName, timeout.toMillis());
         } catch (Exception e) {
-            LOG.error("Phase '{}' failed with error", phaseName, e);
+            log.error("Phase '{}' failed with error", phaseName, e);
         }
     }
 
@@ -160,9 +158,9 @@ public class ShutdownHook implements DisposableBean, ApplicationContextAware, Be
         for (ShutdownCallback callback : sortedCallbacks) {
             try {
                 callback.runnable().run();
-                LOG.debug("Executed shutdown callback in phase '{}' with order {}", phaseName, callback.order());
+                log.debug("Executed shutdown callback in phase '{}' with order {}", phaseName, callback.order());
             } catch (Exception e) {
-                LOG.error("Error executing shutdown callback in phase '{}'", phaseName, e);
+                log.error("Error executing shutdown callback in phase '{}'", phaseName, e);
             }
         }
     }
@@ -190,12 +188,12 @@ public class ShutdownHook implements DisposableBean, ApplicationContextAware, Be
                 // 单个回调，直接执行
                 try {
                     sameOrderCallbacks.get(0).runnable().run();
-                    LOG.debug(
+                    log.debug(
                             "Executed shutdown callback in phase '{}' with order {}",
                             phaseName,
                             currentOrder);
                 } catch (Exception e) {
-                    LOG.error("Error executing shutdown callback in phase '{}'", phaseName, e);
+                    log.error("Error executing shutdown callback in phase '{}'", phaseName, e);
                 }
             } else {
                 // 多个回调，并行执行并等待所有完成
@@ -203,12 +201,12 @@ public class ShutdownHook implements DisposableBean, ApplicationContextAware, Be
                         .map(callback -> CompletableFuture.runAsync(() -> {
                             try {
                                 callback.runnable().run();
-                                LOG.debug(
+                                log.debug(
                                         "Executed shutdown callback in phase '{}' with order {}",
                                         phaseName,
                                         callback.order());
                             } catch (Exception e) {
-                                LOG.error("Error executing shutdown callback in phase '{}'", phaseName, e);
+                                log.error("Error executing shutdown callback in phase '{}'", phaseName, e);
                             }
                         }))
                         .toArray(CompletableFuture[]::new);

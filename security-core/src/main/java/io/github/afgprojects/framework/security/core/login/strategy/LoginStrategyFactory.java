@@ -1,6 +1,7 @@
 package io.github.afgprojects.framework.security.core.login.strategy;
 
 import io.github.afgprojects.framework.security.core.login.model.LoginRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -10,6 +11,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 登录策略工厂。
@@ -20,11 +22,10 @@ import java.util.Optional;
  *
  * @since 1.0.0
  */
+@Slf4j
 public class LoginStrategyFactory {
 
-    private static final Logger log = LoggerFactory.getLogger(LoginStrategyFactory.class);
-
-    private final Map<String, LoginStrategy> strategyMap = new HashMap<>();
+    private final Map<String, LoginStrategy> strategyMap = new ConcurrentHashMap<>();
 
     /**
      * 注册登录策略。

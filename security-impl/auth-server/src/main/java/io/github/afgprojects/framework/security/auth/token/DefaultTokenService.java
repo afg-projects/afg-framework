@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.security.auth.token;
 
+import lombok.extern.slf4j.Slf4j;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -14,8 +15,6 @@ import java.util.UUID;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -76,10 +75,8 @@ import io.github.afgprojects.framework.security.core.storage.AfgTokenBlacklist;
  *
  * @since 1.0.0
  */
+@Slf4j
 public class DefaultTokenService implements TokenService {
-
-    private static final Logger log = LoggerFactory.getLogger(DefaultTokenService.class);
-
     private static final String CLAIM_USERNAME = "username";
     private static final String CLAIM_ROLES = "roles";
     private static final String CLAIM_PERMISSIONS = "permissions";

@@ -4,14 +4,13 @@ import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
 
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.github.afgprojects.framework.core.web.context.AfgRequestContextHolder;
 
@@ -30,14 +29,13 @@ import io.github.afgprojects.framework.core.web.context.AfgRequestContextHolder;
  * </ul>
  */
 @Aspect
+@Slf4j
 @SuppressWarnings({
     "PMD.SignatureDeclareThrowsException",
     "PMD.AvoidThrowingRawExceptionTypes",
     "PMD.AvoidCatchingGenericException"
 })
 public class AuditLogAspect {
-
-    private static final Logger log = LoggerFactory.getLogger(AuditLogAspect.class);
 
     private final AuditLogStorage storage;
     private final SensitiveFieldProcessor sensitiveFieldProcessor;

@@ -1,8 +1,7 @@
 package io.github.afgprojects.framework.security.auth.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -43,12 +42,11 @@ import io.github.afgprojects.framework.security.auth.user.AfgClientDetailsServic
  *
  * @since 1.0.0
  */
+@Slf4j
 @AutoConfiguration
 @EnableConfigurationProperties(AuthServerProperties.class)
 @ConditionalOnProperty(prefix = "afg.auth.server", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class AuthServerAutoConfiguration {
-
-    private static final Logger log = LoggerFactory.getLogger(AuthServerAutoConfiguration.class);
 
     /**
      * 创建 JWT Token 提供者

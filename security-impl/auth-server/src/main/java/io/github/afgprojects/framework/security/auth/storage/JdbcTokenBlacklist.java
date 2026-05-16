@@ -75,16 +75,27 @@ public class JdbcTokenBlacklist implements AfgTokenBlacklist {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime expiresAt = now.plus(ttl);
 
-        String sql = String.format(
-                "INSERT INTO %s (token_hash, user_id, reason, expires_at, created_at) "
-                        + "VALUES (?, ?, ?, ?, ?) "
-                        + "ON DUPLICATE KEY UPDATE user_id = VALUES(user_id), reason = VALUES(reason), "
-                        + "expires_at = VALUES(expires_at), created_at = VALUES(created_at)",
-                tableName
-        );
-
         try {
-            jdbcTemplate.update(sql, tokenHash, userId, reason, expiresAt, now);
+            // 先检查是否存在记录
+            String checkSql = String.format("SELECT COUNT(*) FROM %s WHERE token_hash = ?", tableName);
+            Integer count = jdbcTemplate.queryForObject(checkSql, Integer.class, tokenHash);
+            boolean exists = count != null && count > 0;
+
+            if (exists) {
+                // 更新现有记录
+                String updateSql = String.format(
+                        "UPDATE %s SET user_id = ?, reason = ?, expires_at = ?, created_at = ? WHERE token_hash = ?",
+                        tableName
+                );
+                jdbcTemplate.update(updateSql, userId, reason, expiresAt, now, tokenHash);
+            } else {
+                // 插入新记录
+                String insertSql = String.format(
+                        "INSERT INTO %s (token_hash, user_id, reason, expires_at, created_at) VALUES (?, ?, ?, ?, ?)",
+                        tableName
+                );
+                jdbcTemplate.update(insertSql, tokenHash, userId, reason, expiresAt, now);
+            }
             log.debug("Added token to blacklist: tokenHash={}, userId={}, reason={}", tokenHash, userId, reason);
         } catch (DataAccessException e) {
             log.error("Failed to add token to blacklist: tokenHash={}, userId={}", tokenHash, userId, e);
@@ -125,15 +136,27 @@ public class JdbcTokenBlacklist implements AfgTokenBlacklist {
         // 当检查 token 时，需要同时检查用户级别的黑名单
         String userBlacklistTokenHash = "user_all:" + userId;
 
-        String sql = String.format(
-                "INSERT INTO %s (token_hash, user_id, reason, expires_at, created_at) "
-                        + "VALUES (?, ?, ?, ?, ?) "
-                        + "ON DUPLICATE KEY UPDATE expires_at = VALUES(expires_at), created_at = VALUES(created_at)",
-                tableName
-        );
-
         try {
-            jdbcTemplate.update(sql, userBlacklistTokenHash, userId, reason, expiresAt, now);
+            // 先检查是否存在记录
+            String checkSql = String.format("SELECT COUNT(*) FROM %s WHERE token_hash = ?", tableName);
+            Integer count = jdbcTemplate.queryForObject(checkSql, Integer.class, userBlacklistTokenHash);
+            boolean exists = count != null && count > 0;
+
+            if (exists) {
+                // 更新现有记录
+                String updateSql = String.format(
+                        "UPDATE %s SET expires_at = ?, created_at = ? WHERE token_hash = ?",
+                        tableName
+                );
+                jdbcTemplate.update(updateSql, expiresAt, now, userBlacklistTokenHash);
+            } else {
+                // 插入新记录
+                String insertSql = String.format(
+                        "INSERT INTO %s (token_hash, user_id, reason, expires_at, created_at) VALUES (?, ?, ?, ?, ?)",
+                        tableName
+                );
+                jdbcTemplate.update(insertSql, userBlacklistTokenHash, userId, reason, expiresAt, now);
+            }
             log.info("Blacklisted all tokens for user: userId={}, ttl={}", userId, ttl);
         } catch (DataAccessException e) {
             log.error("Failed to blacklist all tokens for user: userId={}", userId, e);

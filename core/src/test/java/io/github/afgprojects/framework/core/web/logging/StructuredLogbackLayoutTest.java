@@ -1,10 +1,11 @@
 package io.github.afgprojects.framework.core.web.logging;
 
+import lombok.extern.slf4j.Slf4j;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 import ch.qos.logback.classic.Level;
@@ -19,6 +20,7 @@ import ch.qos.logback.classic.spi.ThrowableProxy;
  *
  * @see StructuredLogbackLayout
  */
+@Slf4j
 class StructuredLogbackLayoutTest {
 
     private StructuredLogbackLayout layout;

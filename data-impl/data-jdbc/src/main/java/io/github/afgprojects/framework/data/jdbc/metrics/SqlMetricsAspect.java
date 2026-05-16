@@ -3,14 +3,13 @@ package io.github.afgprojects.framework.data.jdbc.metrics;
 import io.github.afgprojects.framework.data.core.EntityProxy;
 import io.github.afgprojects.framework.data.core.query.Page;
 import io.github.afgprojects.framework.data.jdbc.JdbcEntityProxy;
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -36,11 +35,10 @@ import java.util.List;
  *
  * @since 1.0.0
  */
+@Slf4j
 @Aspect
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
 public class SqlMetricsAspect {
-
-    private static final Logger log = LoggerFactory.getLogger(SqlMetricsAspect.class);
 
     private final SqlMetrics sqlMetrics;
     private final SqlMetricsProperties properties;

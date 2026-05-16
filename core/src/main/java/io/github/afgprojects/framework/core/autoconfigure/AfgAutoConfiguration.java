@@ -1,8 +1,7 @@
 package io.github.afgprojects.framework.core.autoconfigure;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -26,9 +25,8 @@ import io.github.afgprojects.framework.core.util.JacksonUtils;
  * 自动注册核心组件
  */
 @AutoConfiguration
+@Slf4j
 public class AfgAutoConfiguration {
-
-    private static final Logger log = LoggerFactory.getLogger(AfgAutoConfiguration.class);
 
     static {
         loadModuleDefinitionsEarly();
@@ -89,9 +87,6 @@ public class AfgAutoConfiguration {
      * BeanPostProcessor to inject ObjectMapper into JacksonUtils
      */
     public static class JacksonUtilsBeanPostProcessor implements BeanPostProcessor {
-
-        private static final org.slf4j.Logger log =
-                org.slf4j.LoggerFactory.getLogger(JacksonUtilsBeanPostProcessor.class);
 
         @Override
         public Object postProcessAfterInitialization(@NonNull Object bean, @NonNull String beanName) {

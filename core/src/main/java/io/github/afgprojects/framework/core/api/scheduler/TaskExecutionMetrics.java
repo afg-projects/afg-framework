@@ -5,9 +5,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
@@ -30,9 +29,8 @@ import io.micrometer.core.instrument.Timer;
  *
  * @since 1.0.0
  */
+@Slf4j
 public class TaskExecutionMetrics {
-
-    private static final Logger log = LoggerFactory.getLogger(TaskExecutionMetrics.class);
 
     private static final String METRIC_EXECUTION_COUNT = "execution.count";
     private static final String METRIC_EXECUTION_DURATION = "execution.duration";

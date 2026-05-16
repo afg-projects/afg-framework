@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.security.auth.token;
 
+import lombok.extern.slf4j.Slf4j;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
@@ -7,8 +8,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -50,10 +49,8 @@ import com.nimbusds.jwt.SignedJWT;
  *
  * @since 1.0.0
  */
+@Slf4j
 public class JwtTokenProvider {
-
-    private static final Logger log = LoggerFactory.getLogger(JwtTokenProvider.class);
-
     private final JWSSigner signer;
     private final JWSVerifier verifier;
     private final String issuer;

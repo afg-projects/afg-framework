@@ -2,12 +2,11 @@ package io.github.afgprojects.framework.core.audit;
 
 import java.lang.reflect.Field;
 
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * 审计目标表达式解析器
@@ -15,10 +14,9 @@ import org.slf4j.LoggerFactory;
  * 负责解析 SpEL 风格的目标表达式（如 #userId, #request.id）
  * </p>
  */
+@Slf4j
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
 class TargetExpressionResolver {
-
-    private static final Logger log = LoggerFactory.getLogger(TargetExpressionResolver.class);
 
     /**
      * 提取目标对象

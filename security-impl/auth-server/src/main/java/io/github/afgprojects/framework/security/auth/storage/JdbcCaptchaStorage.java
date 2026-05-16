@@ -9,7 +9,6 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
@@ -18,17 +17,16 @@ import java.time.LocalDateTime;
  *
  * <p>将验证码持久化到关系型数据库，支持：
  * <ul>
- *   <li>验证码保存与查询</li>
- *   <li>TTL 过期机制</li>
+ *   <li>验证码保存与获取</li>
  *   <li>验证码删除</li>
- *   <li>过期验证码清理</li>
+ *   <li>自动过期清理</li>
  * </ul>
  *
  * <h3>表结构</h3>
  * <pre>
  * CREATE TABLE auth_captcha (
- *     captcha_key VARCHAR(100) NOT NULL UNIQUE,
- *     captcha_value VARCHAR(50) NOT NULL,
+ *     captcha_key VARCHAR(128) PRIMARY KEY,
+ *     captcha_value VARCHAR(64) NOT NULL,
  *     expires_at TIMESTAMP NOT NULL,
  *     created_at TIMESTAMP NOT NULL,
  *     INDEX idx_expires_at (expires_at)
@@ -71,25 +69,28 @@ public class JdbcCaptchaStorage implements AfgCaptchaStorage {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime expiresAt = now.plus(ttl);
 
-        String sql = String.format(
-                "INSERT INTO %s (captcha_key, captcha_value, expires_at, created_at) "
-                        + "VALUES (?, ?, ?, ?) "
-                        + "ON DUPLICATE KEY UPDATE captcha_value = ?, expires_at = ?, created_at = ?",
-                tableName
-        );
-
         try {
-            jdbcTemplate.update(
-                    sql,
-                    key,
-                    value,
-                    Timestamp.valueOf(expiresAt),
-                    Timestamp.valueOf(now),
-                    value,
-                    Timestamp.valueOf(expiresAt),
-                    Timestamp.valueOf(now)
-            );
-            log.debug("Saved captcha: key={}, ttl={}s", key, ttl.getSeconds());
+            // 先检查是否存在记录
+            String checkSql = String.format("SELECT COUNT(*) FROM %s WHERE captcha_key = ?", tableName);
+            Integer count = jdbcTemplate.queryForObject(checkSql, Integer.class, key);
+            boolean exists = count != null && count > 0;
+
+            if (exists) {
+                // 更新现有记录
+                String updateSql = String.format(
+                        "UPDATE %s SET captcha_value = ?, expires_at = ?, created_at = ? WHERE captcha_key = ?",
+                        tableName
+                );
+                jdbcTemplate.update(updateSql, value, expiresAt, now, key);
+            } else {
+                // 插入新记录
+                String insertSql = String.format(
+                        "INSERT INTO %s (captcha_key, captcha_value, expires_at, created_at) VALUES (?, ?, ?, ?)",
+                        tableName
+                );
+                jdbcTemplate.update(insertSql, key, value, expiresAt, now);
+            }
+            log.debug("Saved captcha: key={}, ttl={}", key, ttl);
         } catch (DataAccessException e) {
             log.error("Failed to save captcha: key={}", key, e);
             throw e;
@@ -99,7 +100,7 @@ public class JdbcCaptchaStorage implements AfgCaptchaStorage {
     @Override
     @Nullable
     public String get(@NonNull String key) {
-        // 先清理过期数据，再查询
+        // 先清理过期记录
         deleteExpired();
 
         String sql = String.format(
@@ -108,15 +109,8 @@ public class JdbcCaptchaStorage implements AfgCaptchaStorage {
         );
 
         try {
-            String value = jdbcTemplate.queryForObject(
-                    sql,
-                    String.class,
-                    key,
-                    Timestamp.valueOf(LocalDateTime.now())
-            );
-            return value;
+            return jdbcTemplate.queryForObject(sql, String.class, key, LocalDateTime.now());
         } catch (EmptyResultDataAccessException e) {
-            log.debug("Captcha not found or expired: key={}", key);
             return null;
         } catch (DataAccessException e) {
             log.error("Failed to get captcha: key={}", key, e);
@@ -141,18 +135,16 @@ public class JdbcCaptchaStorage implements AfgCaptchaStorage {
 
     @Override
     public boolean exists(@NonNull String key) {
+        // 先清理过期记录
+        deleteExpired();
+
         String sql = String.format(
                 "SELECT COUNT(*) FROM %s WHERE captcha_key = ? AND expires_at > ?",
                 tableName
         );
 
         try {
-            Integer count = jdbcTemplate.queryForObject(
-                    sql,
-                    Integer.class,
-                    key,
-                    Timestamp.valueOf(LocalDateTime.now())
-            );
+            Integer count = jdbcTemplate.queryForObject(sql, Integer.class, key, LocalDateTime.now());
             return count != null && count > 0;
         } catch (DataAccessException e) {
             log.error("Failed to check captcha existence: key={}", key, e);
@@ -161,7 +153,7 @@ public class JdbcCaptchaStorage implements AfgCaptchaStorage {
     }
 
     /**
-     * 清理所有过期的验证码。
+     * 删除过期的验证码记录。
      *
      * @return 删除的记录数
      */
@@ -169,13 +161,13 @@ public class JdbcCaptchaStorage implements AfgCaptchaStorage {
         String sql = String.format("DELETE FROM %s WHERE expires_at < ?", tableName);
 
         try {
-            int rows = jdbcTemplate.update(sql, Timestamp.valueOf(LocalDateTime.now()));
+            int rows = jdbcTemplate.update(sql, LocalDateTime.now());
             if (rows > 0) {
-                log.debug("Deleted expired captchas: count={}", rows);
+                log.debug("Deleted expired captcha records: count={}", rows);
             }
             return rows;
         } catch (DataAccessException e) {
-            log.error("Failed to delete expired captchas", e);
+            log.error("Failed to delete expired captcha records", e);
             throw e;
         }
     }
