@@ -51,7 +51,7 @@ class MetricsAspectTest {
     @Test
     void should_recordTimer_when_timedMetricAnnotation() throws Throwable {
         // Given
-        TimedMetric annotation = createTimedMetric("test.timer", "Test description", new double[] {0.5, 0.95});
+        TimedMetric annotation = createdAtdMetric("test.timer", "Test description", new double[] {0.5, 0.95});
         setupJoinPoint("testMethod");
 
         when(joinPoint.proceed()).thenReturn("result");
@@ -70,7 +70,7 @@ class MetricsAspectTest {
     @Test
     void should_recordTimerWithException_when_exceptionThrown() throws Throwable {
         // Given
-        TimedMetric annotation = createTimedMetric("test.timer.error", "Error timer", new double[] {0.5});
+        TimedMetric annotation = createdAtdMetric("test.timer.error", "Error timer", new double[] {0.5});
         setupJoinPoint("errorMethod");
 
         when(joinPoint.proceed()).thenThrow(new RuntimeException("Test error"));
@@ -88,7 +88,7 @@ class MetricsAspectTest {
     @Test
     void should_useClassNameMethodName_when_nameIsEmpty() throws Throwable {
         // Given
-        TimedMetric annotation = createTimedMetric("", "", new double[] {0.5});
+        TimedMetric annotation = createdAtdMetric("", "", new double[] {0.5});
         setupJoinPoint("myMethod");
         when(methodSignature.getDeclaringType()).thenReturn(TestService.class);
         when(joinPoint.proceed()).thenReturn("result");
@@ -148,7 +148,7 @@ class MetricsAspectTest {
         properties.getTags().put("env", "test");
         properties.getTags().put("service", "afg-core");
 
-        TimedMetric annotation = createTimedMetric("tagged.timer", "Tagged timer", new double[] {0.5});
+        TimedMetric annotation = createdAtdMetric("tagged.timer", "Tagged timer", new double[] {0.5});
         setupJoinPoint("taggedMethod");
 
         when(joinPoint.proceed()).thenReturn("result");
@@ -188,7 +188,7 @@ class MetricsAspectTest {
         lenient().when(methodSignature.getDeclaringType()).thenReturn(Object.class);
     }
 
-    private TimedMetric createTimedMetric(String name, String description, double[] percentiles) {
+    private TimedMetric createdAtdMetric(String name, String description, double[] percentiles) {
         return new TimedMetric() {
             @Override
             public String name() {

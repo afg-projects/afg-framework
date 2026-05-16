@@ -144,19 +144,19 @@ class VersionedEntityTest {
         }
 
         @Test
-        @DisplayName("应该继承 createTime 和 updateTime 字段")
+        @DisplayName("应该继承 createdAt 和 updatedAt 字段")
         void shouldInheritTimestampFields() {
             // Given
             TestEntity entity = new TestEntity();
             LocalDateTime now = LocalDateTime.now();
 
             // When
-            entity.setCreateTime(now);
-            entity.setUpdateTime(now.plusHours(1));
+            entity.setCreatedAt(now);
+            entity.setUpdatedAt(now.plusHours(1));
 
             // Then
-            assertThat(entity.getCreateTime()).isEqualTo(now);
-            assertThat(entity.getUpdateTime()).isEqualTo(now.plusHours(1));
+            assertThat(entity.getCreatedAt()).isEqualTo(now);
+            assertThat(entity.getUpdatedAt()).isEqualTo(now.plusHours(1));
         }
 
         @Test

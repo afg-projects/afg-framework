@@ -28,7 +28,7 @@ class TypedConditionBuilderTest {
         private String email;
         private Integer status;
         private Integer age;
-        private LocalDateTime createTime;
+        private LocalDateTime createdAt;
         private Boolean active;
     }
 

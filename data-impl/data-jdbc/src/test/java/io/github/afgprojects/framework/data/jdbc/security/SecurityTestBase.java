@@ -141,6 +141,6 @@ public abstract class SecurityTestBase {
         private String password;
         private String tenantId;
         private String deptId;
-        private java.time.LocalDateTime createTime;
+        private java.time.LocalDateTime createdAt;
     }
 }

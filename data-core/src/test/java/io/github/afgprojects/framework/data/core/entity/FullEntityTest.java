@@ -309,12 +309,12 @@ class FullEntityTest {
             LocalDateTime now = LocalDateTime.now();
 
             // When
-            entity.setCreateTime(now);
-            entity.setUpdateTime(now.plusHours(1));
+            entity.setCreatedAt(now);
+            entity.setUpdatedAt(now.plusHours(1));
 
             // Then
-            assertThat(entity.getCreateTime()).isEqualTo(now);
-            assertThat(entity.getUpdateTime()).isEqualTo(now.plusHours(1));
+            assertThat(entity.getCreatedAt()).isEqualTo(now);
+            assertThat(entity.getUpdatedAt()).isEqualTo(now.plusHours(1));
         }
     }
 
@@ -388,7 +388,7 @@ class FullEntityTest {
             entity.setId(1L);
             entity.setTenantId("tenant-001");
             entity.setCreateBy("admin");
-            entity.setCreateTime(LocalDateTime.now());
+            entity.setCreatedAt(LocalDateTime.now());
             entity.setVersion(0L);
 
             // Then
@@ -410,7 +410,7 @@ class FullEntityTest {
 
             // When - 更新操作
             entity.setUpdateBy("modifier");
-            entity.setUpdateTime(LocalDateTime.now());
+            entity.setUpdatedAt(LocalDateTime.now());
             entity.incrementVersion();
 
             // Then

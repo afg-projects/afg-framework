@@ -348,6 +348,7 @@ public class DefaultTokenService implements TokenService {
     /**
      * 验证 Token 签名和过期时间。
      */
+    @SuppressWarnings("PMD.ReplaceJavaUtilDate")
     private boolean validateTokenSignatureAndExpiration(String token) {
         try {
             SignedJWT signedJWT = SignedJWT.parse(token);
@@ -360,9 +361,9 @@ public class DefaultTokenService implements TokenService {
 
             // 验证过期时间
             JWTClaimsSet claims = signedJWT.getJWTClaimsSet();
-            Date expiration = claims.getExpirationTime();
+            Instant expiration = claims.getExpirationTime().toInstant();
 
-            if (expiration != null && expiration.toInstant().isBefore(Instant.now())) {
+            if (expiration != null && expiration.isBefore(Instant.now())) {
                 log.debug("Token has expired");
                 return false;
             }

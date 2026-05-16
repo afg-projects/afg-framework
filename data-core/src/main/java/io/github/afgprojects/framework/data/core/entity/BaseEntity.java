@@ -21,12 +21,12 @@ public abstract class BaseEntity<ID> {
     /**
      * 创建时间
      */
-    protected @Nullable LocalDateTime createTime;
+    protected @Nullable LocalDateTime createdAt;
 
     /**
      * 更新时间
      */
-    protected @Nullable LocalDateTime updateTime;
+    protected @Nullable LocalDateTime updatedAt;
 
     /**
      * 获取主键ID
@@ -51,17 +51,17 @@ public abstract class BaseEntity<ID> {
      *
      * @return 创建时间
      */
-    public @Nullable LocalDateTime getCreateTime() {
-        return createTime;
+    public @Nullable LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
     /**
      * 设置创建时间
      *
-     * @param createTime 创建时间
+     * @param createdAt 创建时间
      */
-    public void setCreateTime(@Nullable LocalDateTime createTime) {
-        this.createTime = createTime;
+    public void setCreatedAt(@Nullable LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 
     /**
@@ -69,17 +69,17 @@ public abstract class BaseEntity<ID> {
      *
      * @return 更新时间
      */
-    public @Nullable LocalDateTime getUpdateTime() {
-        return updateTime;
+    public @Nullable LocalDateTime getUpdatedAt() {
+        return updatedAt;
     }
 
     /**
      * 设置更新时间
      *
-     * @param updateTime 更新时间
+     * @param updatedAt 更新时间
      */
-    public void setUpdateTime(@Nullable LocalDateTime updateTime) {
-        this.updateTime = updateTime;
+    public void setUpdatedAt(@Nullable LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     /**

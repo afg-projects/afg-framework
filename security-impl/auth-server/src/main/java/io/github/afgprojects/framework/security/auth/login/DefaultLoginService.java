@@ -121,12 +121,7 @@ public class DefaultLoginService implements LoginService {
         }
 
         // 加载用户详情
-        AfgUserDetails userDetails;
-        try {
-            userDetails = userDetailsService.loadUserByUsername(username);
-        } catch (UsernameNotFoundException e) {
-            throw e;
-        }
+        AfgUserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
         // 验证密码
         if (!passwordEncoder.matches(password, userDetails.getPassword())) {

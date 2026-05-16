@@ -969,7 +969,7 @@ class JdbcEntityProxyCoverageTest {
         @Test
         @DisplayName("findAll 空条件 + TIMESTAMP 策略 + whereClause.length() == 0")
         void shouldHandleEmptyConditionWithTimestampStrategy() {
-            createTimestampSoftDeleteTable();
+            createdAtstampSoftDeleteTable();
             EntityProxy<TimestampSoftDeleteUser> proxy = dataManager.entity(TimestampSoftDeleteUser.class);
 
             // Given - 插入未删除记录
@@ -988,7 +988,7 @@ class JdbcEntityProxyCoverageTest {
         @Test
         @DisplayName("findAll 分页空条件 + TIMESTAMP 策略 + whereClause.length() == 0")
         void shouldHandleEmptyConditionPageableWithTimestampStrategy() {
-            createTimestampSoftDeleteTable();
+            createdAtstampSoftDeleteTable();
             EntityProxy<TimestampSoftDeleteUser> proxy = dataManager.entity(TimestampSoftDeleteUser.class);
 
             // Given - 插入未删除记录
@@ -1007,7 +1007,7 @@ class JdbcEntityProxyCoverageTest {
             assertThat(page.getContent()).hasSize(1);
         }
 
-        private void createTimestampSoftDeleteTable() {
+        private void createdAtstampSoftDeleteTable() {
             try (Connection conn = dataSource.getConnection();
                  Statement stmt = conn.createStatement()) {
                 stmt.execute("""

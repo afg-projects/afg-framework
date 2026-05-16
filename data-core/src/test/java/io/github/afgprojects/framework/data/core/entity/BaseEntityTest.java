@@ -118,31 +118,31 @@ class BaseEntityTest {
     class TimestampOperationTests {
 
         @Test
-        @DisplayName("createTime 应该正确设置和获取")
-        void shouldSetAndGetCreateTime() {
+        @DisplayName("createdAt 应该正确设置和获取")
+        void shouldSetAndGetCreatedAt() {
             // Given
             TestEntity entity = new TestEntity();
-            LocalDateTime createTime = LocalDateTime.of(2024, 6, 15, 10, 30, 0);
+            LocalDateTime createdAt = LocalDateTime.of(2024, 6, 15, 10, 30, 0);
 
             // When
-            entity.setCreateTime(createTime);
+            entity.setCreatedAt(createdAt);
 
             // Then
-            assertThat(entity.getCreateTime()).isEqualTo(createTime);
+            assertThat(entity.getCreatedAt()).isEqualTo(createdAt);
         }
 
         @Test
-        @DisplayName("updateTime 应该正确设置和获取")
-        void shouldSetAndGetUpdateTime() {
+        @DisplayName("updatedAt 应该正确设置和获取")
+        void shouldSetAndGetUpdatedAt() {
             // Given
             TestEntity entity = new TestEntity();
-            LocalDateTime updateTime = LocalDateTime.of(2024, 6, 15, 11, 30, 0);
+            LocalDateTime updatedAt = LocalDateTime.of(2024, 6, 15, 11, 30, 0);
 
             // When
-            entity.setUpdateTime(updateTime);
+            entity.setUpdatedAt(updatedAt);
 
             // Then
-            assertThat(entity.getUpdateTime()).isEqualTo(updateTime);
+            assertThat(entity.getUpdatedAt()).isEqualTo(updatedAt);
         }
 
         @Test
@@ -150,32 +150,32 @@ class BaseEntityTest {
         void shouldSupportNullTimestamps() {
             // Given
             TestEntity entity = new TestEntity();
-            entity.setCreateTime(LocalDateTime.now());
-            entity.setUpdateTime(LocalDateTime.now());
+            entity.setCreatedAt(LocalDateTime.now());
+            entity.setUpdatedAt(LocalDateTime.now());
 
             // When
-            entity.setCreateTime(null);
-            entity.setUpdateTime(null);
+            entity.setCreatedAt(null);
+            entity.setUpdatedAt(null);
 
             // Then
-            assertThat(entity.getCreateTime()).isNull();
-            assertThat(entity.getUpdateTime()).isNull();
+            assertThat(entity.getCreatedAt()).isNull();
+            assertThat(entity.getUpdatedAt()).isNull();
         }
 
         @Test
-        @DisplayName("createTime 和 updateTime 可以不同")
-        void createTimeAndUpdateTimeCanBeDifferent() {
+        @DisplayName("createdAt 和 updatedAt 可以不同")
+        void createdAtAndUpdatedAtCanBeDifferent() {
             // Given
             TestEntity entity = new TestEntity();
-            LocalDateTime createTime = LocalDateTime.of(2024, 1, 1, 0, 0, 0);
-            LocalDateTime updateTime = LocalDateTime.of(2024, 12, 31, 23, 59, 59);
+            LocalDateTime createdAt = LocalDateTime.of(2024, 1, 1, 0, 0, 0);
+            LocalDateTime updatedAt = LocalDateTime.of(2024, 12, 31, 23, 59, 59);
 
             // When
-            entity.setCreateTime(createTime);
-            entity.setUpdateTime(updateTime);
+            entity.setCreatedAt(createdAt);
+            entity.setUpdatedAt(updatedAt);
 
             // Then
-            assertThat(entity.getCreateTime()).isBefore(entity.getUpdateTime());
+            assertThat(entity.getCreatedAt()).isBefore(entity.getUpdatedAt());
         }
     }
 
@@ -248,18 +248,18 @@ class BaseEntityTest {
             // Given
             TestEntity entity = new TestEntity();
             Long id = 100L;
-            LocalDateTime createTime = LocalDateTime.now();
-            LocalDateTime updateTime = LocalDateTime.now().plusHours(1);
+            LocalDateTime createdAt = LocalDateTime.now();
+            LocalDateTime updatedAt = LocalDateTime.now().plusHours(1);
 
             // When
             entity.setId(id);
-            entity.setCreateTime(createTime);
-            entity.setUpdateTime(updateTime);
+            entity.setCreatedAt(createdAt);
+            entity.setUpdatedAt(updatedAt);
 
             // Then
             assertThat(entity.getId()).isEqualTo(id);
-            assertThat(entity.getCreateTime()).isEqualTo(createTime);
-            assertThat(entity.getUpdateTime()).isEqualTo(updateTime);
+            assertThat(entity.getCreatedAt()).isEqualTo(createdAt);
+            assertThat(entity.getUpdatedAt()).isEqualTo(updatedAt);
         }
     }
 
@@ -315,12 +315,12 @@ class BaseEntityTest {
             LocalDateTime minTime = LocalDateTime.MIN;
 
             // When
-            entity.setCreateTime(minTime);
-            entity.setUpdateTime(minTime);
+            entity.setCreatedAt(minTime);
+            entity.setUpdatedAt(minTime);
 
             // Then
-            assertThat(entity.getCreateTime()).isEqualTo(minTime);
-            assertThat(entity.getUpdateTime()).isEqualTo(minTime);
+            assertThat(entity.getCreatedAt()).isEqualTo(minTime);
+            assertThat(entity.getUpdatedAt()).isEqualTo(minTime);
         }
 
         @Test
@@ -331,12 +331,12 @@ class BaseEntityTest {
             LocalDateTime maxTime = LocalDateTime.MAX;
 
             // When
-            entity.setCreateTime(maxTime);
-            entity.setUpdateTime(maxTime);
+            entity.setCreatedAt(maxTime);
+            entity.setUpdatedAt(maxTime);
 
             // Then
-            assertThat(entity.getCreateTime()).isEqualTo(maxTime);
-            assertThat(entity.getUpdateTime()).isEqualTo(maxTime);
+            assertThat(entity.getCreatedAt()).isEqualTo(maxTime);
+            assertThat(entity.getUpdatedAt()).isEqualTo(maxTime);
         }
 
         @Test

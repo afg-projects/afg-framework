@@ -81,35 +81,35 @@ class AuditableTest {
     class AuditFieldFillingTests {
 
         @Test
-        @DisplayName("onCreate 应该填充 createTime 和 createBy")
+        @DisplayName("onCreate 应该填充 createdAt 和 createBy")
         void onCreateShouldFillCreateTimeAndCreateBy() {
             // Given
             TestAuditableEntity entity = new TestAuditableEntity();
-            Instant createTime = Instant.parse("2024-06-15T10:30:00Z");
-            AuditContext context = createMockAuditContextWithTime("user123", createTime);
+            Instant createdAt = Instant.parse("2024-06-15T10:30:00Z");
+            AuditContext context = createMockAuditContextWithTime("user123", createdAt);
 
             // When
             entity.onCreate(context);
 
             // Then
             assertThat(entity.getCreateBy()).isEqualTo("user123");
-            assertThat(entity.getCreateTime()).isNotNull();
+            assertThat(entity.getCreatedAt()).isNotNull();
         }
 
         @Test
-        @DisplayName("onUpdate 应该填充 updateTime 和 updateBy")
+        @DisplayName("onUpdate 应该填充 updatedAt 和 updateBy")
         void onUpdateShouldFillUpdateTimeAndUpdateBy() {
             // Given
             TestAuditableEntity entity = new TestAuditableEntity();
-            Instant updateTime = Instant.parse("2024-06-15T11:30:00Z");
-            AuditContext context = createMockAuditContextWithTime("user456", updateTime);
+            Instant updatedAt = Instant.parse("2024-06-15T11:30:00Z");
+            AuditContext context = createMockAuditContextWithTime("user456", updatedAt);
 
             // When
             entity.onUpdate(context);
 
             // Then
             assertThat(entity.getUpdateBy()).isEqualTo("user456");
-            assertThat(entity.getUpdateTime()).isNotNull();
+            assertThat(entity.getUpdatedAt()).isNotNull();
         }
 
         @Test
@@ -320,15 +320,15 @@ class AuditableTest {
         void completeCreateAuditFlow() {
             // Given
             TestAuditableEntity entity = new TestAuditableEntity();
-            Instant createTime = Instant.parse("2024-01-01T00:00:00Z");
-            AuditContext context = createFullMockAuditContext("admin", "Administrator", createTime, "tenant-001");
+            Instant createdAt = Instant.parse("2024-01-01T00:00:00Z");
+            AuditContext context = createFullMockAuditContext("admin", "Administrator", createdAt, "tenant-001");
 
             // When
             entity.onCreate(context);
 
             // Then
             assertThat(entity.getCreateBy()).isEqualTo("admin");
-            assertThat(entity.getCreateTime()).isNotNull();
+            assertThat(entity.getCreatedAt()).isNotNull();
         }
 
         @Test
@@ -342,8 +342,8 @@ class AuditableTest {
             entity.onCreate(createContext);
 
             // 再更新
-            Instant updateTime = Instant.parse("2024-06-15T10:30:00Z");
-            AuditContext updateContext = createFullMockAuditContext("modifier", "Modifier", updateTime, "tenant-001");
+            Instant updatedAt = Instant.parse("2024-06-15T10:30:00Z");
+            AuditContext updateContext = createFullMockAuditContext("modifier", "Modifier", updatedAt, "tenant-001");
 
             // When
             entity.onUpdate(updateContext);
@@ -351,7 +351,7 @@ class AuditableTest {
             // Then
             assertThat(entity.getCreateBy()).isEqualTo("creator"); // 创建人不变
             assertThat(entity.getUpdateBy()).isEqualTo("modifier"); // 更新人改变
-            assertThat(entity.getUpdateTime()).isNotNull();
+            assertThat(entity.getUpdatedAt()).isNotNull();
         }
 
         @Test
@@ -457,13 +457,13 @@ class AuditableTest {
         @Override
         public void onCreate(AuditContext context) {
             this.createBy = context.getCurrentUserId();
-            this.createTime = LocalDateTime.now();
+            this.createdAt = LocalDateTime.now();
         }
 
         @Override
         public void onUpdate(AuditContext context) {
             this.updateBy = context.getCurrentUserId();
-            this.updateTime = LocalDateTime.now();
+            this.updatedAt = LocalDateTime.now();
         }
 
         public @Nullable String getCreateBy() {

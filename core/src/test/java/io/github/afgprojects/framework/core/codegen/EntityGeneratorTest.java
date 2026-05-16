@@ -233,7 +233,7 @@ class EntityGeneratorTest {
         @DisplayName("应该添加日期类型的导入")
         void shouldAddDateTypeImports() {
             GeneratorContext.FieldDefinition field = GeneratorContext.FieldDefinition.builder()
-                    .name("createTime")
+                    .name("createdAt")
                     .type("LocalDateTime")
                     .build();
 

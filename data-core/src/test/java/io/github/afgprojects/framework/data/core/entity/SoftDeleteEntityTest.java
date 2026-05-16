@@ -243,12 +243,12 @@ class SoftDeleteEntityTest {
             LocalDateTime now = LocalDateTime.now();
 
             // When
-            entity.setCreateTime(now);
-            entity.setUpdateTime(now.plusHours(2));
+            entity.setCreatedAt(now);
+            entity.setUpdatedAt(now.plusHours(2));
 
             // Then
-            assertThat(entity.getCreateTime()).isEqualTo(now);
-            assertThat(entity.getUpdateTime()).isEqualTo(now.plusHours(2));
+            assertThat(entity.getCreatedAt()).isEqualTo(now);
+            assertThat(entity.getUpdatedAt()).isEqualTo(now.plusHours(2));
         }
 
         @Test
@@ -337,16 +337,16 @@ class SoftDeleteEntityTest {
             // Given
             TestEntity entity = new TestEntity();
             entity.setId(100L);
-            entity.setCreateTime(LocalDateTime.now());
-            entity.setUpdateTime(LocalDateTime.now());
+            entity.setCreatedAt(LocalDateTime.now());
+            entity.setUpdatedAt(LocalDateTime.now());
 
             // When
             entity.markDeleted();
 
             // Then - 其他属性应该保持不变
             assertThat(entity.getId()).isEqualTo(100L);
-            assertThat(entity.getCreateTime()).isNotNull();
-            assertThat(entity.getUpdateTime()).isNotNull();
+            assertThat(entity.getCreatedAt()).isNotNull();
+            assertThat(entity.getUpdatedAt()).isNotNull();
             assertThat(entity.isDeleted()).isTrue();
         }
 

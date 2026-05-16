@@ -29,7 +29,7 @@ import javax.tools.StandardLocation;
  * - 例如: auth:module-auth.yml:io.github.afgprojects.auth.AuthModuleConfig
  *
  * 这样运行时可以直接读取索引文件，无需扫描整个 classpath，
- * 大幅提升启动性能（从 100-500ms 降至 <5ms）。
+ * 大幅提升启动性能（从 100-500ms 降至 约5ms）。
  */
 @SupportedAnnotationTypes("io.github.afgprojects.framework.module.AfgModuleAnnotation")
 @SupportedSourceVersion(SourceVersion.RELEASE_25)
@@ -56,9 +56,7 @@ public class AfgModuleAnnotationProcessor extends AbstractProcessor {
             for (Element element : roundEnv.getElementsAnnotatedWith(annotation)) {
                 if (element instanceof TypeElement typeElement) {
                     String entry = processModuleElement(typeElement);
-                    if (entry != null) {
-                        moduleEntries.add(entry);
-                    }
+                    moduleEntries.add(entry);
                 }
             }
         }

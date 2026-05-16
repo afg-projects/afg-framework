@@ -1396,7 +1396,7 @@ class JdbcEntityProxyIntegrationTest {
 
         @BeforeEach
         void setUpTimestampSoftDeleteTable() {
-            createTimestampSoftDeleteTable();
+            createdAtstampSoftDeleteTable();
             timestampProxy = dataManager.entity(TimestampSoftDeleteUser.class);
             jdbcTimestampProxy = (JdbcEntityProxy<TimestampSoftDeleteUser>) timestampProxy;
         }
@@ -1535,7 +1535,7 @@ class JdbcEntityProxyIntegrationTest {
             assertThat(allUsers).hasSize(2);
         }
 
-        private void createTimestampSoftDeleteTable() {
+        private void createdAtstampSoftDeleteTable() {
             try (Connection conn = dataSource.getConnection();
                  Statement stmt = conn.createStatement()) {
                 stmt.execute("""

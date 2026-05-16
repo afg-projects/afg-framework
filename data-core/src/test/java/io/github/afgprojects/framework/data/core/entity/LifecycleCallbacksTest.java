@@ -156,11 +156,11 @@ class LifecycleCallbacksTest {
                 @Override
                 public void beforeCreate(EntityContext ctx) {
                     TestEntity e = (TestEntity) ctx.getEntity();
-                    e.setCreateTime(LocalDateTime.now());
+                    e.setCreatedAt(LocalDateTime.now());
                 }
             };
             callbacks.beforeCreate(context);
-            assertThat(entity.getCreateTime()).isNotNull();
+            assertThat(entity.getCreatedAt()).isNotNull();
         }
 
         @Test
@@ -230,7 +230,7 @@ class LifecycleCallbacksTest {
                 @Override
                 public void beforeCreate(EntityContext ctx) {
                     log.append("beforeCreate;");
-                    ((TestEntity) ctx.getEntity()).setCreateTime(LocalDateTime.now());
+                    ((TestEntity) ctx.getEntity()).setCreatedAt(LocalDateTime.now());
                 }
                 @Override
                 public void afterCreate(EntityContext ctx) { log.append("afterCreate;"); }
@@ -238,7 +238,7 @@ class LifecycleCallbacksTest {
             callbacks.beforeCreate(context);
             callbacks.afterCreate(context);
             assertThat(log.toString()).isEqualTo("beforeCreate;afterCreate;");
-            assertThat(entity.getCreateTime()).isNotNull();
+            assertThat(entity.getCreatedAt()).isNotNull();
         }
 
         @Test
@@ -252,7 +252,7 @@ class LifecycleCallbacksTest {
                 @Override
                 public void beforeUpdate(EntityContext ctx) {
                     log.append("beforeUpdate;");
-                    ((TestEntity) ctx.getEntity()).setUpdateTime(LocalDateTime.now());
+                    ((TestEntity) ctx.getEntity()).setUpdatedAt(LocalDateTime.now());
                 }
                 @Override
                 public void afterUpdate(EntityContext ctx) { log.append("afterUpdate;"); }
@@ -260,7 +260,7 @@ class LifecycleCallbacksTest {
             callbacks.beforeUpdate(context);
             callbacks.afterUpdate(context);
             assertThat(log.toString()).isEqualTo("beforeUpdate;afterUpdate;");
-            assertThat(entity.getUpdateTime()).isNotNull();
+            assertThat(entity.getUpdatedAt()).isNotNull();
         }
 
         @Test

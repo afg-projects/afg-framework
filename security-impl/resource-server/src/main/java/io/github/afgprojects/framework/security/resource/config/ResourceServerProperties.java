@@ -1,5 +1,7 @@
 package io.github.afgprojects.framework.security.resource.config;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.jspecify.annotations.NonNull;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -26,6 +28,8 @@ public class ResourceServerProperties {
      * 是否启用资源服务器。
      * 默认启用。
      */
+    @Setter
+    @Getter
     private boolean enabled = true;
 
     /**
@@ -44,15 +48,9 @@ public class ResourceServerProperties {
      * 无法解析租户时是否抛出异常。
      * 默认 true。
      */
+    @Getter
+    @Setter
     private boolean failIfTenantUnresolved = true;
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
 
     @NonNull
     public List<String> getTenantStrategies() {
@@ -72,11 +70,4 @@ public class ResourceServerProperties {
         this.tenantHeaderName = tenantHeaderName;
     }
 
-    public boolean isFailIfTenantUnresolved() {
-        return failIfTenantUnresolved;
-    }
-
-    public void setFailIfTenantUnresolved(boolean failIfTenantUnresolved) {
-        this.failIfTenantUnresolved = failIfTenantUnresolved;
-    }
 }
