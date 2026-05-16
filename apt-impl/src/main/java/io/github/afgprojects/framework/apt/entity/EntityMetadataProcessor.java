@@ -437,6 +437,7 @@ public class EntityMetadataProcessor extends AbstractProcessor {
                 String columnName = extractColumnName(field);
                 // 解析字段类型（处理泛型参数）
                 String fieldType = resolveFieldType(field.asType(), typeParamMap);
+
                 boolean isId = hasIdAnnotation(field);
                 boolean isGenerated = isId;
 
@@ -492,20 +493,26 @@ public class EntityMetadataProcessor extends AbstractProcessor {
     private String resolveFieldType(TypeMirror fieldType, Map<String, TypeMirror> typeParamMap) {
         // 如果是类型变量（如 ID），查找实际类型
         if (fieldType.getKind() == TypeKind.TYPEVAR) {
-            String varName = fieldType.toString();
-            if (typeParamMap.containsKey(varName)) {
-                fieldType = typeParamMap.get(varName);
-            } else {
-                // 调试：类型变量名不在映射中
-                processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE,
-                    "Type variable '" + varName + "' not found in typeParamMap. Keys: " + typeParamMap.keySet());
+            // 从字符串中提取纯类型变量名（移除注解）
+            String typeStr = fieldType.toString();
+            String varName = typeStr;
+
+            // 移除类型注解（如 @org.jspecify.annotations.Nullable）
+            if (typeStr.contains("@")) {
+                varName = typeStr.replaceAll("@[\\w.]+\\s*", "");
             }
+
+            if (typeParamMap.containsKey(varName)) {
+                TypeMirror resolvedType = typeParamMap.get(varName);
+                return normalizeFieldType(resolvedType.toString());
+            }
+            // 如果找不到映射，返回类型变量名
+            return varName;
         } else if (fieldType.getKind() == TypeKind.DECLARED) {
             // 处理带泛型的声明类型
             DeclaredType declaredType = (DeclaredType) fieldType;
             TypeMirror enclosingType = declaredType.getEnclosingType();
             if (enclosingType != null && enclosingType.getKind() == TypeKind.DECLARED) {
-                // 检查外部类型的类型参数
                 String result = resolveFieldType(enclosingType, typeParamMap);
                 if (!result.equals(enclosingType.toString())) {
                     return result;
