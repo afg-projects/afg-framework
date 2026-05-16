@@ -31,7 +31,7 @@ import javax.tools.StandardLocation;
  * 这样运行时可以直接读取索引文件，无需扫描整个 classpath，
  * 大幅提升启动性能（从 100-500ms 降至 约5ms）。
  */
-@SupportedAnnotationTypes("io.github.afgprojects.framework.module.AfgModuleAnnotation")
+@SupportedAnnotationTypes("io.github.afgprojects.framework.apt.module.AfgModuleAnnotation")
 @SupportedSourceVersion(SourceVersion.RELEASE_25)
 public class AfgModuleAnnotationProcessor extends AbstractProcessor {
 

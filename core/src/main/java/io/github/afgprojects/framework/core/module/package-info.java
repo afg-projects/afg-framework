@@ -6,7 +6,7 @@
  * <p>核心类：
  * <ul>
  *   <li>{@link io.github.afgprojects.framework.core.module.AfgModule} - 模块接口，所有业务模块需实现</li>
- *   <li>{@link io.github.afgprojects.framework.module.AfgModuleAnnotation} - 模块声明注解，自动注册为 Spring Component</li>
+ *   <li>{@link io.github.afgprojects.framework.apt.module.AfgModuleAnnotation} - 模块声明注解，自动注册为 Spring Component</li>
  *   <li>{@link io.github.afgprojects.framework.core.module.ModuleRegistry} - 模块注册表，管理模块生命周期</li>
  *   <li>{@link io.github.afgprojects.framework.core.module.ModuleDefinition} - 模块定义数据类</li>
  *   <li>{@link io.github.afgprojects.framework.core.module.ModuleContext} - 模块上下文，提供事件发布和模块间通信</li>

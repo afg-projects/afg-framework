@@ -6,6 +6,8 @@ dependencies {
     api(project(":security-core"))
     api(project(":data-core"))
     api(project(":data-impl:data-jdbc"))
+    api(project(":apt-api"))
+    api(libs.spring.boot.starter.web)
     api(libs.spring.boot.starter.oauth2.authorization.server)
     api(libs.jspecify)
     api("com.nimbusds:nimbus-jose-jwt:9.37.3")

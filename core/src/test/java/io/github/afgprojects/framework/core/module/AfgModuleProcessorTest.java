@@ -15,7 +15,7 @@ import org.springframework.core.env.MutablePropertySources;
 
 import io.github.afgprojects.framework.core.config.ModuleConfigLoader;
 import io.github.afgprojects.framework.core.support.BaseUnitTest;
-import io.github.afgprojects.framework.module.AfgModuleAnnotation;
+import io.github.afgprojects.framework.apt.module.AfgModuleAnnotation;
 
 /**
  * AfgModuleProcessor 单元测试

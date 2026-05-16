@@ -43,7 +43,7 @@ class AfgModuleAnnotationProcessorTest  {
 
             // then
             assertNotNull(supportedTypes);
-            assertTrue(supportedTypes.contains("io.github.afgprojects.framework.module.AfgModuleAnnotation"));
+            assertTrue(supportedTypes.contains("io.github.afgprojects.framework.apt.module.AfgModuleAnnotation"));
         }
 
         @Test

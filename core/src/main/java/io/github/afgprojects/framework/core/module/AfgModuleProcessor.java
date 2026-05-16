@@ -17,7 +17,7 @@ import org.springframework.core.PriorityOrdered;
 import io.github.afgprojects.framework.core.config.ModuleConfigLoader;
 import io.github.afgprojects.framework.core.module.exception.ModuleContextPathConflictException;
 import io.github.afgprojects.framework.core.module.exception.ModulePackageConflictException;
-import io.github.afgprojects.framework.module.AfgModuleAnnotation;
+import io.github.afgprojects.framework.apt.module.AfgModuleAnnotation;
 
 /**
  * AFG 模块注解处理器

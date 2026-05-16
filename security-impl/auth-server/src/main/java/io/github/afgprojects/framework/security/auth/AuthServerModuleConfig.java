@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.security.auth;
 
-import io.github.afgprojects.framework.module.AfgModuleAnnotation;
+import io.github.afgprojects.framework.apt.module.AfgModuleAnnotation;
 
 /**
  * 认证服务器模块配置。

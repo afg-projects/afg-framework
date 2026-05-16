@@ -3,8 +3,8 @@ plugins {
 }
 
 dependencies {
-    // 模块注解 API
-    api(project(":module-api"))
+    // APT 注解 API（模块注解、实体注解）
+    api(project(":apt-api"))
 
     // Jackson
     api(libs.bundles.jackson)
