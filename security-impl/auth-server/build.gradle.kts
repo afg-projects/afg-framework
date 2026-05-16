@@ -7,6 +7,7 @@ dependencies {
     api(libs.spring.boot.starter.oauth2.authorization.server)
     api(libs.jspecify)
     api("com.nimbusds:nimbus-jose-jwt:9.37.3")
+    api(libs.caffeine)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
     testCompileOnly(libs.lombok)
