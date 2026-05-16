@@ -357,11 +357,12 @@ class AssociationLoader {
      * 在类层次结构中查找字段
      */
     private Field findDeclaredField(Class<?> clazz, String fieldName) {
-        while (clazz != null && clazz != Object.class) {
+        Class<?> currentClass = clazz;
+        while (currentClass != null && currentClass != Object.class) {
             try {
-                return clazz.getDeclaredField(fieldName);
+                return currentClass.getDeclaredField(fieldName);
             } catch (NoSuchFieldException e) {
-                clazz = clazz.getSuperclass();
+                currentClass = currentClass.getSuperclass();
             }
         }
         return null;
