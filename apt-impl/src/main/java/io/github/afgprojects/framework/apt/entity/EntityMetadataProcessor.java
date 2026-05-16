@@ -8,6 +8,7 @@ import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.element.Element;
 import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
@@ -63,11 +64,14 @@ import java.util.*;
 public class EntityMetadataProcessor extends AbstractProcessor {
 
     private Types typeUtils;
+    private CommonFieldRegistry commonFieldRegistry;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
         this.typeUtils = processingEnv.getTypeUtils();
+        this.commonFieldRegistry = new CommonFieldRegistry();
+        this.commonFieldRegistry.initialize(processingEnv);
         processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE,
             "AFG Entity Metadata Processor initialized");
     }
@@ -78,6 +82,10 @@ public class EntityMetadataProcessor extends AbstractProcessor {
             return false;
         }
 
+        // 扫描通用字段注解
+        commonFieldRegistry.scanAnnotations(roundEnv);
+
+        // 处理实体
         for (TypeElement annotation : annotations) {
             for (Element element : roundEnv.getElementsAnnotatedWith(annotation)) {
                 if (element instanceof TypeElement typeElement) {
@@ -168,11 +176,18 @@ public class EntityMetadataProcessor extends AbstractProcessor {
         boolean auditable = detectAuditable(fields);
         boolean versioned = detectVersioned(fields);
 
-        // 字段列表
+        // 字段列表（优先使用通用字段元数据）
         sb.append("    private static final List<FieldMetadata> FIELDS = List.of(\n");
         for (int i = 0; i < fields.size(); i++) {
             FieldInfo field = fields.get(i);
-            sb.append("        new ").append(capitalize(field.propertyName)).append("FieldMetadata()");
+            String fieldMetadataRef = getCommonFieldMetadataRef(field);
+            if (fieldMetadataRef != null) {
+                // 使用通用字段元数据
+                sb.append("        ").append(fieldMetadataRef);
+            } else {
+                // 生成特定字段的内部类
+                sb.append("        new ").append(capitalize(field.propertyName)).append("FieldMetadata()");
+            }
             if (i < fields.size() - 1) {
                 sb.append(",");
             }
@@ -293,10 +308,13 @@ public class EntityMetadataProcessor extends AbstractProcessor {
         sb.append("        return result.toString();\n");
         sb.append("    }\n\n");
 
-        // ==================== 字段元数据内部类 ====================
+        // ==================== 字段元数据内部类（仅生成非通用字段）====================
 
         for (FieldInfo field : fields) {
-            sb.append(generateFieldMetadataClass(field));
+            // 跳过通用字段，使用 CommonFieldMetadata
+            if (!isCommonField(field)) {
+                sb.append(generateFieldMetadataClass(field));
+            }
         }
 
         sb.append("}\n");
@@ -441,12 +459,17 @@ public class EntityMetadataProcessor extends AbstractProcessor {
                 boolean isId = hasIdAnnotation(field);
                 boolean isGenerated = isId;
 
+                // 检测是否有自定义列名（@Column(name=...) 与默认 snake_case 不同）
+                String defaultColumnName = NamingUtils.toSnakeCase(propertyName);
+                boolean hasCustomColumnName = !defaultColumnName.equals(columnName);
+
                 fields.add(new FieldInfo(
                     propertyName,
                     columnName,
                     fieldType,
                     isId,
-                    isGenerated
+                    isGenerated,
+                    hasCustomColumnName
                 ));
             }
 
@@ -900,6 +923,40 @@ public class EntityMetadataProcessor extends AbstractProcessor {
     }
 
     /**
+     * 获取通用字段元数据引用
+     * <p>
+     * 检查字段是否为通用字段，如果是且类型匹配，返回对应的 CommonFieldMetadata 引用代码。
+     * 注意：如果字段有自定义列名（@Column(name=...) 与默认 snake_case 不同），则不使用通用字段元数据。
+     *
+     * @param field 字段信息
+     * @return 通用字段元数据引用代码，如 "CommonFieldMetadata.CREATED_AT"；如果不是通用字段则返回 null
+     */
+    private String getCommonFieldMetadataRef(FieldInfo field) {
+        // 如果有自定义列名，不使用通用字段元数据
+        if (field.hasCustomColumnName) {
+            return null;
+        }
+
+        // 从注册表查找
+        CommonFieldInfo commonField = commonFieldRegistry.find(field.propertyName, field.fieldType);
+        if (commonField != null) {
+            return commonFieldRegistry.generateRef(commonField);
+        }
+
+        return null;
+    }
+
+    /**
+     * 检查字段是否为通用字段
+     *
+     * @param field 字段信息
+     * @return 是否为通用字段
+     */
+    private boolean isCommonField(FieldInfo field) {
+        return getCommonFieldMetadataRef(field) != null;
+    }
+
+    /**
      * 写入源文件
      */
     private void writeSourceFile(String className, String sourceCode) throws IOException {
@@ -935,7 +992,8 @@ public class EntityMetadataProcessor extends AbstractProcessor {
         String columnName,
         String fieldType,
         boolean isId,
-        boolean isGenerated
+        boolean isGenerated,
+        boolean hasCustomColumnName  // 是否有自定义列名（@Column(name=...)）
     ) {}
 
     /**
