@@ -374,6 +374,366 @@ class EntityMetadataProcessorTest {
         }
     }
 
+    @Nested
+    @DisplayName("通用字段元数据")
+    class CommonFieldMetadataTests {
+
+        @Test
+        @DisplayName("应该使用 CommonFieldMetadata.CREATED_AT 替代内部类")
+        void shouldUseCommonFieldMetadataForCreatedAt() throws IOException {
+            String generatedSource = compileAndExtractGeneratedSource(
+                "CommonFieldCreatedAtTestEntity",
+                """
+                package io.github.afgprojects.framework.apt.entity.test;
+
+                import io.github.afgprojects.framework.apt.entity.AfEntity;
+                import java.time.LocalDateTime;
+
+                @AfEntity
+                public class CommonFieldCreatedAtTestEntity {
+                    private Long id;
+                    private LocalDateTime createdAt;
+                    private String name;
+                }
+                """
+            );
+
+            // 应该使用 CommonFieldMetadata.CREATED_AT
+            assertThat(generatedSource).contains("CommonFieldMetadata.CREATED_AT");
+            // 不应该生成 CreatedAtFieldMetadata 内部类
+            assertThat(generatedSource).doesNotContain("class CreatedAtFieldMetadata");
+        }
+
+        @Test
+        @DisplayName("应该使用 CommonFieldMetadata.UPDATED_AT 替代内部类")
+        void shouldUseCommonFieldMetadataForUpdatedAt() throws IOException {
+            String generatedSource = compileAndExtractGeneratedSource(
+                "CommonFieldUpdatedAtTestEntity",
+                """
+                package io.github.afgprojects.framework.apt.entity.test;
+
+                import io.github.afgprojects.framework.apt.entity.AfEntity;
+                import java.time.LocalDateTime;
+
+                @AfEntity
+                public class CommonFieldUpdatedAtTestEntity {
+                    private Long id;
+                    private LocalDateTime updatedAt;
+                }
+                """
+            );
+
+            assertThat(generatedSource).contains("CommonFieldMetadata.UPDATED_AT");
+            assertThat(generatedSource).doesNotContain("class UpdatedAtFieldMetadata");
+        }
+
+        @Test
+        @DisplayName("应该使用 CommonFieldMetadata.DELETED 替代内部类")
+        void shouldUseCommonFieldMetadataForDeleted() throws IOException {
+            String generatedSource = compileAndExtractGeneratedSource(
+                "CommonFieldDeletedTestEntity",
+                """
+                package io.github.afgprojects.framework.apt.entity.test;
+
+                import io.github.afgprojects.framework.apt.entity.AfEntity;
+
+                @AfEntity
+                public class CommonFieldDeletedTestEntity {
+                    private Long id;
+                    private Boolean deleted;
+                }
+                """
+            );
+
+            assertThat(generatedSource).contains("CommonFieldMetadata.DELETED");
+            assertThat(generatedSource).doesNotContain("class DeletedFieldMetadata");
+        }
+
+        @Test
+        @DisplayName("应该使用 CommonFieldMetadata.TENANT_ID 替代内部类")
+        void shouldUseCommonFieldMetadataForTenantId() throws IOException {
+            String generatedSource = compileAndExtractGeneratedSource(
+                "CommonFieldTenantIdTestEntity",
+                """
+                package io.github.afgprojects.framework.apt.entity.test;
+
+                import io.github.afgprojects.framework.apt.entity.AfEntity;
+
+                @AfEntity
+                public class CommonFieldTenantIdTestEntity {
+                    private Long id;
+                    private String tenantId;
+                }
+                """
+            );
+
+            assertThat(generatedSource).contains("CommonFieldMetadata.TENANT_ID");
+            assertThat(generatedSource).doesNotContain("class TenantIdFieldMetadata");
+        }
+
+        @Test
+        @DisplayName("应该使用 CommonFieldMetadata.VERSION_LONG 替代内部类")
+        void shouldUseCommonFieldMetadataForVersionLong() throws IOException {
+            String generatedSource = compileAndExtractGeneratedSource(
+                "CommonFieldVersionLongTestEntity",
+                """
+                package io.github.afgprojects.framework.apt.entity.test;
+
+                import io.github.afgprojects.framework.apt.entity.AfEntity;
+
+                @AfEntity
+                public class CommonFieldVersionLongTestEntity {
+                    private Long id;
+                    private Long version;
+                }
+                """
+            );
+
+            assertThat(generatedSource).contains("CommonFieldMetadata.VERSION_LONG");
+            assertThat(generatedSource).doesNotContain("class VersionFieldMetadata");
+        }
+
+        @Test
+        @DisplayName("应该使用 CommonFieldMetadata.VERSION_INTEGER 替代内部类")
+        void shouldUseCommonFieldMetadataForVersionInteger() throws IOException {
+            String generatedSource = compileAndExtractGeneratedSource(
+                "CommonFieldVersionIntegerTestEntity",
+                """
+                package io.github.afgprojects.framework.apt.entity.test;
+
+                import io.github.afgprojects.framework.apt.entity.AfEntity;
+
+                @AfEntity
+                public class CommonFieldVersionIntegerTestEntity {
+                    private Long id;
+                    private Integer version;
+                }
+                """
+            );
+
+            assertThat(generatedSource).contains("CommonFieldMetadata.VERSION_INTEGER");
+            assertThat(generatedSource).doesNotContain("class VersionFieldMetadata");
+        }
+
+        @Test
+        @DisplayName("自定义列名时不应该使用通用字段元数据")
+        void shouldNotUseCommonFieldMetadataForCustomColumnName() throws IOException {
+            String generatedSource = compileAndExtractGeneratedSource(
+                "CustomColumnNameTestEntity",
+                """
+                package io.github.afgprojects.framework.apt.entity.test;
+
+                import io.github.afgprojects.framework.apt.entity.AfEntity;
+                import jakarta.persistence.Column;
+                import java.time.LocalDateTime;
+
+                @AfEntity
+                public class CustomColumnNameTestEntity {
+                    private Long id;
+
+                    @Column(name = "create_time")
+                    private LocalDateTime createdAt;
+                }
+                """
+            );
+
+            // 自定义列名，应该生成内部类
+            assertThat(generatedSource).contains("class CreatedAtFieldMetadata");
+            assertThat(generatedSource).contains("create_time");
+            // 不应该使用 CommonFieldMetadata
+            assertThat(generatedSource).doesNotContain("CommonFieldMetadata.CREATED_AT");
+        }
+
+        @Test
+        @DisplayName("类型不匹配时不应该使用通用字段元数据")
+        void shouldNotUseCommonFieldMetadataForMismatchedType() throws IOException {
+            String generatedSource = compileAndExtractGeneratedSource(
+                "MismatchedTypeTestEntity",
+                """
+                package io.github.afgprojects.framework.apt.entity.test;
+
+                import io.github.afgprojects.framework.apt.entity.AfEntity;
+
+                @AfEntity
+                public class MismatchedTypeTestEntity {
+                    private Long id;
+                    // createdAt 应该是 LocalDateTime，但这里是 String
+                    private String createdAt;
+                }
+                """
+            );
+
+            // 类型不匹配，应该生成内部类
+            assertThat(generatedSource).contains("class CreatedAtFieldMetadata");
+            assertThat(generatedSource).doesNotContain("CommonFieldMetadata.CREATED_AT");
+        }
+
+        @Test
+        @DisplayName("多个通用字段应该全部使用 CommonFieldMetadata")
+        void shouldUseCommonFieldMetadataForMultipleFields() throws IOException {
+            String generatedSource = compileAndExtractGeneratedSource(
+                "MultipleCommonFieldsTestEntity",
+                """
+                package io.github.afgprojects.framework.apt.entity.test;
+
+                import io.github.afgprojects.framework.apt.entity.AfEntity;
+                import java.time.LocalDateTime;
+
+                @AfEntity
+                public class MultipleCommonFieldsTestEntity {
+                    private Long id;
+                    private String tenantId;
+                    private LocalDateTime createdAt;
+                    private LocalDateTime updatedAt;
+                    private Boolean deleted;
+                    private Long version;
+                    private String name;
+                }
+                """
+            );
+
+            // 所有通用字段都应该使用 CommonFieldMetadata
+            assertThat(generatedSource).contains("CommonFieldMetadata.TENANT_ID");
+            assertThat(generatedSource).contains("CommonFieldMetadata.CREATED_AT");
+            assertThat(generatedSource).contains("CommonFieldMetadata.UPDATED_AT");
+            assertThat(generatedSource).contains("CommonFieldMetadata.DELETED");
+            assertThat(generatedSource).contains("CommonFieldMetadata.VERSION_LONG");
+
+            // 只应该生成 name 字段的内部类
+            assertThat(generatedSource).contains("class NameFieldMetadata");
+            // 不应该生成通用字段的内部类
+            assertThat(generatedSource).doesNotContain("class TenantIdFieldMetadata");
+            assertThat(generatedSource).doesNotContain("class CreatedAtFieldMetadata");
+            assertThat(generatedSource).doesNotContain("class UpdatedAtFieldMetadata");
+            assertThat(generatedSource).doesNotContain("class DeletedFieldMetadata");
+            assertThat(generatedSource).doesNotContain("class VersionFieldMetadata");
+        }
+    }
+
+    @Nested
+    @DisplayName("配置文件注册")
+    class ConfigFileRegistrationTests {
+
+        @Test
+        @DisplayName("应该从配置文件加载通用字段")
+        void shouldLoadCommonFieldsFromConfig() throws IOException {
+            String generatedSource = compileAndExtractGeneratedSource(
+                "ConfigFieldTestEntity",
+                """
+                package io.github.afgprojects.framework.apt.entity.test;
+
+                import io.github.afgprojects.framework.apt.entity.AfEntity;
+
+                @AfEntity
+                public class ConfigFieldTestEntity {
+                    private Long id;
+                    private String orgId;  // 从配置文件注册
+                }
+                """
+            );
+
+            // 如果配置文件存在且包含 orgId，应该使用 CommonFieldMetadata.ORG_ID
+            // 否则生成内部类
+            assertThat(generatedSource).contains("orgId");
+        }
+    }
+
+    @Nested
+    @DisplayName("注解注册")
+    class AnnotationRegistrationTests {
+
+        @Test
+        @DisplayName("应该从字段上的注解注册通用字段")
+        void shouldRegisterFromFieldAnnotation() throws IOException {
+            String generatedSource = compileAndExtractGeneratedSource(
+                "AnnotationFieldTestEntity",
+                """
+                package io.github.afgprojects.framework.apt.entity.test;
+
+                import io.github.afgprojects.framework.apt.entity.AfEntity;
+                import io.github.afgprojects.framework.apt.entity.CommonFieldDefinition;
+
+                @AfEntity
+                public class AnnotationFieldTestEntity {
+                    private Long id;
+
+                    @CommonFieldDefinition(name = "BIZ_TYPE", propertyName = "bizType", fieldType = String.class)
+                    private String bizType;
+                }
+                """
+            );
+
+            // 注解定义的字段应该被识别，生成对应的字段元数据内部类
+            // 因为 CommonFieldMetadata 类中没有 BIZ_TYPE 常量
+            assertThat(generatedSource).contains("BizTypeFieldMetadata");
+            assertThat(generatedSource).contains("bizType");
+        }
+
+        @Test
+        @DisplayName("应该从类上的注解注册多个通用字段")
+        void shouldRegisterFromClassAnnotation() throws IOException {
+            String generatedSource = compileAndExtractGeneratedSource(
+                "AnnotationClassTestEntity",
+                """
+                package io.github.afgprojects.framework.apt.entity.test;
+
+                import io.github.afgprojects.framework.apt.entity.AfEntity;
+                import io.github.afgprojects.framework.apt.entity.CommonFieldDefinition;
+                import io.github.afgprojects.framework.apt.entity.CommonFieldDefinitions;
+
+                @AfEntity
+                @CommonFieldDefinitions({
+                    @CommonFieldDefinition(name = "REGION_CODE", propertyName = "regionCode", fieldType = String.class),
+                    @CommonFieldDefinition(name = "BIZ_LINE", propertyName = "bizLine", fieldType = String.class)
+                })
+                public class AnnotationClassTestEntity {
+                    private Long id;
+                    private String regionCode;
+                    private String bizLine;
+                }
+                """
+            );
+
+            // 注解定义的字段应该被识别，生成对应的字段元数据内部类
+            assertThat(generatedSource).contains("RegionCodeFieldMetadata");
+            assertThat(generatedSource).contains("BizLineFieldMetadata");
+        }
+    }
+
+    @Nested
+    @DisplayName("优先级规则")
+    class PriorityTests {
+
+        @Test
+        @DisplayName("框架内置字段不可被注解覆盖")
+        void frameworkFieldsCannotBeOverridden() throws IOException {
+            String generatedSource = compileAndExtractGeneratedSource(
+                "OverrideFrameworkTestEntity",
+                """
+                package io.github.afgprojects.framework.apt.entity.test;
+
+                import io.github.afgprojects.framework.apt.entity.AfEntity;
+                import io.github.afgprojects.framework.apt.entity.CommonFieldDefinition;
+                import java.time.LocalDateTime;
+
+                @AfEntity
+                public class OverrideFrameworkTestEntity {
+                    private Long id;
+
+                    // 尝试覆盖框架内置的 createdAt
+                    @CommonFieldDefinition(name = "CREATED_AT", propertyName = "createdAt", fieldType = LocalDateTime.class)
+                    private LocalDateTime createdAt;
+                }
+                """
+            );
+
+            // 应该使用框架内置的 CREATED_AT，而不是注解定义的
+            assertThat(generatedSource).contains("CommonFieldMetadata.CREATED_AT");
+            // 不应该生成 CreatedAtFieldMetadata 内部类
+            assertThat(generatedSource).doesNotContain("class CreatedAtFieldMetadata");
+        }
+    }
+
     /**
      * 编译测试源码并提取生成的元数据类源码
      *

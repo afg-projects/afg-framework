@@ -4,6 +4,7 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import java.util.*;
 
@@ -35,6 +36,7 @@ class CommonFieldRegistry {
     );
 
     private ProcessingEnvironment processingEnv;
+    private Types typeUtils;
 
     /**
      * 初始化注册表
@@ -43,6 +45,7 @@ class CommonFieldRegistry {
      */
     void initialize(ProcessingEnvironment processingEnv) {
         this.processingEnv = processingEnv;
+        this.typeUtils = processingEnv.getTypeUtils();
 
         // 1. 加载框架内置字段
         loadFrameworkFields();
@@ -161,7 +164,7 @@ class CommonFieldRegistry {
      * 注册注解声明的字段
      */
     private void registerAnnotationField(CommonFieldDefinition annotation, Element element) {
-        CommonFieldInfo info = CommonFieldInfo.fromAnnotation(annotation, FieldSource.ANNOTATION);
+        CommonFieldInfo info = CommonFieldInfo.fromAnnotation(annotation, FieldSource.ANNOTATION, typeUtils, element);
 
         // 检查是否与框架内置字段冲突
         if (isFrameworkField(info.propertyName())) {
@@ -234,9 +237,21 @@ class CommonFieldRegistry {
 
     /**
      * 生成引用代码
+     * <p>
+     * 只有框架内置字段才返回 CommonFieldMetadata 引用，
+     * 其他来源的字段（配置文件、注解）应该生成内部类。
+     *
+     * @param field 字段信息
+     * @return 通用字段元数据引用代码，如 "CommonFieldMetadata.CREATED_AT"；
+     *         如果不是框架内置字段则返回 null
      */
     String generateRef(CommonFieldInfo field) {
-        return "CommonFieldMetadata." + field.name();
+        // 只有框架内置字段才返回 CommonFieldMetadata 引用
+        if (field.source() == FieldSource.FRAMEWORK) {
+            return "CommonFieldMetadata." + field.name();
+        }
+        // 配置文件和注解定义的字段应该生成内部类
+        return null;
     }
 
     /**

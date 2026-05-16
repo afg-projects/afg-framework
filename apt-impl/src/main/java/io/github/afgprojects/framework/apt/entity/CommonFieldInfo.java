@@ -2,6 +2,11 @@ package io.github.afgprojects.framework.apt.entity;
 
 import io.github.afgprojects.framework.commons.naming.NamingUtils;
 
+import javax.lang.model.element.Element;
+import javax.lang.model.type.MirroredTypeException;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Types;
+
 /**
  * 通用字段信息
  * <p>
@@ -38,23 +43,40 @@ record CommonFieldInfo(
 
     /**
      * 从注解创建 CommonFieldInfo
+     * <p>
+     * 注意：在注解处理器环境中，访问 Class<?> 类型属性会抛出 MirroredTypeException，
+     * 需要通过捕获异常来获取 TypeMirror。
      *
-     * @param annotation 注解实例
-     * @param source     字段来源
+     * @param annotation   注解实例
+     * @param source       字段来源
+     * @param typeUtils    Types 工具类
+     * @param element      注解所在元素（用于错误报告）
      * @return CommonFieldInfo 实例
      */
-    static CommonFieldInfo fromAnnotation(CommonFieldDefinition annotation, FieldSource source) {
+    static CommonFieldInfo fromAnnotation(CommonFieldDefinition annotation, FieldSource source,
+                                          Types typeUtils, Element element) {
         String columnName = annotation.columnName();
         if (columnName == null || columnName.isEmpty()) {
             // 自动转换为 snake_case
             columnName = NamingUtils.toSnakeCase(annotation.propertyName());
         }
 
+        // 处理 fieldType - 捕获 MirroredTypeException
+        String fieldType;
+        try {
+            // 尝试直接访问（在非注解处理器环境中可能成功）
+            fieldType = annotation.fieldType().getName();
+        } catch (MirroredTypeException e) {
+            // 在注解处理器环境中，通过 TypeMirror 获取类型全限定名
+            TypeMirror typeMirror = e.getTypeMirror();
+            fieldType = typeUtils.erasure(typeMirror).toString();
+        }
+
         return new CommonFieldInfo(
             annotation.name(),
             annotation.propertyName(),
             columnName,
-            annotation.fieldType().getName(),
+            fieldType,
             annotation.isId(),
             annotation.isGenerated(),
             source
