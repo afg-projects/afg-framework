@@ -6,13 +6,16 @@ dependencies {
     // 依赖 core 模块
     api(project(":core"))
 
-    // Spring Security
+    // 依赖 data-core 模块（用于 DataScope）
+    api(project(":data-core"))
+
+    // Spring Security（版本由 Spring Boot BOM 管理）
     api(libs.spring.boot.starter.security)
 
-    // Jakarta Servlet API (for TenantResolver - compile only, provided by web container)
-    compileOnly("jakarta.servlet:jakarta.servlet-api")
+    // Jakarta Servlet API (for TenantResolver - compile only, provided by web container，版本由 Spring Boot BOM 管理)
+    compileOnly(libs.jakarta.servlet.api)
 
-    // JSpecify 空安全注解
+    // JSpecify 空安全注解（版本由 Spring Boot BOM 管理）
     api(libs.jspecify)
 
     // Lombok
@@ -24,5 +27,5 @@ dependencies {
     // Test
     testImplementation(libs.bundles.testing)
     testImplementation(libs.spring.boot.starter.test)
-    testImplementation("jakarta.servlet:jakarta.servlet-api")
+    testImplementation(libs.jakarta.servlet.api)
 }
