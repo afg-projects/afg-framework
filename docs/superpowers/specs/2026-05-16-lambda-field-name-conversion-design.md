@@ -641,3 +641,309 @@ public class DefaultTypedConditionBuilder<T> implements TypedConditionBuilder<T>
 - [阿里巴巴 Java 开发手册](https://github.com/alibaba/p3c)
 - [Jakarta Persistence API](https://jakarta.ee/specifications/persistence/)
 - [Java Annotation Processing](https://docs.oracle.com/javase/8/docs/api/javax/annotation/processing/Processor.html)
+
+---
+
+## 使用方式
+
+### 1. 项目配置
+
+#### 1.1 使用 Gradle 插件（推荐）
+
+在 `build.gradle.kts` 中应用 AFG Framework 插件，APT 会自动配置：
+
+```kotlin
+plugins {
+    id("io.github.afg-projects.framework-plugin")
+}
+
+afg {
+    moduleType.set("data")  // 数据模块会自动添加 JPA 依赖
+}
+```
+
+插件会自动添加：
+- `annotationProcessor("io.github.afg-projects:afg-framework-apt-impl")`
+- `compileOnly("io.github.afg-projects:afg-framework-apt-api")`
+
+#### 1.2 手动配置（不使用插件）
+
+```kotlin
+dependencies {
+    // APT 注解
+    compileOnly("io.github.afg-projects:afg-framework-apt-api:1.0.0-SNAPSHOT")
+
+    // APT 处理器
+    annotationProcessor("io.github.afg-projects:afg-framework-apt-impl:1.0.0-SNAPSHOT")
+
+    // 运行时依赖
+    implementation("io.github.afg-projects:afg-framework-data-jdbc:1.0.0-SNAPSHOT")
+
+    // JPA 注解（可选，用于 @Table、@Column 等）
+    compileOnly("jakarta.persistence:jakarta.persistence-api:3.2.0")
+}
+```
+
+### 2. 定义实体类
+
+#### 2.1 基本实体
+
+```java
+import io.github.afgprojects.framework.apt.entity.AfEntity;
+import jakarta.persistence.*;
+
+@AfEntity
+@Table(name = "sys_user")
+public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String userName;
+
+    private String email;
+
+    @Column(name = "is_deleted")
+    private Boolean deleted;
+
+    @Column(name = "create_time")
+    private LocalDateTime createTime;
+
+    // getter/setter
+    public Long getId() { return id; }
+    public String getUserName() { return userName; }
+    public String getEmail() { return email; }
+    public Boolean getDeleted() { return deleted; }
+    public LocalDateTime getCreateTime() { return createTime; }
+
+    public void setId(Long id) { this.id = id; }
+    public void setUserName(String userName) { this.userName = userName; }
+    public void setEmail(String email) { this.email = email; }
+    public void setDeleted(Boolean deleted) { this.deleted = deleted; }
+    public void setCreateTime(LocalDateTime createTime) { this.createTime = createTime; }
+}
+```
+
+#### 2.2 关键规则
+
+| 规则 | 说明 |
+|------|------|
+| `@AfEntity` | 必须添加，触发 APT 生成元数据 |
+| `@Table(name=)` | 可选，指定表名，不指定则使用类名转 snake_case |
+| `@Column(name=)` | 可选，指定列名，不指定则使用属性名转 snake_case |
+| `@Id` | 可选，标记主键，不指定则默认 `id` 字段 |
+| Boolean 字段 | 遵循阿里规约：属性名不加 `is` 前缀，通过 `@Column(name="is_xxx")` 指定列名 |
+
+### 3. 使用 Lambda 条件构建
+
+#### 3.1 基本用法
+
+```java
+import io.github.afgprojects.framework.data.core.condition.Conditions;
+import static io.github.afgprojects.framework.data.core.condition.Conditions.*;
+
+// 创建条件构建器
+Condition condition = Conditions.builder(User.class)
+    .eq(User::getDeleted, false)        // deleted = false → is_deleted = false
+    .like(User::getUserName, "admin")    // userName LIKE '%admin%' → user_name LIKE '%admin%'
+    .isNotNull(User::getEmail)           // email IS NOT NULL
+    .build();
+
+// 使用静态方法
+Condition condition = eq(User.class, User::getDeleted, false);
+```
+
+#### 3.2 复杂条件
+
+```java
+// 多条件组合
+Condition condition = Conditions.builder(User.class)
+    .eq(User::getDeleted, false)
+    .gt(User::getCreateTime, LocalDateTime.now().minusDays(7))
+    .in(User::getUserName, List.of("admin", "root", "system"))
+    .build();
+
+// 嵌套条件
+Condition nested = Conditions.builder(User.class)
+    .eq(User::getDeleted, false)
+    .build();
+
+Condition condition = Conditions.builder(User.class)
+    .like(User::getUserName, "admin")
+    .and(nested)
+    .build();
+
+// OR 条件
+Condition condition = Conditions.builder(User.class)
+    .eq(User::getDeleted, false)
+    .or(Conditions.builder(User.class)
+        .isNull(User::getDeleted)
+        .build())
+    .build();
+```
+
+#### 3.3 字段名转换规则
+
+| Java 属性名 | 数据库列名 | 说明 |
+|-------------|------------|------|
+| `id` | `id` | 无需转换 |
+| `userName` | `user_name` | camelCase → snake_case |
+| `createTime` | `create_time` | camelCase → snake_case |
+| `deleted` | `is_deleted` | 通过 `@Column(name="is_deleted")` 指定 |
+
+### 4. 生成的元数据类
+
+#### 4.1 自动生成的代码
+
+编译后，APT 会在 `{package}.metadata` 包下生成元数据类：
+
+```java
+package io.github.afgprojects.modules.system.entity.metadata;
+
+public class UserMetadata implements DatabaseEntityMetadata<User> {
+
+    private static final String TABLE_NAME = "sys_user";
+
+    private static final Map<String, String> COLUMN_MAP = Map.of(
+        "id", "id",
+        "userName", "user_name",
+        "email", "email",
+        "deleted", "is_deleted",
+        "createTime", "create_time"
+    );
+
+    @Override
+    public String getTableName() { return TABLE_NAME; }
+
+    @Override
+    public String getColumnName(String propertyName) {
+        return COLUMN_MAP.getOrDefault(propertyName, propertyName);
+    }
+
+    // ... 其他方法
+}
+```
+
+#### 4.2 直接使用元数据
+
+```java
+import io.github.afgprojects.framework.data.core.metadata.EntityMetadataCache;
+import io.github.afgprojects.framework.data.core.metadata.DatabaseEntityMetadata;
+
+// 获取元数据
+DatabaseEntityMetadata<User> metadata = EntityMetadataCache.getInstance()
+    .get(User.class, DatabaseEntityMetadata.class);
+
+// 获取表名
+String tableName = metadata.getTableName();  // "sys_user"
+
+// 获取列名
+String columnName = metadata.getColumnName("deleted");  // "is_deleted"
+
+// 获取主键字段
+DatabaseFieldMetadata idField = metadata.getIdField();
+```
+
+### 5. 与 DataManager 集成
+
+```java
+import io.github.afgprojects.framework.data.core.DataManager;
+import io.github.afgprojects.framework.data.core.condition.Conditions;
+
+@Service
+public class UserService {
+
+    private final DataManager dataManager;
+
+    public UserService(DataManager dataManager) {
+        this.dataManager = dataManager;
+    }
+
+    // 使用 Lambda 条件查询
+    public List<User> findActiveUsers() {
+        Condition condition = Conditions.builder(User.class)
+            .eq(User::getDeleted, false)
+            .build();
+
+        return dataManager.entity(User.class)
+            .query()
+            .where(condition)
+            .list();
+    }
+
+    // 使用 Lambda 条件更新
+    @Transactional
+    public void softDelete(Long userId) {
+        User user = dataManager.findById(User.class, userId).orElseThrow();
+        user.setDeleted(true);
+        dataManager.save(User.class, user);
+    }
+}
+```
+
+### 6. 性能优化
+
+#### 6.1 APT vs 反射
+
+| 场景 | APT 生成 | 反射解析 |
+|------|----------|----------|
+| 首次访问 | ~0.1ms | ~10ms |
+| 后续访问 | ~0.001ms（缓存） | ~0.001ms（缓存） |
+| 内存占用 | 低（静态代码） | 中（反射元数据） |
+
+#### 6.2 降级策略
+
+```
+APT 生成的元数据类（最优）
+    ↓ 不存在
+ReflectiveEntityMetadata（降级）
+    ↓ 类不可用
+EmptyEntityMetadata（最终降级，仅 snake_case 转换）
+```
+
+### 7. 常见问题
+
+#### Q1: 为什么 Boolean 字段不自动添加 `is_` 前缀？
+
+遵循阿里规约，Boolean 属性名不加 `is` 前缀，需要通过 `@Column(name="is_xxx")` 显式指定列名。这样设计的原因：
+1. 避免序列化框架（Jackson、Fastjson）的兼容性问题
+2. 保持属性名语义清晰
+3. 数据库列名可灵活配置
+
+#### Q2: 如何处理继承的实体？
+
+APT 会自动扫描父类字段：
+
+```java
+@AfEntity
+@Table(name = "sys_user")
+public class User extends BaseEntity<Long> {
+    // BaseEntity 中的 id、createTime、updateTime 字段会被自动包含
+    private String userName;
+}
+
+@MappedSuperclass
+public abstract class BaseEntity<ID> {
+    @Id
+    private ID id;
+    private LocalDateTime createTime;
+    private LocalDateTime updateTime;
+}
+```
+
+#### Q3: 如何禁用 APT 生成？
+
+如果不需要 APT 生成，可以：
+1. 不添加 `@AfEntity` 注解
+2. 系统会自动降级到反射解析
+
+#### Q4: 如何自定义命名策略？
+
+当前版本暂不支持自定义命名策略，计划后续版本支持：
+
+```java
+// 计划支持（未实现）
+@AfEntity(naming = CustomNamingStrategy.class)
+public class User { }
+```
