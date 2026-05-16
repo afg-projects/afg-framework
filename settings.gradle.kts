@@ -29,6 +29,9 @@ include("module-processor")
 // 核心模块
 include("core")
 
+// AI 模块
+include("ai-core")
+
 // 数据访问模块
 include("data-core")
 include("data-impl:data-sql")       // SQL 解析和构建
