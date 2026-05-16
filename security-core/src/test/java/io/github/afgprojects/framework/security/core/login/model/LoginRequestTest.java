@@ -110,6 +110,7 @@ class LoginRequestTest {
                     null,
                     null,
                     null,
+                    null,
                     null);
 
             assertThat(request.tenantId()).isEqualTo("tenant-001");
@@ -130,6 +131,7 @@ class LoginRequestTest {
                     "device-123",
                     "iPhone 15",
                     "client-app",
+                    null,
                     null);
 
             assertThat(request.deviceId()).isEqualTo("device-123");
@@ -152,6 +154,7 @@ class LoginRequestTest {
                     null,
                     null,
                     null,
+                    null,
                     null);
 
             assertThat(request.captchaKey()).isEqualTo("captcha-key-001");
@@ -165,6 +168,7 @@ class LoginRequestTest {
                     LoginRequest.LoginType.USERNAME,
                     "admin",
                     "password",
+                    null,
                     null,
                     null,
                     null,
@@ -240,6 +244,7 @@ class LoginRequestTest {
                     LoginRequest.LoginType.USERNAME,
                     "admin",
                     "password",
+                    null,
                     null,
                     null,
                     null,
