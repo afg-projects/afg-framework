@@ -145,8 +145,12 @@ class AfgPlugin : Plugin<Project> {
             // 核心依赖
             add("implementation", "io.github.afg-projects:afg-framework-core:$frameworkVersion")
 
-            // 自动添加模块注解处理器（用于生成模块索引）
-            add("annotationProcessor", "io.github.afg-projects:afg-framework-module-processor:$frameworkVersion")
+            // 自动添加 APT 注解处理器（统一入口）
+            // apt-impl 包含所有处理器：模块索引、实体元数据等
+            add("annotationProcessor", "io.github.afg-projects:afg-framework-apt-impl:$frameworkVersion")
+
+            // 自动添加 APT 注解依赖（编译时可用）
+            add("compileOnly", "io.github.afg-projects:afg-framework-apt-api:$frameworkVersion")
 
             when (moduleType) {
                 "data" -> {

@@ -1,3 +1,1 @@
-io.github.afgprojects.framework.security.auth.config.AuthServerAutoConfiguration
-io.github.afgprojects.framework.security.auth.config.LoginAutoConfiguration
-io.github.afgprojects.framework.security.auth.security.config.SecurityStrategyAutoConfiguration
+io.github.afgprojects.framework.security.auth.oauth2.config.OAuth2AutoConfiguration
