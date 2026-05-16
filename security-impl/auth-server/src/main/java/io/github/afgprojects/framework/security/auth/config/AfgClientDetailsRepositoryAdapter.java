@@ -15,11 +15,11 @@ import io.github.afgprojects.framework.security.auth.user.AfgClientDetailsServic
  *
  * @since 1.0.0
  */
-class AfgClientDetailsRepositoryAdapter implements RegisteredClientRepository {
+public class AfgClientDetailsRepositoryAdapter implements RegisteredClientRepository {
 
     private final AfgClientDetailsService clientDetailsService;
 
-    AfgClientDetailsRepositoryAdapter(AfgClientDetailsService clientDetailsService) {
+    public AfgClientDetailsRepositoryAdapter(AfgClientDetailsService clientDetailsService) {
         this.clientDetailsService = clientDetailsService;
     }
 

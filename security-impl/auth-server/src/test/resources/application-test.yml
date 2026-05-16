@@ -1,0 +1,30 @@
+# Test configuration for OAuth2 Authorization Server
+
+spring:
+  application:
+    name: afg-auth-server-test
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=MySQL
+    username: sa
+    password:
+
+afg:
+  auth:
+    server:
+      enabled: true
+      issuer: https://auth.test.example.com
+      signing-key: test-signing-key-must-be-at-least-32-characters-long
+      access-token-ttl: 2h
+      refresh-token-ttl: 7d
+      require-pkce: true
+    oauth2:
+      enabled: true
+      access-token-ttl: 1h
+      refresh-token-ttl: 7d
+      issuer: test-auth-server
+
+logging:
+  level:
+    io.github.afgprojects: DEBUG
+    org.springframework.security: DEBUG
