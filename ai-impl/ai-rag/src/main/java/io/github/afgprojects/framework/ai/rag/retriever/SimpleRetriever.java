@@ -55,9 +55,7 @@ public class SimpleRetriever implements Retriever {
         return vectorStore.similaritySearchByEmbedding(queryEmbedding, topK);
     }
 
-    /**
-     * 获取向量存储
-     */
+    @Override
     public @NonNull VectorStore getVectorStore() {
         return vectorStore;
     }
@@ -65,6 +63,7 @@ public class SimpleRetriever implements Retriever {
     /**
      * 获取嵌入模型
      */
+    @Override
     public @NonNull EmbeddingModel getEmbeddingModel() {
         return embeddingModel;
     }

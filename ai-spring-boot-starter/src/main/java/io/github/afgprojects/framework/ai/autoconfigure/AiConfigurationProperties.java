@@ -199,7 +199,7 @@ public class AiConfigurationProperties {
             this.timeout = timeout;
         }
 
-        public Boolean getEnableMemory() {
+        public boolean isEnableMemory() {
             return enableMemory;
         }
 

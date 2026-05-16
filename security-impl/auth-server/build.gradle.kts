@@ -13,6 +13,8 @@ dependencies {
     api("com.nimbusds:nimbus-jose-jwt:9.37.3")
     api(libs.caffeine)
     implementation(libs.spring.jdbc)
+    // APT 处理器（编译时生成元数据）
+    annotationProcessor(project(":apt-impl"))
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
     testCompileOnly(libs.lombok)

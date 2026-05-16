@@ -422,6 +422,12 @@ class EntityQueryHelper<T> {
 
     /**
      * 列名转字段名（snake_case to camelCase）
+     * <p>
+     * 特殊处理阿里规约 boolean 字段：
+     * <ul>
+     *   <li>列名 is_active → 字段名 active（如果实体有 active 字段）</li>
+     *   <li>列名 is_deleted → 字段名 deleted（如果实体有 deleted 字段）</li>
+     * </ul>
      */
     String columnNameToFieldName(String columnName) {
         StringBuilder fieldName = new StringBuilder();
@@ -434,7 +440,19 @@ class EntityQueryHelper<T> {
                 nextUpper = false;
             }
         }
-        return fieldName.toString();
+        String result = fieldName.toString();
+
+        // 阿里规约 boolean 字段特殊处理：
+        // 如果转换后的字段名以 "is" 开头，且实体有不带 "is" 的对应字段，则使用不带 "is" 的字段名
+        // 例如：is_active → active, is_deleted → deleted
+        if (result.startsWith("is") && result.length() > 2 && Character.isUpperCase(result.charAt(2))) {
+            String strippedName = Character.toLowerCase(result.charAt(2)) + result.substring(3);
+            if (findFieldByName(strippedName) != null) {
+                return strippedName;
+            }
+        }
+
+        return result;
     }
 
     /**

@@ -160,7 +160,7 @@ public class ToolExecutor {
                 return typedTool.execute(arguments);
             }).get(timeoutMs, TimeUnit.MILLISECONDS);
         } catch (java.util.concurrent.TimeoutException e) {
-            throw new ToolException("Tool execution timeout: " + tool.name(), ToolException.ErrorCodes.TOOL_EXECUTION_FAILED, tool.name());
+            throw new ToolException("Tool execution timeout: " + tool.name(), ToolException.ErrorCodes.TOOL_EXECUTION_FAILED, tool.name(), e);
         } catch (Exception e) {
             throw new ToolException("Tool execution failed: " + tool.name(), ToolException.ErrorCodes.TOOL_EXECUTION_FAILED, tool.name(), e);
         }

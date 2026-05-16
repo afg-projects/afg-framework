@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
+import static io.github.afgprojects.framework.data.core.condition.Conditions.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
@@ -96,8 +97,8 @@ class JdbcRefreshTokenStorageTest {
             // then
             var entity = dataManager.entity(AuthRefreshToken.class)
                     .query()
-                    .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder()
-                            .eq("token_id", tokenId)
+                    .where(builder(AuthRefreshToken.class)
+                            .eq(AuthRefreshToken::getTokenId, tokenId)
                             .build())
                     .one();
             assertThat(entity).isPresent();
@@ -272,8 +273,8 @@ class JdbcRefreshTokenStorageTest {
             // then
             var entities = dataManager.entity(AuthRefreshToken.class)
                     .query()
-                    .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder()
-                            .eq("user_id", userId)
+                    .where(builder(AuthRefreshToken.class)
+                            .eq(AuthRefreshToken::getUserId, userId)
                             .build())
                     .list();
             assertThat(entities).isEmpty();
@@ -281,8 +282,8 @@ class JdbcRefreshTokenStorageTest {
             // 另一个用户的 token 应该还在
             var otherEntities = dataManager.entity(AuthRefreshToken.class)
                     .query()
-                    .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder()
-                            .eq("user_id", otherUserId)
+                    .where(builder(AuthRefreshToken.class)
+                            .eq(AuthRefreshToken::getUserId, otherUserId)
                             .build())
                     .list();
             assertThat(otherEntities).hasSize(1);

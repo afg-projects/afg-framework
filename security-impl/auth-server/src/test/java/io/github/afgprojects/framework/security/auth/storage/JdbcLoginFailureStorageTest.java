@@ -402,8 +402,8 @@ class JdbcLoginFailureStorageTest {
             // then
             var entity = dataManager.entity(AuthLoginFailure.class)
                     .query()
-                    .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder()
-                            .eq("user_id", userId)
+                    .where(builder(AuthLoginFailure.class)
+                            .eq(AuthLoginFailure::getUserId, userId)
                             .build())
                     .one();
             assertThat(entity).isEmpty();

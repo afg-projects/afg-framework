@@ -380,9 +380,25 @@ public class EntityMetadataProcessor extends AbstractProcessor {
     /**
      * 标准化字段类型
      * <p>
-     * 将类型字符串转换为可编译的形式
+     * 将类型字符串转换为可编译的形式，移除注解
      */
     private String normalizeFieldType(String type) {
+        // 移除类型注解（如 @org.jspecify.annotations.Nullable）
+        // 类型注解格式：java.lang.@org.jspecify.annotations.Nullable String
+        if (type.contains("@")) {
+            // 提取注解后的实际类型
+            int atIndex = type.indexOf("@");
+            // 注解后面跟着包名，直到空格或结束
+            int spaceIndex = type.indexOf(" ", atIndex);
+            if (spaceIndex > 0) {
+                type = type.substring(0, atIndex) + type.substring(spaceIndex + 1);
+            } else {
+                // 没有空格，注解在类型名之前
+                // 例如：@org.jspecify.annotations.Nullable String
+                type = type.substring(type.lastIndexOf(" ") + 1);
+            }
+        }
+
         // 处理基本类型
         switch (type) {
             case "long":
