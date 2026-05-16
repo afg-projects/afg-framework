@@ -201,6 +201,9 @@ spring-jdbc = { module = "org.springframework.boot:spring-boot-starter-data-jdbc
 # JSqlParser (SQL 解析器)
 jsqlparser = { module = "com.github.jsqlparser:jsqlparser", version.ref = "jsqlparser" }
 
+# Reactor Core (响应式编程)
+reactor-core = { module = "io.projectreactor:reactor-core" }
+
 # H2 Database (版本由 Spring Boot BOM 管理)
 h2 = { module = "com.h2database:h2" }
 

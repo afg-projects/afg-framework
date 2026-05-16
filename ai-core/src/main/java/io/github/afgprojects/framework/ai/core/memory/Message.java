@@ -68,11 +68,11 @@ public record Message(
      * @param content     the text content of the message
      * @param toolCalls   the list of tool calls
      * @param toolResults the list of tool results
-     * @throws NullPointerException if role is null
+     * @throws IllegalArgumentException if role is null
      */
     public Message {
         if (role == null) {
-            throw new NullPointerException("role cannot be null");
+            throw new IllegalArgumentException("role cannot be null");
         }
         if (toolCalls == null) {
             toolCalls = List.of();

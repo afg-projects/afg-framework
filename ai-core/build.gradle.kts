@@ -9,6 +9,9 @@ dependencies {
     // JSpecify 空安全注解
     api(libs.jspecify)
 
+    // Reactor Core (响应式编程，用于流式响应)
+    api(libs.reactor.core)
+
     // Spring Boot Starter (for ApplicationEvent)
     api(libs.spring.boot.starter)
 
