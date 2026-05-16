@@ -30,6 +30,11 @@ public enum TenantErrorCode implements ErrorCode {
     TENANT_EXPIRED(20002, "租户已过期: {0}", ErrorCategory.BUSINESS),
 
     /**
+     * 租户已暂停
+     */
+    TENANT_SUSPENDED(20010, "租户已暂停: {0}", ErrorCategory.BUSINESS),
+
+    /**
      * 无法解析租户
      */
     TENANT_UNRESOLVED(20003, "无法解析租户信息", ErrorCategory.BUSINESS),
