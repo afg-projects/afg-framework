@@ -48,23 +48,6 @@ public class ConditionToSqlConverter {
         }
     }
 
-    /**
-     * 将 camelCase 字段名转换为 snake_case 列名
-     *
-     * @param fieldName 字段名（camelCase）
-     * @return 列名（snake_case）
-     */
-    private String fieldNameToColumnName(String fieldName) {
-        StringBuilder columnName = new StringBuilder();
-        for (int i = 0; i < fieldName.length(); i++) {
-            char c = fieldName.charAt(i);
-            if (i > 0 && Character.isUpperCase(c)) {
-                columnName.append('_');
-            }
-            columnName.append(Character.toLowerCase(c));
-        }
-        return columnName.toString();
-    }
 
     /**
      * 将 Condition 转换为 WHERE 子句 SQL
@@ -145,8 +128,8 @@ public class ConditionToSqlConverter {
 
         // 安全检查：验证字段名只包含合法字符，防止 SQL 注入
         validateFieldName(field);
-        // 将 camelCase 转换为 snake_case
-        sql.append(fieldNameToColumnName(field));
+        // 直接使用字段名（已由 FieldNameResolver 在 Conditions 中转换为列名）
+        sql.append(field);
 
         // 处理简单比较操作符
         if (handleSimpleOperator(operator, sql, parameters, value)) {
