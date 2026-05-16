@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.security.auth.entity;
 
+import io.github.afgprojects.framework.apt.entity.AfEntity;
 import io.github.afgprojects.framework.data.core.entity.BaseEntity;
 import jakarta.persistence.Table;
 import lombok.Data;
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
+@AfEntity
 @Table(name = "auth_captcha")
 public class AuthCaptcha extends BaseEntity<Long> {
 

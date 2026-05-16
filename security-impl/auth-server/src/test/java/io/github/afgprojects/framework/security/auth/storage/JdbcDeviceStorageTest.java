@@ -14,6 +14,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
+import static io.github.afgprojects.framework.data.core.condition.Conditions.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
@@ -117,8 +118,8 @@ class JdbcDeviceStorageTest {
             // then
             var entity = dataManager.entity(AuthUserDevice.class)
                     .query()
-                    .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder()
-                            .eq("device_id", "device-123")
+                    .where(builder(AuthUserDevice.class)
+                            .eq(AuthUserDevice::getDeviceId, "device-123")
                             .build())
                     .one();
             assertThat(entity).isPresent();
@@ -136,8 +137,8 @@ class JdbcDeviceStorageTest {
             // then
             var entity = dataManager.entity(AuthUserDevice.class)
                     .query()
-                    .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder()
-                            .eq("device_id", "device-complete")
+                    .where(builder(AuthUserDevice.class)
+                            .eq(AuthUserDevice::getDeviceId, "device-complete")
                             .build())
                     .one();
 
@@ -164,8 +165,8 @@ class JdbcDeviceStorageTest {
             // then - 应该只有一条记录，且信息已更新
             var entities = dataManager.entity(AuthUserDevice.class)
                     .query()
-                    .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder()
-                            .eq("device_id", "device-update")
+                    .where(builder(AuthUserDevice.class)
+                            .eq(AuthUserDevice::getDeviceId, "device-update")
                             .build())
                     .list();
             assertThat(entities).hasSize(1);
@@ -285,8 +286,8 @@ class JdbcDeviceStorageTest {
             // then
             var entity = dataManager.entity(AuthUserDevice.class)
                     .query()
-                    .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder()
-                            .eq("device_id", "device-delete")
+                    .where(builder(AuthUserDevice.class)
+                            .eq(AuthUserDevice::getDeviceId, "device-delete")
                             .build())
                     .one();
             assertThat(entity).isEmpty();
@@ -323,8 +324,8 @@ class JdbcDeviceStorageTest {
             // then
             var entities = dataManager.entity(AuthUserDevice.class)
                     .query()
-                    .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder()
-                            .eq("user_id", userId)
+                    .where(builder(AuthUserDevice.class)
+                            .eq(AuthUserDevice::getUserId, userId)
                             .build())
                     .list();
             assertThat(entities).isEmpty();
@@ -332,8 +333,8 @@ class JdbcDeviceStorageTest {
             // 另一个用户的设备应该还在
             var otherEntities = dataManager.entity(AuthUserDevice.class)
                     .query()
-                    .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder()
-                            .eq("user_id", "user-other")
+                    .where(builder(AuthUserDevice.class)
+                            .eq(AuthUserDevice::getUserId, "user-other")
                             .build())
                     .list();
             assertThat(otherEntities).hasSize(1);
@@ -358,8 +359,8 @@ class JdbcDeviceStorageTest {
             // then
             var entity = dataManager.entity(AuthUserDevice.class)
                     .query()
-                    .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder()
-                            .eq("device_id", "device-status")
+                    .where(builder(AuthUserDevice.class)
+                            .eq(AuthUserDevice::getDeviceId, "device-status")
                             .build())
                     .one();
             assertThat(entity).isPresent();

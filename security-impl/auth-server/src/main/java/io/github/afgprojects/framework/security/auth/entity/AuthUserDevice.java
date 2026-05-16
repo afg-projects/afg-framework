@@ -1,6 +1,8 @@
 package io.github.afgprojects.framework.security.auth.entity;
 
+import io.github.afgprojects.framework.apt.entity.AfEntity;
 import io.github.afgprojects.framework.data.core.entity.BaseEntity;
+import jakarta.persistence.Column;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -17,6 +19,7 @@ import java.time.LocalDateTime;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
+@AfEntity
 @Table(name = "auth_user_device")
 public class AuthUserDevice extends BaseEntity<Long> {
 
@@ -73,10 +76,12 @@ public class AuthUserDevice extends BaseEntity<Long> {
     /**
      * 活跃状态
      */
-    private boolean isActive;
+    @Column(name = "is_active")
+    private boolean active;
 
     /**
      * 是否信任设备
      */
-    private boolean isTrusted;
+    @Column(name = "is_trusted")
+    private boolean trusted;
 }

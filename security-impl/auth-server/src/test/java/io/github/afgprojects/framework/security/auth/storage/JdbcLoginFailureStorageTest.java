@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+import static io.github.afgprojects.framework.data.core.condition.Conditions.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
@@ -94,8 +95,8 @@ class JdbcLoginFailureStorageTest {
             // then
             var entity = dataManager.entity(AuthLoginFailure.class)
                     .query()
-                    .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder()
-                            .eq("user_id", userId)
+                    .where(builder(AuthLoginFailure.class)
+                            .eq(AuthLoginFailure::getUserId, userId)
                             .build())
                     .one();
             assertThat(entity).isPresent();
@@ -117,8 +118,8 @@ class JdbcLoginFailureStorageTest {
             // then
             var entity = dataManager.entity(AuthLoginFailure.class)
                     .query()
-                    .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder()
-                            .eq("user_id", userId)
+                    .where(builder(AuthLoginFailure.class)
+                            .eq(AuthLoginFailure::getUserId, userId)
                             .build())
                     .one();
             assertThat(entity).isPresent();
@@ -140,8 +141,8 @@ class JdbcLoginFailureStorageTest {
             // then
             var entity = dataManager.entity(AuthLoginFailure.class)
                     .query()
-                    .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder()
-                            .eq("user_id", userId)
+                    .where(builder(AuthLoginFailure.class)
+                            .eq(AuthLoginFailure::getUserId, userId)
                             .build())
                     .one();
             assertThat(entity).isPresent();
@@ -164,8 +165,8 @@ class JdbcLoginFailureStorageTest {
             // then
             var entity = dataManager.entity(AuthLoginFailure.class)
                     .query()
-                    .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder()
-                            .eq("user_id", userId)
+                    .where(builder(AuthLoginFailure.class)
+                            .eq(AuthLoginFailure::getUserId, userId)
                             .build())
                     .one();
             assertThat(entity).isPresent();

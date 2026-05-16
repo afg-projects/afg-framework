@@ -170,9 +170,9 @@ public class OpenAiLlmClient implements LlmClient {
         if (metadata != null && metadata.getUsage() != null) {
             var usage = metadata.getUsage();
             tokenUsage = new TokenUsage(
-                    usage.getPromptTokens().intValue(),
-                    usage.getGenerationTokens().intValue(),
-                    usage.getTotalTokens().intValue()
+                    usage.getPromptTokens(),
+                    usage.getGenerationTokens(),
+                    usage.getTotalTokens()
             );
         }
 

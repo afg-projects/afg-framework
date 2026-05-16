@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
+import static io.github.afgprojects.framework.data.core.condition.Conditions.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -89,8 +90,8 @@ class JdbcTokenBlacklistTest {
             // then
             var entity = dataManager.entity(AuthTokenBlacklist.class)
                     .query()
-                    .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder()
-                            .eq("token_hash", tokenHash)
+                    .where(builder(AuthTokenBlacklist.class)
+                            .eq(AuthTokenBlacklist::getTokenHash, tokenHash)
                             .build())
                     .one();
             assertThat(entity).isPresent();
@@ -111,8 +112,8 @@ class JdbcTokenBlacklistTest {
             // then
             var entity = dataManager.entity(AuthTokenBlacklist.class)
                     .query()
-                    .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder()
-                            .eq("token_hash", tokenHash)
+                    .where(builder(AuthTokenBlacklist.class)
+                            .eq(AuthTokenBlacklist::getTokenHash, tokenHash)
                             .build())
                     .one();
 
@@ -142,8 +143,8 @@ class JdbcTokenBlacklistTest {
             // then - 应该只有一条记录，且 reason 已更新
             var entities = dataManager.entity(AuthTokenBlacklist.class)
                     .query()
-                    .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder()
-                            .eq("token_hash", tokenHash)
+                    .where(builder(AuthTokenBlacklist.class)
+                            .eq(AuthTokenBlacklist::getTokenHash, tokenHash)
                             .build())
                     .list();
             assertThat(entities).hasSize(1);
@@ -229,8 +230,8 @@ class JdbcTokenBlacklistTest {
             String userBlacklistTokenHash = "user_all:" + userId;
             var entity = dataManager.entity(AuthTokenBlacklist.class)
                     .query()
-                    .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder()
-                            .eq("token_hash", userBlacklistTokenHash)
+                    .where(builder(AuthTokenBlacklist.class)
+                            .eq(AuthTokenBlacklist::getTokenHash, userBlacklistTokenHash)
                             .build())
                     .one();
             assertThat(entity).isPresent();
@@ -253,8 +254,8 @@ class JdbcTokenBlacklistTest {
             String userBlacklistTokenHash = "user_all:" + userId;
             var entities = dataManager.entity(AuthTokenBlacklist.class)
                     .query()
-                    .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder()
-                            .eq("token_hash", userBlacklistTokenHash)
+                    .where(builder(AuthTokenBlacklist.class)
+                            .eq(AuthTokenBlacklist::getTokenHash, userBlacklistTokenHash)
                             .build())
                     .list();
             assertThat(entities).hasSize(1);
