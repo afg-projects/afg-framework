@@ -6,13 +6,12 @@ import java.util.UUID;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.github.afgprojects.framework.core.annotation.DistributedTask;
 import io.github.afgprojects.framework.core.annotation.ScheduledTask;
@@ -39,10 +38,9 @@ import io.github.afgprojects.framework.core.lock.DistributedLock;
  * @since 1.0.0
  */
 @Aspect
+@Slf4j
 @SuppressWarnings({"PMD.AvoidCatchingGenericException", "PMD.SignatureDeclareThrowsException"})
 public class DistributedTaskAspect {
-
-    private static final Logger log = LoggerFactory.getLogger(DistributedTaskAspect.class);
 
     private final DistributedLock distributedLock;
     private final TaskExecutionMetrics metrics;

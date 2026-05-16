@@ -6,13 +6,13 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.github.afgprojects.framework.core.feature.FeatureFlag;
 import io.github.afgprojects.framework.core.feature.FeatureFlagManager;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Redisson 分布式存储客户端
@@ -21,9 +21,8 @@ import io.github.afgprojects.framework.core.feature.FeatureFlagManager;
  * </p>
  */
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
+@Slf4j
 public class RedissonStorageClient implements FeatureFlagManager.DistributedStorageClient {
-
-    private static final Logger log = LoggerFactory.getLogger(RedissonStorageClient.class);
 
     private final RedissonClient redissonClient;
     private final ObjectMapper objectMapper;

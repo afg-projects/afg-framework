@@ -7,12 +7,12 @@ import org.jspecify.annotations.Nullable;
 import org.redisson.api.RLock;
 import org.redisson.api.RReadWriteLock;
 import org.redisson.api.RedissonClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.github.afgprojects.framework.core.lock.DistributedLock;
 import io.github.afgprojects.framework.core.lock.LockType;
 import io.github.afgprojects.framework.core.lock.exception.LockException;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Redis 分布式锁实现
@@ -43,9 +43,8 @@ import io.github.afgprojects.framework.core.lock.exception.LockException;
  * }</pre>
  */
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
+@Slf4j
 public class RedisDistributedLock implements DistributedLock {
-
-    private static final Logger log = LoggerFactory.getLogger(RedisDistributedLock.class);
 
     /**
      * Redisson 客户端

@@ -6,12 +6,12 @@ import io.github.afgprojects.framework.core.web.context.RequestContext;
 import io.github.afgprojects.framework.core.web.context.AfgRequestContextHolder;
 
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * WebSocket 握手拦截器
@@ -29,9 +29,8 @@ import org.springframework.web.socket.server.HandshakeInterceptor;
  *   <li>clientIp - 客户端IP</li>
  * </ul>
  */
+@Slf4j
 public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
-
-    private static final Logger log = LoggerFactory.getLogger(WebSocketHandshakeInterceptor.class);
 
     // WebSocket 会话属性键
     public static final String ATTR_TRACE_ID = "traceId";

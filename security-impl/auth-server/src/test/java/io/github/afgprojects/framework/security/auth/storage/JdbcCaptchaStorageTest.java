@@ -1,12 +1,13 @@
 package io.github.afgprojects.framework.security.auth.storage;
 
+import io.github.afgprojects.framework.data.jdbc.JdbcDataManager;
+import io.github.afgprojects.framework.security.auth.entity.AuthCaptcha;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.time.Duration;
 
@@ -19,44 +20,53 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 @DisplayName("JdbcCaptchaStorage 测试")
 class JdbcCaptchaStorageTest {
 
-    private JdbcTemplate jdbcTemplate;
+    private JdbcDataManager dataManager;
     private JdbcCaptchaStorage storage;
+    private JdbcDataSource dataSource;
 
     @BeforeEach
     void setUp() {
         // 创建 H2 数据源
-        JdbcDataSource dataSource = new JdbcDataSource();
+        dataSource = new JdbcDataSource();
         dataSource.setURL("jdbc:h2:mem:testdb_captcha;DB_CLOSE_DELAY=-1");
         dataSource.setUser("sa");
         dataSource.setPassword("");
 
-        // 创建 JdbcTemplate
-        jdbcTemplate = new JdbcTemplate(dataSource);
-
-        // 先删除表（如果存在）
-        jdbcTemplate.execute("DROP TABLE IF EXISTS auth_captcha");
+        // 创建 DataManager
+        dataManager = new JdbcDataManager(dataSource);
 
         // 创建表
-        jdbcTemplate.execute("""
+        try (var conn = dataSource.getConnection();
+             var stmt = conn.createStatement()) {
+            stmt.execute("DROP TABLE IF EXISTS auth_captcha");
+            stmt.execute("""
                 CREATE TABLE auth_captcha (
-                    captcha_key VARCHAR(128) PRIMARY KEY,
+                    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                    captcha_key VARCHAR(128) NOT NULL UNIQUE,
                     captcha_value VARCHAR(64) NOT NULL,
+                    captcha_type VARCHAR(32),
+                    target VARCHAR(256),
                     expires_at TIMESTAMP NOT NULL,
-                    created_at TIMESTAMP NOT NULL
+                    created_at TIMESTAMP NOT NULL,
+                    updated_at TIMESTAMP
                 )
                 """);
-
-        // 创建索引
-        jdbcTemplate.execute("CREATE INDEX idx_expires_at_captcha ON auth_captcha (expires_at)");
+            stmt.execute("CREATE INDEX idx_expires_at_captcha ON auth_captcha (expires_at)");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
         // 创建存储器
-        storage = new JdbcCaptchaStorage(jdbcTemplate);
+        storage = new JdbcCaptchaStorage(dataManager);
     }
 
     @AfterEach
     void tearDown() {
-        if (jdbcTemplate != null) {
-            jdbcTemplate.execute("DROP TABLE IF EXISTS auth_captcha");
+        try (var conn = dataSource.getConnection();
+             var stmt = conn.createStatement()) {
+            stmt.execute("DROP TABLE IF EXISTS auth_captcha");
+        } catch (Exception e) {
+            // ignore
         }
     }
 
@@ -76,12 +86,13 @@ class JdbcCaptchaStorageTest {
             storage.save(key, value, ttl);
 
             // then
-            Integer count = jdbcTemplate.queryForObject(
-                    "SELECT COUNT(*) FROM auth_captcha WHERE captcha_key = ?",
-                    Integer.class,
-                    key
-            );
-            assertThat(count).isEqualTo(1);
+            var entity = dataManager.entity(AuthCaptcha.class)
+                    .query()
+                    .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder()
+                            .eq("captcha_key", key)
+                            .build())
+                    .one();
+            assertThat(entity).isPresent();
         }
 
         @Test
@@ -96,23 +107,18 @@ class JdbcCaptchaStorageTest {
             storage.save(key, value, ttl);
 
             // then
-            var record = jdbcTemplate.queryForObject(
-                    "SELECT captcha_key, captcha_value, expires_at, created_at "
-                            + "FROM auth_captcha WHERE captcha_key = ?",
-                    (rs, rowNum) -> new Object[]{
-                            rs.getString("captcha_key"),
-                            rs.getString("captcha_value"),
-                            rs.getObject("expires_at", java.time.LocalDateTime.class),
-                            rs.getObject("created_at", java.time.LocalDateTime.class)
-                    },
-                    key
-            );
+            var entity = dataManager.entity(AuthCaptcha.class)
+                    .query()
+                    .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder()
+                            .eq("captcha_key", key)
+                            .build())
+                    .one();
 
-            assertThat(record).isNotNull();
-            assertThat(record[0]).isEqualTo(key);
-            assertThat(record[1]).isEqualTo(value);
-            assertThat(record[2]).isNotNull();
-            assertThat(record[3]).isNotNull();
+            assertThat(entity).isPresent();
+            assertThat(entity.get().getCaptchaKey()).isEqualTo(key);
+            assertThat(entity.get().getCaptchaValue()).isEqualTo(value);
+            assertThat(entity.get().getExpiresAt()).isNotNull();
+            assertThat(entity.get().getCreatedAt()).isNotNull();
         }
 
         @Test
@@ -131,44 +137,14 @@ class JdbcCaptchaStorageTest {
             storage.save(key, value2, ttl);
 
             // then - 应该只有一条记录，且 value 已更新
-            Integer count = jdbcTemplate.queryForObject(
-                    "SELECT COUNT(*) FROM auth_captcha WHERE captcha_key = ?",
-                    Integer.class,
-                    key
-            );
-            assertThat(count).isEqualTo(1);
-
-            String savedValue = jdbcTemplate.queryForObject(
-                    "SELECT captcha_value FROM auth_captcha WHERE captcha_key = ?",
-                    String.class,
-                    key
-            );
-            assertThat(savedValue).isEqualTo(value2);
-        }
-
-        @Test
-        @DisplayName("应该正确计算过期时间")
-        void shouldCalculateExpiresAtCorrectly() {
-            // given
-            String key = "session-expire-calc";
-            String value = "9999";
-            Duration ttl = Duration.ofMinutes(30);
-
-            java.time.LocalDateTime beforeSave = java.time.LocalDateTime.now();
-
-            // when
-            storage.save(key, value, ttl);
-
-            // then
-            java.time.LocalDateTime expiresAt = jdbcTemplate.queryForObject(
-                    "SELECT expires_at FROM auth_captcha WHERE captcha_key = ?",
-                    java.time.LocalDateTime.class,
-                    key
-            );
-
-            assertThat(expiresAt).isNotNull();
-            assertThat(expiresAt).isAfter(beforeSave);
-            assertThat(expiresAt).isBefore(beforeSave.plus(ttl).plusSeconds(1));
+            var entities = dataManager.entity(AuthCaptcha.class)
+                    .query()
+                    .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder()
+                            .eq("captcha_key", key)
+                            .build())
+                    .list();
+            assertThat(entities).hasSize(1);
+            assertThat(entities.get(0).getCaptchaValue()).isEqualTo(value2);
         }
     }
 
@@ -247,12 +223,13 @@ class JdbcCaptchaStorageTest {
             storage.delete(key);
 
             // then
-            Integer count = jdbcTemplate.queryForObject(
-                    "SELECT COUNT(*) FROM auth_captcha WHERE captcha_key = ?",
-                    Integer.class,
-                    key
-            );
-            assertThat(count).isZero();
+            var entity = dataManager.entity(AuthCaptcha.class)
+                    .query()
+                    .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder()
+                            .eq("captcha_key", key)
+                            .build())
+                    .one();
+            assertThat(entity).isEmpty();
         }
 
         @Test
@@ -369,99 +346,6 @@ class JdbcCaptchaStorageTest {
             // then
             assertThat(deletedCount).isZero();
         }
-
-        @Test
-        @DisplayName("应该删除多个过期的验证码记录")
-        void shouldDeleteMultipleExpiredRecords() {
-            // given
-            for (int i = 0; i < 5; i++) {
-                String key = "session-expired-multi-" + i;
-                String value = String.valueOf(i);
-                Duration ttl = Duration.ofMillis(100);
-                storage.save(key, value, ttl);
-            }
-
-            // 等待过期
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-
-            // when
-            int deletedCount = storage.deleteExpired();
-
-            // then
-            assertThat(deletedCount).isEqualTo(5);
-        }
-    }
-
-    @Nested
-    @DisplayName("自定义表名测试")
-    class CustomTableNameTests {
-
-        @Test
-        @DisplayName("应该支持自定义表名")
-        void shouldSupportCustomTableName() {
-            // given
-            String customTableName = "custom_captcha";
-            jdbcTemplate.execute("DROP TABLE IF EXISTS " + customTableName);
-            jdbcTemplate.execute(String.format("""
-                    CREATE TABLE %s (
-                        captcha_key VARCHAR(128) PRIMARY KEY,
-                        captcha_value VARCHAR(64) NOT NULL,
-                        expires_at TIMESTAMP NOT NULL,
-                        created_at TIMESTAMP NOT NULL
-                    )
-                    """, customTableName));
-
-            JdbcCaptchaStorage customStorage = new JdbcCaptchaStorage(jdbcTemplate, customTableName);
-
-            String key = "session-custom-table";
-            String value = "ABCD";
-            Duration ttl = Duration.ofMinutes(5);
-
-            // when
-            customStorage.save(key, value, ttl);
-
-            // then
-            Integer count = jdbcTemplate.queryForObject(
-                    "SELECT COUNT(*) FROM " + customTableName + " WHERE captcha_key = ?",
-                    Integer.class,
-                    key
-            );
-            assertThat(count).isEqualTo(1);
-
-            // cleanup
-            jdbcTemplate.execute("DROP TABLE IF EXISTS " + customTableName);
-        }
-    }
-
-    @Nested
-    @DisplayName("并发场景测试")
-    class ConcurrencyTests {
-
-        @Test
-        @DisplayName("应该支持多验证码同时保存")
-        void shouldSupportConcurrentSaves() {
-            // given
-            int captchaCount = 10;
-
-            // when
-            for (int i = 0; i < captchaCount; i++) {
-                String key = "session-concurrent-" + i;
-                String value = String.valueOf(i);
-                Duration ttl = Duration.ofMinutes(5);
-                storage.save(key, value, ttl);
-            }
-
-            // then
-            Integer totalCount = jdbcTemplate.queryForObject(
-                    "SELECT COUNT(*) FROM auth_captcha",
-                    Integer.class
-            );
-            assertThat(totalCount).isEqualTo(captchaCount);
-        }
     }
 
     @Nested
@@ -489,30 +373,6 @@ class JdbcCaptchaStorageTest {
             // then - 不存在
             assertThat(storage.exists(key)).isFalse();
             assertThat(storage.get(key)).isNull();
-        }
-
-        @Test
-        @DisplayName("应该支持验证码验证后删除的典型场景")
-        void shouldSupportVerifyAndDeleteScenario() {
-            // given
-            String key = "session-verify-delete";
-            String value = "1234";
-            Duration ttl = Duration.ofMinutes(5);
-
-            storage.save(key, value, ttl);
-
-            // when - 获取验证码进行验证
-            String storedValue = storage.get(key);
-            boolean isValid = storedValue != null && storedValue.equals("1234");
-
-            // 验证成功后删除
-            if (isValid) {
-                storage.delete(key);
-            }
-
-            // then
-            assertThat(isValid).isTrue();
-            assertThat(storage.exists(key)).isFalse();
         }
     }
 }

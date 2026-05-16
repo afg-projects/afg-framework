@@ -7,17 +7,16 @@ import java.nio.file.Path;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.github.afgprojects.framework.core.api.storage.FileStorage;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 本地存储工具类
  */
+@Slf4j
 public final class LocalStorageUtils {
-
-    private static final Logger log = LoggerFactory.getLogger(LocalStorageUtils.class);
 
     private LocalStorageUtils() {
     }

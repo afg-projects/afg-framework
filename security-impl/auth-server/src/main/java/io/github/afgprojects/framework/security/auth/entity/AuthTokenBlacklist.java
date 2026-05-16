@@ -1,6 +1,9 @@
 package io.github.afgprojects.framework.security.auth.entity;
 
+import io.github.afgprojects.framework.data.core.entity.BaseEntity;
+import jakarta.persistence.Table;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.jspecify.annotations.Nullable;
 
 import java.time.LocalDateTime;
@@ -13,15 +16,12 @@ import java.time.LocalDateTime;
  * @since 1.0.0
  */
 @Data
-public class AuthTokenBlacklist {
+@EqualsAndHashCode(callSuper = true)
+@Table(name = "auth_token_blacklist")
+public class AuthTokenBlacklist extends BaseEntity<Long> {
 
     /**
-     * Token 唯一标识（通常是 Token 的 SHA-256 哈希值）
-     */
-    private String tokenId;
-
-    /**
-     * Token 哈希值
+     * Token 哈希值（SHA-256）
      */
     private String tokenHash;
 
@@ -39,9 +39,4 @@ public class AuthTokenBlacklist {
      * 过期时间（Token 的原始过期时间）
      */
     private LocalDateTime expiresAt;
-
-    /**
-     * 创建时间
-     */
-    private LocalDateTime createdAt;
 }

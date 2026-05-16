@@ -8,10 +8,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.github.afgprojects.framework.core.web.context.AfgRequestContextHolder;
 
@@ -22,9 +21,8 @@ import io.github.afgprojects.framework.core.web.context.AfgRequestContextHolder;
  * 线程安全，支持读写锁。
  * </p>
  */
+@Slf4j
 public class FeatureFlagManager {
-
-    private static final Logger log = LoggerFactory.getLogger(FeatureFlagManager.class);
 
     /**
      * 功能开关存储（内存模式）

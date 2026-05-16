@@ -7,11 +7,11 @@ import org.redisson.api.RRateLimiter;
 import org.redisson.api.RateIntervalUnit;
 import org.redisson.api.RateType;
 import org.redisson.api.RedissonClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.github.afgprojects.framework.core.api.ratelimit.RateLimitResult;
 import io.github.afgprojects.framework.core.api.ratelimit.RateLimitStorage;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Redis 限流存储实现
@@ -19,9 +19,8 @@ import io.github.afgprojects.framework.core.api.ratelimit.RateLimitStorage;
  * 使用 Redisson 原生限流器实现高性能分布式限流。
  * </p>
  */
+@Slf4j
 public class RedisRateLimitStorage implements RateLimitStorage {
-
-    private static final Logger log = LoggerFactory.getLogger(RedisRateLimitStorage.class);
 
     private final RedissonClient redissonClient;
     private final RedisRateLimitProperties properties;

@@ -10,13 +10,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import io.github.afgprojects.framework.core.audit.AuditLog;
 import io.github.afgprojects.framework.core.audit.AuditLogStorage;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 基于数据库的审计日志存储
@@ -57,9 +57,8 @@ import io.github.afgprojects.framework.core.audit.AuditLogStorage;
  * );
  * </pre>
  */
+@Slf4j
 public class DatabaseAuditLogStorage implements AuditLogStorage {
-
-    private static final Logger log = LoggerFactory.getLogger(DatabaseAuditLogStorage.class);
 
     /** 默认表名 */
     private static final String DEFAULT_TABLE_NAME = "audit_log";

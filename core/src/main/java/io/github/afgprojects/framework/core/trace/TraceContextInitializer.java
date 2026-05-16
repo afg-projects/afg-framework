@@ -1,8 +1,7 @@
 package io.github.afgprojects.framework.core.trace;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.github.afgprojects.framework.core.web.trace.TraceContext;
 import io.micrometer.tracing.Tracer;
@@ -22,9 +21,8 @@ import jakarta.annotation.PostConstruct;
  *   <li>提供 Tracer 可用性检查</li>
  * </ul>
  */
+@Slf4j
 public class TraceContextInitializer {
-
-    private static final Logger log = LoggerFactory.getLogger(TraceContextInitializer.class);
 
     private final @Nullable Tracer tracer;
 

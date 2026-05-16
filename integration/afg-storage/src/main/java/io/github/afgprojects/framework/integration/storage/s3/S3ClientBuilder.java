@@ -1,8 +1,6 @@
 package io.github.afgprojects.framework.integration.storage.s3;
 
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.github.afgprojects.framework.core.api.storage.FileStorage;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -12,12 +10,13 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * AWS S3 客户端构建器
  */
+@Slf4j
 public class S3ClientBuilder {
-
-    private static final Logger log = LoggerFactory.getLogger(S3ClientBuilder.class);
 
     private String region;
     private String accessKeyId;

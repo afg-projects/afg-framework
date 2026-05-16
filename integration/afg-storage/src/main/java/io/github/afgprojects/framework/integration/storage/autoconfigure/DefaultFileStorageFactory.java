@@ -6,19 +6,18 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.github.afgprojects.framework.core.api.storage.FileStorage;
 import io.github.afgprojects.framework.core.api.storage.FileStorageFactory;
 import io.github.afgprojects.framework.core.api.storage.model.StorageType;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * 默认文件存储工厂实现
  */
+@Slf4j
 public class DefaultFileStorageFactory implements FileStorageFactory {
-
-    private static final Logger log = LoggerFactory.getLogger(DefaultFileStorageFactory.class);
 
     private final Map<String, FileStorage> storageMap = new ConcurrentHashMap<>();
     private final String defaultStorageName;

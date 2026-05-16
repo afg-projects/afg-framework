@@ -3,8 +3,7 @@ package io.github.afgprojects.framework.core.event;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -41,9 +40,8 @@ import org.springframework.context.annotation.Configuration;
 @AutoConfiguration
 @EnableConfigurationProperties(EventProperties.class)
 @ConditionalOnProperty(prefix = "afg.event", name = "enabled", havingValue = "true", matchIfMissing = true)
+@Slf4j
 public class EventAutoConfiguration {
-
-    private static final Logger log = LoggerFactory.getLogger(EventAutoConfiguration.class);
 
     /**
      * 配置本地事件发布器

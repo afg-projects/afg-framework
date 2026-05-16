@@ -4,8 +4,6 @@ import java.net.URI;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.github.afgprojects.framework.core.api.storage.FileStorage;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -15,12 +13,13 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * MinIO 客户端构建器
  */
+@Slf4j
 public class MinioClientBuilder {
-
-    private static final Logger log = LoggerFactory.getLogger(MinioClientBuilder.class);
 
     private String endpoint;
     private String accessKey;

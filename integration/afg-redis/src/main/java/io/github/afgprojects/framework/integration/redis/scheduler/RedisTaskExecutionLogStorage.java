@@ -13,11 +13,11 @@ import org.jspecify.annotations.NonNull;
 import org.redisson.api.RMap;
 import org.redisson.api.RScoredSortedSet;
 import org.redisson.api.RedissonClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.github.afgprojects.framework.core.api.scheduler.TaskExecutionLog;
 import io.github.afgprojects.framework.core.api.scheduler.TaskExecutionLogStorage;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Redis 执行日志存储
@@ -44,9 +44,8 @@ import io.github.afgprojects.framework.core.api.scheduler.TaskExecutionLogStorag
  *
  * @since 1.0.0
  */
+@Slf4j
 public class RedisTaskExecutionLogStorage implements TaskExecutionLogStorage {
-
-    private static final Logger log = LoggerFactory.getLogger(RedisTaskExecutionLogStorage.class);
 
     private static final String DEFAULT_KEY_PREFIX = "afg:scheduler";
     private static final String LOG_KEY_PATTERN = "%s:log:%s";

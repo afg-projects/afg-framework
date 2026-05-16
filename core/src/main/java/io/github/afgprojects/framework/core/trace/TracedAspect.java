@@ -1,13 +1,12 @@
 package io.github.afgprojects.framework.core.trace;
 
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
@@ -29,14 +28,13 @@ import io.micrometer.tracing.Tracer;
  * </ul>
  */
 @Aspect
+@Slf4j
 @SuppressWarnings({
     "PMD.SignatureDeclareThrowsException",
     "PMD.AvoidThrowingRawExceptionTypes",
     "PMD.AvoidCatchingGenericException"
 })
 public class TracedAspect {
-
-    private static final Logger log = LoggerFactory.getLogger(TracedAspect.class);
 
     private final @Nullable Tracer tracer;
     private final TracingProperties properties;

@@ -3,9 +3,8 @@ package io.github.afgprojects.framework.core.web.module;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
@@ -39,9 +38,8 @@ import io.github.afgprojects.framework.core.module.ModuleRegistry;
 @AutoConfiguration
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @ConditionalOnClass(DispatcherServlet.class)
+@Slf4j
 public class ModuleWebAutoConfiguration implements WebMvcConfigurer {
-
-    private static final Logger log = LoggerFactory.getLogger(ModuleWebAutoConfiguration.class);
 
     private static final String MODULE_DEFINITIONS_PROPERTY = "afg.modules.definitions";
 

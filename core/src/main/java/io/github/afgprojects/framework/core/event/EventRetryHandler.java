@@ -5,10 +5,9 @@ import java.io.StringWriter;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -39,10 +38,9 @@ import io.github.afgprojects.framework.core.util.JacksonUtils;
  *
  * @since 1.0.0
  */
+@Slf4j
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
 public class EventRetryHandler {
-
-    private static final Logger log = LoggerFactory.getLogger(EventRetryHandler.class);
 
     private final EventProperties properties;
     private final @Nullable DomainEventPublisher deadLetterPublisher;

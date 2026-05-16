@@ -12,8 +12,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.ecwid.consul.v1.ConsulClient;
 import com.ecwid.consul.v1.kv.model.GetValue;
@@ -21,6 +19,8 @@ import com.ecwid.consul.v1.kv.model.GetValue;
 import io.github.afgprojects.framework.core.api.config.ConfigChangeEvent;
 import io.github.afgprojects.framework.core.api.config.ConfigChangeListener;
 import io.github.afgprojects.framework.core.api.config.RemoteConfigClient;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Consul 配置中心客户端实现
@@ -42,9 +42,8 @@ import io.github.afgprojects.framework.core.api.config.RemoteConfigClient;
  * @since 1.0.0
  */
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
+@Slf4j
 public class ConsulConfigClient implements RemoteConfigClient, AutoCloseable {
-
-    private static final Logger log = LoggerFactory.getLogger(ConsulConfigClient.class);
 
     private final ConsulClient consulClient;
     private final String prefix;

@@ -290,6 +290,8 @@ class AfgPlugin : Plugin<Project> {
         project.tasks.register("generateEntityFromDb", GenerateEntityFromDbTask::class.java)
         project.tasks.register("dbMigrate", DbMigrateTask::class.java)
         project.tasks.register("apiDoc", ApiDocTask::class.java)
+        project.tasks.register("createProject", CreateProjectTask::class.java)
+        project.tasks.register("scaffold", ScaffoldTask::class.java)
 
         // 注册框架配置任务
         project.tasks.register("afgInfo") {

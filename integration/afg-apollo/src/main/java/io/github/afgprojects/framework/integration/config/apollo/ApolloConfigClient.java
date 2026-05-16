@@ -8,8 +8,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.ctrip.framework.apollo.Config;
 import com.ctrip.framework.apollo.ConfigService;
@@ -18,6 +16,8 @@ import com.ctrip.framework.apollo.core.enums.ConfigFileFormat;
 import io.github.afgprojects.framework.core.api.config.ConfigChangeEvent;
 import io.github.afgprojects.framework.core.api.config.ConfigChangeListener;
 import io.github.afgprojects.framework.core.api.config.RemoteConfigClient;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Apollo 配置中心客户端实现
@@ -43,9 +43,8 @@ import io.github.afgprojects.framework.core.api.config.RemoteConfigClient;
  * @since 1.0.0
  */
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
+@Slf4j
 public class ApolloConfigClient implements RemoteConfigClient, AutoCloseable {
-
-    private static final Logger log = LoggerFactory.getLogger(ApolloConfigClient.class);
 
     private final String defaultNamespace;
     private final Map<String, Config> apolloConfigs = new ConcurrentHashMap<>();

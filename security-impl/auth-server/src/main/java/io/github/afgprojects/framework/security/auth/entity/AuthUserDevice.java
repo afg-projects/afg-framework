@@ -1,6 +1,9 @@
 package io.github.afgprojects.framework.security.auth.entity;
 
+import io.github.afgprojects.framework.data.core.entity.BaseEntity;
+import jakarta.persistence.Table;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.jspecify.annotations.Nullable;
 
 import java.time.LocalDateTime;
@@ -13,7 +16,9 @@ import java.time.LocalDateTime;
  * @since 1.0.0
  */
 @Data
-public class AuthUserDevice {
+@EqualsAndHashCode(callSuper = true)
+@Table(name = "auth_user_device")
+public class AuthUserDevice extends BaseEntity<Long> {
 
     /**
      * 设备唯一标识
@@ -41,6 +46,16 @@ public class AuthUserDevice {
     private @Nullable String deviceType;
 
     /**
+     * 设备操作系统
+     */
+    private @Nullable String deviceOs;
+
+    /**
+     * 浏览器
+     */
+    private @Nullable String browser;
+
+    /**
      * 最后登录 IP
      */
     private @Nullable String lastLoginIp;
@@ -51,17 +66,17 @@ public class AuthUserDevice {
     private @Nullable LocalDateTime lastLoginTime;
 
     /**
+     * 首次登录时间
+     */
+    private @Nullable LocalDateTime firstLoginTime;
+
+    /**
      * 活跃状态
      */
-    private boolean active;
+    private boolean isActive;
 
     /**
-     * 创建时间
+     * 是否信任设备
      */
-    private LocalDateTime createdAt;
-
-    /**
-     * 更新时间
-     */
-    private LocalDateTime updatedAt;
+    private boolean isTrusted;
 }

@@ -3,13 +3,13 @@ package io.github.afgprojects.framework.integration.event.rabbitmq;
 import java.util.concurrent.CompletableFuture;
 
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import io.github.afgprojects.framework.core.api.event.DomainEvent;
 import io.github.afgprojects.framework.core.api.event.EventPublisher;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * RabbitMQ 事件发布实现
@@ -28,9 +28,8 @@ import io.github.afgprojects.framework.core.api.event.EventPublisher;
  * @since 1.0.0
  */
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
+@Slf4j
 public class RabbitMQEventPublisher<T> implements EventPublisher<T> {
-
-    private static final Logger log = LoggerFactory.getLogger(RabbitMQEventPublisher.class);
 
     private final RabbitTemplate rabbitTemplate;
     private final RabbitMQEventProperties properties;

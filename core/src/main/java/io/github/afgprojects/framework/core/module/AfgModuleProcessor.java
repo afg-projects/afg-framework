@@ -3,9 +3,8 @@ package io.github.afgprojects.framework.core.module;
 import java.util.Arrays;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -30,9 +29,8 @@ import io.github.afgprojects.framework.module.AfgModuleAnnotation;
  * 这样 {@link io.github.afgprojects.framework.core.web.module.ModuleWebAutoConfiguration}
  * 可以在配置路径前缀时获取到已注册的模块列表。
  */
+@Slf4j
 public class AfgModuleProcessor implements BeanPostProcessor, PriorityOrdered {
-
-    private static final Logger log = LoggerFactory.getLogger(AfgModuleProcessor.class);
 
     private final ModuleRegistry moduleRegistry;
     private final ApplicationContext applicationContext;

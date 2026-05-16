@@ -3,14 +3,13 @@ package io.github.afgprojects.framework.core.feature;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * 功能开关切面
@@ -19,14 +18,13 @@ import org.slf4j.LoggerFactory;
  * </p>
  */
 @Aspect
+@Slf4j
 @SuppressWarnings({
     "PMD.SignatureDeclareThrowsException",
     "PMD.AvoidThrowingRawExceptionTypes",
     "PMD.AvoidCatchingGenericException"
 })
 public class FeatureToggleAspect {
-
-    private static final Logger log = LoggerFactory.getLogger(FeatureToggleAspect.class);
 
     private final FeatureFlagManager featureFlagManager;
 

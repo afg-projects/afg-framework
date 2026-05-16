@@ -5,8 +5,6 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.boot.health.contributor.Health;
@@ -14,6 +12,8 @@ import org.springframework.boot.health.contributor.HealthIndicator;
 import org.springframework.boot.health.contributor.Status;
 
 import com.rabbitmq.client.Connection;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * RabbitMQ 健康检查指示器
@@ -30,9 +30,8 @@ import com.rabbitmq.client.Connection;
  * @since 1.0.0
  */
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
+@Slf4j
 public class RabbitMQHealthIndicator implements HealthIndicator {
-
-    private static final Logger log = LoggerFactory.getLogger(RabbitMQHealthIndicator.class);
 
     private final ConnectionFactory connectionFactory;
     private final RabbitMQHealthProperties properties;

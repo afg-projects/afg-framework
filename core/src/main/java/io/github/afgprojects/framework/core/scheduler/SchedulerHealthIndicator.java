@@ -4,9 +4,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.HealthIndicator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -42,9 +41,8 @@ import io.github.afgprojects.framework.core.api.scheduler.TaskScheduler;
 @Component
 @ConditionalOnClass(HealthIndicator.class)
 @ConditionalOnProperty(prefix = "afg.scheduler.health", name = "enabled", havingValue = "true", matchIfMissing = true)
+@Slf4j
 public class SchedulerHealthIndicator implements HealthIndicator {
-
-    private static final Logger log = LoggerFactory.getLogger(SchedulerHealthIndicator.class);
 
     private final TaskScheduler taskScheduler;
     private final TaskExecutionLogStorage logStorage;

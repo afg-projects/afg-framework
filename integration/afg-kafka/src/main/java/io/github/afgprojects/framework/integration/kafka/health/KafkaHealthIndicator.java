@@ -11,12 +11,12 @@ import org.apache.kafka.clients.admin.DescribeClusterResult;
 import org.apache.kafka.clients.admin.DescribeTopicsResult;
 import org.apache.kafka.common.Node;
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.HealthIndicator;
 import org.springframework.boot.health.contributor.Status;
 import org.springframework.kafka.core.KafkaAdmin;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Kafka 健康检查指示器
@@ -34,9 +34,8 @@ import org.springframework.kafka.core.KafkaAdmin;
  * @since 1.0.0
  */
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
+@Slf4j
 public class KafkaHealthIndicator implements HealthIndicator {
-
-    private static final Logger log = LoggerFactory.getLogger(KafkaHealthIndicator.class);
 
     private final KafkaAdmin kafkaAdmin;
     private final KafkaHealthProperties properties;

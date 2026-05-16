@@ -6,13 +6,13 @@ import io.github.afgprojects.framework.security.core.tenant.TenantResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 租户解析链。
@@ -30,9 +30,8 @@ import java.util.Objects;
  *
  * @since 1.0.0
  */
+@Slf4j
 public class TenantResolverChain implements TenantResolver {
-
-    private static final Logger log = LoggerFactory.getLogger(TenantResolverChain.class);
 
     private final List<TenantResolver> resolvers = new ArrayList<>();
     private boolean failIfUnresolved = true;

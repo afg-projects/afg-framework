@@ -9,9 +9,8 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.EnvironmentPostProcessor;
 import org.springframework.boot.SpringApplication;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -42,9 +41,8 @@ import org.springframework.core.io.support.ResourcePatternResolver;
  * auth:module-auth.yml:io.github.afgprojects.auth.AuthModuleConfig
  * </pre>
  */
+@Slf4j
 public class ModuleConfigEnvironmentPostProcessor implements EnvironmentPostProcessor {
-
-    private static final Logger log = LoggerFactory.getLogger(ModuleConfigEnvironmentPostProcessor.class);
 
     private static final String INDEX_FILE = "META-INF/afg-modules.index";
 

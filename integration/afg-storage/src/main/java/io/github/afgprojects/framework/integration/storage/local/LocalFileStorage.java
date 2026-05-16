@@ -16,8 +16,6 @@ import java.util.stream.Stream;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.github.afgprojects.framework.core.api.storage.FileStorage;
 import io.github.afgprojects.framework.core.api.storage.model.DownloadResult;
@@ -31,15 +29,16 @@ import io.github.afgprojects.framework.core.api.storage.model.UploadRequest;
 import io.github.afgprojects.framework.integration.storage.model.StorageErrorCode;
 import io.github.afgprojects.framework.integration.storage.model.StorageException;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * 本地文件存储实现
  * <p>
  * 将文件存储在本地文件系统中。
  * 适用于开发、测试或小规模应用场景。
  */
+@Slf4j
 public class LocalFileStorage implements FileStorage {
-
-    private static final Logger log = LoggerFactory.getLogger(LocalFileStorage.class);
 
     private final String bucket;
     private final Path rootPath;

@@ -17,12 +17,12 @@ import org.redisson.api.RScheduledExecutorService;
 import org.redisson.api.RedissonClient;
 import org.redisson.api.CronSchedule;
 import org.redisson.api.WorkerOptions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.github.afgprojects.framework.core.api.scheduler.DistributedTaskScheduler;
 import io.github.afgprojects.framework.core.api.scheduler.TaskStatus;
 import io.github.afgprojects.framework.core.exception.SchedulerException;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Redisson 分布式任务调度器实现
@@ -42,9 +42,8 @@ import io.github.afgprojects.framework.core.exception.SchedulerException;
  * @since 1.0.0
  */
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
+@Slf4j
 public class RedissonTaskScheduler implements DistributedTaskScheduler {
-
-    private static final Logger log = LoggerFactory.getLogger(RedissonTaskScheduler.class);
 
     private static final String EXECUTION_HISTORY_PREFIX = "afg:scheduler:history:";
     private static final String TASK_STATUS_PREFIX = "afg:scheduler:status:";

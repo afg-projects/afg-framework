@@ -2,8 +2,7 @@ package io.github.afgprojects.framework.core.env;
 
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -17,9 +16,8 @@ import io.github.afgprojects.framework.core.module.ModuleDefinitionInfo;
  * <p>在 Spring 上下文初始化阶段（早于任何 bean 创建）加载模块定义信息，
  * 并存储到环境属性中，供 {@link io.github.afgprojects.framework.core.web.module.ModuleWebAutoConfiguration} 使用。
  */
+@Slf4j
 public class ModuleApplicationContextInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-
-    private static final Logger log = LoggerFactory.getLogger(ModuleApplicationContextInitializer.class);
 
     @Override
     public void initialize(ConfigurableApplicationContext applicationContext) {

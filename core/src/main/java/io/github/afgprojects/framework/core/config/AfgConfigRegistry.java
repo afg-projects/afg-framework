@@ -8,19 +8,17 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * AFG 配置注册中心
  * 管理所有模块配置，默认启用读写锁保证线程安全
  */
+@Slf4j
 @SuppressWarnings({"PMD.AvoidUsingVolatile", "PMD.CommentDefaultAccessModifier"})
 public class AfgConfigRegistry {
-
-    private static final Logger log = LoggerFactory.getLogger(AfgConfigRegistry.class);
 
     private final SourceManager sourceManager = new SourceManager();
     private final ListenerManager listenerManager = new ListenerManager();

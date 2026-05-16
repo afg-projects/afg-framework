@@ -2,20 +2,19 @@ package io.github.afgprojects.framework.integration.storage.oss;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
 
 import io.github.afgprojects.framework.core.api.storage.FileStorage;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * 阿里云 OSS 客户端构建器
  */
+@Slf4j
 public class OssClientBuilder {
-
-    private static final Logger log = LoggerFactory.getLogger(OssClientBuilder.class);
 
     private String endpoint;
     private String accessKeyId;

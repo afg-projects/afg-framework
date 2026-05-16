@@ -1,18 +1,18 @@
 package io.github.afgprojects.framework.integration.redis.health;
 
 import org.redisson.api.RedissonClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.github.afgprojects.framework.core.web.health.spi.RedisHealthChecker;
 import io.github.afgprojects.framework.core.web.health.spi.RedisHealthResult;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Redisson Redis 健康检查实现
  */
+@Slf4j
 public class RedissonHealthChecker implements RedisHealthChecker {
 
-    private static final Logger log = LoggerFactory.getLogger(RedissonHealthChecker.class);
     private static final String HEALTH_CHECK_KEY = "__redis_health_check__";
 
     private final RedissonClient redissonClient;

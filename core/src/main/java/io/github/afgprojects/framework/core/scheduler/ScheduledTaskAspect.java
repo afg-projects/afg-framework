@@ -2,14 +2,13 @@ package io.github.afgprojects.framework.core.scheduler;
 
 import java.lang.reflect.Method;
 
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.github.afgprojects.framework.core.annotation.ScheduledTask;
 import io.github.afgprojects.framework.core.api.scheduler.SchedulerProperties;
@@ -34,10 +33,9 @@ import io.github.afgprojects.framework.core.api.scheduler.TaskExecutionMetrics;
  * @since 1.0.0
  */
 @Aspect
+@Slf4j
 @SuppressWarnings({"PMD.AvoidCatchingGenericException", "PMD.SignatureDeclareThrowsException"})
 public class ScheduledTaskAspect {
-
-    private static final Logger log = LoggerFactory.getLogger(ScheduledTaskAspect.class);
 
     private final TaskExecutionMetrics metrics;
     private final TaskExecutionLogStorage logStorage;

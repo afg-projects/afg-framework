@@ -10,10 +10,9 @@ import java.util.stream.Stream;
 
 import javax.sql.DataSource;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.HealthIndicator;
 import org.springframework.boot.health.contributor.Status;
@@ -37,10 +36,9 @@ import io.github.afgprojects.framework.core.web.health.spi.RedisHealthResult;
  *
  * @since 1.0.0
  */
+@Slf4j
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
 public class ReadinessHealthIndicator implements HealthIndicator {
-
-    private static final Logger log = LoggerFactory.getLogger(ReadinessHealthIndicator.class);
 
     private final HealthCheckProperties properties;
     private final @Nullable DataSource dataSource;

@@ -2,13 +2,12 @@ package io.github.afgprojects.framework.core.web.ratelimit;
 
 import java.lang.reflect.Method;
 
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.github.afgprojects.framework.core.api.ratelimit.RateLimitAlgorithm;
 import io.github.afgprojects.framework.core.api.ratelimit.RateLimitDimension;
@@ -28,14 +27,13 @@ import io.micrometer.core.instrument.MeterRegistry;
  * </p>
  */
 @Aspect
+@Slf4j
 @SuppressWarnings({
     "PMD.SignatureDeclareThrowsException",
     "PMD.AvoidThrowingRawExceptionTypes",
     "PMD.AvoidCatchingGenericException"
 })
 public class RateLimitInterceptor {
-
-    private static final Logger log = LoggerFactory.getLogger(RateLimitInterceptor.class);
 
     private final RateLimiter rateLimiter;
     private final RateLimitProperties properties;

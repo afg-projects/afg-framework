@@ -10,10 +10,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.github.afgprojects.framework.core.api.scheduler.SchedulerProperties;
 import io.github.afgprojects.framework.core.api.scheduler.TaskDefinition;
@@ -41,10 +40,9 @@ import io.github.afgprojects.framework.core.exception.SchedulerException;
  *
  * @since 1.0.0
  */
+@Slf4j
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
 public class LocalTaskScheduler implements TaskScheduler {
-
-    private static final Logger log = LoggerFactory.getLogger(LocalTaskScheduler.class);
 
     private final ScheduledExecutorService executorService;
     private final TaskExecutionMetrics metrics;

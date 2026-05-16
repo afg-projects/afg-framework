@@ -2,11 +2,11 @@ package io.github.afgprojects.framework.integration.redis.health;
 
 import org.jspecify.annotations.NonNull;
 import org.redisson.api.RedissonClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.HealthIndicator;
 import org.springframework.boot.health.contributor.Status;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Redis 健康检查指示器
@@ -24,9 +24,9 @@ import org.springframework.boot.health.contributor.Status;
  * @since 1.0.0
  */
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
+@Slf4j
 public class RedisHealthIndicator implements HealthIndicator {
 
-    private static final Logger log = LoggerFactory.getLogger(RedisHealthIndicator.class);
     private static final String HEALTH_CHECK_KEY = "__redis_health_check__";
 
     private final RedissonClient redissonClient;

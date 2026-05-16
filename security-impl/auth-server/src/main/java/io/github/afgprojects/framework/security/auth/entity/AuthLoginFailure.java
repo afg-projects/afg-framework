@@ -1,6 +1,9 @@
 package io.github.afgprojects.framework.security.auth.entity;
 
+import io.github.afgprojects.framework.data.core.entity.BaseEntity;
+import jakarta.persistence.Table;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.jspecify.annotations.Nullable;
 
 import java.time.LocalDateTime;
@@ -13,7 +16,9 @@ import java.time.LocalDateTime;
  * @since 1.0.0
  */
 @Data
-public class AuthLoginFailure {
+@EqualsAndHashCode(callSuper = true)
+@Table(name = "auth_login_failure")
+public class AuthLoginFailure extends BaseEntity<Long> {
 
     /**
      * 用户 ID
@@ -38,20 +43,15 @@ public class AuthLoginFailure {
     /**
      * 最后失败的 IP 地址
      */
-    private @Nullable String lastIp;
+    private @Nullable String lastFailureIp;
+
+    /**
+     * 最后失败时间
+     */
+    private @Nullable LocalDateTime lastFailureTime;
 
     /**
      * 锁定截止时间
      */
     private @Nullable LocalDateTime lockedUntil;
-
-    /**
-     * 创建时间
-     */
-    private LocalDateTime createdAt;
-
-    /**
-     * 更新时间
-     */
-    private LocalDateTime updatedAt;
 }

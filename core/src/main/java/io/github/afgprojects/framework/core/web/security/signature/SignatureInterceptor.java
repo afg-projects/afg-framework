@@ -8,10 +8,10 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 签名验证拦截器
@@ -30,9 +30,8 @@ import org.springframework.web.servlet.HandlerInterceptor;
  * @see SignatureRequired
  * @see SignatureGenerator
  */
+@Slf4j
 public class SignatureInterceptor implements HandlerInterceptor {
-
-    private static final Logger log = LoggerFactory.getLogger(SignatureInterceptor.class);
 
     /**
      * 签名请求头

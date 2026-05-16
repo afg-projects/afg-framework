@@ -1,8 +1,6 @@
 package io.github.afgprojects.framework.integration.storage.autoconfigure;
 
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -17,15 +15,16 @@ import io.github.afgprojects.framework.integration.storage.minio.MinioClientBuil
 import io.github.afgprojects.framework.integration.storage.oss.OssClientBuilder;
 import io.github.afgprojects.framework.integration.storage.s3.S3ClientBuilder;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * 存储自动配置
  */
 @AutoConfiguration
 @EnableConfigurationProperties(StorageProperties.class)
 @ConditionalOnProperty(prefix = "afg.storage", name = "enabled", havingValue = "true", matchIfMissing = true)
+@Slf4j
 public class StorageAutoConfiguration {
-
-    private static final Logger log = LoggerFactory.getLogger(StorageAutoConfiguration.class);
 
     /**
      * 创建文件存储工厂

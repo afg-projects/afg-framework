@@ -11,9 +11,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -48,9 +47,8 @@ import io.github.afgprojects.framework.core.web.trace.TraceContext;
  *
  * @see RequestContextFilter
  */
+@Slf4j
 public class MdcFilter extends OncePerRequestFilter {
-
-    private static final Logger LOG = LoggerFactory.getLogger(MdcFilter.class);
 
     // 追踪字段 - 由 Micrometer Tracing 或 RequestContextFilter 管理，此处作为后备
     private static final String FIELD_TRACE_ID = "traceId";
@@ -82,7 +80,7 @@ public class MdcFilter extends OncePerRequestFilter {
         // 验证配置的字段是否支持
         for (String field : enabledFields) {
             if (!ALL_SUPPORTED_FIELDS.contains(field)) {
-                LOG.warn("Unknown MDC field configured: {}. Supported fields: {}", field, ALL_SUPPORTED_FIELDS);
+                log.warn("Unknown MDC field configured: {}. Supported fields: {}", field, ALL_SUPPORTED_FIELDS);
             }
         }
     }

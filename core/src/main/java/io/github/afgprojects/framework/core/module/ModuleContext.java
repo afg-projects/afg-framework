@@ -1,7 +1,6 @@
 package io.github.afgprojects.framework.core.module;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 
 import io.github.afgprojects.framework.core.event.ModuleEvent;
@@ -10,9 +9,8 @@ import io.github.afgprojects.framework.core.event.ModuleEvent;
  * 模块上下文
  * 管理模块生命周期和事件分发
  */
+@Slf4j
 public class ModuleContext {
-
-    private static final Logger log = LoggerFactory.getLogger(ModuleContext.class);
 
     private final ModuleRegistry registry;
     private final ApplicationEventPublisher eventPublisher;

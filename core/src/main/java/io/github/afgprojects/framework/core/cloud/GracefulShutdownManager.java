@@ -8,10 +8,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.github.afgprojects.framework.core.cloud.CloudNativeProperties.GracefulShutdownConfig;
 
@@ -30,10 +29,9 @@ import io.github.afgprojects.framework.core.cloud.CloudNativeProperties.Graceful
  *
  * @since 1.0.0
  */
+@Slf4j
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
 public class GracefulShutdownManager {
-
-    private static final Logger log = LoggerFactory.getLogger(GracefulShutdownManager.class);
 
     private final GracefulShutdownConfig config;
     private final List<ShutdownHook> shutdownHooks = new CopyOnWriteArrayList<>();

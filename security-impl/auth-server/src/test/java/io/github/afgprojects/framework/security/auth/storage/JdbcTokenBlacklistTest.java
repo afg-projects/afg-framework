@@ -1,18 +1,18 @@
 package io.github.afgprojects.framework.security.auth.storage;
 
+import io.github.afgprojects.framework.data.jdbc.JdbcDataManager;
+import io.github.afgprojects.framework.security.auth.entity.AuthTokenBlacklist;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
 
 /**
  * JdbcTokenBlacklist 测试。
@@ -20,46 +20,53 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 @DisplayName("JdbcTokenBlacklist 测试")
 class JdbcTokenBlacklistTest {
 
-    private JdbcTemplate jdbcTemplate;
+    private JdbcDataManager dataManager;
     private JdbcTokenBlacklist storage;
+    private JdbcDataSource dataSource;
 
     @BeforeEach
     void setUp() {
         // 创建 H2 数据源
-        JdbcDataSource dataSource = new JdbcDataSource();
+        dataSource = new JdbcDataSource();
         dataSource.setURL("jdbc:h2:mem:testdb_blacklist;DB_CLOSE_DELAY=-1");
         dataSource.setUser("sa");
         dataSource.setPassword("");
 
-        // 创建 JdbcTemplate
-        jdbcTemplate = new JdbcTemplate(dataSource);
-
-        // 先删除表（如果存在）
-        jdbcTemplate.execute("DROP TABLE IF EXISTS auth_token_blacklist");
+        // 创建 DataManager
+        dataManager = new JdbcDataManager(dataSource);
 
         // 创建表
-        jdbcTemplate.execute("""
+        try (var conn = dataSource.getConnection();
+             var stmt = conn.createStatement()) {
+            stmt.execute("DROP TABLE IF EXISTS auth_token_blacklist");
+            stmt.execute("""
                 CREATE TABLE auth_token_blacklist (
+                    id BIGINT AUTO_INCREMENT PRIMARY KEY,
                     token_hash VARCHAR(128) NOT NULL UNIQUE,
                     user_id VARCHAR(64) NOT NULL,
                     reason VARCHAR(100),
                     expires_at TIMESTAMP NOT NULL,
-                    created_at TIMESTAMP NOT NULL
+                    created_at TIMESTAMP NOT NULL,
+                    updated_at TIMESTAMP
                 )
                 """);
-
-        // 创建索引
-        jdbcTemplate.execute("CREATE INDEX idx_user_id_blacklist ON auth_token_blacklist (user_id)");
-        jdbcTemplate.execute("CREATE INDEX idx_expires_at_blacklist ON auth_token_blacklist (expires_at)");
+            stmt.execute("CREATE INDEX idx_user_id_blacklist ON auth_token_blacklist (user_id)");
+            stmt.execute("CREATE INDEX idx_expires_at_blacklist ON auth_token_blacklist (expires_at)");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
         // 创建存储器
-        storage = new JdbcTokenBlacklist(jdbcTemplate);
+        storage = new JdbcTokenBlacklist(dataManager);
     }
 
     @AfterEach
     void tearDown() {
-        if (jdbcTemplate != null) {
-            jdbcTemplate.execute("DROP TABLE IF EXISTS auth_token_blacklist");
+        try (var conn = dataSource.getConnection();
+             var stmt = conn.createStatement()) {
+            stmt.execute("DROP TABLE IF EXISTS auth_token_blacklist");
+        } catch (Exception e) {
+            // ignore
         }
     }
 
@@ -80,12 +87,13 @@ class JdbcTokenBlacklistTest {
             storage.addToBlacklist(tokenHash, userId, reason, ttl);
 
             // then
-            Integer count = jdbcTemplate.queryForObject(
-                    "SELECT COUNT(*) FROM auth_token_blacklist WHERE token_hash = ?",
-                    Integer.class,
-                    tokenHash
-            );
-            assertThat(count).isEqualTo(1);
+            var entity = dataManager.entity(AuthTokenBlacklist.class)
+                    .query()
+                    .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder()
+                            .eq("token_hash", tokenHash)
+                            .build())
+                    .one();
+            assertThat(entity).isPresent();
         }
 
         @Test
@@ -101,25 +109,18 @@ class JdbcTokenBlacklistTest {
             storage.addToBlacklist(tokenHash, userId, reason, ttl);
 
             // then
-            var record = jdbcTemplate.queryForObject(
-                    "SELECT token_hash, user_id, reason, expires_at, created_at "
-                            + "FROM auth_token_blacklist WHERE token_hash = ?",
-                    (rs, rowNum) -> new Object[]{
-                            rs.getString("token_hash"),
-                            rs.getString("user_id"),
-                            rs.getString("reason"),
-                            rs.getObject("expires_at", LocalDateTime.class),
-                            rs.getObject("created_at", LocalDateTime.class)
-                    },
-                    tokenHash
-            );
+            var entity = dataManager.entity(AuthTokenBlacklist.class)
+                    .query()
+                    .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder()
+                            .eq("token_hash", tokenHash)
+                            .build())
+                    .one();
 
-            assertThat(record).isNotNull();
-            assertThat(record[0]).isEqualTo(tokenHash);
-            assertThat(record[1]).isEqualTo(userId);
-            assertThat(record[2]).isEqualTo(reason);
-            assertThat(record[3]).isNotNull();
-            assertThat(record[4]).isNotNull();
+            assertThat(entity).isPresent();
+            assertThat(entity.get().getUserId()).isEqualTo(userId);
+            assertThat(entity.get().getReason()).isEqualTo(reason);
+            assertThat(entity.get().getExpiresAt()).isNotNull();
+            assertThat(entity.get().getCreatedAt()).isNotNull();
         }
 
         @Test
@@ -139,19 +140,14 @@ class JdbcTokenBlacklistTest {
             storage.addToBlacklist(tokenHash, userId, reason2, ttl);
 
             // then - 应该只有一条记录，且 reason 已更新
-            Integer count = jdbcTemplate.queryForObject(
-                    "SELECT COUNT(*) FROM auth_token_blacklist WHERE token_hash = ?",
-                    Integer.class,
-                    tokenHash
-            );
-            assertThat(count).isEqualTo(1);
-
-            String savedReason = jdbcTemplate.queryForObject(
-                    "SELECT reason FROM auth_token_blacklist WHERE token_hash = ?",
-                    String.class,
-                    tokenHash
-            );
-            assertThat(savedReason).isEqualTo(reason2);
+            var entities = dataManager.entity(AuthTokenBlacklist.class)
+                    .query()
+                    .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder()
+                            .eq("token_hash", tokenHash)
+                            .build())
+                    .list();
+            assertThat(entities).hasSize(1);
+            assertThat(entities.get(0).getReason()).isEqualTo(reason2);
         }
     }
 
@@ -196,7 +192,7 @@ class JdbcTokenBlacklistTest {
             String tokenHash = "hash-expired-" + System.currentTimeMillis();
             String userId = "user-123";
             String reason = "logout";
-            Duration ttl = Duration.ofMillis(100); // 很短的 TTL
+            Duration ttl = Duration.ofMillis(100);
 
             storage.addToBlacklist(tokenHash, userId, reason, ttl);
 
@@ -231,12 +227,13 @@ class JdbcTokenBlacklistTest {
 
             // then
             String userBlacklistTokenHash = "user_all:" + userId;
-            Integer count = jdbcTemplate.queryForObject(
-                    "SELECT COUNT(*) FROM auth_token_blacklist WHERE token_hash = ?",
-                    Integer.class,
-                    userBlacklistTokenHash
-            );
-            assertThat(count).isEqualTo(1);
+            var entity = dataManager.entity(AuthTokenBlacklist.class)
+                    .query()
+                    .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder()
+                            .eq("token_hash", userBlacklistTokenHash)
+                            .build())
+                    .one();
+            assertThat(entity).isPresent();
         }
 
         @Test
@@ -254,12 +251,13 @@ class JdbcTokenBlacklistTest {
 
             // then - 应该只有一条记录
             String userBlacklistTokenHash = "user_all:" + userId;
-            Integer count = jdbcTemplate.queryForObject(
-                    "SELECT COUNT(*) FROM auth_token_blacklist WHERE token_hash = ?",
-                    Integer.class,
-                    userBlacklistTokenHash
-            );
-            assertThat(count).isEqualTo(1);
+            var entities = dataManager.entity(AuthTokenBlacklist.class)
+                    .query()
+                    .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder()
+                            .eq("token_hash", userBlacklistTokenHash)
+                            .build())
+                    .list();
+            assertThat(entities).hasSize(1);
         }
     }
 
@@ -446,48 +444,6 @@ class JdbcTokenBlacklistTest {
     }
 
     @Nested
-    @DisplayName("自定义表名测试")
-    class CustomTableNameTests {
-
-        @Test
-        @DisplayName("应该支持自定义表名")
-        void shouldSupportCustomTableName() {
-            // given
-            String customTableName = "custom_token_blacklist";
-            jdbcTemplate.execute("DROP TABLE IF EXISTS " + customTableName);
-            jdbcTemplate.execute(String.format("""
-                    CREATE TABLE %s (
-                        token_hash VARCHAR(128) NOT NULL UNIQUE,
-                        user_id VARCHAR(64) NOT NULL,
-                        reason VARCHAR(100),
-                        expires_at TIMESTAMP NOT NULL,
-                        created_at TIMESTAMP NOT NULL
-                    )
-                    """, customTableName));
-
-            JdbcTokenBlacklist customStorage = new JdbcTokenBlacklist(jdbcTemplate, customTableName);
-
-            String tokenHash = "hash-custom-table-" + System.currentTimeMillis();
-            String userId = "user-custom-table";
-            Duration ttl = Duration.ofHours(1);
-
-            // when
-            customStorage.addToBlacklist(tokenHash, userId, "logout", ttl);
-
-            // then
-            Integer count = jdbcTemplate.queryForObject(
-                    "SELECT COUNT(*) FROM " + customTableName + " WHERE token_hash = ?",
-                    Integer.class,
-                    tokenHash
-            );
-            assertThat(count).isEqualTo(1);
-
-            // cleanup
-            jdbcTemplate.execute("DROP TABLE IF EXISTS " + customTableName);
-        }
-    }
-
-    @Nested
     @DisplayName("并发场景测试")
     class ConcurrencyTests {
 
@@ -506,10 +462,7 @@ class JdbcTokenBlacklistTest {
             }
 
             // then
-            Integer totalCount = jdbcTemplate.queryForObject(
-                    "SELECT COUNT(*) FROM auth_token_blacklist",
-                    Integer.class
-            );
+            long totalCount = dataManager.count(AuthTokenBlacklist.class);
             assertThat(totalCount).isEqualTo(tokenCount);
         }
     }

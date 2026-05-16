@@ -12,11 +12,11 @@ import org.jspecify.annotations.Nullable;
 import org.redisson.api.RBlockingQueue;
 import org.redisson.api.RDelayedQueue;
 import org.redisson.api.RedissonClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.github.afgprojects.framework.core.api.scheduler.DelayQueue;
 import io.github.afgprojects.framework.core.exception.SchedulerException;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Redisson 延迟队列实现
@@ -36,9 +36,8 @@ import io.github.afgprojects.framework.core.exception.SchedulerException;
  * @since 1.0.0
  */
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
+@Slf4j
 public class RedissonDelayQueue<T> implements DelayQueue<T> {
-
-    private static final Logger log = LoggerFactory.getLogger(RedissonDelayQueue.class);
 
     private final RedissonClient redissonClient;
     private final String queueName;

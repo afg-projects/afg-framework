@@ -5,9 +5,8 @@ import java.lang.management.MemoryMXBean;
 import java.lang.management.ThreadMXBean;
 import java.util.concurrent.TimeUnit;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.HealthIndicator;
 import org.springframework.boot.health.contributor.Status;
@@ -24,9 +23,8 @@ import org.springframework.boot.health.contributor.Status;
  *
  * @since 1.0.0
  */
+@Slf4j
 public class LivenessHealthIndicator implements HealthIndicator {
-
-    private static final Logger log = LoggerFactory.getLogger(LivenessHealthIndicator.class);
 
     private final HealthCheckProperties properties;
 

@@ -379,9 +379,6 @@ public class DefaultLoginService implements LoginService {
                 userDetails.getUserId(),
                 userDetails.getTenantId());
 
-        log.info("User logged in successfully: userId={}, username={}",
-                userDetails.getUserId(), userDetails.getUsername());
-
         // 构建响应
         return LoginResponse.builder()
                 .accessToken(accessToken)

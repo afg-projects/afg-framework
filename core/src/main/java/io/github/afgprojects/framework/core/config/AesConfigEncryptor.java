@@ -9,18 +9,16 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * AES-GCM 配置加密器
  * 使用 AES-256-GCM 算法进行加密
  */
+@Slf4j
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
 public class AesConfigEncryptor implements ConfigEncryptor {
-
-    private static final Logger log = LoggerFactory.getLogger(AesConfigEncryptor.class);
 
     private static final String ALGORITHM = "AES/GCM/NoPadding";
     private static final int GCM_IV_LENGTH = 12;

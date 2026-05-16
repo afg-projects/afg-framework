@@ -2,6 +2,7 @@ package io.github.afgprojects.framework.core.web.security.sanitizer;
 
 import java.util.Set;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.owasp.validator.html.AntiSamy;
@@ -9,8 +10,6 @@ import org.owasp.validator.html.CleanResults;
 import org.owasp.validator.html.Policy;
 import org.owasp.validator.html.PolicyException;
 import org.owasp.validator.html.ScanException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.github.afgprojects.framework.core.web.security.autoconfigure.AfgSecurityProperties;
 
@@ -27,9 +26,8 @@ import io.github.afgprojects.framework.core.web.security.autoconfigure.AfgSecuri
  *
  * @see <a href="https://owasp.org/www-project-antisamy/">OWASP AntiSamy</a>
  */
+@Slf4j
 public class EnhancedInputSanitizer {
-
-    private static final Logger log = LoggerFactory.getLogger(EnhancedInputSanitizer.class);
 
     /**
      * AntiSamy 实例（线程安全）

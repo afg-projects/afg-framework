@@ -6,8 +6,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
@@ -15,13 +13,14 @@ import org.springframework.http.client.ClientHttpResponse;
 
 import io.github.afgprojects.framework.core.model.exception.CommonErrorCode;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * 弹性拦截器
  * 实现 HTTP 客户端的重试和熔断功能
  */
+@Slf4j
 public class ResilienceInterceptor implements ClientHttpRequestInterceptor {
-
-    private static final Logger log = LoggerFactory.getLogger(ResilienceInterceptor.class);
 
     private final HttpClientProperties properties;
     private final Map<String, CircuitBreaker> circuitBreakers = new ConcurrentHashMap<>();

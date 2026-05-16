@@ -1,6 +1,9 @@
 package io.github.afgprojects.framework.security.auth.entity;
 
+import io.github.afgprojects.framework.data.core.entity.BaseEntity;
+import jakarta.persistence.Table;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.jspecify.annotations.Nullable;
 
 import java.time.LocalDateTime;
@@ -13,12 +16,9 @@ import java.time.LocalDateTime;
  * @since 1.0.0
  */
 @Data
-public class AuthCaptcha {
-
-    /**
-     * 验证码唯一标识
-     */
-    private String captchaId;
+@EqualsAndHashCode(callSuper = true)
+@Table(name = "auth_captcha")
+public class AuthCaptcha extends BaseEntity<Long> {
 
     /**
      * 验证码 Key（用于客户端查询）
@@ -44,9 +44,4 @@ public class AuthCaptcha {
      * 过期时间
      */
     private LocalDateTime expiresAt;
-
-    /**
-     * 创建时间
-     */
-    private LocalDateTime createdAt;
 }

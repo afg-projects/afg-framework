@@ -5,13 +5,13 @@ import java.time.Duration;
 import org.jspecify.annotations.NonNull;
 import org.redisson.api.RList;
 import org.redisson.api.RedissonClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.github.afgprojects.framework.core.audit.AuditLog;
 import io.github.afgprojects.framework.core.audit.AuditLogProperties;
 import io.github.afgprojects.framework.core.audit.AuditLogStorage;
 import io.github.afgprojects.framework.core.util.JacksonUtils;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 基于 Redis 的审计日志存储
@@ -28,9 +28,8 @@ import io.github.afgprojects.framework.core.util.JacksonUtils;
  * </ul>
  */
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
+@Slf4j
 public class RedisAuditLogStorage implements AuditLogStorage {
-
-    private static final Logger log = LoggerFactory.getLogger(RedisAuditLogStorage.class);
 
     private static final String KEY_PREFIX = "audit:log:";
     private static final String GLOBAL_KEY = "global";

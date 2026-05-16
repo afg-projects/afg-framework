@@ -15,10 +15,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.github.afgprojects.framework.core.batch.BatchResult.Builder;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 批量操作模板
@@ -50,9 +50,8 @@ import io.github.afgprojects.framework.core.batch.BatchResult.Builder;
  * }</pre>
  */
 @SuppressWarnings({"PMD.GodClass", "PMD.AvoidCatchingGenericException"})
+@Slf4j
 public class BatchOperationTemplate {
-
-    private static final Logger log = LoggerFactory.getLogger(BatchOperationTemplate.class);
 
     private final BatchProperties properties;
 

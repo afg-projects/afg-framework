@@ -13,10 +13,9 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.sql.DataSource;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * 读数据源负载均衡器
@@ -33,10 +32,9 @@ import org.slf4j.LoggerFactory;
  *
  * @since 1.0.0
  */
+@Slf4j
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
 public class ReadDataSourceLoadBalancer {
-
-    private static final Logger log = LoggerFactory.getLogger(ReadDataSourceLoadBalancer.class);
 
     private static final long DEFAULT_HEALTH_CHECK_INTERVAL = 30000L;
     private static final String HEALTH_CHECK_SQL = "SELECT 1";

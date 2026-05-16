@@ -3,9 +3,8 @@ package io.github.afgprojects.framework.core.event;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 
 import io.github.afgprojects.framework.core.util.JacksonUtils;
@@ -26,10 +25,9 @@ import io.github.afgprojects.framework.core.util.JacksonUtils;
  *
  * @since 1.0.0
  */
+@Slf4j
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
 public class LocalEventPublisher implements DomainEventPublisher {
-
-    private static final Logger log = LoggerFactory.getLogger(LocalEventPublisher.class);
 
     private final ApplicationEventPublisher applicationEventPublisher;
     private final @NonNull Executor asyncExecutor;

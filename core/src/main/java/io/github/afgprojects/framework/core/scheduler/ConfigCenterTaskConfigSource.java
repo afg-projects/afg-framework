@@ -7,10 +7,9 @@ import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import io.github.afgprojects.framework.core.config.ConfigChangeEvent;
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.github.afgprojects.framework.core.api.scheduler.DynamicTaskConfigSource;
 import io.github.afgprojects.framework.core.api.scheduler.TaskDefinition;
@@ -37,9 +36,8 @@ import io.github.afgprojects.framework.core.config.AfgConfigRegistry;
  *
  * @since 1.0.0
  */
+@Slf4j
 public class ConfigCenterTaskConfigSource implements DynamicTaskConfigSource {
-
-    private static final Logger log = LoggerFactory.getLogger(ConfigCenterTaskConfigSource.class);
 
     private static final String CONFIG_PREFIX = "afg.tasks";
 

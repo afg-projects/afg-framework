@@ -4,20 +4,19 @@ import io.github.afgprojects.framework.core.api.event.DomainEvent;
 import io.github.afgprojects.framework.core.api.event.EventPublisher;
 import io.github.afgprojects.framework.core.event.EventPublishException;
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.kafka.KafkaException;
 import org.springframework.kafka.core.KafkaTemplate;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Kafka 事件发布实现
  */
+@Slf4j
 public class KafkaEventPublisher<T> implements EventPublisher<T> {
-
-    private static final Logger log = LoggerFactory.getLogger(KafkaEventPublisher.class);
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final KafkaEventProperties properties;

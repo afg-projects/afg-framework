@@ -12,14 +12,14 @@ import java.util.function.Supplier;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 
 import io.github.afgprojects.framework.core.client.ResilienceInterceptor.CircuitBreakerOpenException;
 import io.github.afgprojects.framework.core.client.ResilienceInterceptor.RetryExhaustedException;
 import io.github.afgprojects.framework.core.model.exception.CommonErrorCode;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 异步弹性拦截器
@@ -55,9 +55,8 @@ import io.github.afgprojects.framework.core.model.exception.CommonErrorCode;
  * }</pre>
  */
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
+@Slf4j
 public class AsyncResilienceInterceptor {
-
-    private static final Logger log = LoggerFactory.getLogger(AsyncResilienceInterceptor.class);
 
     /**
      * 默认调度线程池大小

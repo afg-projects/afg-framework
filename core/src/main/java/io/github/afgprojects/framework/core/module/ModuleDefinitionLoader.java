@@ -9,8 +9,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 模块定义加载器
@@ -18,9 +17,8 @@ import org.slf4j.LoggerFactory;
  * <p>从编译时生成的索引文件加载模块定义信息。
  * 索引文件格式：{@code moduleId:configFile:className}
  */
+@Slf4j
 public final class ModuleDefinitionLoader {
-
-    private static final Logger log = LoggerFactory.getLogger(ModuleDefinitionLoader.class);
 
     public static final String INDEX_FILE = "META-INF/afg-modules.index";
     public static final String MODULE_DEFINITIONS_PROPERTY = "afg.modules.definitions";

@@ -9,6 +9,9 @@ dependencies {
     // JSpecify 空安全注解
     api(libs.jspecify)
 
+    // Jakarta Persistence API (用于 @Table/@Column 注解支持)
+    api("jakarta.persistence:jakarta.persistence-api")
+
     // Spring Boot Starter (for ApplicationEvent)
     api(libs.spring.boot.starter)
 

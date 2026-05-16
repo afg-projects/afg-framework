@@ -7,8 +7,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Component;
@@ -16,6 +14,8 @@ import org.springframework.web.socket.messaging.SessionConnectedEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import org.springframework.web.socket.messaging.SessionUnsubscribeEvent;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * WebSocket 会话管理器
@@ -37,9 +37,8 @@ import org.springframework.web.socket.messaging.SessionUnsubscribeEvent;
  * </ul>
  */
 @Component
+@Slf4j
 public class WebSocketSessionManager {
-
-    private static final Logger log = LoggerFactory.getLogger(WebSocketSessionManager.class);
 
     /**
      * 用户会话映射：username -> sessionIds

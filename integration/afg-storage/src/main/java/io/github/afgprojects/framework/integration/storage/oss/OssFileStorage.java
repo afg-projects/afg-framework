@@ -7,8 +7,6 @@ import java.util.Map;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.model.CopyObjectRequest;
@@ -34,12 +32,13 @@ import io.github.afgprojects.framework.core.api.storage.model.UploadRequest;
 import io.github.afgprojects.framework.integration.storage.model.StorageErrorCode;
 import io.github.afgprojects.framework.integration.storage.model.StorageException;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * 阿里云 OSS 文件存储实现
  */
+@Slf4j
 public class OssFileStorage implements FileStorage {
-
-    private static final Logger log = LoggerFactory.getLogger(OssFileStorage.class);
 
     private final String bucket;
     private final OSS ossClient;

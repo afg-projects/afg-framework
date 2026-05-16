@@ -2,10 +2,9 @@ package io.github.afgprojects.framework.core.config;
 
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MutablePropertySources;
@@ -23,9 +22,8 @@ import io.github.afgprojects.framework.core.module.ModuleDefinition;
  * 负责加载模块的配置文件并添加到 Spring Environment
  * 与 @AfgModuleAnnotation 注解联动，在模块注册时加载配置
  */
+@Slf4j
 public class ModuleConfigLoader {
-
-    private static final Logger log = LoggerFactory.getLogger(ModuleConfigLoader.class);
 
     /**
      * 默认模块配置文件名模式

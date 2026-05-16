@@ -8,8 +8,6 @@ import io.github.afgprojects.framework.security.resource.tenant.TokenTenantResol
 import io.github.afgprojects.framework.security.resource.tenant.TenantResolverChain;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -18,6 +16,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 资源服务器自动配置。
@@ -46,9 +46,8 @@ import java.util.List;
         ResourceServerProperties.class
 })
 @ConditionalOnProperty(prefix = "afg.security.resource", name = "enabled", havingValue = "true", matchIfMissing = true)
+@Slf4j
 public class ResourceServerAutoConfiguration {
-
-    private static final Logger log = LoggerFactory.getLogger(ResourceServerAutoConfiguration.class);
 
     /**
      * 配置 JWT 认证转换器。

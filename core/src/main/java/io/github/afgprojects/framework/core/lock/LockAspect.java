@@ -4,13 +4,12 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.concurrent.TimeUnit;
 
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -27,12 +26,11 @@ import io.github.afgprojects.framework.core.lock.exception.LockException;
  * </p>
  */
 @Aspect
+@Slf4j
 @SuppressWarnings({
     "PMD.AvoidCatchingGenericException"
 })
 public class LockAspect {
-
-    private static final Logger log = LoggerFactory.getLogger(LockAspect.class);
 
     /**
      * SpEL 表达式解析器

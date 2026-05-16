@@ -1,8 +1,5 @@
 package io.github.afgprojects.framework.integration.config.consul;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -13,6 +10,8 @@ import org.springframework.context.annotation.Bean;
 import com.ecwid.consul.v1.ConsulClient;
 
 import io.github.afgprojects.framework.core.api.config.RemoteConfigClient;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Consul 配置客户端自动配置
@@ -39,9 +38,8 @@ import io.github.afgprojects.framework.core.api.config.RemoteConfigClient;
 @AutoConfiguration
 @ConditionalOnClass(ConsulClient.class)
 @ConditionalOnProperty(prefix = "afg.config.consul", name = "enabled", havingValue = "true", matchIfMissing = true)
+@Slf4j
 public class ConsulConfigAutoConfiguration {
-
-    private static final Logger log = LoggerFactory.getLogger(ConsulConfigAutoConfiguration.class);
 
     /**
      * 配置 Consul 配置属性

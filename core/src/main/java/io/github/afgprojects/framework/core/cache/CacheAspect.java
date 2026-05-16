@@ -10,14 +10,14 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
 import io.github.afgprojects.framework.core.cache.exception.CacheException;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 缓存切面
@@ -32,9 +32,8 @@ import io.github.afgprojects.framework.core.cache.exception.CacheException;
     "PMD.AvoidThrowingRawExceptionTypes",
     "PMD.AvoidCatchingGenericException"
 })
+@Slf4j
 public class CacheAspect {
-
-    private static final Logger log = LoggerFactory.getLogger(CacheAspect.class);
 
     /**
      * SpEL 表达式解析器

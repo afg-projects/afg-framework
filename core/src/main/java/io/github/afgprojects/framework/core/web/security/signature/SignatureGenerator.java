@@ -8,10 +8,9 @@ import java.util.Base64;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * 签名生成器
@@ -24,10 +23,9 @@ import org.slf4j.LoggerFactory;
  *   <li>Base64 编码签名结果</li>
  * </ol>
  */
+@Slf4j
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
 public class SignatureGenerator {
-
-    private static final Logger log = LoggerFactory.getLogger(SignatureGenerator.class);
 
     /**
      * 生成签名

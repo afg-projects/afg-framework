@@ -1,8 +1,6 @@
 package io.github.afgprojects.framework.integration.config.nacos;
 
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -16,6 +14,8 @@ import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.exception.NacosException;
 
 import io.github.afgprojects.framework.core.api.config.RemoteConfigClient;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Nacos 配置客户端自动配置
@@ -44,9 +44,8 @@ import io.github.afgprojects.framework.core.api.config.RemoteConfigClient;
 @AutoConfiguration
 @ConditionalOnClass(ConfigService.class)
 @ConditionalOnProperty(prefix = "afg.config.nacos", name = "enabled", havingValue = "true", matchIfMissing = true)
+@Slf4j
 public class NacosConfigAutoConfiguration {
-
-    private static final Logger log = LoggerFactory.getLogger(NacosConfigAutoConfiguration.class);
 
     /**
      * 配置 Nacos 配置属性

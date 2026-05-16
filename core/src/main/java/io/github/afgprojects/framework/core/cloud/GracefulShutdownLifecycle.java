@@ -2,10 +2,9 @@ package io.github.afgprojects.framework.core.cloud;
 
 import java.util.concurrent.TimeUnit;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.SmartLifecycle;
 
 /**
@@ -22,10 +21,9 @@ import org.springframework.context.SmartLifecycle;
  *
  * @since 1.0.0
  */
+@Slf4j
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
 public class GracefulShutdownLifecycle implements SmartLifecycle {
-
-    private static final Logger log = LoggerFactory.getLogger(GracefulShutdownLifecycle.class);
 
     private final String name;
     private final int phase;

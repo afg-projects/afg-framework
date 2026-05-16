@@ -10,11 +10,11 @@ import java.util.Enumeration;
 import java.util.List;
 
 import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.ImportSelector;
 import org.springframework.core.type.AnnotationMetadata;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 模块自动配置
@@ -36,9 +36,8 @@ import org.springframework.core.type.AnnotationMetadata;
  * </ul>
  */
 @AutoConfiguration
+@Slf4j
 public class ModuleAutoConfiguration implements ImportSelector {
-
-    private static final Logger log = LoggerFactory.getLogger(ModuleAutoConfiguration.class);
 
     private static final String INDEX_FILE = "META-INF/afg-modules.index";
 

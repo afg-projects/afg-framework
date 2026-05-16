@@ -8,8 +8,6 @@ import java.util.Map;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.github.afgprojects.framework.core.api.storage.FileStorage;
 import io.github.afgprojects.framework.core.api.storage.model.DownloadResult;
@@ -41,12 +39,13 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequ
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * AWS S3 文件存储实现
  */
+@Slf4j
 public class S3FileStorage implements FileStorage {
-
-    private static final Logger log = LoggerFactory.getLogger(S3FileStorage.class);
 
     private final String bucket;
     private final S3Client s3Client;

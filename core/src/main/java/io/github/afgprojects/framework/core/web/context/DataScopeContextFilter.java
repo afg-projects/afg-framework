@@ -2,9 +2,8 @@ package io.github.afgprojects.framework.core.web.context;
 
 import java.io.IOException;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -28,9 +27,8 @@ import jakarta.servlet.http.HttpServletResponse;
  * 该过滤器应在安全过滤器之后执行，确保安全上下文已经建立。
  */
 @Order(Ordered.LOWEST_PRECEDENCE - 10)
+@Slf4j
 public class DataScopeContextFilter extends OncePerRequestFilter {
-
-    private static final Logger log = LoggerFactory.getLogger(DataScopeContextFilter.class);
 
     private final DataScopeProperties properties;
     private final @Nullable DataScopeContextProvider contextProvider;
