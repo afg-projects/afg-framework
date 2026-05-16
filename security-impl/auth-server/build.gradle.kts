@@ -10,7 +10,15 @@ dependencies {
     api(libs.spring.boot.starter.web)
     api(libs.spring.boot.starter.oauth2.authorization.server)
     api(libs.jspecify)
-    api("com.nimbusds:nimbus-jose-jwt:9.37.3")
+
+    // Nimbus JOSE JWT（JWT 处理）
+    api(libs.nimbus.jose.jwt)
+
+    // JJWT（JWT 处理 - 另一种实现）
+    api(libs.jjwt.api)
+    runtimeOnly(libs.jjwt.impl)
+    runtimeOnly(libs.jjwt.jackson)
+
     api(libs.caffeine)
     implementation(libs.spring.jdbc)
     // APT 处理器（编译时生成元数据）
@@ -22,6 +30,7 @@ dependencies {
     testImplementation(libs.bundles.testing)
     testImplementation(libs.spring.boot.starter.test)
     testImplementation(libs.h2)
-    // Jakarta Persistence API for @Table annotation
-    implementation("jakarta.persistence:jakarta.persistence-api:3.2.0")
+
+    // Jakarta Persistence API for @Table annotation（版本由 Spring Boot BOM 管理）
+    implementation(libs.jakarta.persistence.api)
 }
