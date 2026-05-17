@@ -6,14 +6,10 @@ plugins {
 group = "io.github.afg-projects"
 version = "1.0.0-SNAPSHOT"
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
-    api("io.grpc:grpc-netty-shaded:1.62.0")
-    api("io.grpc:grpc-protobuf:1.62.0")
-    api("io.grpc:grpc-stub:1.62.0")
+    api("io.grpc:grpc-netty-shaded:1.62.2")
+    api("io.grpc:grpc-protobuf:1.62.2")
+    api("io.grpc:grpc-stub:1.62.2")
     api("com.google.protobuf:protobuf-java:3.25.2")
     api("javax.annotation:javax.annotation-api:1.3.2")
 
@@ -33,7 +29,7 @@ protobuf {
     }
     plugins {
         create("grpc") {
-            artifact = "io.grpc:protoc-gen-grpc-java:1.62.0"
+            artifact = "io.grpc:protoc-gen-grpc-java:1.62.2"
         }
     }
     generateProtoTasks {
