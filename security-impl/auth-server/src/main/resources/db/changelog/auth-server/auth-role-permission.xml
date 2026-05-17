@@ -17,6 +17,7 @@
             </column>
             <column name="tenant_id" type="VARCHAR(50)" remarks="租户ID"/>
             <column name="created_at" type="TIMESTAMP" remarks="创建时间"/>
+            <column name="updated_at" type="TIMESTAMP" remarks="更新时间"/>
         </createTable>
 
         <createIndex indexName="uk_role_perm_tenant" tableName="auth_role_permission" unique="true">

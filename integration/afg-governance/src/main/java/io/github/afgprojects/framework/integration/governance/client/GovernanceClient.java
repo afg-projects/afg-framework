@@ -1,25 +1,39 @@
 package io.github.afgprojects.framework.integration.governance.client;
 
 import io.github.afgprojects.framework.integration.governance.api.*;
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
+import io.grpc.*;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 
+import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+
 /**
  * Governance gRPC 客户端
  * <p>
- * 提供配置获取、发布和订阅功能
+ * 提供配置获取、发布和订阅功能，支持签名认证。
  *
  * @author afg-projects
  */
 @Slf4j
 public class GovernanceClient {
+
+    private static final Metadata.Key<String> KEY_SIGNATURE =
+            Metadata.Key.of("x-signature", Metadata.ASCII_STRING_MARSHALLER);
+    private static final Metadata.Key<String> KEY_TIMESTAMP =
+            Metadata.Key.of("x-timestamp", Metadata.ASCII_STRING_MARSHALLER);
+    private static final Metadata.Key<String> KEY_NONCE =
+            Metadata.Key.of("x-nonce", Metadata.ASCII_STRING_MARSHALLER);
+    private static final Metadata.Key<String> KEY_KEY_ID =
+            Metadata.Key.of("x-key-id", Metadata.ASCII_STRING_MARSHALLER);
 
     private final GovernanceClientProperties properties;
     private final ManagedChannel channel;
@@ -29,11 +43,25 @@ public class GovernanceClient {
     private final Map<String, String> configCache = new ConcurrentHashMap<>();
     private volatile boolean running = false;
 
+    // 签名认证相关
+    private final SecureRandom secureRandom = new SecureRandom();
+
     public GovernanceClient(GovernanceClientProperties properties) {
         this.properties = properties;
-        this.channel = ManagedChannelBuilder.forTarget(properties.getServerAddr())
-            .usePlaintext()
-            .build();
+
+        ManagedChannelBuilder<?> channelBuilder = ManagedChannelBuilder.forTarget(properties.getServerAddr())
+            .usePlaintext();
+
+        // 如果启用了签名认证，添加客户端拦截器
+        if (properties.isSignatureEnabled() && properties.getSignatureSecret() != null) {
+            channelBuilder.intercept(new SignatureClientInterceptor(
+                properties.getSignatureKeyId(),
+                properties.getSignatureSecret()
+            ));
+            log.info("Signature authentication enabled for GovernanceClient");
+        }
+
+        this.channel = channelBuilder.build();
         this.blockingStub = GovernanceServiceGrpc.newBlockingStub(channel);
         this.asyncStub = GovernanceServiceGrpc.newStub(channel);
     }
@@ -247,5 +275,71 @@ public class GovernanceClient {
      */
     public boolean isRunning() {
         return running && !channel.isShutdown();
+    }
+
+    /**
+     * 客户端签名拦截器
+     */
+    private class SignatureClientInterceptor implements ClientInterceptor {
+        private final String keyId;
+        private final String secret;
+
+        SignatureClientInterceptor(String keyId, String secret) {
+            this.keyId = keyId;
+            this.secret = secret;
+        }
+
+        @Override
+        public <ReqT, RespT> ClientCall<ReqT, RespT> interceptCall(
+                MethodDescriptor<ReqT, RespT> method,
+                CallOptions callOptions,
+                Channel next) {
+
+            return new ForwardingClientCall.SimpleForwardingClientCall<>(
+                    next.newCall(method, callOptions)) {
+
+                @Override
+                public void start(ClientCall.Listener<RespT> responseListener, Metadata headers) {
+                    // 生成签名参数
+                    String timestamp = String.valueOf(System.currentTimeMillis());
+                    String nonce = generateNonce();
+                    String methodDescriptor = method.getFullMethodName();
+
+                    // 生成签名
+                    String signature = generateSignature(timestamp, nonce, methodDescriptor);
+
+                    // 添加签名信息到 Metadata
+                    headers.put(KEY_SIGNATURE, signature);
+                    headers.put(KEY_TIMESTAMP, timestamp);
+                    headers.put(KEY_NONCE, nonce);
+                    headers.put(KEY_KEY_ID, keyId);
+
+                    log.debug("Added signature to request: method={}, keyId={}", methodDescriptor, keyId);
+
+                    super.start(responseListener, headers);
+                }
+            };
+        }
+
+        private String generateNonce() {
+            byte[] bytes = new byte[16];
+            secureRandom.nextBytes(bytes);
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+        }
+
+        private String generateSignature(String timestamp, String nonce, String body) {
+            try {
+                String signingString = timestamp + "\n" + nonce + "\n" + body;
+                Mac mac = Mac.getInstance("HmacSHA256");
+                SecretKeySpec keySpec = new SecretKeySpec(
+                        secret.getBytes(StandardCharsets.UTF_8),
+                        "HmacSHA256");
+                mac.init(keySpec);
+                byte[] signature = mac.doFinal(signingString.getBytes(StandardCharsets.UTF_8));
+                return Base64.getEncoder().encodeToString(signature);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to generate signature", e);
+            }
+        }
     }
 }

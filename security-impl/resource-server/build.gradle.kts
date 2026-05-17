@@ -7,8 +7,8 @@ dependencies {
     api(libs.spring.boot.starter.oauth2.resource.server)
     api(libs.jspecify)
 
-    // Jakarta Servlet API
-    compileOnly("jakarta.servlet:jakarta.servlet-api")
+    // Jakarta Servlet API（版本由 Spring Boot BOM 管理）
+    compileOnly(libs.jakarta.servlet.api)
 
     // Lombok
     compileOnly(libs.lombok)
@@ -19,5 +19,5 @@ dependencies {
     // Test
     testImplementation(libs.bundles.testing)
     testImplementation(libs.spring.boot.starter.test)
-    testImplementation("jakarta.servlet:jakarta.servlet-api")
+    testImplementation(libs.jakarta.servlet.api)
 }

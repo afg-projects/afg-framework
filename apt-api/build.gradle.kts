@@ -6,14 +6,14 @@ group = property("projectGroup").toString()
 version = property("projectVersion").toString()
 
 dependencies {
-    // JSR-305 空安全注解
-    api("org.jspecify:jspecify:1.0.0")
+    // JSR-305 空安全注解（版本由 Spring Boot BOM 管理）
+    api(libs.jspecify)
 
-    // Spring Context (用于 @Configuration, @ComponentScan)
-    compileOnly("org.springframework:spring-context:${rootProject.extra["springFrameworkVersion"]}")
+    // Spring Context (用于 @Configuration, @ComponentScan，版本由 Spring Boot BOM 管理)
+    compileOnly(libs.spring.context)
 
-    // Jakarta Persistence API（可选依赖，用于 @Table、@Column 等注解）
-    compileOnly("jakarta.persistence:jakarta.persistence-api:3.2.0")
+    // Jakarta Persistence API（可选依赖，用于 @Table、@Column 等注解，版本由 Spring Boot BOM 管理）
+    compileOnly(libs.jakarta.persistence.api)
 }
 
 tasks.withType<JavaCompile> {

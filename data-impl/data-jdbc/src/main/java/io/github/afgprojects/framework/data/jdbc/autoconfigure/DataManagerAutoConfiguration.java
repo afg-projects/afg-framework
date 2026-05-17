@@ -23,9 +23,18 @@ import io.github.afgprojects.framework.data.jdbc.JdbcDataManager;
 @ConditionalOnProperty(prefix = "afg.data", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class DataManagerAutoConfiguration {
 
+    /**
+     * 创建 JdbcDataManager Bean。
+     *
+     * <p>同时注册为 DataManager 和 JdbcDataManager 类型，
+     * 以便其他配置类可以通过具体类型引用。
+     *
+     * @param dataSource 数据源
+     * @return JdbcDataManager 实例
+     */
     @Bean
-    @ConditionalOnMissingBean(DataManager.class)
-    public DataManager dataManager(DataSource dataSource) {
+    @ConditionalOnMissingBean({DataManager.class, JdbcDataManager.class})
+    public JdbcDataManager dataManager(DataSource dataSource) {
         return new JdbcDataManager(dataSource);
     }
 }

@@ -5,14 +5,16 @@ plugins {
 
 dependencies {
     api(project(":data-core"))
-    api("org.liquibase:liquibase-core:5.0.2")
-    implementation("io.github.classgraph:classgraph:4.8.165")
 
-    testImplementation(platform("org.junit:junit-bom:5.11.4"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    testImplementation("org.assertj:assertj-core:3.27.3")
-    testImplementation("com.h2database:h2:2.3.232")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    // Liquibase Core（版本由 Spring Boot BOM 管理）
+    api(libs.liquibase.core)
+
+    // ClassGraph（类路径扫描）
+    implementation(libs.classgraph)
+
+    // Test（版本由 Spring Boot BOM 管理）
+    testImplementation(libs.bundles.testing)
+    testImplementation(libs.h2)
 }
 
 

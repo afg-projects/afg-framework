@@ -22,7 +22,7 @@
             <column name="require_pkce" type="BOOLEAN" remarks="是否需要PKCE" defaultValueBoolean="false"/>
             <column name="access_token_ttl" type="BIGINT" remarks="访问令牌TTL" defaultValueNumeric="7200"/>
             <column name="refresh_token_ttl" type="BIGINT" remarks="刷新令牌TTL" defaultValueNumeric="604800"/>
-            <column name="status" type="TINYINT" remarks="状态" defaultValueNumeric="1"/>
+            <column name="status" type="SMALLINT" remarks="状态" defaultValueNumeric="1"/>
             <column name="created_at" type="TIMESTAMP" remarks="创建时间"/>
             <column name="updated_at" type="TIMESTAMP" remarks="更新时间"/>
         </createTable>

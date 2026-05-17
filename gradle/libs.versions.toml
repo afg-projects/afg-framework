@@ -7,6 +7,7 @@ jcasbin = "1.9.2"
 dynamic-datasource = "4.5.0"
 
 # 非 Spring Boot BOM 管理的依赖版本
+jspecify = "1.0.0"
 auto-service = "1.1.1"
 classgraph = "4.8.165"
 nimbus-jose-jwt = "9.37.3"
@@ -81,7 +82,7 @@ jakarta-servlet-api = { module = "jakarta.servlet:jakarta.servlet-api" }
 
 # 其他 Spring Boot BOM 管理的依赖
 lombok = { module = "org.projectlombok:lombok" }
-jspecify = { module = "org.jspecify:jspecify" }
+jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
 slf4j-api = { module = "org.slf4j:slf4j-api" }
 logback-classic = { module = "ch.qos.logback:logback-classic" }
 aspectj-weaver = { module = "org.aspectj:aspectjweaver" }

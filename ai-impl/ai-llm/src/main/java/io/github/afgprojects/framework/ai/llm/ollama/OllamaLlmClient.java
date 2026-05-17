@@ -20,7 +20,7 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.ollama.api.OllamaApi;
 import org.springframework.ai.ollama.api.OllamaModel;
-import org.springframework.ai.ollama.api.OllamaOptions;
+import org.springframework.ai.ollama.api.OllamaChatOptions;
 import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
@@ -63,10 +63,12 @@ public class OllamaLlmClient implements LlmClient {
 
         // 创建 Ollama API
         String baseUrl = config.baseUrl() != null ? config.baseUrl() : DEFAULT_BASE_URL;
-        OllamaApi ollamaApi = new OllamaApi(baseUrl);
+        OllamaApi ollamaApi = OllamaApi.builder()
+                .baseUrl(baseUrl)
+                .build();
 
-        // 创建 OllamaOptions
-        OllamaOptions ollamaOptions = OllamaOptions.builder()
+        // 创建 OllamaChatOptions
+        OllamaChatOptions ollamaOptions = OllamaChatOptions.builder()
                 .model(config.model())
                 .build();
 

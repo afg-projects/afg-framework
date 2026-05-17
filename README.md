@@ -146,12 +146,6 @@ cd afg-framework
 - H2
 - DM (达梦)
 
-## 文档
-
-- [快速开始指南](docs/quick-start.md)
-- [数据访问层](docs/data/README.md)
-- [核心功能](docs/core/README.md)
-
 ## 贡献
 
 欢迎贡献代码！请查看 [贡献指南](CONTRIBUTING.md)。

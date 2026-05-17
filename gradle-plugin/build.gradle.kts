@@ -48,21 +48,24 @@ dependencies {
     compileOnly(kotlin("stdlib"))
 
     // CLI 框架
-    implementation("com.github.ajalt.clikt:clikt:5.0.3")
+    implementation(libs.clikt)
 
     // 类扫描
-    implementation("io.github.classgraph:classgraph:4.8.165")
+    implementation(libs.classgraph)
 
-    // Liquibase
+    // Liquibase（gradle-plugin 不使用 Spring Boot BOM，需要显式版本）
     implementation("org.liquibase:liquibase-core:5.0.2")
 
-    // SnakeYAML (YAML 解析)
+    // SnakeYAML (YAML 解析，gradle-plugin 不使用 Spring Boot BOM，需要显式版本)
     implementation("org.yaml:snakeyaml:2.4")
 
-    // Test dependencies
+    // Test dependencies（gradle-plugin 不使用 Spring Boot BOM，需要显式版本）
     testImplementation(kotlin("test"))
-    testImplementation("org.assertj:assertj-core:3.27.3")
     testImplementation("org.junit.jupiter:junit-jupiter:5.12.2")
+    testImplementation("org.assertj:assertj-core:3.27.3")
+    testImplementation("org.mockito:mockito-core:5.17.0")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.17.0")
+    testImplementation("org.awaitility:awaitility:4.3.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.12.2")
 }
 

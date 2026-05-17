@@ -12,7 +12,7 @@ import java.util.List;
  * FilterExpression enables metadata filtering in similarity searches:
  * <ul>
  *   <li>Equality: field == value</li>
- *   <li>Comparison: field > value, field < value, etc.</li>
+ *   <li>Comparison: field &gt; value, field &lt; value, etc.</li>
  *   <li>Logical: AND, OR, NOT combinations</li>
  *   <li>In: field in [value1, value2, ...]</li>
  * </ul>

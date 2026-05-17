@@ -1,7 +1,5 @@
 package io.github.afgprojects.framework.data.core.entity;
 
-import java.time.LocalDateTime;
-
 import org.jspecify.annotations.Nullable;
 
 import io.github.afgprojects.framework.data.core.tenant.TenantAware;

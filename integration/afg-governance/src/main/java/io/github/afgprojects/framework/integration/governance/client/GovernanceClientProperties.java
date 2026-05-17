@@ -5,6 +5,20 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * Governance Client 配置属性
+ * <p>
+ * 配置示例：
+ * <pre>
+ * afg:
+ *   governance:
+ *     client:
+ *       enabled: true
+ *       server-addr: "localhost:9090"
+ *       service-name: "my-service"
+ *       signature:
+ *         enabled: true
+ *         key-id: "governance-client"
+ *         secret: "your-secret-key-at-least-32-characters"
+ * </pre>
  *
  * @author afg-projects
  */
@@ -46,4 +60,19 @@ public class GovernanceClientProperties {
      * 重试间隔（毫秒）
      */
     private int retryIntervalMs = 1000;
+
+    /**
+     * 是否启用签名认证
+     */
+    private boolean signatureEnabled = false;
+
+    /**
+     * 签名密钥标识
+     */
+    private String signatureKeyId = "governance-client";
+
+    /**
+     * 签名密钥（至少 32 字符）
+     */
+    private String signatureSecret;
 }

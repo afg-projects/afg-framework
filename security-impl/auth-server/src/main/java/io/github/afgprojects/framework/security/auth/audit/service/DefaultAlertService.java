@@ -6,7 +6,6 @@ import io.github.afgprojects.framework.security.core.audit.AlertService;
 import io.github.afgprojects.framework.security.core.audit.SecurityEventService;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
-import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.List;
@@ -22,7 +21,6 @@ import java.util.stream.Collectors;
  * @since 1.0.0
  */
 @Slf4j
-@Service
 public class DefaultAlertService implements AlertService {
 
     private final AuditProperties auditProperties;

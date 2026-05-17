@@ -11,8 +11,6 @@ import org.jspecify.annotations.Nullable;
  * @param clientId 客户端 ID
  * @param username 用户名
  * @param tokenType 令牌类型
- * @param expiresAt 过期时间（Unix 时间戳）
- * @param issuedAt 颁发时间（Unix 时间戳）
  * @param sub 主体（用户 ID）
  * @param aud 受众
  * @param iss 签发者

@@ -6,17 +6,26 @@ dependencies {
     // 依赖 ai-core 接口
     api(project(":ai-core"))
 
-    // 依赖 ai-llm 实现（可选）
+    // 依赖 ai-impl 实现（可选）
     compileOnly(project(":ai-impl:ai-llm"))
-
-    // 依赖 ai-agent 实现（可选）
     compileOnly(project(":ai-impl:ai-agent"))
+    compileOnly(project(":ai-impl:ai-resilience"))
+    compileOnly(project(":ai-impl:ai-observability"))
+    compileOnly(project(":ai-impl:ai-security"))
+    compileOnly(project(":ai-impl:ai-persistence"))
+    compileOnly(project(":ai-impl:ai-performance"))
 
     // Spring Boot Autoconfigure
     api(libs.spring.boot.autoconfigure)
 
     // Spring Boot Starter
     api(libs.spring.boot.starter)
+
+    // Spring Boot JDBC（审计日志存储）
+    compileOnly(libs.spring.boot.starter.data.jdbc)
+
+    // Spring Boot Actuator（健康检查）
+    compileOnly(libs.spring.boot.starter.actuator)
 
     // JSpecify 空安全注解
     api(libs.jspecify)
@@ -32,4 +41,9 @@ dependencies {
     testImplementation(libs.spring.boot.starter.test)
     testImplementation(project(":ai-impl:ai-llm"))
     testImplementation(project(":ai-impl:ai-agent"))
+    testImplementation(project(":ai-impl:ai-resilience"))
+    testImplementation(project(":ai-impl:ai-observability"))
+    testImplementation(project(":ai-impl:ai-security"))
+    testImplementation(project(":ai-impl:ai-persistence"))
+    testImplementation(project(":ai-impl:ai-performance"))
 }

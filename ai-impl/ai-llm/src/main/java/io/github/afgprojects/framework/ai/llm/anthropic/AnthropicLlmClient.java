@@ -51,7 +51,9 @@ public class AnthropicLlmClient implements LlmClient {
         this.config = config;
 
         // 创建 Anthropic API
-        AnthropicApi anthropicApi = new AnthropicApi(config.apiKey());
+        AnthropicApi anthropicApi = AnthropicApi.builder()
+                .apiKey(config.apiKey())
+                .build();
 
         // 创建 ChatOptions
         AnthropicChatOptions.Builder optionsBuilder = AnthropicChatOptions.builder()
@@ -158,7 +160,7 @@ public class AnthropicLlmClient implements LlmClient {
             var usage = metadata.getUsage();
             tokenUsage = new TokenUsage(
                     usage.getPromptTokens(),
-                    usage.getGenerationTokens(),
+                    usage.getCompletionTokens(),
                     usage.getTotalTokens()
             );
         }

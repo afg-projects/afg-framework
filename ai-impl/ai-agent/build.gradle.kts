@@ -5,6 +5,13 @@ plugins {
 dependencies {
     // 依赖 ai-core 接口
     api(project(":ai-core"))
+    api(project(":data-core"))
+
+    // 依赖 security-core（权限服务）
+    api(project(":security-core"))
+
+    // Spring JDBC（JdbcClient）
+    implementation(libs.spring.jdbc)
 
     // JSpecify 空安全注解
     api(libs.jspecify)

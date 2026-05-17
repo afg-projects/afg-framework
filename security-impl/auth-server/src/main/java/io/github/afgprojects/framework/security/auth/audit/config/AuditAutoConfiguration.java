@@ -1,8 +1,12 @@
 package io.github.afgprojects.framework.security.auth.audit.config;
 
+import io.github.afgprojects.framework.data.core.DataManager;
+import io.github.afgprojects.framework.data.jdbc.autoconfigure.DataManagerAutoConfiguration;
 import io.github.afgprojects.framework.security.auth.audit.alert.AlertChannel;
 import io.github.afgprojects.framework.security.auth.audit.alert.LogAlertChannel;
 import io.github.afgprojects.framework.security.auth.audit.service.DefaultAlertService;
+import io.github.afgprojects.framework.security.auth.audit.service.JdbcSecurityEventService;
+import io.github.afgprojects.framework.security.auth.audit.service.NoOpSecurityEventService;
 import io.github.afgprojects.framework.security.core.audit.AlertService;
 import io.github.afgprojects.framework.security.core.audit.SecurityEventService;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +25,7 @@ import java.util.List;
  *
  * <p>配置审计服务的核心组件：
  * <ul>
+ *   <li>{@link SecurityEventService} - 安全事件服务</li>
  *   <li>{@link AlertService} - 告警服务</li>
  *   <li>{@link AlertChannel} - 告警通道（默认提供日志通道）</li>
  * </ul>
@@ -30,10 +35,32 @@ import java.util.List;
  * @since 1.0.0
  */
 @Slf4j
-@AutoConfiguration
+@AutoConfiguration(after = DataManagerAutoConfiguration.class)
 @EnableConfigurationProperties(AuditProperties.class)
 @ConditionalOnProperty(prefix = "afg.audit", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class AuditAutoConfiguration {
+
+    /**
+     * 创建安全事件服务。
+     *
+     * <p>使用 JDBC 将安全事件持久化到数据库。
+     *
+     * @param dataManager 数据管理器
+     * @return JdbcSecurityEventService 实例
+     */
+    @Bean
+    @ConditionalOnMissingBean(SecurityEventService.class)
+    @ConditionalOnBean(DataManager.class)
+    public SecurityEventService securityEventService(DataManager dataManager) {
+        log.info("Initializing JdbcSecurityEventService");
+        // JdbcSecurityEventService 需要 JdbcDataManager，检查类型
+        if (dataManager instanceof io.github.afgprojects.framework.data.jdbc.JdbcDataManager jdbcDataManager) {
+            return new JdbcSecurityEventService(jdbcDataManager);
+        }
+        // 如果不是 JdbcDataManager，使用 NoOp 实现
+        log.warn("DataManager is not JdbcDataManager, SecurityEventService will use no-op implementation");
+        return new NoOpSecurityEventService();
+    }
 
     /**
      * 创建日志告警通道。

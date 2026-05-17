@@ -1,1 +1,3 @@
 io.github.afgprojects.framework.ai.autoconfigure.AiAutoConfiguration
+io.github.afgprojects.framework.ai.autoconfigure.SecureToolAutoConfiguration
+io.github.afgprojects.framework.ai.autoconfigure.ToolDiscoveryAutoConfiguration

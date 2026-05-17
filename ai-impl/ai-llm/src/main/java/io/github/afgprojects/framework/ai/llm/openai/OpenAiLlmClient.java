@@ -171,7 +171,7 @@ public class OpenAiLlmClient implements LlmClient {
             var usage = metadata.getUsage();
             tokenUsage = new TokenUsage(
                     usage.getPromptTokens(),
-                    usage.getGenerationTokens(),
+                    usage.getCompletionTokens(),
                     usage.getTotalTokens()
             );
         }

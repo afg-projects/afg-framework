@@ -16,6 +16,7 @@
             <column name="reason" type="VARCHAR(100)" remarks="撤销原因"/>
             <column name="expires_at" type="TIMESTAMP" remarks="过期时间"/>
             <column name="created_at" type="TIMESTAMP" remarks="创建时间"/>
+            <column name="updated_at" type="TIMESTAMP" remarks="更新时间"/>
         </createTable>
 
         <createIndex indexName="idx_token_blacklist_expires" tableName="auth_token_blacklist">

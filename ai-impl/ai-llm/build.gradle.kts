@@ -7,13 +7,13 @@ dependencies {
     api(project(":ai-core"))
 
     // Spring AI OpenAI
-    api("org.springframework.ai:spring-ai-openai:1.0.0-M6")
+    api(libs.spring.ai.openai)
 
     // Spring AI Anthropic (可选)
-    compileOnly("org.springframework.ai:spring-ai-anthropic:1.0.0-M6")
+    compileOnly(libs.spring.ai.anthropic)
 
     // Spring AI Ollama (可选)
-    compileOnly("org.springframework.ai:spring-ai-ollama:1.0.0-M6")
+    compileOnly(libs.spring.ai.ollama)
 
     // WebClient for HTTP calls
     api(libs.spring.webflux)
@@ -33,6 +33,6 @@ dependencies {
     // Test
     testImplementation(libs.bundles.testing)
     testImplementation(libs.spring.boot.starter.test)
-    testImplementation("org.springframework.ai:spring-ai-anthropic:1.0.0-M6")
-    testImplementation("org.springframework.ai:spring-ai-ollama:1.0.0-M6")
+    testImplementation(libs.spring.ai.anthropic)
+    testImplementation(libs.spring.ai.ollama)
 }

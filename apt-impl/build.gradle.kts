@@ -12,15 +12,15 @@ dependencies {
     // 依赖 apt-api
     implementation(project(":apt-api"))
 
-    // Jakarta Persistence API（用于解析 @Table、@Column 等注解）
-    implementation("jakarta.persistence:jakarta.persistence-api:3.2.0")
+    // Jakarta Persistence API（用于解析 @Table、@Column 等注解，版本由 Spring Boot BOM 管理）
+    implementation(libs.jakarta.persistence.api)
 
-    // Jackson（用于解析 JSON 配置文件）
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.18.2")
+    // Jackson（用于解析 JSON 配置文件，版本由 Spring Boot BOM 管理）
+    implementation(libs.jackson.databind)
 
     // AutoService（自动生成 META-INF/services）
-    implementation("com.google.auto.service:auto-service:1.1.1")
-    annotationProcessor("com.google.auto.service:auto-service:1.1.1")
+    implementation(libs.auto.service)
+    annotationProcessor(libs.auto.service)
 
     // Test dependencies
     testImplementation(libs.bundles.testing)

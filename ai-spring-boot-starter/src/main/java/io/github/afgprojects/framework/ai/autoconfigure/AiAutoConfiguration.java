@@ -14,6 +14,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 
 import java.time.Duration;
 
@@ -24,6 +25,11 @@ import java.time.Duration;
  * <ul>
  *   <li>LlmClient - LLM 客户端（根据配置选择提供商）</li>
  *   <li>ToolRegistry - 工具注册表</li>
+ *   <li>韧性模块 - 重试、熔断、降级</li>
+ *   <li>可观测性模块 - 指标、追踪、审计</li>
+ *   <li>安全模块 - API Key 管理、内容安全、PII 检测</li>
+ *   <li>持久化模块 - 会话存储、消息历史</li>
+ *   <li>性能优化模块 - 缓存、速率限制</li>
  * </ul>
  *
  * <p>配置示例：
@@ -35,6 +41,12 @@ import java.time.Duration;
  *       provider: openai
  *       model: gpt-4
  *       api-key: ${OPENAI_API_KEY}
+ *     resilience:
+ *       enabled: true
+ *       retry:
+ *         max-retries: 3
+ *     observability:
+ *       enabled: true
  * }</pre>
  *
  * @author afg-projects
@@ -43,6 +55,13 @@ import java.time.Duration;
 @AutoConfiguration
 @EnableConfigurationProperties(AiConfigurationProperties.class)
 @ConditionalOnProperty(prefix = "afg.ai", name = "enabled", havingValue = "true", matchIfMissing = true)
+@Import({
+        ResilienceAutoConfiguration.class,
+        ObservabilityAutoConfiguration.class,
+        SecurityAutoConfiguration.class,
+        PersistenceAutoConfiguration.class,
+        PerformanceAutoConfiguration.class
+})
 public class AiAutoConfiguration {
 
     private static final Logger log = LoggerFactory.getLogger(AiAutoConfiguration.class);
@@ -54,7 +73,7 @@ public class AiAutoConfiguration {
      */
     @Bean
     @ConditionalOnClass(OpenAiLlmClient.class)
-    @ConditionalOnProperty(prefix = "afg.ai.llm", name = "provider", havingValue = "openai", matchIfMissing = true)
+    @ConditionalOnProperty(prefix = "afg.ai.llm", name = "provider", havingValue = "openai")
     @ConditionalOnMissingBean(LlmClient.class)
     public LlmClient openAiLlmClient(@NonNull AiConfigurationProperties properties) {
         var llmProps = properties.getLlm();

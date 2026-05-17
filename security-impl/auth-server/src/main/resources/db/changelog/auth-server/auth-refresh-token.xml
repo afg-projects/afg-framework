@@ -19,6 +19,7 @@
             <column name="token_hash" type="VARCHAR(255)" remarks="令牌哈希"/>
             <column name="expires_at" type="TIMESTAMP" remarks="过期时间"/>
             <column name="created_at" type="TIMESTAMP" remarks="创建时间"/>
+            <column name="updated_at" type="TIMESTAMP" remarks="更新时间"/>
         </createTable>
 
         <createIndex indexName="idx_refresh_token_user" tableName="auth_refresh_token">

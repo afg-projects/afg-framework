@@ -1,10 +1,17 @@
 package io.github.afgprojects.framework.security.auth.config;
 
 import lombok.extern.slf4j.Slf4j;
+import io.github.afgprojects.framework.data.core.DataManager;
+import io.github.afgprojects.framework.data.jdbc.autoconfigure.DataManagerAutoConfiguration;
+import io.github.afgprojects.framework.security.auth.captcha.DefaultCaptchaService;
 import io.github.afgprojects.framework.security.auth.login.DefaultLoginService;
 import io.github.afgprojects.framework.security.auth.login.strategy.EmailCaptchaLoginStrategy;
 import io.github.afgprojects.framework.security.auth.login.strategy.MobileCaptchaLoginStrategy;
 import io.github.afgprojects.framework.security.auth.login.strategy.UsernamePasswordLoginStrategy;
+import io.github.afgprojects.framework.security.auth.storage.JdbcCaptchaStorage;
+import io.github.afgprojects.framework.security.auth.storage.JdbcRefreshTokenStorage;
+import io.github.afgprojects.framework.security.auth.storage.JdbcTokenBlacklist;
+import io.github.afgprojects.framework.security.auth.token.DefaultTokenService;
 import io.github.afgprojects.framework.security.core.authentication.AfgUserDetailsService;
 import io.github.afgprojects.framework.security.core.login.CaptchaService;
 import io.github.afgprojects.framework.security.core.login.LoginService;
@@ -12,14 +19,17 @@ import io.github.afgprojects.framework.security.core.login.TokenService;
 import io.github.afgprojects.framework.security.core.login.strategy.LoginStrategy;
 import io.github.afgprojects.framework.security.core.login.strategy.LoginStrategyFactory;
 import io.github.afgprojects.framework.security.core.storage.AfgCaptchaStorage;
+import io.github.afgprojects.framework.security.core.storage.AfgRefreshTokenStorage;
+import io.github.afgprojects.framework.security.core.storage.AfgTokenBlacklist;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 
@@ -40,10 +50,85 @@ import java.util.List;
  * @since 1.0.0
  */
 @Slf4j
-@AutoConfiguration
+@AutoConfiguration(after = DataManagerAutoConfiguration.class)
 @EnableConfigurationProperties({AuthServerProperties.class, LoginProperties.class})
 @ConditionalOnProperty(prefix = "afg.auth.login", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class LoginAutoConfiguration {
+
+    /**
+     * 创建密码编码器。
+     *
+     * @return BCryptPasswordEncoder 实例
+     */
+    @Bean
+    @ConditionalOnMissingBean(PasswordEncoder.class)
+    public PasswordEncoder passwordEncoder() {
+        log.info("Initializing BCryptPasswordEncoder");
+        return new BCryptPasswordEncoder();
+    }
+
+    /**
+     * 创建验证码存储。
+     *
+     * @param dataManager 数据管理器
+     * @return JdbcCaptchaStorage 实例
+     */
+    @Bean
+    @ConditionalOnMissingBean(AfgCaptchaStorage.class)
+    public AfgCaptchaStorage captchaStorage(DataManager dataManager) {
+        log.info("Initializing JdbcCaptchaStorage");
+        return new JdbcCaptchaStorage(dataManager);
+    }
+
+    /**
+     * 创建 Refresh Token 存储。
+     *
+     * @param dataManager 数据管理器
+     * @return JdbcRefreshTokenStorage 实例
+     */
+    @Bean
+    @ConditionalOnMissingBean(AfgRefreshTokenStorage.class)
+    public AfgRefreshTokenStorage refreshTokenStorage(DataManager dataManager) {
+        log.info("Initializing JdbcRefreshTokenStorage");
+        return new JdbcRefreshTokenStorage(dataManager);
+    }
+
+    /**
+     * 创建 Token 黑名单。
+     *
+     * @param dataManager 数据管理器
+     * @return JdbcTokenBlacklist 实例
+     */
+    @Bean
+    @ConditionalOnMissingBean(AfgTokenBlacklist.class)
+    public AfgTokenBlacklist tokenBlacklist(DataManager dataManager) {
+        log.info("Initializing JdbcTokenBlacklist");
+        return new JdbcTokenBlacklist(dataManager);
+    }
+
+    /**
+     * 创建令牌服务。
+     *
+     * @param loginProperties 登录配置属性
+     * @param refreshTokenStorage Refresh Token 存储
+     * @param tokenBlacklist Token 黑名单
+     * @return DefaultTokenService 实例
+     */
+    @Bean
+    @ConditionalOnMissingBean(TokenService.class)
+    public TokenService tokenService(
+            LoginProperties loginProperties,
+            AfgRefreshTokenStorage refreshTokenStorage,
+            AfgTokenBlacklist tokenBlacklist) {
+        log.info("Initializing DefaultTokenService");
+        return new DefaultTokenService(
+                loginProperties.getSigningKey(),
+                loginProperties.getIssuer(),
+                loginProperties.getAccessTokenTtl(),
+                loginProperties.getRefreshTokenTtl(),
+                refreshTokenStorage,
+                tokenBlacklist);
+    }
 
     /**
      * 创建登录策略工厂。
@@ -74,10 +159,9 @@ public class LoginAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(name = "usernamePasswordLoginStrategy")
-    @ConditionalOnBean({AfgUserDetailsService.class})
     public UsernamePasswordLoginStrategy usernamePasswordLoginStrategy(
             AfgUserDetailsService userDetailsService,
-            org.springframework.security.crypto.password.PasswordEncoder passwordEncoder,
+            PasswordEncoder passwordEncoder,
             @Autowired(required = false) CaptchaService captchaService) {
         log.info("Initializing UsernamePasswordLoginStrategy");
         return new UsernamePasswordLoginStrategy(userDetailsService, passwordEncoder, captchaService);
@@ -92,7 +176,6 @@ public class LoginAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(name = "mobileCaptchaLoginStrategy")
-    @ConditionalOnBean({AfgUserDetailsService.class, CaptchaService.class})
     public MobileCaptchaLoginStrategy mobileCaptchaLoginStrategy(
             AfgUserDetailsService userDetailsService,
             CaptchaService captchaService) {
@@ -109,7 +192,6 @@ public class LoginAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(name = "emailCaptchaLoginStrategy")
-    @ConditionalOnBean({AfgUserDetailsService.class, CaptchaService.class})
     public EmailCaptchaLoginStrategy emailCaptchaLoginStrategy(
             AfgUserDetailsService userDetailsService,
             CaptchaService captchaService) {
@@ -120,16 +202,14 @@ public class LoginAutoConfiguration {
     /**
      * 创建验证码服务
      *
-     * @param loginProperties 登录配置属性
      * @param captchaStorage 验证码存储
      * @return CaptchaService 实例
      */
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnBean(AfgCaptchaStorage.class)
-    public CaptchaService captchaService(LoginProperties loginProperties, AfgCaptchaStorage captchaStorage) {
-        log.info("Initializing CaptchaService with captchaTtl={}", loginProperties.getCaptchaTtl());
-        return new DefaultCaptchaService(loginProperties, captchaStorage);
+    public CaptchaService captchaService(AfgCaptchaStorage captchaStorage) {
+        log.info("Initializing DefaultCaptchaService");
+        return new DefaultCaptchaService(captchaStorage);
     }
 
     /**
@@ -143,7 +223,6 @@ public class LoginAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnBean({LoginStrategyFactory.class, AfgUserDetailsService.class, TokenService.class, CaptchaService.class})
     public LoginService loginService(
             LoginStrategyFactory strategyFactory,
             AfgUserDetailsService userDetailsService,
@@ -151,37 +230,5 @@ public class LoginAutoConfiguration {
             CaptchaService captchaService) {
         log.info("Initializing DefaultLoginService with {} strategies", strategyFactory.getRegisteredTypes().size());
         return new DefaultLoginService(strategyFactory, userDetailsService, tokenService, captchaService);
-    }
-
-    /**
-     * 默认验证码服务实现
-     */
-    private static class DefaultCaptchaService implements CaptchaService {
-
-        private final LoginProperties loginProperties;
-        private final AfgCaptchaStorage captchaStorage;
-
-        DefaultCaptchaService(LoginProperties loginProperties, AfgCaptchaStorage captchaStorage) {
-            this.loginProperties = loginProperties;
-            this.captchaStorage = captchaStorage;
-        }
-
-        @Override
-        public io.github.afgprojects.framework.security.core.login.model.CaptchaResponse generate(
-                io.github.afgprojects.framework.security.core.login.model.CaptchaRequest request) {
-            // TODO: Implement captcha generation
-            throw new UnsupportedOperationException("CaptchaService implementation pending");
-        }
-
-        @Override
-        public boolean validate(String captchaKey, String captchaValue) {
-            // TODO: Implement captcha validation
-            throw new UnsupportedOperationException("CaptchaService implementation pending");
-        }
-
-        @Override
-        public void delete(String captchaKey) {
-            captchaStorage.delete(captchaKey);
-        }
     }
 }

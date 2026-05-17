@@ -5,6 +5,7 @@ plugins {
 dependencies {
     // 依赖 core 模块
     api(project(":core"))
+    api(project(":data-core"))
 
     // JSpecify 空安全注解
     api(libs.jspecify)
@@ -14,6 +15,9 @@ dependencies {
 
     // Spring Boot Starter (for ApplicationEvent)
     api(libs.spring.boot.starter)
+
+    // Spring Web (for HttpHeaders)
+    api(libs.spring.boot.starter.web)
 
     // Lombok
     compileOnly(libs.lombok)

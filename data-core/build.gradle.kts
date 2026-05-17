@@ -9,13 +9,13 @@ dependencies {
     // 依赖 core 模块
     api(project(":core"))
 
-    // JSpecify 空安全注解
+    // JSpecify 空安全注解（版本由 Spring Boot BOM 管理）
     api(libs.jspecify)
 
-    // Jakarta Persistence API (用于 @Table/@Column 注解支持)
-    api("jakarta.persistence:jakarta.persistence-api")
+    // Jakarta Persistence API (用于 @Table/@Column 注解支持，版本由 Spring Boot BOM 管理)
+    api(libs.jakarta.persistence.api)
 
-    // Spring Boot Starter (for ApplicationEvent)
+    // Spring Boot Starter (for ApplicationEvent，版本由 Spring Boot BOM 管理)
     api(libs.spring.boot.starter)
 
     // Lombok

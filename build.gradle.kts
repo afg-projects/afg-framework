@@ -15,10 +15,6 @@ val springBootVersion: String by extra {
     Regex("""spring-boot\s*=\s*"([^"]+)"""").find(libsVersionsContent)?.groupValues?.get(1)
         ?: throw GradleException("Cannot find spring-boot version in libs.versions.toml")
 }
-val springFrameworkVersion: String by extra {
-    Regex("""spring-framework\s*=\s*"([^"]+)"""").find(libsVersionsContent)?.groupValues?.get(1)
-        ?: throw GradleException("Cannot find spring-framework version in libs.versions.toml")
-}
 
 allprojects {
     group = property("projectGroup").toString()

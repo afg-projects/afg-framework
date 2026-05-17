@@ -35,10 +35,9 @@ dependencies {
     testImplementation(libs.caffeine)
     // Redisson for cache tests
     testImplementation(libs.redisson.core)
-    // For testing annotation detection in SimpleFieldMetadata
-    testImplementation("jakarta.persistence:jakarta.persistence-api")
-    testImplementation("org.springframework.data:spring-data-commons")
-    testImplementation("com.baomidou:mybatis-plus-annotation:3.5.16")
+    // For testing annotation detection in SimpleFieldMetadata（版本由 Spring Boot BOM 管理）
+    testImplementation(libs.jakarta.persistence.api)
+    testImplementation(libs.spring.data.commons)
     // Lombok for tests
     testCompileOnly(libs.lombok)
     testAnnotationProcessor(libs.lombok)

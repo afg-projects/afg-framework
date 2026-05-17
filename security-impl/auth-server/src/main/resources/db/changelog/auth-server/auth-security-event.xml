@@ -19,6 +19,7 @@
             <column name="created_at" type="TIMESTAMP" remarks="创建时间">
                 <constraints nullable="false"/>
             </column>
+            <column name="updated_at" type="TIMESTAMP" remarks="更新时间"/>
         </createTable>
 
         <createIndex indexName="idx_security_event_type" tableName="auth_security_event">

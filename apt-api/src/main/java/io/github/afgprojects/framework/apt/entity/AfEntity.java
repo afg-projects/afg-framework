@@ -62,9 +62,7 @@ import java.lang.annotation.Target;
  * }
  * }
  * </pre>
- *
- * @see io.github.afgprojects.framework.data.core.metadata.DatabaseEntityMetadata
- */
+ **/
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.SOURCE)
 @Documented

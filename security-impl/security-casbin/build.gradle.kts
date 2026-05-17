@@ -4,7 +4,10 @@ plugins {
 
 dependencies {
     api(project(":security-core"))
-    api("org.casbin:jcasbin:1.55.0")
+
+    // Casbin（权限管理）
+    api(libs.jcasbin)
+
     api(libs.jspecify)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
