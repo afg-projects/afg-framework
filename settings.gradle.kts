@@ -34,6 +34,11 @@ include("ai-core")
 include("ai-impl:ai-llm")           // LLM 实现（OpenAI, Anthropic, Ollama）
 include("ai-impl:ai-agent")         // Agent 实现（ToolRegistry, ReAct, Plan-Execute）
 include("ai-impl:ai-rag")           // RAG 实现（VectorStore, Embedding, Retriever）
+include("ai-impl:ai-resilience")    // 韧性实现（重试、熔断、降级）
+include("ai-impl:ai-observability")  // 可观测性实现（指标、追踪、审计）
+include("ai-impl:ai-security")      // 安全实现（API Key 管理、内容安全、PII 检测）
+include("ai-impl:ai-persistence")   // 持久化实现（会话存储、消息历史）
+include("ai-impl:ai-performance")   // 性能优化实现（缓存、速率限制）
 include("ai-spring-boot-starter")   // Spring Boot 自动配置
 
 // 数据访问模块
@@ -61,3 +66,4 @@ include("integration:afg-consul")       // Consul 集成（配置中心）
 include("integration:afg-rabbitmq")     // RabbitMQ 集成（事件发布）
 include("integration:afg-websocket")    // WebSocket 集成（实时通信）
 include("integration:afg-storage")      // Storage 集成（文件存储抽象层）
+include("integration:afg-governance")   // Governance 集成（配置中心、服务注册）
