@@ -3,6 +3,11 @@ package io.github.afgprojects.framework.security.resource.config;
 import io.github.afgprojects.framework.security.resource.introspection.IntrospectionProperties;
 import io.github.afgprojects.framework.security.resource.jwt.JwtAuthenticationConverter;
 import io.github.afgprojects.framework.security.resource.jwt.JwtResourceProperties;
+import io.github.afgprojects.framework.security.resource.permission.CachedPermissionChecker;
+import io.github.afgprojects.framework.security.resource.permission.HttpPermissionClient;
+import io.github.afgprojects.framework.security.resource.permission.JwtPermissionChecker;
+import io.github.afgprojects.framework.security.resource.permission.PermissionAspect;
+import io.github.afgprojects.framework.security.resource.permission.RemotePermissionClient;
 import io.github.afgprojects.framework.security.resource.tenant.HeaderTenantResolver;
 import io.github.afgprojects.framework.security.resource.tenant.TokenTenantResolver;
 import io.github.afgprojects.framework.security.resource.tenant.TenantResolverChain;
@@ -143,5 +148,49 @@ public class ResourceServerAutoConfiguration {
         }
 
         return chain;
+    }
+
+    /**
+     * 配置 JWT 权限校验器。
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public JwtPermissionChecker jwtPermissionChecker() {
+        log.info("Configuring JWT permission checker");
+        return new JwtPermissionChecker();
+    }
+
+    /**
+     * 配置 HTTP 远程权限客户端（可选）。
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = "afg.security.resource.permission", name = "auth-server-url")
+    @ConditionalOnMissingBean
+    public RemotePermissionClient remotePermissionClient(@NonNull ResourceServerProperties properties) {
+        String authServerUrl = properties.getPermission().getAuthServerUrl();
+        log.info("Configuring HTTP permission client with auth server: {}", authServerUrl);
+        return new HttpPermissionClient(authServerUrl);
+    }
+
+    /**
+     * 配置带缓存的权限校验器。
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public CachedPermissionChecker cachedPermissionChecker(
+            @Autowired(required = false) @Nullable RemotePermissionClient remoteClient,
+            @NonNull JwtPermissionChecker jwtChecker) {
+        log.info("Configuring cached permission checker");
+        return new CachedPermissionChecker(remoteClient, jwtChecker);
+    }
+
+    /**
+     * 配置权限校验切面。
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public PermissionAspect permissionAspect(@NonNull CachedPermissionChecker permissionChecker) {
+        log.info("Configuring permission aspect");
+        return new PermissionAspect(permissionChecker);
     }
 }

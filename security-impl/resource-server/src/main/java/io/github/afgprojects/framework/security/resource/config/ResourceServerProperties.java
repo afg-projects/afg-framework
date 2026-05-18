@@ -3,6 +3,7 @@ package io.github.afgprojects.framework.security.resource.config;
 import lombok.Getter;
 import lombok.Setter;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.List;
@@ -68,6 +69,27 @@ public class ResourceServerProperties {
 
     public void setTenantHeaderName(@NonNull String tenantHeaderName) {
         this.tenantHeaderName = tenantHeaderName;
+    }
+
+    /**
+     * 权限校验配置。
+     */
+    @Getter
+    private final PermissionConfig permission = new PermissionConfig();
+
+    /**
+     * 权限校验配置。
+     */
+    @Getter
+    @Setter
+    public static class PermissionConfig {
+
+        /**
+         * 认证服务器地址。
+         * 配置后将启用远程权限校验。
+         */
+        @Nullable
+        private String authServerUrl;
     }
 
 }

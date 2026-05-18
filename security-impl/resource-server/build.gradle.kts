@@ -7,6 +7,11 @@ dependencies {
     api(libs.spring.boot.starter.oauth2.resource.server)
     api(libs.jspecify)
 
+    // 权限校验
+    implementation(libs.spring.aop)
+    implementation(libs.aspectj.weaver)
+    implementation(libs.caffeine)
+
     // Jakarta Servlet API（版本由 Spring Boot BOM 管理）
     compileOnly(libs.jakarta.servlet.api)
 
