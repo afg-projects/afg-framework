@@ -1,7 +1,6 @@
 package io.github.afgprojects.framework.security.auth.oauth2;
 
-import static org.assertj.core.api.Assertions.*;
-
+import io.github.afgprojects.framework.security.auth.config.AfgAuthorizationServerConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

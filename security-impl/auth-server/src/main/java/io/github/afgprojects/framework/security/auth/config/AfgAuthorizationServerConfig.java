@@ -1,4 +1,4 @@
-package io.github.afgprojects.framework.security.auth.oauth2;
+package io.github.afgprojects.framework.security.auth.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;

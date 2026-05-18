@@ -14,7 +14,6 @@
  *   <li>{@link io.github.afgprojects.framework.security.auth.config} - 配置属性和自动配置</li>
  *   <li>{@link io.github.afgprojects.framework.security.auth.endpoint} - 授权端点</li>
  *   <li>{@link io.github.afgprojects.framework.security.auth.token} - JWT Token 处理</li>
- *   <li>{@link io.github.afgprojects.framework.security.auth.user} - 用户和客户端服务</li>
  * </ul>
  *
  * @since 1.0.0

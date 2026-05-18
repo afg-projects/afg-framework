@@ -4,25 +4,27 @@
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.26.xsd">
 
-    <changeSet id="auth-login-failure" author="afg">
-        <createTable tableName="auth_login_failure" remarks="登录失败记录表">
+    <changeSet id="v1.0.0-008-auth-role-permission" author="afg">
+        <createTable tableName="auth_role_permission" remarks="角色权限关联表">
             <column name="id" type="BIGINT" autoIncrement="true">
-                <constraints primaryKey="true" primaryKeyName="pk_auth_login_failure"/>
+                <constraints primaryKey="true" primaryKeyName="pk_auth_role_permission"/>
             </column>
-            <column name="user_id" type="VARCHAR(50)" remarks="用户ID">
+            <column name="role_id" type="VARCHAR(50)" remarks="角色ID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="permission" type="VARCHAR(100)" remarks="权限标识">
                 <constraints nullable="false"/>
             </column>
             <column name="tenant_id" type="VARCHAR(50)" remarks="租户ID"/>
-            <column name="ip" type="VARCHAR(50)" remarks="IP地址"/>
-            <column name="failure_count" type="INT" remarks="失败次数" defaultValueNumeric="1"/>
-            <column name="locked_until" type="TIMESTAMP" remarks="锁定截止时间"/>
             <column name="created_at" type="TIMESTAMP" remarks="创建时间"/>
             <column name="updated_at" type="TIMESTAMP" remarks="更新时间"/>
         </createTable>
 
-        <createIndex indexName="uk_login_failure_user_tenant" tableName="auth_login_failure" unique="true">
-            <column name="user_id"/>
+        <createIndex indexName="uk_role_perm_tenant" tableName="auth_role_permission" unique="true">
+            <column name="role_id"/>
+            <column name="permission"/>
             <column name="tenant_id"/>
         </createIndex>
     </changeSet>
+
 </databaseChangeLog>

@@ -1,5 +1,5 @@
 io.github.afgprojects.framework.security.auth.config.LoginAutoConfiguration
-io.github.afgprojects.framework.security.auth.oauth2.AfgAuthorizationServerConfig
+io.github.afgprojects.framework.security.auth.config.AfgAuthorizationServerConfig
 io.github.afgprojects.framework.security.auth.oauth2.config.OAuth2AutoConfiguration
 io.github.afgprojects.framework.security.auth.permission.config.PermissionAutoConfiguration
 io.github.afgprojects.framework.security.auth.audit.config.AuditAutoConfiguration

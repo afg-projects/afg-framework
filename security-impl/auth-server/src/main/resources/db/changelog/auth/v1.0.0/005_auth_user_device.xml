@@ -4,7 +4,7 @@
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.26.xsd">
 
-    <changeSet id="auth-user-device" author="afg">
+    <changeSet id="v1.0.0-005-auth-user-device" author="afg">
         <createTable tableName="auth_user_device" remarks="用户设备表">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" primaryKeyName="pk_auth_user_device"/>
@@ -30,4 +30,5 @@
             <column name="device_id"/>
         </createIndex>
     </changeSet>
+
 </databaseChangeLog>
