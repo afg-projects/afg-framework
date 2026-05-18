@@ -52,6 +52,8 @@ include("security-core")
 include("security-impl:auth-server")       // OAuth2 授权服务器
 include("security-impl:resource-server")   // 资源服务器
 include("security-impl:security-casbin")   // Casbin 权限集成
+include("security-impl:security-permission")  // 安全权限模块（RBAC + Casbin）
+include("security-impl:security-data-scope")  // 数据权限模块
 
 // Spring Boot Starter
 include("spring-boot-starter")
@@ -59,10 +61,6 @@ include("spring-boot-starter")
 // 集成模块（中间件集成）
 include("integration:afg-redis")        // Redis 集成（缓存、分布式锁、延迟队列、任务调度）
 include("integration:afg-jdbc")         // JDBC 集成（审计日志数据库存储）
-include("integration:afg-kafka")        // Kafka 集成（事件发布）
-include("integration:afg-nacos")        // Nacos 集成（配置中心）
-include("integration:afg-apollo")       // Apollo 集成（配置中心）
-include("integration:afg-consul")       // Consul 集成（配置中心）
 include("integration:afg-rabbitmq")     // RabbitMQ 集成（事件发布）
 include("integration:afg-websocket")    // WebSocket 集成（实时通信）
 include("integration:afg-storage")      // Storage 集成（文件存储抽象层）
