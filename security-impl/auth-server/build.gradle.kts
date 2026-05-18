@@ -7,6 +7,11 @@ dependencies {
     api(project(":data-core"))
     api(project(":data-impl:data-jdbc"))
     api(project(":apt-api"))
+
+    // 权限模块
+    api(project(":security-impl:security-permission"))
+    api(project(":security-impl:security-data-scope"))
+
     api(libs.spring.boot.starter.web)
     api(libs.jspecify)
 
