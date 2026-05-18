@@ -19,7 +19,7 @@ import java.util.Map;
  * <p>使用 DataManager 操作 Casbin 策略数据。
  */
 @RequiredArgsConstructor
-public class JdbcCasbinAdapter implements Adapter, BatchAdapter {
+public class JdbcCasbinAdapter implements BatchAdapter {
 
     private final DataManager dataManager;
 
@@ -71,7 +71,7 @@ public class JdbcCasbinAdapter implements Adapter, BatchAdapter {
     private SecCasbinRule createRule(String ptype, List<String> policy) {
         SecCasbinRule rule = new SecCasbinRule();
         rule.setPtype(ptype);
-        if (policy.size() > 0) rule.setV0(policy.get(0));
+        if (!policy.isEmpty()) rule.setV0(policy.get(0));
         if (policy.size() > 1) rule.setV1(policy.get(1));
         if (policy.size() > 2) rule.setV2(policy.get(2));
         if (policy.size() > 3) rule.setV3(policy.get(3));
@@ -82,7 +82,7 @@ public class JdbcCasbinAdapter implements Adapter, BatchAdapter {
     public void addPolicy(@NonNull String sec, @NonNull String ptype, @NonNull List<String> rule) {
         SecCasbinRule casbinRule = new SecCasbinRule();
         casbinRule.setPtype(ptype);
-        if (rule.size() > 0) casbinRule.setV0(rule.get(0));
+        if (!rule.isEmpty()) casbinRule.setV0(rule.get(0));
         if (rule.size() > 1) casbinRule.setV1(rule.get(1));
         if (rule.size() > 2) casbinRule.setV2(rule.get(2));
         if (rule.size() > 3) casbinRule.setV3(rule.get(3));

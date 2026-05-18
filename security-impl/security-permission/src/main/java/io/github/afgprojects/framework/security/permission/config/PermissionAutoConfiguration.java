@@ -15,6 +15,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 /**
  * 安全权限模块自动配置
@@ -31,7 +32,7 @@ public class PermissionAutoConfiguration {
     @ConditionalOnMissingBean
     public Model casbinModel() {
         Model model = new Model();
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream(modelPath)) {
+        try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(modelPath)) {
             if (is == null) {
                 log.warn("Casbin model file not found: {}, using default RBAC model", modelPath);
                 model.addDef("r", "r", "sub, dom, obj, act");
@@ -40,7 +41,7 @@ public class PermissionAutoConfiguration {
                 model.addDef("e", "e", "some(where (p.eft == allow))");
                 model.addDef("m", "m", "g(r.sub, r.dom, p.sub) && r.dom == p.dom && r.obj == p.obj && r.act == p.act");
             } else {
-                model.loadModelFromText(new String(is.readAllBytes()));
+                model.loadModelFromText(new String(is.readAllBytes(), StandardCharsets.UTF_8));
             }
         } catch (Exception e) {
             log.error("Failed to load Casbin model", e);
