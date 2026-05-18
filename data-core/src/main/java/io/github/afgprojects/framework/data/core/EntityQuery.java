@@ -6,6 +6,7 @@ import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.query.Page;
 import io.github.afgprojects.framework.data.core.query.Sort;
 import io.github.afgprojects.framework.data.core.scope.DataScope;
+import io.github.afgprojects.framework.data.core.scope.DataScopeType;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -111,6 +112,26 @@ public interface EntityQuery<T> {
      * @return 查询构建器（支持链式调用）
      */
     @NonNull EntityQuery<T> withDataScope(@NonNull DataScope scope);
+
+    /**
+     * 自动应用当前用户的数据权限
+     * <p>自动检测实体中的部门字段（如 deptId、dept_id）
+     */
+    @NonNull EntityQuery<T> withDataScope();
+
+    /**
+     * 自动应用当前用户的数据权限，指定关联字段
+     *
+     * @param deptField 部门字段名（如 "deptId"）
+     */
+    @NonNull EntityQuery<T> withDataScope(String deptField);
+
+    /**
+     * 使用指定的数据范围类型
+     *
+     * @param scopeType 数据范围类型
+     */
+    @NonNull EntityQuery<T> withDataScope(DataScopeType scopeType);
 
     /**
      * 设置多个数据权限

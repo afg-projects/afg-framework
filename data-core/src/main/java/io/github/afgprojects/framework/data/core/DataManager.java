@@ -5,6 +5,7 @@ import io.github.afgprojects.framework.data.core.context.TenantContextHolder;
 import io.github.afgprojects.framework.data.core.dialect.DatabaseType;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
 import io.github.afgprojects.framework.data.core.query.Condition;
+import io.github.afgprojects.framework.data.core.scope.DataScopeType;
 import io.github.afgprojects.framework.data.core.scope.TenantScope;
 import io.github.afgprojects.framework.data.core.sql.SqlDeleteBuilder;
 import io.github.afgprojects.framework.data.core.sql.SqlInsertBuilder;
@@ -247,6 +248,23 @@ public interface DataManager {
      */
     default <T> @NonNull List<T> findList(@NonNull Class<T> entityClass, @NonNull Condition condition) {
         return entity(entityClass).query().where(condition).list();
+    }
+
+    /**
+     * 根据条件查找实体列表（自动应用数据权限）
+     */
+    default <T> @NonNull List<T> findListWithDataScope(@NonNull Class<T> entityClass,
+                                                        @NonNull Condition condition) {
+        return entity(entityClass).query().withDataScope().where(condition).list();
+    }
+
+    /**
+     * 根据条件查找实体列表（指定数据权限字段）
+     */
+    default <T> @NonNull List<T> findListWithDataScope(@NonNull Class<T> entityClass,
+                                                        @NonNull String deptField,
+                                                        @NonNull Condition condition) {
+        return entity(entityClass).query().withDataScope(deptField).where(condition).list();
     }
 
     /**
