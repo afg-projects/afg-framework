@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.26.xsd">
+
+    <!-- permission/v1.0.0 版本迁移 -->
+    <include file="v1.0.0/001_sec_role.xml" relativeToChangelogFile="true"/>
+    <include file="v1.0.0/002_sec_role_hierarchy.xml" relativeToChangelogFile="true"/>
+    <include file="v1.0.0/003_sec_resource.xml" relativeToChangelogFile="true"/>
+    <include file="v1.0.0/004_sec_permission.xml" relativeToChangelogFile="true"/>
+    <include file="v1.0.0/005_sec_role_permission.xml" relativeToChangelogFile="true"/>
+    <include file="v1.0.0/006_sec_user_role.xml" relativeToChangelogFile="true"/>
+    <include file="v1.0.0/007_sec_casbin_rule.xml" relativeToChangelogFile="true"/>
+
+</databaseChangeLog>

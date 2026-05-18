@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.26.xsd">
+
+    <changeSet id="v1.0.0-007-sec-casbin-rule" author="afg">
+        <createTable tableName="sec_casbin_rule" remarks="Casbin策略规则表">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_sec_casbin_rule"/>
+            </column>
+            <column name="ptype" type="VARCHAR(10)" remarks="规则类型(p/g)"/>
+            <column name="v0" type="VARCHAR(100)" remarks="字段0(主体)"/>
+            <column name="v1" type="VARCHAR(100)" remarks="字段1(域/角色)"/>
+            <column name="v2" type="VARCHAR(100)" remarks="字段2(对象/角色)"/>
+            <column name="v3" type="VARCHAR(100)" remarks="字段3(动作)"/>
+            <column name="tenant_id" type="VARCHAR(50)" remarks="租户ID"/>
+        </createTable>
+
+        <createIndex indexName="idx_sec_casbin_ptype" tableName="sec_casbin_rule">
+            <column name="ptype"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
