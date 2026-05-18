@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Set;
 
 @RestController
-@RequestMapping("/api/data-scopes")
+@RequestMapping("/data-scopes")
 @RequiredArgsConstructor
 public class DataScopeController {
 

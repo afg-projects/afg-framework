@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Set;
 
 @RestController
-@RequestMapping("/api/user-permissions")
+@RequestMapping("/user-permissions")
 @RequiredArgsConstructor
 public class UserPermissionController {
 

@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Set;
 
 @RestController
-@RequestMapping("/api/depts")
+@RequestMapping("/depts")
 @RequiredArgsConstructor
 public class DeptController {
 
