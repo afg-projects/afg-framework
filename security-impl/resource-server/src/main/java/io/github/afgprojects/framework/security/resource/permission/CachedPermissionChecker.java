@@ -1,21 +1,19 @@
 package io.github.afgprojects.framework.security.resource.permission;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
+import io.github.afgprojects.framework.core.cache.AfgCache;
+import io.github.afgprojects.framework.core.cache.CacheManager;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 带缓存的权限校验器。
  *
  * <p>优先从本地缓存获取权限，缓存未命中时调用远程客户端。
- * 适用于资源服务器场景，减少对认证服务器的调用。
+ * 使用 core 模块的统一缓存接口。
  *
  * <h3>缓存策略</h3>
  * <ul>
@@ -28,29 +26,32 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class CachedPermissionChecker {
 
+    private static final String PERMISSION_CACHE_NAME = "security:permission:check";
+    private static final String USER_PERMISSIONS_CACHE_NAME = "security:permission:user";
+    private static final long CACHE_TTL_MS = 5 * 60 * 1000; // 5 分钟
+
     private final RemotePermissionClient remoteClient;
     private final JwtPermissionChecker jwtChecker;
-
-    private final Cache<String, Boolean> permissionCache;
-    private final Cache<String, Set<String>> userPermissionsCache;
+    private final AfgCache<Boolean> permissionCache;
+    private final AfgCache<Set<String>> userPermissionsCache;
 
     public CachedPermissionChecker(
             @Nullable RemotePermissionClient remoteClient,
-            @NonNull JwtPermissionChecker jwtChecker) {
+            @NonNull JwtPermissionChecker jwtChecker,
+            @Nullable CacheManager cacheManager) {
         this.remoteClient = remoteClient;
         this.jwtChecker = jwtChecker;
 
-        // 权限缓存：key = "userId:permission:tenantId"
-        this.permissionCache = Caffeine.newBuilder()
-                .maximumSize(10000)
-                .expireAfterWrite(Duration.ofMinutes(5))
-                .build();
-
-        // 用户权限列表缓存
-        this.userPermissionsCache = Caffeine.newBuilder()
-                .maximumSize(1000)
-                .expireAfterWrite(Duration.ofMinutes(5))
-                .build();
+        // 使用统一缓存接口
+        if (cacheManager != null) {
+            this.permissionCache = cacheManager.getCache(PERMISSION_CACHE_NAME);
+            this.userPermissionsCache = cacheManager.getCache(USER_PERMISSIONS_CACHE_NAME);
+        } else {
+            // 如果没有 CacheManager，使用空缓存实现
+            this.permissionCache = new NoOpCache<>(PERMISSION_CACHE_NAME);
+            this.userPermissionsCache = new NoOpCache<>(USER_PERMISSIONS_CACHE_NAME);
+            log.warn("No CacheManager available, permission caching is disabled");
+        }
     }
 
     /**
@@ -84,16 +85,16 @@ public class CachedPermissionChecker {
             return false;
         }
 
-        // 3. 从缓存或远程获取
+        // 3. 从缓存获取
         String cacheKey = buildPermissionKey(userId, permission, tenantId);
-        Boolean cached = permissionCache.getIfPresent(cacheKey);
+        Boolean cached = permissionCache.get(cacheKey);
         if (cached != null) {
             return cached;
         }
 
         // 4. 远程调用
         boolean result = remoteClient.hasPermission(userId, permission, tenantId);
-        permissionCache.put(cacheKey, result);
+        permissionCache.put(cacheKey, result, CACHE_TTL_MS);
 
         return result;
     }
@@ -121,16 +122,16 @@ public class CachedPermissionChecker {
             return Set.of();
         }
 
-        // 3. 从缓存或远程获取
+        // 3. 从缓存获取
         String cacheKey = buildUserKey(userId, tenantId);
-        Set<String> cached = userPermissionsCache.getIfPresent(cacheKey);
+        Set<String> cached = userPermissionsCache.get(cacheKey);
         if (cached != null) {
             return cached;
         }
 
         // 4. 远程调用
         Set<String> permissions = remoteClient.getPermissions(userId, tenantId);
-        userPermissionsCache.put(cacheKey, permissions);
+        userPermissionsCache.put(cacheKey, permissions, CACHE_TTL_MS);
 
         return permissions;
     }
@@ -140,10 +141,14 @@ public class CachedPermissionChecker {
      */
     public void clearCache(@NonNull String userId, @Nullable String tenantId) {
         String userKey = buildUserKey(userId, tenantId);
-        userPermissionsCache.invalidate(userKey);
+        userPermissionsCache.evict(userKey);
 
         // 清除该用户的所有权限缓存（需要遍历）
-        permissionCache.asMap().keySet().removeIf(key -> key.startsWith(userId + ":"));
+        for (String key : permissionCache.keys()) {
+            if (key.startsWith(userId + ":")) {
+                permissionCache.evict(key);
+            }
+        }
     }
 
     private String buildPermissionKey(String userId, String permission, String tenantId) {
@@ -152,5 +157,57 @@ public class CachedPermissionChecker {
 
     private String buildUserKey(String userId, String tenantId) {
         return userId + ":" + (tenantId != null ? tenantId : "");
+    }
+
+    /**
+     * 空缓存实现（当没有 CacheManager 时使用）。
+     */
+    private static class NoOpCache<V> implements AfgCache<V> {
+        private final String name;
+
+        NoOpCache(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public V get(String key) {
+            return null;
+        }
+
+        @Override
+        public void put(String key, V value) {
+        }
+
+        @Override
+        public void put(String key, V value, long ttlMillis) {
+        }
+
+        @Override
+        public void evict(String key) {
+        }
+
+        @Override
+        public void clear() {
+        }
+
+        @Override
+        public V putIfAbsent(String key, V value, long ttlMillis) {
+            return null;
+        }
+
+        @Override
+        public boolean containsKey(String key) {
+            return false;
+        }
+
+        @Override
+        public long size() {
+            return 0;
+        }
     }
 }

@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.security.resource.config;
 
+import io.github.afgprojects.framework.core.cache.CacheManager;
 import io.github.afgprojects.framework.security.resource.introspection.IntrospectionProperties;
 import io.github.afgprojects.framework.security.resource.jwt.JwtAuthenticationConverter;
 import io.github.afgprojects.framework.security.resource.jwt.JwtResourceProperties;
@@ -179,9 +180,10 @@ public class ResourceServerAutoConfiguration {
     @ConditionalOnMissingBean
     public CachedPermissionChecker cachedPermissionChecker(
             @Autowired(required = false) @Nullable RemotePermissionClient remoteClient,
-            @NonNull JwtPermissionChecker jwtChecker) {
+            @NonNull JwtPermissionChecker jwtChecker,
+            @Autowired(required = false) @Nullable CacheManager cacheManager) {
         log.info("Configuring cached permission checker");
-        return new CachedPermissionChecker(remoteClient, jwtChecker);
+        return new CachedPermissionChecker(remoteClient, jwtChecker, cacheManager);
     }
 
     /**
