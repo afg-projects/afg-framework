@@ -7,6 +7,9 @@ dependencies {
     api(libs.spring.boot.starter.oauth2.resource.server)
     api(libs.jspecify)
 
+    // Web（用于 HandlerInterceptor）
+    implementation(libs.spring.boot.starter.web)
+
     // 权限校验
     implementation(libs.spring.aop)
     implementation(libs.aspectj.weaver)

@@ -1,10 +1,13 @@
 package io.github.afgprojects.framework.security.resource.config;
 
+import io.github.afgprojects.framework.core.api.config.RemoteConfigClient;
 import io.github.afgprojects.framework.core.cache.CacheManager;
 import io.github.afgprojects.framework.security.resource.introspection.IntrospectionProperties;
 import io.github.afgprojects.framework.security.resource.jwt.JwtAuthenticationConverter;
 import io.github.afgprojects.framework.security.resource.jwt.JwtResourceProperties;
 import io.github.afgprojects.framework.security.resource.permission.CachedPermissionChecker;
+import io.github.afgprojects.framework.security.resource.permission.DynamicApiPermissionInterceptor;
+import io.github.afgprojects.framework.security.resource.permission.DynamicApiPermissionManager;
 import io.github.afgprojects.framework.security.resource.permission.HttpPermissionClient;
 import io.github.afgprojects.framework.security.resource.permission.JwtPermissionChecker;
 import io.github.afgprojects.framework.security.resource.permission.PermissionAspect;
@@ -194,5 +197,28 @@ public class ResourceServerAutoConfiguration {
     public PermissionAspect permissionAspect(@NonNull CachedPermissionChecker permissionChecker) {
         log.info("Configuring permission aspect");
         return new PermissionAspect(permissionChecker);
+    }
+
+    /**
+     * 配置动态接口权限管理器。
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public DynamicApiPermissionManager dynamicApiPermissionManager(
+            @Autowired(required = false) @Nullable RemoteConfigClient remoteConfigClient) {
+        log.info("Configuring dynamic API permission manager");
+        return new DynamicApiPermissionManager(remoteConfigClient);
+    }
+
+    /**
+     * 配置动态接口权限拦截器。
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public DynamicApiPermissionInterceptor dynamicApiPermissionInterceptor(
+            @NonNull DynamicApiPermissionManager permissionManager,
+            @NonNull CachedPermissionChecker permissionChecker) {
+        log.info("Configuring dynamic API permission interceptor");
+        return new DynamicApiPermissionInterceptor(permissionManager, permissionChecker);
     }
 }
