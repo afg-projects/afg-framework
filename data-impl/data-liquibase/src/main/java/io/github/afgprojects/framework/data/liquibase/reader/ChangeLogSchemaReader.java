@@ -11,8 +11,10 @@ import liquibase.change.Change;
 import liquibase.change.core.CreateTableChange;
 import liquibase.change.core.AddColumnChange;
 import liquibase.change.ColumnConfig;
+import liquibase.exception.LiquibaseException;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -29,7 +31,7 @@ public class ChangeLogSchemaReader {
      * @param changeLogPath ChangeLog 文件路径
      * @return 表名 -> SchemaMetadata 映射
      */
-    public Map<String, SchemaMetadata> read(String changeLogPath) throws Exception {
+    public Map<String, SchemaMetadata> read(String changeLogPath) throws IOException, LiquibaseException {
         return read(Path.of(changeLogPath));
     }
 
@@ -39,13 +41,20 @@ public class ChangeLogSchemaReader {
      * @param changeLogPath ChangeLog 文件路径
      * @return 表名 -> SchemaMetadata 映射
      */
-    public Map<String, SchemaMetadata> read(Path changeLogPath) throws Exception {
+    public Map<String, SchemaMetadata> read(Path changeLogPath) throws IOException, LiquibaseException {
         Map<String, SchemaMetadataImpl.Builder> schemaBuilders = new HashMap<>();
 
         File changeLogFile = changeLogPath.toFile();
         File parentDir = changeLogFile.getParentFile();
 
-        try (DirectoryResourceAccessor resourceAccessor = new DirectoryResourceAccessor(parentDir)) {
+        DirectoryResourceAccessor resourceAccessor;
+        try {
+            resourceAccessor = new DirectoryResourceAccessor(parentDir);
+        } catch (Exception e) {
+            throw new IOException("Failed to create resource accessor for: " + parentDir, e);
+        }
+
+        try (resourceAccessor) {
             ChangeLogParser parser = ChangeLogParserFactory.getInstance()
                     .getParser(changeLogFile.getName(), resourceAccessor);
 
@@ -61,6 +70,15 @@ public class ChangeLogSchemaReader {
                     processChange(change, schemaBuilders);
                 }
             }
+        } catch (Exception e) {
+            // Handle close() throwing Exception
+            if (e instanceof IOException ioException) {
+                throw ioException;
+            }
+            if (e instanceof LiquibaseException liquibaseException) {
+                throw liquibaseException;
+            }
+            throw new LiquibaseException("Failed to read changeLog: " + changeLogPath, e);
         }
 
         // 构建最终的 SchemaMetadata

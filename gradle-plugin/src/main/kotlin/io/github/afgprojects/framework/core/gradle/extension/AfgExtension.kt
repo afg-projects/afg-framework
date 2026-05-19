@@ -13,7 +13,7 @@ import javax.inject.Inject
  *     springBootVersion.set("4.0.6")
  *     frameworkVersion.set("1.0.0-SNAPSHOT")
  *     moduleType.set("data")
- *     deploymentMode.set("module")  // module 或 platform
+ *     standalone.set(true)  // 独立部署或聚合部署
  *     useLombok.set(true)
  *     useValidation.set(true)
  *
@@ -50,12 +50,12 @@ abstract class AfgExtension @Inject constructor(
     abstract val moduleType: Property<String>
 
     /**
-     * 部署模式：module, platform
+     * 是否独立部署
      *
-     * - module: 独立部署模式，生成可执行 bootJar
-     * - platform: 聚合部署模式，作为普通 jar 被主应用依赖
+     * - true: 独立部署，生成可执行 bootJar
+     * - false: 聚合部署，作为普通 jar 被主应用依赖
      */
-    abstract val deploymentMode: Property<String>
+    abstract val standalone: Property<Boolean>
 
     /**
      * 框架版本

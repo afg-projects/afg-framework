@@ -21,20 +21,8 @@ dependencies {
     // Redis 集成（缓存、分布式锁、延迟队列、任务调度）
     compileOnly(project(":integration:afg-redis"))
 
-    // Kafka 集成（事件发布）
-    compileOnly(project(":integration:afg-kafka"))
-
     // RabbitMQ 集成（事件发布）
     compileOnly(project(":integration:afg-rabbitmq"))
-
-    // Nacos 集成（配置中心）
-    compileOnly(project(":integration:afg-nacos"))
-
-    // Apollo 集成（配置中心）
-    compileOnly(project(":integration:afg-apollo"))
-
-    // Consul 集成（配置中心、服务发现）
-    compileOnly(project(":integration:afg-consul"))
 
     // JDBC 集成（审计日志数据库存储）
     compileOnly(project(":integration:afg-jdbc"))

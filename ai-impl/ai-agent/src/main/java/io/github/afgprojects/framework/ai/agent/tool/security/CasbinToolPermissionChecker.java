@@ -139,6 +139,7 @@ public class CasbinToolPermissionChecker implements ToolPermissionChecker {
      * @param context 工具上下文
      * @return 权限检查结果
      */
+    @Override
     public @NonNull PermissionResult checkSecureTool(
             @NonNull SecureTool<?, ?> tool,
             @NonNull ToolContext context) {

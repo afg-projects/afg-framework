@@ -188,8 +188,8 @@ public class DefaultCircuitBreaker implements CircuitBreaker {
             if (failureRate >= failureRateThreshold) {
                 if (state.compareAndSet(State.CLOSED, State.OPEN)) {
                     lastFailureTime.set(System.currentTimeMillis());
-                    log.warn("Circuit breaker '{}' transitioned from CLOSED to OPEN, failure rate: {:.2f}%",
-                            name, failureRate * 100);
+                    log.warn("Circuit breaker '{}' transitioned from CLOSED to OPEN, failure rate: {}%",
+                            name, String.format("%.2f", failureRate * 100));
                 }
             }
         }

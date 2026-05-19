@@ -43,6 +43,7 @@ dependencies {
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
 
+
     // Logging
     compileOnly(libs.slf4j.api)
 

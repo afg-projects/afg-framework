@@ -205,7 +205,7 @@ afg {
     springBootVersion.set("$sbVersion")
     frameworkVersion.set("$fwVersion")
     moduleType.set("$modType")
-    deploymentMode.set("module")
+    standalone.set(true)
     useLombok.set(true)
     useValidation.set(true)
 

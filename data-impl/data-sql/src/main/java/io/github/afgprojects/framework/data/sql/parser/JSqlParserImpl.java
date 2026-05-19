@@ -14,6 +14,11 @@ import org.jspecify.annotations.NonNull;
  */
 public class JSqlParserImpl implements SqlParser {
 
+    /**
+     * SQL 截断长度限制，用于异常消息中避免泄露过长的 SQL
+     */
+    private static final int SQL_TRUNCATE_LENGTH = 100;
+
     private final DatabaseType databaseType;
 
     public JSqlParserImpl(DatabaseType databaseType) {
@@ -30,7 +35,7 @@ public class JSqlParserImpl implements SqlParser {
             Statement statement = CCJSqlParserUtil.parse(sql);
             return new JSqlParserStatement(statement, databaseType);
         } catch (JSQLParserException e) {
-            throw new IllegalArgumentException("SQL 解析失败: " + sql, e);
+            throw new IllegalArgumentException("SQL 解析失败: " + truncateSql(sql), e);
         }
     }
 
@@ -41,7 +46,7 @@ public class JSqlParserImpl implements SqlParser {
             SqlRewriter rewriter = new SqlRewriter(statement, context);
             return rewriter.rewrite();
         } catch (JSQLParserException e) {
-            throw new IllegalArgumentException("SQL 解析失败: " + sql, e);
+            throw new IllegalArgumentException("SQL 解析失败: " + truncateSql(sql), e);
         }
     }
 
@@ -53,5 +58,21 @@ public class JSqlParserImpl implements SqlParser {
         } catch (JSQLParserException e) {
             return false;
         }
+    }
+
+    /**
+     * 截断 SQL 字符串，用于异常消息中避免泄露敏感信息
+     *
+     * @param sql 原始 SQL
+     * @return 截断后的 SQL，附带省略号表示被截断
+     */
+    private String truncateSql(String sql) {
+        if (sql == null) {
+            return "null";
+        }
+        if (sql.length() <= SQL_TRUNCATE_LENGTH) {
+            return sql;
+        }
+        return sql.substring(0, SQL_TRUNCATE_LENGTH) + "... (truncated, total " + sql.length() + " chars)";
     }
 }

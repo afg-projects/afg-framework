@@ -55,19 +55,23 @@ public class LiquibaseMigrationRunner {
     public void migrate(Connection connection, String changeLogPath, String targetVersion,
                         String contexts, String labels) throws LiquibaseException {
         Liquibase liquibase = createLiquibase(connection, changeLogPath);
+        try {
+            Contexts contextsObj = contexts != null && !contexts.isEmpty()
+                    ? new Contexts(contexts.split(","))
+                    : new Contexts();
 
-        Contexts contextsObj = contexts != null && !contexts.isEmpty()
-                ? new Contexts(contexts.split(","))
-                : new Contexts();
+            LabelExpression labelsObj = labels != null && !labels.isEmpty()
+                    ? new LabelExpression(labels.split(","))
+                    : new LabelExpression();
 
-        LabelExpression labelsObj = labels != null && !labels.isEmpty()
-                ? new LabelExpression(labels.split(","))
-                : new LabelExpression();
-
-        if (targetVersion != null && !targetVersion.isEmpty()) {
-            liquibase.update(targetVersion, contextsObj, labelsObj);
-        } else {
-            liquibase.update(contextsObj, labelsObj);
+            if (targetVersion != null && !targetVersion.isEmpty()) {
+                liquibase.update(targetVersion, contextsObj, labelsObj);
+            } else {
+                liquibase.update(contextsObj, labelsObj);
+            }
+        } finally {
+            // 不调用 liquibase.close()，因为会关闭外部传入的 Connection
+            // 调用方负责管理 Connection 的生命周期
         }
     }
 
@@ -80,7 +84,11 @@ public class LiquibaseMigrationRunner {
      */
     public void rollback(Connection connection, String changeLogPath, int steps) throws LiquibaseException {
         Liquibase liquibase = createLiquibase(connection, changeLogPath);
-        liquibase.rollback(String.valueOf(steps), new Contexts());
+        try {
+            liquibase.rollback(String.valueOf(steps), new Contexts());
+        } finally {
+            // 不调用 liquibase.close()，因为会关闭外部传入的 Connection
+        }
     }
 
     /**
@@ -92,7 +100,11 @@ public class LiquibaseMigrationRunner {
      */
     public void rollbackToVersion(Connection connection, String changeLogPath, String targetVersion) throws LiquibaseException {
         Liquibase liquibase = createLiquibase(connection, changeLogPath);
-        liquibase.rollback(targetVersion, new Contexts());
+        try {
+            liquibase.rollback(targetVersion, new Contexts());
+        } finally {
+            // 不调用 liquibase.close()，因为会关闭外部传入的 Connection
+        }
     }
 
     /**
@@ -104,16 +116,20 @@ public class LiquibaseMigrationRunner {
      */
     public List<MigrationStatus> status(Connection connection, String changeLogPath) throws LiquibaseException {
         Liquibase liquibase = createLiquibase(connection, changeLogPath);
-        // 返回未执行的 ChangeSet 列表
-        List<ChangeSet> unrunChangeSets = liquibase.listUnrunChangeSets(new Contexts(), new LabelExpression());
-        return unrunChangeSets.stream()
-                .map(cs -> new MigrationStatus(
-                        cs.getId(),
-                        cs.getAuthor(),
-                        cs.getDescription(),
-                        false
-                ))
-                .toList();
+        try {
+            // 返回未执行的 ChangeSet 列表
+            List<ChangeSet> unrunChangeSets = liquibase.listUnrunChangeSets(new Contexts(), new LabelExpression());
+            return unrunChangeSets.stream()
+                    .map(cs -> new MigrationStatus(
+                            cs.getId(),
+                            cs.getAuthor(),
+                            cs.getDescription(),
+                            false
+                    ))
+                    .toList();
+        } finally {
+            // 不调用 liquibase.close()，因为会关闭外部传入的 Connection
+        }
     }
 
     /**
@@ -124,7 +140,11 @@ public class LiquibaseMigrationRunner {
      */
     public void validate(Connection connection, String changeLogPath) throws LiquibaseException {
         Liquibase liquibase = createLiquibase(connection, changeLogPath);
-        liquibase.validate();
+        try {
+            liquibase.validate();
+        } finally {
+            // 不调用 liquibase.close()，因为会关闭外部传入的 Connection
+        }
     }
 
     /**
@@ -135,7 +155,11 @@ public class LiquibaseMigrationRunner {
      */
     public void markAllExecuted(Connection connection, String changeLogPath) throws LiquibaseException {
         Liquibase liquibase = createLiquibase(connection, changeLogPath);
-        liquibase.changeLogSync(new Contexts(), new LabelExpression());
+        try {
+            liquibase.changeLogSync(new Contexts(), new LabelExpression());
+        } finally {
+            // 不调用 liquibase.close()，因为会关闭外部传入的 Connection
+        }
     }
 
     private Liquibase createLiquibase(Connection connection, String changeLogPath) throws LiquibaseException {

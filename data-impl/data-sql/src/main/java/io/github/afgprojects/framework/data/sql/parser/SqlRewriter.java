@@ -5,6 +5,7 @@ import io.github.afgprojects.framework.data.core.scope.DataScope;
 import io.github.afgprojects.framework.data.sql.scope.DataScopeContextProvider;
 import io.github.afgprojects.framework.data.sql.scope.DataScopeProcessor;
 import io.github.afgprojects.framework.data.sql.scope.DataScopeUserContext;
+import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.StringValue;
@@ -40,6 +41,7 @@ import java.util.Set;
  *   <li>#{currentTenantId} - 当前租户ID</li>
  * </ul>
  */
+@Slf4j
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
 public class SqlRewriter {
 
@@ -295,6 +297,8 @@ public class SqlRewriter {
         try {
             return CCJSqlParserUtil.parseCondExpression(expr);
         } catch (Exception e) {
+            log.warn("Failed to parse custom condition expression: '{}'. The condition will be ignored. Error: {}",
+                    expr, e.getMessage());
             return null;
         }
     }

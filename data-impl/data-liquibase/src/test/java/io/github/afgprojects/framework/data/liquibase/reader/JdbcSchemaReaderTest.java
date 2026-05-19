@@ -12,8 +12,11 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * JdbcSchemaReader 测试
@@ -58,9 +61,10 @@ class JdbcSchemaReaderTest {
                     )
                     """);
 
-            SchemaMetadata schema = reader.readTable(connection, "TEST_TABLE");
+            Optional<SchemaMetadata> schemaOpt = reader.readTable(connection, "TEST_TABLE");
 
-            assertThat(schema).isNotNull();
+            assertThat(schemaOpt).isPresent();
+            SchemaMetadata schema = schemaOpt.get();
             assertThat(schema.getTableName()).isEqualToIgnoringCase("TEST_TABLE");
             assertThat(schema.getColumns()).hasSize(4);
             assertThat(schema.getPrimaryKey()).isNotNull();
@@ -77,8 +81,10 @@ class JdbcSchemaReaderTest {
                     )
                     """);
 
-            SchemaMetadata schema = reader.readTable(connection, "COLUMN_TEST");
+            Optional<SchemaMetadata> schemaOpt = reader.readTable(connection, "COLUMN_TEST");
 
+            assertThat(schemaOpt).isPresent();
+            SchemaMetadata schema = schemaOpt.get();
             assertThat(schema.getColumn("ID")).isNotNull();
             assertThat(schema.getColumn("NULLABLE_COL")).isNotNull();
             assertThat(schema.getColumn("NOT_NULL_COL")).isNotNull();
@@ -98,8 +104,10 @@ class JdbcSchemaReaderTest {
                     )
                     """);
 
-            SchemaMetadata schema = reader.readTable(connection, "PK_TEST");
+            Optional<SchemaMetadata> schemaOpt = reader.readTable(connection, "PK_TEST");
 
+            assertThat(schemaOpt).isPresent();
+            SchemaMetadata schema = schemaOpt.get();
             assertThat(schema.getPrimaryKey()).isNotNull();
             assertThat(schema.getPrimaryKey().getColumnNames())
                     .anyMatch(name -> name.equalsIgnoreCase("ID"));
@@ -116,8 +124,10 @@ class JdbcSchemaReaderTest {
                     )
                     """);
 
-            SchemaMetadata schema = reader.readTable(connection, "COMPOSITE_PK_TEST");
+            Optional<SchemaMetadata> schemaOpt = reader.readTable(connection, "COMPOSITE_PK_TEST");
 
+            assertThat(schemaOpt).isPresent();
+            SchemaMetadata schema = schemaOpt.get();
             assertThat(schema.getPrimaryKey()).isNotNull();
             assertThat(schema.getPrimaryKey().getColumnNames()).hasSize(2);
         }
@@ -135,8 +145,10 @@ class JdbcSchemaReaderTest {
             connection.createStatement().execute("CREATE INDEX idx_email ON index_test (email)");
             connection.createStatement().execute("CREATE UNIQUE INDEX idx_name ON index_test (name)");
 
-            SchemaMetadata schema = reader.readTable(connection, "INDEX_TEST");
+            Optional<SchemaMetadata> schemaOpt = reader.readTable(connection, "INDEX_TEST");
 
+            assertThat(schemaOpt).isPresent();
+            SchemaMetadata schema = schemaOpt.get();
             assertThat(schema.getIndexes()).isNotEmpty();
         }
 
@@ -157,8 +169,10 @@ class JdbcSchemaReaderTest {
                     )
                     """);
 
-            SchemaMetadata schema = reader.readTable(connection, "CHILD_TABLE");
+            Optional<SchemaMetadata> schemaOpt = reader.readTable(connection, "CHILD_TABLE");
 
+            assertThat(schemaOpt).isPresent();
+            SchemaMetadata schema = schemaOpt.get();
             assertThat(schema.getForeignKeys()).isNotEmpty();
         }
 
@@ -172,19 +186,18 @@ class JdbcSchemaReaderTest {
                     """);
 
             // H2 默认将表名转为大写，但尝试用小写查询
-            SchemaMetadata schema = reader.readTable(connection, "lowercase_table");
+            Optional<SchemaMetadata> schemaOpt = reader.readTable(connection, "lowercase_table");
 
-            assertThat(schema).isNotNull();
+            assertThat(schemaOpt).isPresent();
         }
 
         @Test
         @DisplayName("应处理不存在的表")
         void shouldHandleNonExistentTable() throws SQLException {
-            SchemaMetadata schema = reader.readTable(connection, "NON_EXISTENT_TABLE");
+            Optional<SchemaMetadata> schemaOpt = reader.readTable(connection, "NON_EXISTENT_TABLE");
 
-            // 表不存在时，返回空结构的 SchemaMetadata
-            assertThat(schema).isNotNull();
-            assertThat(schema.getColumns()).isEmpty();
+            // 表不存在时，返回 Optional.empty()
+            assertThat(schemaOpt).isEmpty();
         }
 
         @Test
@@ -198,8 +211,10 @@ class JdbcSchemaReaderTest {
                     )
                     """);
 
-            SchemaMetadata schema = reader.readTable(connection, "DEFAULT_VALUE_TEST");
+            Optional<SchemaMetadata> schemaOpt = reader.readTable(connection, "DEFAULT_VALUE_TEST");
 
+            assertThat(schemaOpt).isPresent();
+            SchemaMetadata schema = schemaOpt.get();
             ColumnMetadata statusColumn = schema.getColumn("STATUS");
             assertThat(statusColumn).isNotNull();
             // H2 可能不返回默认值，取决于版本和配置
@@ -216,8 +231,10 @@ class JdbcSchemaReaderTest {
                     """);
             connection.createStatement().execute("COMMENT ON COLUMN comment_test.name IS '用户名称'");
 
-            SchemaMetadata schema = reader.readTable(connection, "COMMENT_TEST");
+            Optional<SchemaMetadata> schemaOpt = reader.readTable(connection, "COMMENT_TEST");
 
+            assertThat(schemaOpt).isPresent();
+            SchemaMetadata schema = schemaOpt.get();
             ColumnMetadata nameColumn = schema.getColumn("NAME");
             assertThat(nameColumn).isNotNull();
         }
@@ -231,9 +248,10 @@ class JdbcSchemaReaderTest {
                     )
                     """);
 
-            SchemaMetadata schema = reader.readTable(connection, "uppercase_table");
+            Optional<SchemaMetadata> schemaOpt = reader.readTable(connection, "uppercase_table");
 
-            assertThat(schema).isNotNull();
+            assertThat(schemaOpt).isPresent();
+            SchemaMetadata schema = schemaOpt.get();
             assertThat(schema.getColumns()).hasSize(1);
         }
     }
@@ -289,9 +307,10 @@ class JdbcSchemaReaderTest {
                     )
                     """);
 
-            SchemaMetadata schema = reader.readTable(connection, "H2_TEST");
+            Optional<SchemaMetadata> schemaOpt = reader.readTable(connection, "H2_TEST");
 
-            assertThat(schema).isNotNull();
+            assertThat(schemaOpt).isPresent();
+            SchemaMetadata schema = schemaOpt.get();
             assertThat(schema.getColumns()).hasSize(3);
         }
 
@@ -315,8 +334,10 @@ class JdbcSchemaReaderTest {
                     )
                     """);
 
-            SchemaMetadata schema = reader.readTable(connection, "DATA_TYPES_TEST");
+            Optional<SchemaMetadata> schemaOpt = reader.readTable(connection, "DATA_TYPES_TEST");
 
+            assertThat(schemaOpt).isPresent();
+            SchemaMetadata schema = schemaOpt.get();
             assertThat(schema.getColumns()).hasSize(12);
         }
     }
@@ -335,8 +356,10 @@ class JdbcSchemaReaderTest {
                     )
                     """);
 
-            SchemaMetadata schema = reader.readTable(connection, "UNIQUE_INDEX_TEST");
+            Optional<SchemaMetadata> schemaOpt = reader.readTable(connection, "UNIQUE_INDEX_TEST");
 
+            assertThat(schemaOpt).isPresent();
+            SchemaMetadata schema = schemaOpt.get();
             assertThat(schema.getIndexes()).isNotEmpty();
             assertThat(schema.getIndexes().stream()
                     .anyMatch(idx -> idx.isUnique()))
@@ -355,8 +378,10 @@ class JdbcSchemaReaderTest {
                     """);
             connection.createStatement().execute("CREATE INDEX idx_multi ON multi_col_index_test (col1, col2)");
 
-            SchemaMetadata schema = reader.readTable(connection, "MULTI_COL_INDEX_TEST");
+            Optional<SchemaMetadata> schemaOpt = reader.readTable(connection, "MULTI_COL_INDEX_TEST");
 
+            assertThat(schemaOpt).isPresent();
+            SchemaMetadata schema = schemaOpt.get();
             assertThat(schema.getIndexes()).isNotEmpty();
         }
 
@@ -369,8 +394,10 @@ class JdbcSchemaReaderTest {
                     )
                     """);
 
-            SchemaMetadata schema = reader.readTable(connection, "PK_NO_NAME_TEST");
+            Optional<SchemaMetadata> schemaOpt = reader.readTable(connection, "PK_NO_NAME_TEST");
 
+            assertThat(schemaOpt).isPresent();
+            SchemaMetadata schema = schemaOpt.get();
             assertThat(schema.getPrimaryKey()).isNotNull();
             assertThat(schema.getPrimaryKey().getConstraintName()).isNotNull();
         }
@@ -396,8 +423,10 @@ class JdbcSchemaReaderTest {
                     )
                     """);
 
-            SchemaMetadata schema = reader.readTable(connection, "FK_TEST");
+            Optional<SchemaMetadata> schemaOpt = reader.readTable(connection, "FK_TEST");
 
+            assertThat(schemaOpt).isPresent();
+            SchemaMetadata schema = schemaOpt.get();
             assertThat(schema.getForeignKeys()).isNotEmpty();
             assertThat(schema.getForeignKeys().get(0).getReferencedTableName())
                     .isEqualToIgnoringCase("REF_TABLE");

@@ -63,7 +63,9 @@ public class JdbcTransactionContext implements TransactionContext {
         if (active) {
             rollback();
         }
-        closeConnection();
+        // 注意：rollback() 的 finally 块已经调用了 closeConnection()，
+        // 这里不再重复调用。如果事务已经不活跃（已 commit 或 rollback），
+        // 连接已经关闭，无需再次关闭。
     }
 
     private void closeConnection() {

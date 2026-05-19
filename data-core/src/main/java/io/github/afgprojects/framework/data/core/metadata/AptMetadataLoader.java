@@ -28,7 +28,6 @@ package io.github.afgprojects.framework.data.core.metadata;
  * </pre>
  *
  * @see io.github.afgprojects.framework.apt.entity.AfEntity
- * @see io.github.afgprojects.framework.apt.entity.EntityMetadataProcessor
  */
 public class AptMetadataLoader implements EntityMetadataLoader {
 

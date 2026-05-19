@@ -1,5 +1,7 @@
 package io.github.afgprojects.framework.data.core.metadata;
 
+import io.github.afgprojects.framework.data.core.exception.MetadataLoadException;
+
 /**
  * 反射元数据加载器
  * <p>
@@ -42,8 +44,23 @@ public class ReflectiveMetadataLoader implements EntityMetadataLoader {
             Class<?> reflectiveClass = Class.forName(REFLECTIVE_METADATA_CLASS);
             java.lang.reflect.Method createMethod = reflectiveClass.getMethod("create", Class.class);
             return (EntityMetadata<T>) createMethod.invoke(null, entityClass);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to load reflective metadata for: " + entityClass.getName(), e);
+        } catch (ClassNotFoundException e) {
+            throw new MetadataLoadException(
+                    "ReflectiveEntityMetadata class not found. Ensure data-jdbc module is on the classpath.",
+                    entityClass.getName(), e);
+        } catch (NoSuchMethodException e) {
+            throw new MetadataLoadException(
+                    "ReflectiveEntityMetadata.create method not found",
+                    entityClass.getName(), e);
+        } catch (java.lang.reflect.InvocationTargetException e) {
+            Throwable cause = e.getCause();
+            throw new MetadataLoadException(
+                    "Failed to create reflective metadata: " + (cause != null ? cause.getMessage() : e.getMessage()),
+                    entityClass.getName(), cause != null ? cause : e);
+        } catch (IllegalAccessException e) {
+            throw new MetadataLoadException(
+                    "Cannot access ReflectiveEntityMetadata.create method",
+                    entityClass.getName(), e);
         }
     }
 

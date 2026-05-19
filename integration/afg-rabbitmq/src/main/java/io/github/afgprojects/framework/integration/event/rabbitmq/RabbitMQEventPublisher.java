@@ -6,7 +6,7 @@ import org.jspecify.annotations.NonNull;
 
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
-import io.github.afgprojects.framework.core.api.event.DomainEvent;
+import io.github.afgprojects.framework.core.api.event.MessageEvent;
 import io.github.afgprojects.framework.core.api.event.EventPublisher;
 
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +46,7 @@ public class RabbitMQEventPublisher<T> implements EventPublisher<T> {
     }
 
     @Override
-    public void publish(@NonNull DomainEvent<T> event) {
+    public void publish(@NonNull MessageEvent<T> event) {
         String exchange = properties.getExchange();
         String routingKey = resolveRoutingKey(event);
 
@@ -60,7 +60,7 @@ public class RabbitMQEventPublisher<T> implements EventPublisher<T> {
     }
 
     @Override
-    public CompletableFuture<Void> publishAsync(@NonNull DomainEvent<T> event) {
+    public CompletableFuture<Void> publishAsync(@NonNull MessageEvent<T> event) {
         String exchange = properties.getExchange();
         String routingKey = resolveRoutingKey(event);
 
@@ -91,7 +91,7 @@ public class RabbitMQEventPublisher<T> implements EventPublisher<T> {
      * @param event 领域事件
      * @return 路由键
      */
-    private String resolveRoutingKey(DomainEvent<T> event) {
+    private String resolveRoutingKey(MessageEvent<T> event) {
         String topic = event.topic();
         if (topic != null && !topic.isEmpty()) {
             return topic;

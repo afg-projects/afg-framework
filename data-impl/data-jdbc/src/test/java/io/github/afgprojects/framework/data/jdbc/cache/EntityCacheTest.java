@@ -86,9 +86,10 @@ class EntityCacheTest {
             assertThat(firstResult).isPresent();
             assertThat(firstResult.get().getName()).isEqualTo("张三");
 
-            // 验证缓存中已存在
+            // 验证缓存中已存在（使用租户隔离的缓存键）
             EntityCache<CachedUser> cache = cacheManager.getCache(CachedUser.class);
-            assertThat(cache.containsKey(user.getId())).isTrue();
+            Object cacheKey = userProxy.getCacheHandler().getCacheKey(user.getId());
+            assertThat(cache.containsKey(cacheKey)).isTrue();
             assertThat(cache.size()).isEqualTo(1);
         }
 
@@ -156,13 +157,14 @@ class EntityCacheTest {
 
             // 验证缓存存在
             EntityCache<CachedUser> cache = cacheManager.getCache(CachedUser.class);
-            assertThat(cache.containsKey(user.getId())).isTrue();
+            Object cacheKey = userProxy.getCacheHandler().getCacheKey(user.getId());
+            assertThat(cache.containsKey(cacheKey)).isTrue();
 
             // When - 删除实体
             userProxy.deleteById(user.getId());
 
             // Then - 缓存已被失效
-            assertThat(cache.containsKey(user.getId())).isFalse();
+            assertThat(cache.containsKey(cacheKey)).isFalse();
 
             // 再次查询应返回空
             Optional<CachedUser> result = userProxy.findById(user.getId());
@@ -182,8 +184,9 @@ class EntityCacheTest {
             assertThat(result).isEmpty();
 
             EntityCache<CachedUser> cache = cacheManager.getCache(CachedUser.class);
-            assertThat(cache.containsKey(nonExistentId)).isTrue(); // null 标记存在
-            assertThat(cache.get(nonExistentId)).isEmpty();
+            Object cacheKey = userProxy.getCacheHandler().getCacheKey(nonExistentId);
+            assertThat(cache.containsKey(cacheKey)).isTrue(); // null 标记存在
+            assertThat(cache.get(cacheKey)).isEmpty();
         }
     }
 
@@ -318,13 +321,14 @@ class EntityCacheTest {
 
             // Then - insert 不会自动缓存，需要 findById 才会缓存
             EntityCache<CachedUser> cache = cacheManager.getCache(CachedUser.class);
-            assertThat(cache.containsKey(inserted.getId())).isFalse();
+            Object cacheKey = userProxy.getCacheHandler().getCacheKey(inserted.getId());
+            assertThat(cache.containsKey(cacheKey)).isFalse();
 
             // When - findById 后才会缓存
             userProxy.findById(inserted.getId());
 
             // Then - 实体应被缓存
-            assertThat(cache.containsKey(inserted.getId())).isTrue();
+            assertThat(cache.containsKey(cacheKey)).isTrue();
         }
 
         @Test
@@ -340,13 +344,14 @@ class EntityCacheTest {
 
             // Then - save 不会自动缓存
             EntityCache<CachedUser> cache = cacheManager.getCache(CachedUser.class);
-            assertThat(cache.containsKey(saved.getId())).isFalse();
+            Object cacheKey = userProxy.getCacheHandler().getCacheKey(saved.getId());
+            assertThat(cache.containsKey(cacheKey)).isFalse();
 
             // When - findById 后才会缓存
             userProxy.findById(saved.getId());
 
             // Then
-            assertThat(cache.containsKey(saved.getId())).isTrue();
+            assertThat(cache.containsKey(cacheKey)).isTrue();
         }
 
         @Test
@@ -362,14 +367,15 @@ class EntityCacheTest {
             userProxy.findById(user.getId());
 
             EntityCache<CachedUser> cache = cacheManager.getCache(CachedUser.class);
-            assertThat(cache.containsKey(user.getId())).isTrue();
+            Object cacheKey = userProxy.getCacheHandler().getCacheKey(user.getId());
+            assertThat(cache.containsKey(cacheKey)).isTrue();
 
             // When - 更新实体
             user.setName("更新名称");
             userProxy.save(user);
 
             // Then - 缓存应被失效
-            assertThat(cache.containsKey(user.getId())).isFalse();
+            assertThat(cache.containsKey(cacheKey)).isFalse();
         }
 
         @Test
@@ -479,7 +485,8 @@ class EntityCacheTest {
             userProxy.findById(user.getId());
 
             EntityCache<CachedUser> cache = cacheManager.getCache(CachedUser.class);
-            assertThat(cache.containsKey(user.getId())).isTrue();
+            Object cacheKey = userProxy.getCacheHandler().getCacheKey(user.getId());
+            assertThat(cache.containsKey(cacheKey)).isTrue();
 
             // When - 条件更新（注意：条件更新可能不会自动失效缓存，取决于实现）
             long updated = userProxy.updateAll(
@@ -489,7 +496,7 @@ class EntityCacheTest {
 
             // Then - 如果更新成功，缓存应被失效
             if (updated > 0) {
-                assertThat(cache.containsKey(user.getId())).isFalse();
+                assertThat(cache.containsKey(cacheKey)).isFalse();
             }
         }
 
@@ -504,14 +511,15 @@ class EntityCacheTest {
             userProxy.findById(user.getId());
 
             EntityCache<CachedUser> cache = cacheManager.getCache(CachedUser.class);
-            assertThat(cache.containsKey(user.getId())).isTrue();
+            Object cacheKey = userProxy.getCacheHandler().getCacheKey(user.getId());
+            assertThat(cache.containsKey(cacheKey)).isTrue();
 
             // When - 条件删除（注意：条件删除可能不会自动失效缓存，取决于实现）
             long deleted = userProxy.deleteAll(Conditions.eq("id", user.getId()));
 
             // Then - 如果删除成功，缓存应被失效
             if (deleted > 0) {
-                assertThat(cache.containsKey(user.getId())).isFalse();
+                assertThat(cache.containsKey(cacheKey)).isFalse();
             }
         }
     }

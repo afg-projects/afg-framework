@@ -637,6 +637,80 @@ class QueryTest {
                 Sort.Order order2 = new Sort.Order("name", Sort.Direction.ASC, true);
                 assertThat(order2.toString()).isEqualTo("name ASC IGNORE CASE");
             }
+
+            // ==================== 属性名验证测试 ====================
+
+            @Test
+            @DisplayName("应接受合法的属性名")
+            void shouldAcceptValidPropertyNames() {
+                // 字母开头
+                assertThat(Sort.Order.asc("name").getProperty()).isEqualTo("name");
+
+                // 下划线开头
+                assertThat(Sort.Order.asc("_private").getProperty()).isEqualTo("_private");
+
+                // 包含数字
+                assertThat(Sort.Order.asc("field1").getProperty()).isEqualTo("field1");
+
+                // 包含点号（嵌套属性）
+                assertThat(Sort.Order.asc("user.name").getProperty()).isEqualTo("user.name");
+
+                // 包含下划线和点号
+                assertThat(Sort.Order.asc("user_name.field").getProperty()).isEqualTo("user_name.field");
+
+                // 复杂嵌套属性
+                assertThat(Sort.Order.asc("user.profile.name").getProperty()).isEqualTo("user.profile.name");
+            }
+
+            @Test
+            @DisplayName("应拒绝空属性名")
+            void shouldRejectEmptyPropertyName() {
+                assertThatThrownBy(() -> Sort.Order.asc(""))
+                        .isInstanceOf(IllegalArgumentException.class)
+                        .hasMessageContaining("Property name must not be empty");
+            }
+
+            @Test
+            @DisplayName("应拒绝包含非法字符的属性名")
+            void shouldRejectInvalidPropertyNames() {
+                // 包含空格
+                assertThatThrownBy(() -> Sort.Order.asc("user name"))
+                        .isInstanceOf(IllegalArgumentException.class)
+                        .hasMessageContaining("Invalid property name");
+
+                // 包含特殊字符
+                assertThatThrownBy(() -> Sort.Order.asc("user-name"))
+                        .isInstanceOf(IllegalArgumentException.class)
+                        .hasMessageContaining("Invalid property name");
+
+                // 包含 SQL 注入尝试
+                assertThatThrownBy(() -> Sort.Order.asc("name; DROP TABLE users"))
+                        .isInstanceOf(IllegalArgumentException.class)
+                        .hasMessageContaining("Invalid property name");
+
+                // 数字开头
+                assertThatThrownBy(() -> Sort.Order.asc("1field"))
+                        .isInstanceOf(IllegalArgumentException.class)
+                        .hasMessageContaining("Invalid property name");
+
+                // 包含括号
+                assertThatThrownBy(() -> Sort.Order.asc("field()"))
+                        .isInstanceOf(IllegalArgumentException.class)
+                        .hasMessageContaining("Invalid property name");
+
+                // 包含单引号（SQL 注入）
+                assertThatThrownBy(() -> Sort.Order.asc("field'"))
+                        .isInstanceOf(IllegalArgumentException.class)
+                        .hasMessageContaining("Invalid property name");
+            }
+
+            @Test
+            @DisplayName("应拒绝 null 属性名")
+            void shouldRejectNullPropertyName() {
+                assertThatThrownBy(() -> Sort.Order.asc(null))
+                        .isInstanceOf(NullPointerException.class)
+                        .hasMessageContaining("property must not be null");
+            }
         }
 
         // ==================== Sort.Direction 测试 ====================

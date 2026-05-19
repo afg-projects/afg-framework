@@ -8,6 +8,7 @@ import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
 import io.github.afgprojects.framework.data.core.metadata.FieldMetadata;
 import io.github.afgprojects.framework.data.core.relation.RelationMetadata;
 import io.github.afgprojects.framework.data.core.relation.RelationType;
+import io.github.afgprojects.framework.data.jdbc.util.NamingUtils;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Field;
@@ -24,6 +25,11 @@ class AssociationLoader {
 
     private final Dialect dialect;
     private final JdbcDataManager dataManager;
+
+    /**
+     * 字段缓存，避免每次反射查找
+     */
+    private final Map<Class<?>, Map<String, Field>> fieldCache = new HashMap<>();
 
     AssociationLoader(Dialect dialect, JdbcDataManager dataManager) {
         this.dialect = dialect;
@@ -342,7 +348,7 @@ class AssociationLoader {
      */
     private @Nullable Object getFieldValueByReflection(Object entity, String fieldName) {
         try {
-            Field field = findDeclaredField(entity.getClass(), fieldName);
+            Field field = findDeclaredFieldCached(entity.getClass(), fieldName);
             if (field != null) {
                 field.setAccessible(true);
                 return field.get(entity);
@@ -354,9 +360,18 @@ class AssociationLoader {
     }
 
     /**
-     * 在类层次结构中查找字段
+     * 在类层次结构中查找字段（带缓存）
      */
-    private Field findDeclaredField(Class<?> clazz, String fieldName) {
+    private Field findDeclaredFieldCached(Class<?> clazz, String fieldName) {
+        return fieldCache
+                .computeIfAbsent(clazz, k -> new HashMap<>())
+                .computeIfAbsent(fieldName, fn -> findDeclaredFieldUncached(clazz, fn));
+    }
+
+    /**
+     * 在类层次结构中查找字段（无缓存）
+     */
+    private Field findDeclaredFieldUncached(Class<?> clazz, String fieldName) {
         Class<?> currentClass = clazz;
         while (currentClass != null && currentClass != Object.class) {
             try {
@@ -370,35 +385,20 @@ class AssociationLoader {
 
     /**
      * 列名转字段名（snake_case to camelCase）
+     *
+     * @see NamingUtils#columnNameToFieldName(String)
      */
     String columnNameToFieldName(String columnName) {
-        StringBuilder fieldName = new StringBuilder();
-        boolean nextUpper = false;
-        for (char c : columnName.toCharArray()) {
-            if (c == '_') {
-                nextUpper = true;
-            } else {
-                fieldName.append(nextUpper ? Character.toUpperCase(c) : c);
-                nextUpper = false;
-            }
-        }
-        return fieldName.toString();
+        return NamingUtils.columnNameToFieldName(columnName);
     }
 
     /**
      * 根据实体类推断表名
+     *
+     * @see NamingUtils#inferTableName(Class)
      */
     String inferTableName(Class<?> entityClass) {
-        String className = entityClass.getSimpleName();
-        StringBuilder tableName = new StringBuilder();
-        for (int i = 0; i < className.length(); i++) {
-            char c = className.charAt(i);
-            if (i > 0 && Character.isUpperCase(c)) {
-                tableName.append('_');
-            }
-            tableName.append(Character.toLowerCase(c));
-        }
-        return tableName.toString();
+        return NamingUtils.inferTableName(entityClass);
     }
 
     /**

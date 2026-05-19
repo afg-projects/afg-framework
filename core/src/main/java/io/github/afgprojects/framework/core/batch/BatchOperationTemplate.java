@@ -518,7 +518,13 @@ public class BatchOperationTemplate {
                 lastException = e;
                 if (attempt < maxAttempts) {
                     long waitTime = calculateWaitTime(attempt, initialInterval, multiplier, maxInterval);
-                    Thread.sleep(waitTime);
+                    try {
+                        Thread.sleep(waitTime);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        log.debug("Retry interrupted for item at index {}", index);
+                        break; // 中断时跳出重试循环
+                    }
                 }
             }
         }

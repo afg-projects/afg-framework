@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.maven.publish) apply false
     alias(libs.plugins.kotlin.jvm) apply false
     pmd
+    jacoco
 }
 
 // 从版本目录文件读取版本（统一版本管理，单一来源：libs.versions.toml）
@@ -35,6 +36,12 @@ subprojects {
             imports {
                 mavenBom("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
             }
+        }
+
+        // 全局添加 Spring Boot 配置元数据处理器
+        // 生成 META-INF/spring-configuration-metadata.json，支持 IDE 配置提示和配置自动上报
+        dependencies {
+            "annotationProcessor"("org.springframework.boot:spring-boot-configuration-processor")
         }
 
         configure<JavaPluginExtension> {
@@ -88,6 +95,16 @@ subprojects {
             ruleSetFiles = files("${rootProject.projectDir}/config/pmd/pmd-ruleset.xml")
         }
 
+        // 排除生成代码的 PMD 检查
+        tasks.named("pmdMain") {
+            doFirst {
+                val pmdTask = this as org.gradle.api.plugins.quality.Pmd
+                pmdTask.setSource(pmdTask.source.filter { file ->
+                    !file.absolutePath.contains("generated")
+                }.asFileTree)
+            }
+        }
+
         // 禁用测试代码的 PMD 检查
         tasks.named("pmdTest") {
             enabled = false
@@ -103,6 +120,27 @@ subprojects {
             reports {
                 xml.required.set(true)
                 html.required.set(true)
+            }
+        }
+
+        // JaCoCo 覆盖率阈值检查
+        tasks.register("jacocoCoverageCheck", JacocoCoverageVerification::class) {
+            dependsOn("test")
+            violationRules {
+                // 全局规则：覆盖率至少 60%
+                rule {
+                    limit {
+                        minimum = "0.60".toBigDecimal()
+                    }
+                }
+                // 核心模块规则：覆盖率至少 70%
+                rule {
+                    element = "BUNDLE"
+                    includes = listOf("io.github.afgprojects.framework.data.*")
+                    limit {
+                        minimum = "0.70".toBigDecimal()
+                    }
+                }
             }
         }
 

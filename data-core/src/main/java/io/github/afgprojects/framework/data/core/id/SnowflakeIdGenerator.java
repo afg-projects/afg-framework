@@ -78,11 +78,18 @@ public class SnowflakeIdGenerator implements IdentifierGenerator {
         try {
             long timestamp = currentTimeMillis();
 
-            // 时钟回拨检测
+            // 时钟回拨检测与容忍
             if (timestamp < lastTimestamp) {
-                throw new IllegalStateException(
-                        "Clock moved backwards! Refusing to generate id for " +
-                                (lastTimestamp - timestamp) + " milliseconds");
+                long drift = lastTimestamp - timestamp;
+                // 如果回拨时间在容忍范围内，等待时钟追上
+                if (drift <= config.getMaxClockDrift()) {
+                    timestamp = waitForNextMillis(lastTimestamp);
+                } else {
+                    throw new IllegalStateException(
+                            "Clock moved backwards by " + drift + " milliseconds, " +
+                            "exceeding maximum tolerated drift of " + config.getMaxClockDrift() + "ms. " +
+                            "Refusing to generate id.");
+                }
             }
 
             // 同一毫秒内，序列号递增

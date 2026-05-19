@@ -16,13 +16,22 @@ public final class InputSanitizer {
             Pattern.compile("<object[^>]*>.*?</object>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL),
             Pattern.compile("<embed[^>]*>", Pattern.CASE_INSENSITIVE),
             Pattern.compile("expression\\s*\\(", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("vbscript\\s*:", Pattern.CASE_INSENSITIVE));
+            Pattern.compile("vbscript\\s*:", Pattern.CASE_INSENSITIVE),
+            // SVG 标签
+            Pattern.compile("<svg[^>]*>.*?</svg>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL),
+            Pattern.compile("<svg[^>]*/>", Pattern.CASE_INSENSITIVE),
+            // MATH 标签
+            Pattern.compile("<math[^>]*>.*?</math>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL),
+            Pattern.compile("<math[^>]*/>", Pattern.CASE_INSENSITIVE),
+            // data: 协议
+            Pattern.compile("data\\s*:\\s*text/html", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("data\\s*:\\s*image/svg\\+xml", Pattern.CASE_INSENSITIVE));
 
     private static final List<Pattern> SQL_INJECTION_PATTERNS = List.of(
             // OR/AND 注入
             Pattern.compile("'\\s*(?:OR|AND)\\s+['\"]?\\d+['\"]?", Pattern.CASE_INSENSITIVE),
             Pattern.compile("\"\\s*(?:OR|AND)\\s+['\"]?\\d+['\"]?", Pattern.CASE_INSENSITIVE),
-            // UNION SELECT 注入
+            // UNION SELECT 注入（包括 UNION ALL SELECT）
             Pattern.compile("(?:UNION\\s+(?:ALL\\s+)?SELECT)", Pattern.CASE_INSENSITIVE),
             // DROP TABLE 注入
             Pattern.compile("(?:DROP\\s+TABLE)", Pattern.CASE_INSENSITIVE),
@@ -40,7 +49,17 @@ public final class InputSanitizer {
             // EXEC/EXECUTE 注入
             Pattern.compile("\\bEXEC(?:UTE)?\\s+", Pattern.CASE_INSENSITIVE),
             // xp_cmdshell 注入
-            Pattern.compile("xp_cmdshell", Pattern.CASE_INSENSITIVE));
+            Pattern.compile("xp_cmdshell", Pattern.CASE_INSENSITIVE),
+            // HAVING 注入
+            Pattern.compile("\\bHAVING\\s+\\d+\\s*[=<>]", Pattern.CASE_INSENSITIVE),
+            // GROUP BY 注入
+            Pattern.compile("\\bGROUP\\s+BY\\s+[^\\w\\s,]", Pattern.CASE_INSENSITIVE),
+            // 时间盲注（SLEEP/BENCHMARK）
+            Pattern.compile("\\bSLEEP\\s*\\(\\s*\\d+", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("\\bBENCHMARK\\s*\\(\\s*\\d+", Pattern.CASE_INSENSITIVE),
+            // 布尔盲注（1=1, 'a'='a' 等）
+            Pattern.compile("['\"]?\\d+['\"]?\\s*=\\s*['\"]?\\d+['\"]?", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("['\"][a-zA-Z]+['\"]\\s*=\\s*['\"][a-zA-Z]+['\"]", Pattern.CASE_INSENSITIVE));
 
     private InputSanitizer() {}
 

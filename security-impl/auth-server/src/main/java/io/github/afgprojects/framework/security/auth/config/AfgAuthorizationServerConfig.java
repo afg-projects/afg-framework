@@ -80,7 +80,12 @@ public class AfgAuthorizationServerConfig {
      *   <li>/auth-api/internal/permissions/** - 权限查询接口</li>
      * </ul>
      *
-     * <p>这些端点通常通过服务间认证（如 API Key、内部网络隔离）保护。
+     * <p>内部端点通过签名验证实现零信任认证：
+     * <ul>
+     *   <li>请求必须包含有效的签名（X-Signature、X-Timestamp、X-Nonce）</li>
+     *   <li>签名验证由 SignatureInterceptor 拦截器处理</li>
+     *   <li>Spring Security 层面放行，由签名拦截器负责认证</li>
+     * </ul>
      *
      * @param http HttpSecurity 配置
      * @return 内部服务安全过滤器链
@@ -88,13 +93,13 @@ public class AfgAuthorizationServerConfig {
     @Bean
     @Order(2)
     public SecurityFilterChain internalSecurityFilterChain(HttpSecurity http) {
-        log.info("Configuring internal service security filter chain");
+        log.info("Configuring internal service security filter chain (signature-based auth)");
 
         http
             .securityMatcher("/auth-api/internal/**")
             .authorizeHttpRequests(authorize ->
                 authorize
-                    // 内部服务端点暂时公开（后续可添加服务间认证）
+                    // 签名验证由 SignatureInterceptor 处理，Spring Security 层面放行
                     .anyRequest().permitAll())
             .csrf(csrf -> csrf.ignoringRequestMatchers("/auth-api/internal/**"))
             .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));

@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
 /**
  * ChangeLog 生成器
@@ -16,13 +14,16 @@ import java.time.format.DateTimeFormatter;
  * <p>
  * 生成的 XML 符合项目规范：
  * <ul>
- *   <li>changeSet id 格式：{表名}-{描述}</li>
+ *   <li>changeSet id 格式：v{版本}-{序号}-{表名}[-{操作}]</li>
  *   <li>author 统一为 afg</li>
  *   <li>包含 remarks 注释</li>
  *   <li>自动生成索引</li>
  * </ul>
  */
 public class ChangeLogGenerator {
+
+    private static final String DEFAULT_VERSION = "1.0.0";
+    private static final String DEFAULT_AUTHOR = "afg";
 
     private static final String XML_DECLARATION = """
             <?xml version="1.0" encoding="UTF-8"?>
@@ -38,32 +39,39 @@ public class ChangeLogGenerator {
     /**
      * 生成完整的 ChangeLog 文件
      *
-     * @param schema   Schema 元数据
-     * @param author   作者
+     * @param schema     Schema 元数据
+     * @param module     模块名（如 platform、governance、auth）
+     * @param version    版本号（如 1.0.0）
+     * @param sequence   序号（如 1、2、3）
      * @param outputPath 输出路径
      */
-    public void generateCreateTable(SchemaMetadata schema, String author, Path outputPath) throws IOException {
-        generateCreateTable(schema, author, outputPath, null);
+    public void generateCreateTable(SchemaMetadata schema, String module, String version, int sequence, Path outputPath) throws IOException {
+        generateCreateTable(schema, module, version, sequence, DEFAULT_AUTHOR, outputPath, null);
     }
 
     /**
-     * 生成完整的 ChangeLog 文件（带表注释）
+     * 生成完整的 ChangeLog 文件（完整参数）
      *
      * @param schema     Schema 元数据
+     * @param module     模块名（如 platform、governance、auth）
+     * @param version    版本号（如 1.0.0）
+     * @param sequence   序号（如 1、2、3）
      * @param author     作者
      * @param outputPath 输出路径
      * @param remarks    表注释（中文说明）
      */
-    public void generateCreateTable(SchemaMetadata schema, String author, Path outputPath, String remarks) throws IOException {
+    public void generateCreateTable(SchemaMetadata schema, String module, String version, int sequence,
+                                    String author, Path outputPath, String remarks) throws IOException {
         StringBuilder xml = new StringBuilder();
         xml.append(XML_DECLARATION);
 
-        String changeSetId = generateChangeSetId(schema.getTableName(), "init");
+        String changeSetId = generateChangeSetId(version, sequence, schema.getTableName(), null);
         xml.append(generateCreateTableChangeSet(schema, author, changeSetId, remarks));
 
-        // 生成索引
+        // 生成索引（作为同一个 changeSet 的一部分）
         if (schema.getIndexes() != null && !schema.getIndexes().isEmpty()) {
-            xml.append(generateIndexChangeSet(schema, author, changeSetId + "-idx"));
+            xml.append(generateIndexChangeSet(schema, author,
+                generateChangeSetId(version, sequence, schema.getTableName(), "idx")));
         }
 
         xml.append(XML_FOOTER);
@@ -77,14 +85,18 @@ public class ChangeLogGenerator {
      * 根据差异生成增量 ChangeLog
      *
      * @param diff       Schema 差异
+     * @param module     模块名（如 platform、governance、auth）
+     * @param version    版本号（如 1.0.0）
+     * @param sequence   序号（如 1、2、3）
      * @param author     作者
      * @param outputPath 输出路径
      */
-    public void generateIncremental(SchemaDiff diff, String author, Path outputPath) throws IOException {
+    public void generateIncremental(SchemaDiff diff, String module, String version, int sequence,
+                                    String author, Path outputPath) throws IOException {
         StringBuilder xml = new StringBuilder();
         xml.append(XML_DECLARATION);
 
-        int changeSetNum = 1;
+        int currentSequence = sequence;
 
         // 生成新增列的 ChangeSet
         for (ColumnDiff columnDiff : diff.columnDiffs()) {
@@ -93,7 +105,7 @@ public class ChangeLogGenerator {
                         diff.tableName(),
                         columnDiff.sourceColumn(),
                         author,
-                        generateChangeSetId(diff.tableName(), "add-" + columnDiff.columnName())
+                        generateChangeSetId(version, currentSequence++, diff.tableName(), "add-" + columnDiff.columnName())
                 ));
             }
         }
@@ -105,7 +117,7 @@ public class ChangeLogGenerator {
                         diff.tableName(),
                         columnDiff.columnName(),
                         author,
-                        generateChangeSetId(diff.tableName(), "drop-" + columnDiff.columnName())
+                        generateChangeSetId(version, currentSequence++, diff.tableName(), "drop-" + columnDiff.columnName())
                 ));
             }
         }
@@ -117,7 +129,7 @@ public class ChangeLogGenerator {
                         diff.tableName(),
                         columnDiff.sourceColumn(),
                         author,
-                        generateChangeSetId(diff.tableName(), "modify-" + columnDiff.columnName())
+                        generateChangeSetId(version, currentSequence++, diff.tableName(), "modify-" + columnDiff.columnName())
                 ));
             }
         }
@@ -222,6 +234,9 @@ public class ChangeLogGenerator {
                 if (column.isPrimaryKey()) {
                     sb.append(" primaryKey=\"true\" primaryKeyName=\"pk_").append(column.getColumnName()).append("\"");
                 }
+                if (!column.isNullable()) {
+                    sb.append(" nullable=\"false\"");
+                }
                 sb.append("/>\n");
                 sb.append(spaces).append("    <autoIncrement/>\n");
             } else if (hasConstraints) {
@@ -260,14 +275,52 @@ public class ChangeLogGenerator {
     /**
      * 生成 changeSet id
      * <p>
-     * 格式：{表名}-{描述}
+     * 格式：v{版本}-{序号}-{表名}[-{操作}]
      * <p>
-     * 示例：sys-user-init, sys-user-add-phone
+     * 示例：v1.0.0-001-sys-user, v1.0.0-001-sys-user-idx
+     *
+     * @param version    版本号（如 1.0.0）
+     * @param sequence   序号（如 1、2、3）
+     * @param tableName  表名
+     * @param operation  操作类型（可选，如 idx、add-phone）
      */
-    private String generateChangeSetId(String tableName, String description) {
+    private String generateChangeSetId(String version, int sequence, String tableName, String operation) {
         // 将表名转换为 kebab-case 格式
         String normalizedTableName = tableName.replace("_", "-");
-        return normalizedTableName + "-" + description;
+        String id = String.format("v%s-%03d-%s", version, sequence, normalizedTableName);
+        if (operation != null && !operation.isEmpty()) {
+            id += "-" + operation;
+        }
+        return id;
+    }
+
+    /**
+     * 生成输出文件名
+     * <p>
+     * 格式：{序号}_{表名}.xml
+     * <p>
+     * 示例：001_sys_user.xml, 002_sys_role.xml
+     *
+     * @param sequence  序号（如 1、2、3）
+     * @param tableName 表名
+     */
+    public String generateFileName(int sequence, String tableName) {
+        return String.format("%03d_%s.xml", sequence, tableName);
+    }
+
+    /**
+     * 生成输出目录路径
+     * <p>
+     * 格式：{baseDir}/changelog/{module}/v{版本}/
+     * <p>
+     * 示例：src/main/resources/db/changelog/platform/v1.0.0/
+     *
+     * @param baseDir   基础目录（如 src/main/resources/db）
+     * @param module    模块名（如 platform、governance、auth）
+     * @param version   版本号（如 1.0.0）
+     */
+    public Path generateOutputDirectory(Path baseDir, String module, String version) {
+        return baseDir.resolve("changelog").resolve(module).resolve("v" + version);
     }
 
     private String escapeXml(String value) {

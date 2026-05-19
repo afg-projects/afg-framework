@@ -97,17 +97,20 @@ public class CircuitBreaker {
      * @return 如果允许调用返回 true
      */
     public boolean allowRequest() {
-        State currentState = getState();
+        synchronized (this) {
+            State currentState = getState();
 
-        switch (currentState) {
-            case CLOSED:
-                return true;
-            case OPEN:
-                return false;
-            case HALF_OPEN:
-                return halfOpenCalls.incrementAndGet() <= halfOpenMaxCalls;
-            default:
-                return false;
+            switch (currentState) {
+                case CLOSED:
+                    return true;
+                case OPEN:
+                    return false;
+                case HALF_OPEN:
+                    int calls = halfOpenCalls.incrementAndGet();
+                    return calls <= halfOpenMaxCalls;
+                default:
+                    return false;
+            }
         }
     }
 

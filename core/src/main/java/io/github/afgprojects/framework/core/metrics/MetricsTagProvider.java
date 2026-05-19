@@ -17,7 +17,7 @@ import io.micrometer.core.instrument.Tags;
  * <h3>使用示例</h3>
  * <pre>
  * public class TenantTagProvider implements MetricsTagProvider {
- *     @Override
+ *
  *     public Iterable&lt;Tag&gt; getTags() {
  *         return Tags.of("tenant", TenantContext.getCurrentTenant());
  *     }

@@ -12,6 +12,7 @@ import io.github.afgprojects.framework.security.resource.permission.HttpPermissi
 import io.github.afgprojects.framework.security.resource.permission.JwtPermissionChecker;
 import io.github.afgprojects.framework.security.resource.permission.PermissionAspect;
 import io.github.afgprojects.framework.security.resource.permission.RemotePermissionClient;
+import io.github.afgprojects.framework.security.resource.permission.SignedHttpPermissionClient;
 import io.github.afgprojects.framework.security.resource.tenant.HeaderTenantResolver;
 import io.github.afgprojects.framework.security.resource.tenant.TokenTenantResolver;
 import io.github.afgprojects.framework.security.resource.tenant.TenantResolverChain;
@@ -165,15 +166,26 @@ public class ResourceServerAutoConfiguration {
     }
 
     /**
-     * 配置 HTTP 远程权限客户端（可选）。
+     * 配置 HTTP 远程权限客户端（带签名验证）。
+     *
+     * <p>需要配置 keyId 和 secret 才能启用签名验证。
+     * 如果未配置密钥，将使用无签名的简单客户端（不推荐用于生产环境）。
      */
     @Bean
     @ConditionalOnProperty(prefix = "afg.security.resource.permission", name = "auth-server-url")
     @ConditionalOnMissingBean
     public RemotePermissionClient remotePermissionClient(@NonNull ResourceServerProperties properties) {
         String authServerUrl = properties.getPermission().getAuthServerUrl();
-        log.info("Configuring HTTP permission client with auth server: {}", authServerUrl);
-        return new HttpPermissionClient(authServerUrl);
+        String keyId = properties.getPermission().getKeyId();
+        String secret = properties.getPermission().getSecret();
+
+        if (keyId != null && !keyId.isEmpty() && secret != null && !secret.isEmpty()) {
+            log.info("Configuring signed HTTP permission client with auth server: {}, keyId: {}", authServerUrl, keyId);
+            return new SignedHttpPermissionClient(authServerUrl, keyId, secret);
+        } else {
+            log.warn("Configuring unsigned HTTP permission client - NOT recommended for production! Consider configuring keyId and secret.");
+            return new HttpPermissionClient(authServerUrl);
+        }
     }
 
     /**

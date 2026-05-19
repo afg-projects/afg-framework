@@ -100,33 +100,33 @@ class AfgPlugin : Plugin<Project> {
      * 配置部署模式
      */
     private fun configureDeploymentMode(project: Project, extension: AfgExtension) {
-        val deploymentMode = extension.deploymentMode.getOrElse("module")
+        val standalone = extension.standalone.getOrElse(true)
 
-        when (deploymentMode) {
-            "module" -> {
-                // 独立部署模式：自动应用 Spring Boot 插件，生成可执行 bootJar
-                if (!project.plugins.hasPlugin("org.springframework.boot")) {
-                    project.plugins.apply("org.springframework.boot")
-                }
-                try {
-                    val bootJar = project.tasks.findByName("bootJar")
-                    bootJar?.enabled = true
-                    val jar = project.tasks.findByName("jar") as? Jar
-                    jar?.enabled = true
-                } catch (e: Exception) {
-                    // 忽略配置错误
-                }
+        if (standalone) {
+            // 独立部署：自动应用 Spring Boot 插件，生成可执行 bootJar
+            if (!project.plugins.hasPlugin("org.springframework.boot")) {
+                project.plugins.apply("org.springframework.boot")
             }
-            "platform" -> {
-                // 聚合部署模式：作为普通 jar 被主应用依赖
-                try {
-                    val bootJar = project.tasks.findByName("bootJar")
-                    bootJar?.enabled = false
-                    val jar = project.tasks.findByName("jar") as? Jar
-                    jar?.enabled = true
-                } catch (e: Exception) {
-                    // 忽略配置错误
-                }
+            try {
+                val bootJar = project.tasks.findByName("bootJar")
+                bootJar?.enabled = true
+                val jar = project.tasks.findByName("jar") as? Jar
+                jar?.enabled = true
+            } catch (e: Exception) {
+                // 忽略配置错误
+            }
+        } else {
+            // 聚合部署：作为普通 jar 被主应用依赖
+            try {
+                val bootJar = project.tasks.findByName("bootJar")
+                bootJar?.enabled = false
+                val jar = project.tasks.findByName("jar") as? Jar
+                jar?.enabled = true
+
+                // 排除 db/changelog/changelog.xml，由主应用统一管理迁移
+                jar?.exclude("db/changelog/changelog.xml")
+            } catch (e: Exception) {
+                // 忽略配置错误
             }
         }
     }
@@ -173,6 +173,10 @@ class AfgPlugin : Plugin<Project> {
                 add("testCompileOnly", "org.projectlombok:lombok")
                 add("testAnnotationProcessor", "org.projectlombok:lombok")
             }
+
+            // 自动添加 Spring Boot 配置元数据处理器
+            // 生成 META-INF/spring-configuration-metadata.json，支持 IDE 配置提示
+            add("annotationProcessor", "org.springframework.boot:spring-boot-configuration-processor")
 
             // 自动添加 JSR-305 空安全注解（如果启用）
             if (extension.useJsr305.getOrElse(true)) {
@@ -306,7 +310,7 @@ class AfgPlugin : Plugin<Project> {
                 println("  Spring Boot 版本: ${extension.springBootVersion.getOrElse(DEFAULT_SPRING_BOOT_VERSION)}")
                 println("  框架版本: ${extension.frameworkVersion.getOrElse(DEFAULT_FRAMEWORK_VERSION)}")
                 println("  模块类型: ${extension.moduleType.getOrElse("starter")}")
-                println("  部署模式: ${extension.deploymentMode.getOrElse("module")}")
+                println("  独立部署: ${extension.standalone.getOrElse(true)}")
                 println("  使用 Lombok: ${extension.useLombok.getOrElse(true)}")
                 println("  使用 JSR-305: ${extension.useJsr305.getOrElse(true)}")
                 println("  使用 Validation: ${extension.useValidation.getOrElse(true)}")

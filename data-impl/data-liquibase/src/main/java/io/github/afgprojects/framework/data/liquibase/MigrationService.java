@@ -20,6 +20,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 /**
  * 迁移服务
@@ -52,13 +53,16 @@ public class MigrationService {
      * 根据实体生成迁移脚本
      *
      * @param entityMetadata 实体元数据
-     * @param author         作者
+     * @param module         模块名（如 platform、governance、auth）
+     * @param version        版本号（如 1.0.0）
+     * @param sequence       序号（如 1、2、3）
      * @param outputPath     输出路径
      */
     public void generateMigrationFromEntity(EntityMetadata<?> entityMetadata,
-                                             String author, Path outputPath) throws IOException {
+                                             String module, String version, int sequence,
+                                             Path outputPath) throws IOException {
         SchemaMetadata schema = entityExtractor.convert(entityMetadata);
-        changeLogGenerator.generateCreateTable(schema, author, outputPath);
+        changeLogGenerator.generateCreateTable(schema, module, version, sequence, outputPath);
     }
 
     /**
@@ -67,6 +71,9 @@ public class MigrationService {
      * @param entityMetadata 实体元数据
      * @param connection     数据库连接（用于比对）
      * @param changeLogPath  历史 ChangeLog 路径（用于比对）
+     * @param module         模块名（如 platform、governance、auth）
+     * @param version        版本号（如 1.0.0）
+     * @param sequence       序号（如 1、2、3）
      * @param author         作者
      * @param outputPath     输出路径
      * @return 三向差异报告
@@ -75,8 +82,11 @@ public class MigrationService {
             EntityMetadata<?> entityMetadata,
             Connection connection,
             String changeLogPath,
+            String module,
+            String version,
+            int sequence,
             String author,
-            Path outputPath) throws IOException, SQLException, Exception {
+            Path outputPath) throws IOException, SQLException, LiquibaseException {
 
         // 1. 从实体提取 Schema
         SchemaMetadata fromEntity = entityExtractor.convert(entityMetadata);
@@ -84,7 +94,7 @@ public class MigrationService {
         // 2. 从数据库读取 Schema（如果连接存在）
         SchemaMetadata fromDatabase = null;
         if (connection != null) {
-            fromDatabase = jdbcReader.readTable(connection, fromEntity.getTableName());
+            fromDatabase = jdbcReader.readTable(connection, fromEntity.getTableName()).orElse(null);
         }
 
         // 3. 从 ChangeLog 读取 Schema（如果文件存在）
@@ -105,10 +115,10 @@ public class MigrationService {
         // 6. 根据差异生成迁移脚本
         if (fromDatabase == null) {
             // 表不存在，生成 createTable
-            changeLogGenerator.generateCreateTable(fromEntity, author, outputPath);
+            changeLogGenerator.generateCreateTable(fromEntity, module, version, sequence, author, outputPath, null);
         } else if (diff.entityVsDatabase() != null && diff.entityVsDatabase().hasDifferences()) {
             // 表存在但有差异，生成增量变更
-            changeLogGenerator.generateIncremental(diff.entityVsDatabase(), author, outputPath);
+            changeLogGenerator.generateIncremental(diff.entityVsDatabase(), module, version, sequence, author, outputPath);
         }
 
         return diff;
@@ -121,10 +131,12 @@ public class MigrationService {
      * @param tableName   表名
      * @param packageName 包名
      * @param outputDir   输出目录
+     * @throws NoSuchElementException 如果表不存在
      */
     public void generateEntityFromDatabase(Connection connection, String tableName,
                                             String packageName, Path outputDir) throws SQLException, IOException {
-        SchemaMetadata schema = jdbcReader.readTable(connection, tableName);
+        SchemaMetadata schema = jdbcReader.readTable(connection, tableName)
+                .orElseThrow(() -> new NoSuchElementException("Table not found: " + tableName));
         entityGenerator.generate(schema, packageName, outputDir);
     }
 
@@ -187,7 +199,8 @@ public class MigrationService {
     public SchemaDiff compareEntityWithDatabase(EntityMetadata<?> entityMetadata,
                                                 Connection connection) throws SQLException {
         SchemaMetadata fromEntity = entityExtractor.convert(entityMetadata);
-        SchemaMetadata fromDatabase = jdbcReader.readTable(connection, fromEntity.getTableName());
+        SchemaMetadata fromDatabase = jdbcReader.readTable(connection, fromEntity.getTableName())
+                .orElse(null);
         return schemaComparator.compare(fromEntity, fromDatabase);
     }
 

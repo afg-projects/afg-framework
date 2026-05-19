@@ -13,6 +13,12 @@ import java.util.List;
  */
 public class SqlInsertBuilderImpl implements SqlInsertBuilder {
 
+    /**
+     * 合法标识符正则：字母/下划线开头，后跟字母/数字/下划线
+     */
+    private static final java.util.regex.Pattern VALID_IDENTIFIER_PATTERN =
+            java.util.regex.Pattern.compile("^[a-zA-Z_][a-zA-Z0-9_]*$");
+
     private final Dialect dialect;
     private String tableName;
     private List<String> columnNames = new ArrayList<>();
@@ -28,12 +34,16 @@ public class SqlInsertBuilderImpl implements SqlInsertBuilder {
 
     @Override
     public @NonNull SqlInsertBuilder into(@NonNull String table) {
+        validateIdentifier(table, "table name");
         this.tableName = table;
         return this;
     }
 
     @Override
     public @NonNull SqlInsertBuilder columns(@NonNull String... columns) {
+        for (String column : columns) {
+            validateIdentifier(column, "column name");
+        }
         this.columnNames = new ArrayList<>(List.of(columns));
         return this;
     }
@@ -95,5 +105,24 @@ public class SqlInsertBuilderImpl implements SqlInsertBuilder {
     @Override
     public long executeAndReturnKey() {
         throw new UnsupportedOperationException("Use DataManager to execute insert");
+    }
+
+    /**
+     * 验证标识符合法性，防止 SQL 注入
+     *
+     * @param identifier 标识符
+     * @param type       标识符类型描述（用于错误消息）
+     * @throws IllegalArgumentException 如果标识符非法
+     */
+    private void validateIdentifier(String identifier, String type) {
+        if (identifier == null || identifier.isEmpty()) {
+            throw new IllegalArgumentException(type + " cannot be null or empty");
+        }
+        if (!VALID_IDENTIFIER_PATTERN.matcher(identifier).matches()) {
+            throw new IllegalArgumentException(
+                    "Invalid " + type + ": '" + identifier + "'. " +
+                    "Identifier must start with a letter or underscore, " +
+                    "followed by letters, digits, or underscores.");
+        }
     }
 }

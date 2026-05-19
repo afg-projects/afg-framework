@@ -21,7 +21,7 @@ class DataScopeContextCacheTest {
     @AfterEach
     void tearDown() {
         if (cache != null) {
-            cache.shutdown();
+            cache.close();
         }
     }
 

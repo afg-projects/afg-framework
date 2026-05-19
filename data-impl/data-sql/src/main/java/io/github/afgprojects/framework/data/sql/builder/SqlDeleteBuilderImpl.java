@@ -15,9 +15,16 @@ import java.util.List;
  */
 public class SqlDeleteBuilderImpl implements SqlDeleteBuilder {
 
+    /**
+     * 合法标识符正则：字母/下划线开头，后跟字母/数字/下划线
+     */
+    private static final java.util.regex.Pattern VALID_IDENTIFIER_PATTERN =
+            java.util.regex.Pattern.compile("^[a-zA-Z_][a-zA-Z0-9_]*$");
+
     private final Dialect dialect;
     private String tableName;
     private Condition whereCondition;
+    private final ConditionToSqlConverter conditionConverter = new ConditionToSqlConverter();
 
     public SqlDeleteBuilderImpl() {
         this.dialect = new MySQLDialect();
@@ -29,6 +36,7 @@ public class SqlDeleteBuilderImpl implements SqlDeleteBuilder {
 
     @Override
     public @NonNull SqlDeleteBuilder from(@NonNull String table) {
+        validateIdentifier(table, "table name");
         this.tableName = table;
         return this;
     }
@@ -45,8 +53,7 @@ public class SqlDeleteBuilderImpl implements SqlDeleteBuilder {
         sql.append("DELETE FROM ").append(dialect.quoteIdentifier(tableName));
 
         if (whereCondition != null && !whereCondition.isEmpty()) {
-            ConditionToSqlConverter converter = new ConditionToSqlConverter();
-            ConditionToSqlConverter.SqlResult result = converter.convert(whereCondition);
+            ConditionToSqlConverter.SqlResult result = conditionConverter.convert(whereCondition);
             sql.append(" WHERE ").append(result.sql());
         }
 
@@ -56,8 +63,7 @@ public class SqlDeleteBuilderImpl implements SqlDeleteBuilder {
     @Override
     public @NonNull List<Object> getParameters() {
         if (whereCondition != null && !whereCondition.isEmpty()) {
-            ConditionToSqlConverter converter = new ConditionToSqlConverter();
-            return new ArrayList<>(converter.convert(whereCondition).parameters());
+            return new ArrayList<>(conditionConverter.convert(whereCondition).parameters());
         }
         return List.of();
     }
@@ -65,5 +71,24 @@ public class SqlDeleteBuilderImpl implements SqlDeleteBuilder {
     @Override
     public int execute() {
         throw new UnsupportedOperationException("Use DataManager to execute delete");
+    }
+
+    /**
+     * 验证标识符合法性，防止 SQL 注入
+     *
+     * @param identifier 标识符
+     * @param type       标识符类型描述（用于错误消息）
+     * @throws IllegalArgumentException 如果标识符非法
+     */
+    private void validateIdentifier(String identifier, String type) {
+        if (identifier == null || identifier.isEmpty()) {
+            throw new IllegalArgumentException(type + " cannot be null or empty");
+        }
+        if (!VALID_IDENTIFIER_PATTERN.matcher(identifier).matches()) {
+            throw new IllegalArgumentException(
+                    "Invalid " + type + ": '" + identifier + "'. " +
+                    "Identifier must start with a letter or underscore, " +
+                    "followed by letters, digits, or underscores.");
+        }
     }
 }

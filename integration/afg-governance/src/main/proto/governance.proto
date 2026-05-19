@@ -57,6 +57,12 @@ message PublishConfigRequest {
   string value = 2;
   string reason = 3;                  // 变更原因
   string operator = 4;                // 操作人
+  string service_name = 5;            // 服务名称（用于分组）
+  string environment = 6;             // 环境（dev/test/prod）
+  string display_name = 7;            // 配置项中文显示名
+  string type = 8;                    // 配置类型（java.lang.Boolean, java.lang.Integer 等）
+  string default_value = 9;           // 默认值
+  bool deprecated = 10;               // 是否已废弃
 }
 
 // 发布配置响应

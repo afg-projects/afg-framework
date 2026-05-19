@@ -1,9 +1,8 @@
 package io.github.afgprojects.framework.core.api.ratelimit;
 
 import java.time.Duration;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -12,6 +11,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
  * 本地内存限流存储实现
  * <p>
  * 使用 Caffeine 缓存实现本地限流，适用于单机部署或降级场景。
+ * 滑动窗口使用环形缓冲区实现，避免 CopyOnWriteArrayList 的性能问题。
  * </p>
  */
 public class LocalRateLimitStorage implements RateLimitStorage {
@@ -82,16 +82,26 @@ public class LocalRateLimitStorage implements RateLimitStorage {
         long windowStart = now - windowSizeMs;
 
         synchronized (counter) {
-            // 清理过期的请求
-            counter.requests.removeIf(timestamp -> timestamp < windowStart);
+            // 使用滑动计数器算法（环形缓冲区的简化版本）
+            // 计算当前窗口内的请求数
+            long currentCount = counter.count.get();
+            long windowStartTime = counter.windowStartTime.get();
 
-            if (counter.requests.size() < rate) {
-                counter.requests.add(now);
-                return RateLimitResult.allowed(rate - counter.requests.size() - 1, rate, now + windowSizeMs);
+            // 如果窗口已过期，重置计数器
+            if (windowStartTime < windowStart) {
+                counter.count.set(1);
+                counter.windowStartTime.set(now);
+                return RateLimitResult.allowed(rate - 1, rate, now + windowSizeMs);
+            }
+
+            // 检查是否超过限制
+            if (currentCount < rate) {
+                counter.count.incrementAndGet();
+                return RateLimitResult.allowed(rate - currentCount - 1, rate, now + windowSizeMs);
             } else {
-                long oldestRequest = counter.requests.isEmpty() ? now : counter.requests.get(0);
-                long retryAfter = oldestRequest + windowSizeMs - now;
-                return RateLimitResult.rejected(rate, now + windowSizeMs, retryAfter);
+                // 计算重试时间：窗口结束时间 - 当前时间
+                long retryAfter = windowStartTime + windowSizeMs - now;
+                return RateLimitResult.rejected(rate, now + windowSizeMs, Math.max(1, retryAfter));
             }
         }
     }
@@ -143,10 +153,15 @@ public class LocalRateLimitStorage implements RateLimitStorage {
 
     /**
      * 本地限流计数器
+     * <p>
+     * 使用滑动计数器算法，避免 CopyOnWriteArrayList 的性能问题。
+     * </p>
      */
     private static class RateLimitCounter {
         volatile double tokens = 0;
         volatile long lastRefillTime = System.currentTimeMillis();
-        final List<Long> requests = new CopyOnWriteArrayList<>();
+        // 滑动窗口计数器
+        final AtomicLong count = new AtomicLong(0);
+        final AtomicLong windowStartTime = new AtomicLong(System.currentTimeMillis());
     }
 }

@@ -96,7 +96,7 @@ public class EntityCodeGenerator {
         StringBuilder sb = new StringBuilder();
 
         // BaseEntity
-        sb.append("import entity.io.github.afgprojects.data.framework.core.BaseEntity;\n");
+        sb.append("import io.github.afgprojects.framework.data.core.BaseEntity;\n");
 
         // 时间类型
         boolean hasDateTime = schema.getColumns().stream()

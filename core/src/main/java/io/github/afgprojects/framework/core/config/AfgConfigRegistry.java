@@ -41,16 +41,9 @@ public class AfgConfigRegistry {
 
     public void register(@NonNull String prefix, @NonNull Object config, @NonNull ConfigSource source) {
         withWriteLock(() -> {
-            if (prefix == null || prefix.isBlank()) {
+            if (prefix.isBlank()) {
                 throw new IllegalArgumentException("Prefix cannot be null or blank");
             }
-            if (config == null) {
-                throw new IllegalArgumentException("Config cannot be null");
-            }
-            if (source == null) {
-                throw new IllegalArgumentException("Source cannot be null");
-            }
-
             sourceManager.registerSource(prefix, config, source);
             log.info("Config registered: {} from source: {}", prefix, source);
         });

@@ -12,12 +12,14 @@ import io.github.afgprojects.framework.data.core.sql.SqlInsertBuilder;
 import io.github.afgprojects.framework.data.core.sql.SqlQueryBuilder;
 import io.github.afgprojects.framework.data.core.sql.SqlUpdateBuilder;
 import io.github.afgprojects.framework.data.core.transaction.TransactionAdapter;
+import io.github.afgprojects.framework.data.core.transaction.TransactionException;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheManager;
 import io.github.afgprojects.framework.data.sql.builder.SqlDeleteBuilderImpl;
 import io.github.afgprojects.framework.data.sql.builder.SqlInsertBuilderImpl;
 import io.github.afgprojects.framework.data.sql.builder.SqlQueryBuilderImpl;
 import io.github.afgprojects.framework.data.sql.builder.SqlUpdateBuilderImpl;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -36,6 +38,7 @@ import java.util.function.Supplier;
 /**
  * 基于 Spring JdbcClient 的 DataManager 实现
  */
+@Slf4j
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
 public class JdbcDataManager implements DataManager {
 
@@ -161,11 +164,21 @@ public class JdbcDataManager implements DataManager {
                 con.commit();
                 return result;
             } catch (Exception e) {
-                con.rollback();
-                throw new RuntimeException("Transaction failed", e);
+                // 尝试回滚，忽略回滚失败（因为连接可能已失效）
+                try {
+                    con.rollback();
+                } catch (SQLException rollbackEx) {
+                    log.warn("Failed to rollback transaction: {}", rollbackEx.getMessage());
+                }
+                throw new TransactionException("Transaction failed", e);
             } finally {
                 TransactionContextHolderImpl.clear();
-                con.setAutoCommit(originalAutoCommit);
+                // 确保 autoCommit 被恢复，即使 rollback 失败
+                try {
+                    con.setAutoCommit(originalAutoCommit);
+                } catch (SQLException e) {
+                    log.warn("Failed to restore autoCommit state: {}", e.getMessage());
+                }
             }
         });
     }
@@ -178,9 +191,15 @@ public class JdbcDataManager implements DataManager {
                 con.setReadOnly(true);
                 TransactionContextHolderImpl.setConnection(con);
                 return action.get();
+            } catch (Exception e) {
+                throw new TransactionException("Read-only transaction failed", e);
             } finally {
                 TransactionContextHolderImpl.clear();
-                con.setReadOnly(originalReadOnly);
+                try {
+                    con.setReadOnly(originalReadOnly);
+                } catch (SQLException e) {
+                    log.warn("Failed to restore read-only state: {}", e.getMessage());
+                }
             }
         });
     }
@@ -325,6 +344,31 @@ public class JdbcDataManager implements DataManager {
      * @return 生成的主键数组
      */
     public long[] executeBatchInsertAndReturnKeys(String sql, List<Object> params, int batchSize) {
+        // 检查是否在事务中
+        Connection txConn = TransactionContextHolderImpl.getConnection();
+        if (txConn != null) {
+            // 使用事务连接，不关闭连接
+            try (var pstmt = txConn.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
+                for (int i = 0; i < params.size(); i++) {
+                    pstmt.setObject(i + 1, params.get(i));
+                }
+                pstmt.executeUpdate();
+
+                // 获取生成的主键
+                long[] keys = new long[batchSize];
+                try (var rs = pstmt.getGeneratedKeys()) {
+                    int i = 0;
+                    while (rs.next() && i < batchSize) {
+                        keys[i++] = rs.getLong(1);
+                    }
+                }
+                return keys;
+            } catch (SQLException e) {
+                throw new RuntimeException("Failed to execute batch insert and return keys", e);
+            }
+        }
+
+        // 非事务模式：获取新连接并确保关闭
         try (Connection conn = dataSource.getConnection();
              var pstmt = conn.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
 
@@ -380,8 +424,12 @@ public class JdbcDataManager implements DataManager {
     private DatabaseType detectDatabaseType(DataSource dataSource) {
         try (Connection connection = dataSource.getConnection()) {
             String productName = connection.getMetaData().getDatabaseProductName();
-            return mapProductNameToType(productName);
+            DatabaseType type = mapProductNameToType(productName);
+            log.debug("Detected database type: {} from product name: {}", type, productName);
+            return type;
         } catch (SQLException e) {
+            log.warn("Failed to detect database type, falling back to MYSQL. " +
+                     "Consider explicitly setting database type via constructor. Error: {}", e.getMessage());
             return DatabaseType.MYSQL;
         }
     }
@@ -413,6 +461,17 @@ public class JdbcDataManager implements DataManager {
 
     /**
      * 事务上下文持有者实现
+     * <p>
+     * <strong>重要说明：</strong>此类使用 ThreadLocal 存储数据库连接，不支持跨线程事务传播。
+     * 在以下场景中需要特别注意：
+     * <ul>
+     *   <li>线程池：异步任务、@Async 注解等方法在新线程执行时，事务上下文不会传播</li>
+     *   <li>并行流：parallelStream() 操作在 ForkJoinPool 中执行，事务上下文不可用</li>
+     *   <li>CompletableFuture：异步计算在新线程执行，事务上下文不会传播</li>
+     * </ul>
+     * <p>
+     * 如需在异步任务中执行数据库操作，请确保在事务外部调用，或使用 Spring 的
+     * {@code @Transactional(propagation = Propagation.REQUIRES_NEW)} 创建新事务。
      */
     static final class TransactionContextHolderImpl {
         private static final ThreadLocal<Connection> CONNECTION_HOLDER = new ThreadLocal<>();

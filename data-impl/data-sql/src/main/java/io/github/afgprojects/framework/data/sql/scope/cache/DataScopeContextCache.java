@@ -15,10 +15,24 @@ import java.util.concurrent.TimeUnit;
  * 缓存用户的数据权限上下文，避免每次查询都重新计算。
  * 支持过期时间和手动清除。
  * <p>
+ * 实现了 {@link AutoCloseable} 接口，建议在 try-with-resources 语句中使用以确保资源正确释放。
+ * <p>
  * 使用示例：
  * <pre>
- * // 创建缓存，过期时间 5 分钟
+ * // 推荐：使用 try-with-resources 自动关闭
+ * try (DataScopeContextCache cache = new DataScopeContextCache(Duration.ofMinutes(5))) {
+ *     DataScopeUserContext context = cache.getOrCreate(userId, () -> loadUserContext(userId));
+ *     // 使用 context...
+ * }
+ *
+ * // 或者手动关闭
  * DataScopeContextCache cache = new DataScopeContextCache(Duration.ofMinutes(5));
+ * try {
+ *     DataScopeUserContext context = cache.getOrCreate(userId, () -> loadUserContext(userId));
+ *     // 使用 context...
+ * } finally {
+ *     cache.close();
+ * }
  *
  * // 获取或计算用户上下文
  * DataScopeUserContext context = cache.getOrCreate(userId, () -> {
@@ -32,7 +46,7 @@ import java.util.concurrent.TimeUnit;
  * cache.invalidateAll();
  * </pre>
  */
-public class DataScopeContextCache {
+public class DataScopeContextCache implements AutoCloseable {
 
     /**
      * 缓存项
@@ -183,7 +197,21 @@ public class DataScopeContextCache {
 
     /**
      * 关闭缓存，停止后台清理任务
+     * <p>
+     * 此方法实现了 {@link AutoCloseable} 接口，可以使用 try-with-resources 语句自动调用。
+     * 调用此方法后，缓存不应再被使用。
      */
+    @Override
+    public void close() {
+        shutdown();
+    }
+
+    /**
+     * 关闭缓存，停止后台清理任务
+     *
+     * @deprecated 使用 {@link #close()} 方法代替，支持 try-with-resources 语法
+     */
+    @Deprecated
     public void shutdown() {
         if (scheduler != null) {
             scheduler.shutdown();

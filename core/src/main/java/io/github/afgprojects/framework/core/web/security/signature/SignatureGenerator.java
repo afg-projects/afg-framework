@@ -128,19 +128,24 @@ public class SignatureGenerator {
 
     /**
      * 常量时间比较，防止时序攻击
+     * <p>
+     * 即使长度不匹配，也会进行完整比较，避免泄露长度信息。
      */
     protected boolean constantTimeEquals(@NonNull String a, @NonNull String b) {
-        if (a.length() != b.length()) {
-            return false;
-        }
-
         byte[] aBytes = a.getBytes(StandardCharsets.UTF_8);
         byte[] bBytes = b.getBytes(StandardCharsets.UTF_8);
 
-        int result = 0;
-        for (int i = 0; i < aBytes.length; i++) {
-            result |= aBytes[i] ^ bBytes[i];
+        // 使用较长字符串的长度进行比较，避免长度泄露
+        int maxLen = Math.max(aBytes.length, bBytes.length);
+        int result = aBytes.length ^ bBytes.length; // 长度差异记录在结果中
+
+        for (int i = 0; i < maxLen; i++) {
+            // 对较短字符串使用虚拟值0，确保循环次数恒定
+            byte aByte = i < aBytes.length ? aBytes[i] : 0;
+            byte bByte = i < bBytes.length ? bBytes[i] : 0;
+            result |= aByte ^ bByte;
         }
+
         return result == 0;
     }
 }

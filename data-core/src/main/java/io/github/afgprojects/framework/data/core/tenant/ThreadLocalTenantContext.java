@@ -2,6 +2,16 @@ package io.github.afgprojects.framework.data.core.tenant;
 
 /**
  * 基于ThreadLocal的租户上下文实现
+ * <p>
+ * 提供简单的租户上下文管理，适用于单线程场景。
+ * <p>
+ * <b>使用场景：</b>简单的 Web 请求处理、同步方法调用等不需要跨线程传播的场景。
+ * <p>
+ * <b>注意：</b>如果需要在异步执行、线程池等场景中使用租户上下文，
+ * 请使用 {@link io.github.afgprojects.framework.data.core.context.TenantContextHolder}，
+ * 它提供了快照/恢复机制和跨线程传播支持。
+ *
+ * @see io.github.afgprojects.framework.data.core.context.TenantContextHolder
  */
 public class ThreadLocalTenantContext implements TenantContext {
 

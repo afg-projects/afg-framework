@@ -91,12 +91,12 @@ public enum Operator {
     NOT("NOT"),
 
     /**
-     * JSON 包含（PostgreSQL: @>）
+     * JSON 包含
      */
     JSON_CONTAINS("@>"),
 
     /**
-     * JSON 被包含（PostgreSQL: <@）
+     * JSON 被包含
      */
     JSON_CONTAINED("<@"),
 

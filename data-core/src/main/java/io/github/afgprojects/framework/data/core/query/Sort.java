@@ -173,6 +173,12 @@ public final class Sort {
      */
     public static final class Order {
 
+        /**
+         * 属性名验证正则：仅允许字母、数字、下划线、点号
+         */
+        private static final java.util.regex.Pattern PROPERTY_PATTERN =
+                java.util.regex.Pattern.compile("^[a-zA-Z_][a-zA-Z0-9_.]*$");
+
         private final String property;
         private final Direction direction;
         private final boolean ignoreCase;
@@ -195,9 +201,32 @@ public final class Sort {
          * @param ignoreCase 是否忽略大小写
          */
         public Order(@NonNull String property, @NonNull Direction direction, boolean ignoreCase) {
-            this.property = Objects.requireNonNull(property, "property must not be null");
-            this.direction = Objects.requireNonNull(direction, "direction must not be null");
+            Objects.requireNonNull(property, "property must not be null");
+            Objects.requireNonNull(direction, "direction must not be null");
+            validateProperty(property);
+            this.property = property;
+            this.direction = direction;
             this.ignoreCase = ignoreCase;
+        }
+
+        /**
+         * 验证属性名是否合法
+         * <p>
+         * 仅允许字母、数字、下划线和点号，防止 SQL 注入
+         *
+         * @param property 属性名
+         * @throws IllegalArgumentException 如果属性名不合法
+         */
+        private static void validateProperty(@NonNull String property) {
+            if (property.isEmpty()) {
+                throw new IllegalArgumentException("Property name must not be empty");
+            }
+            if (!PROPERTY_PATTERN.matcher(property).matches()) {
+                throw new IllegalArgumentException(
+                        "Invalid property name: '" + property + "'. " +
+                        "Property names must start with a letter or underscore, " +
+                        "and contain only letters, digits, underscores, and dots.");
+            }
         }
 
         /**

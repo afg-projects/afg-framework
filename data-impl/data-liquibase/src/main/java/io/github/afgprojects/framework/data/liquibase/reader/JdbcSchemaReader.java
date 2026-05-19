@@ -3,10 +3,7 @@ package io.github.afgprojects.framework.data.liquibase.reader;
 import io.github.afgprojects.framework.data.core.schema.*;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * JDBC Schema 读取器
@@ -31,15 +28,20 @@ public class JdbcSchemaReader {
      *
      * @param conn      数据库连接
      * @param tableName 表名
-     * @return SchemaMetadata
+     * @return Optional<SchemaMetadata>，如果表不存在则返回 Optional.empty()
      */
-    public SchemaMetadata readTable(Connection conn, String tableName) throws SQLException {
+    public Optional<SchemaMetadata> readTable(Connection conn, String tableName) throws SQLException {
         DatabaseMetaData metaData = conn.getMetaData();
         String catalog = getCatalog(conn, metaData);
         String schema = getSchemaName(conn, metaData);
 
         // 处理表名大小写问题
         String actualTableName = resolveTableName(metaData, catalog, schema, tableName);
+
+        // 检查表是否存在
+        if (!tableExists(metaData, catalog, schema, actualTableName)) {
+            return Optional.empty();
+        }
 
         SchemaMetadataImpl.Builder builder = SchemaMetadataImpl.builder()
                 .tableName(actualTableName);
@@ -56,7 +58,7 @@ public class JdbcSchemaReader {
         // 读取外键
         readForeignKeys(metaData, catalog, schema, actualTableName, builder);
 
-        return builder.build();
+        return Optional.of(builder.build());
     }
 
     /**
@@ -75,7 +77,8 @@ public class JdbcSchemaReader {
         try (ResultSet rs = metaData.getTables(catalog, schema, "%", new String[]{"TABLE"})) {
             while (rs.next()) {
                 String tableName = rs.getString("TABLE_NAME");
-                tables.put(tableName, readTable(conn, tableName));
+                readTable(conn, tableName).ifPresent(schemaMetadata ->
+                        tables.put(tableName, schemaMetadata));
             }
         }
 
@@ -177,6 +180,22 @@ public class JdbcSchemaReader {
         return tableName;
     }
 
+    /**
+     * 检查表是否存在
+     *
+     * @param metaData  数据库元数据
+     * @param catalog   catalog 名称
+     * @param schema    schema 名称
+     * @param tableName 表名
+     * @return 表是否存在
+     */
+    private boolean tableExists(DatabaseMetaData metaData, String catalog, String schema,
+                                String tableName) throws SQLException {
+        try (ResultSet rs = metaData.getTables(catalog, schema, tableName, new String[]{"TABLE"})) {
+            return rs.next();
+        }
+    }
+
     private void readColumns(DatabaseMetaData metaData, String catalog, String schema,
                              String tableName, SchemaMetadataImpl.Builder builder) throws SQLException {
         try (ResultSet rs = metaData.getColumns(catalog, schema, tableName, "%")) {
@@ -258,6 +277,8 @@ public class JdbcSchemaReader {
                                   String tableName, SchemaMetadataImpl.Builder builder) throws SQLException {
         try (ResultSet rs = metaData.getImportedKeys(catalog, schema, tableName)) {
             Map<String, ForeignKeyMetadataImpl.Builder> fkBuilders = new HashMap<>();
+            Map<String, List<String>> fkColumnNames = new HashMap<>();
+            Map<String, List<String>> fkReferencedColumnNames = new HashMap<>();
 
             while (rs.next()) {
                 String fkName = rs.getString("FK_NAME");
@@ -269,19 +290,24 @@ public class JdbcSchemaReader {
                 int updateRule = rs.getInt("UPDATE_RULE");
                 int deleteRule = rs.getInt("DELETE_RULE");
 
-                ForeignKeyMetadataImpl.Builder fkBuilder = fkBuilders.computeIfAbsent(
+                // 累加列名，而不是覆盖
+                fkColumnNames.computeIfAbsent(fkName, k -> new ArrayList<>()).add(columnName);
+                fkReferencedColumnNames.computeIfAbsent(fkName, k -> new ArrayList<>()).add(referencedColumn);
+
+                fkBuilders.computeIfAbsent(
                         fkName, k -> ForeignKeyMetadataImpl.builder()
                                 .constraintName(fkName)
                                 .referencedTableName(referencedTable)
                                 .updateRule(ruleToString(updateRule))
                                 .deleteRule(ruleToString(deleteRule))
                 );
-
-                fkBuilder.columnNames(List.of(columnName));
-                fkBuilder.referencedColumnNames(List.of(referencedColumn));
             }
 
-            for (ForeignKeyMetadataImpl.Builder fkBuilder : fkBuilders.values()) {
+            for (Map.Entry<String, ForeignKeyMetadataImpl.Builder> entry : fkBuilders.entrySet()) {
+                String fkName = entry.getKey();
+                ForeignKeyMetadataImpl.Builder fkBuilder = entry.getValue();
+                fkBuilder.columnNames(fkColumnNames.get(fkName));
+                fkBuilder.referencedColumnNames(fkReferencedColumnNames.get(fkName));
                 builder.addForeignKey(fkBuilder.build());
             }
         }

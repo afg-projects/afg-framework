@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.integration.event.rabbitmq;
 
-import io.github.afgprojects.framework.core.api.event.DomainEvent;
+import io.github.afgprojects.framework.core.api.event.MessageEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -83,7 +83,7 @@ class RabbitMQEventPublisherIntegrationTest {
 
             String routingKey = "user.created";
             String payload = "test-payload";
-            DomainEvent<String> event = new DomainEvent<>(
+            MessageEvent<String> event = new MessageEvent<>(
                     "event-001",
                     routingKey,
                     payload,
@@ -108,7 +108,7 @@ class RabbitMQEventPublisherIntegrationTest {
             createExchange(exchangeName);
 
             String payload = "default-routing-payload";
-            DomainEvent<String> event = new DomainEvent<>(
+            MessageEvent<String> event = new MessageEvent<>(
                     "event-002",
                     "", // empty topic
                     payload,
@@ -136,7 +136,7 @@ class RabbitMQEventPublisherIntegrationTest {
             createExchange(exchangeName);
 
             TestPayload payload = new TestPayload("user-123", "test@example.com", 100);
-            DomainEvent<TestPayload> event = new DomainEvent<>(
+            MessageEvent<TestPayload> event = new MessageEvent<>(
                     "event-003",
                     "user.complex",
                     payload,
@@ -163,7 +163,7 @@ class RabbitMQEventPublisherIntegrationTest {
 
             // When & Then
             for (int i = 0; i < 10; i++) {
-                DomainEvent<String> event = new DomainEvent<>(
+                MessageEvent<String> event = new MessageEvent<>(
                         "event-" + i,
                         "message." + i,
                         "payload-" + i,
@@ -189,7 +189,7 @@ class RabbitMQEventPublisherIntegrationTest {
             createExchange(exchangeName);
 
             String payload = "async-payload";
-            DomainEvent<String> event = new DomainEvent<>(
+            MessageEvent<String> event = new MessageEvent<>(
                     "event-async-001",
                     "async.topic",
                     payload,
@@ -215,7 +215,7 @@ class RabbitMQEventPublisherIntegrationTest {
             properties.setExchange(exchangeName);
             createExchange(exchangeName);
 
-            DomainEvent<String> event = new DomainEvent<>(
+            MessageEvent<String> event = new MessageEvent<>(
                     "event-async-002",
                     "async.future",
                     "payload",
@@ -246,7 +246,7 @@ class RabbitMQEventPublisherIntegrationTest {
             // When
             CompletableFuture<?>[] futures = new CompletableFuture[5];
             for (int i = 0; i < 5; i++) {
-                DomainEvent<String> event = new DomainEvent<>(
+                MessageEvent<String> event = new MessageEvent<>(
                         "event-concurrent-" + i,
                         "concurrent." + i,
                         "payload-" + i,
@@ -276,7 +276,7 @@ class RabbitMQEventPublisherIntegrationTest {
             properties.setExchange(customExchange);
             createExchange(customExchange);
 
-            DomainEvent<String> event = new DomainEvent<>(
+            MessageEvent<String> event = new MessageEvent<>(
                     "event-custom-exchange",
                     "routing.key",
                     "payload",
@@ -300,7 +300,7 @@ class RabbitMQEventPublisherIntegrationTest {
             createExchange(exchange1);
             createExchange(exchange2);
 
-            DomainEvent<String> event = new DomainEvent<>(
+            MessageEvent<String> event = new MessageEvent<>(
                     "event-dynamic",
                     "routing.key",
                     "payload",
@@ -333,7 +333,7 @@ class RabbitMQEventPublisherIntegrationTest {
             createExchange(exchangeName);
 
             String customRoutingKey = "order.created.premium";
-            DomainEvent<String> event = new DomainEvent<>(
+            MessageEvent<String> event = new MessageEvent<>(
                     "event-routing-001",
                     customRoutingKey,
                     "payload",
@@ -357,7 +357,7 @@ class RabbitMQEventPublisherIntegrationTest {
             properties.setDefaultRoutingKey("default.routing");
             createExchange(exchangeName);
 
-            DomainEvent<String> event = new DomainEvent<>(
+            MessageEvent<String> event = new MessageEvent<>(
                     "event-null-topic",
                     null,
                     "payload",

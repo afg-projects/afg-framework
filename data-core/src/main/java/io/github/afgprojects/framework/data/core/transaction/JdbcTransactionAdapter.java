@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.data.core.transaction;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 
 import javax.sql.DataSource;
@@ -21,6 +22,7 @@ import java.util.function.Supplier;
  * });
  * </pre>
  */
+@Slf4j
 public class JdbcTransactionAdapter implements TransactionAdapter {
 
     private final DataSource dataSource;
@@ -73,7 +75,7 @@ public class JdbcTransactionAdapter implements TransactionAdapter {
                     connection.setAutoCommit(originalAutoCommit);
                     connection.close();
                 } catch (SQLException e) {
-                    // 忽略关闭异常
+                    log.warn("Failed to close connection or restore autoCommit", e);
                 }
             }
         }
@@ -104,7 +106,7 @@ public class JdbcTransactionAdapter implements TransactionAdapter {
                     connection.setAutoCommit(originalAutoCommit);
                     connection.close();
                 } catch (SQLException e) {
-                    // 忽略关闭异常
+                    log.warn("Failed to close connection or restore read-only/autoCommit settings", e);
                 }
             }
         }

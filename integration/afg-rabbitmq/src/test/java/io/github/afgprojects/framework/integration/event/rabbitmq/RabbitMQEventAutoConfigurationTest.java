@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.integration.event.rabbitmq;
 
-import io.github.afgprojects.framework.core.api.event.DomainEvent;
+import io.github.afgprojects.framework.core.api.event.MessageEvent;
 import io.github.afgprojects.framework.core.api.event.EventPublisher;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.DisplayName;
@@ -142,13 +142,13 @@ class RabbitMQEventAutoConfigurationTest {
             @SuppressWarnings("unchecked")
             EventPublisher<String> customPublisher = new EventPublisher<String>() {
                 @Override
-                public void publish(@NonNull DomainEvent<String> event) {
+                public void publish(@NonNull MessageEvent<String> event) {
                     // custom implementation
                 }
 
                 @Override
                 public java.util.concurrent.CompletableFuture<Void> publishAsync(
-                        @NonNull DomainEvent<String> event) {
+                        @NonNull MessageEvent<String> event) {
                     return java.util.concurrent.CompletableFuture.completedFuture(null);
                 }
             };

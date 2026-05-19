@@ -258,15 +258,18 @@ class SignatureInterceptorTest {
         when(request.getHeader(SignatureInterceptor.HEADER_NONCE)).thenReturn(nonce);
         when(request.getHeader(SignatureInterceptor.HEADER_KEY_ID)).thenReturn(keyId);
 
-        jakarta.servlet.ServletInputStream inputStream = mock(jakarta.servlet.ServletInputStream.class);
+        // 使用 ContentCachingRequestWrapper 包装请求以支持重复读取请求体
         if (body != null && !body.isEmpty()) {
             byte[] bodyBytes = body.getBytes(java.nio.charset.StandardCharsets.UTF_8);
-            when(inputStream.available()).thenReturn(bodyBytes.length);
-            when(inputStream.readAllBytes()).thenReturn(bodyBytes);
-        } else {
-            when(inputStream.available()).thenReturn(0);
+            org.springframework.web.util.ContentCachingRequestWrapper wrapper =
+                mock(org.springframework.web.util.ContentCachingRequestWrapper.class);
+            when(wrapper.getHeader(SignatureInterceptor.HEADER_SIGNATURE)).thenReturn(signature);
+            when(wrapper.getHeader(SignatureInterceptor.HEADER_TIMESTAMP)).thenReturn(timestamp);
+            when(wrapper.getHeader(SignatureInterceptor.HEADER_NONCE)).thenReturn(nonce);
+            when(wrapper.getHeader(SignatureInterceptor.HEADER_KEY_ID)).thenReturn(keyId);
+            when(wrapper.getContentAsByteArray()).thenReturn(bodyBytes);
+            return wrapper;
         }
-        when(request.getInputStream()).thenReturn(inputStream);
 
         return request;
     }

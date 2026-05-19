@@ -23,6 +23,8 @@ import io.github.afgprojects.framework.core.api.scheduler.TaskScheduler;
 import io.github.afgprojects.framework.core.api.scheduler.TaskStatus;
 import io.github.afgprojects.framework.core.exception.SchedulerException;
 
+import org.springframework.beans.factory.DisposableBean;
+
 /**
  * 本地任务调度器
  *
@@ -36,13 +38,14 @@ import io.github.afgprojects.framework.core.exception.SchedulerException;
  *   <li>支持一次性任务</li>
  *   <li>任务执行监控</li>
  *   <li>执行日志记录</li>
+ *   <li>实现 DisposableBean，Spring 容器关闭时自动清理</li>
  * </ul>
  *
  * @since 1.0.0
  */
 @Slf4j
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
-public class LocalTaskScheduler implements TaskScheduler {
+public class LocalTaskScheduler implements TaskScheduler, DisposableBean {
 
     private final ScheduledExecutorService executorService;
     private final TaskExecutionMetrics metrics;
@@ -281,6 +284,16 @@ public class LocalTaskScheduler implements TaskScheduler {
             Thread.currentThread().interrupt();
         }
         log.info("LocalTaskScheduler shutdown completed");
+    }
+
+    /**
+     * Spring 容器关闭时自动调用
+     * <p>
+     * 实现 DisposableBean 接口，确保 Spring 容器关闭时正确清理资源。
+     */
+    @Override
+    public void destroy() {
+        shutdown();
     }
 
     private void validateTaskId(@NonNull String taskId) {

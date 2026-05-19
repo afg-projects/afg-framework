@@ -9,6 +9,7 @@ import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.query.Page;
 import io.github.afgprojects.framework.data.core.query.Sort;
 import io.github.afgprojects.framework.data.core.scope.DataScope;
+import io.github.afgprojects.framework.data.core.scope.DataScopeType;
 import io.github.afgprojects.framework.data.sql.converter.ConditionToSqlConverter;
 import org.jspecify.annotations.NonNull;
 import org.springframework.jdbc.core.RowMapper;
@@ -86,6 +87,24 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
     public @NonNull EntityQuery<T> exclude(@NonNull String... fields) {
         this.excludedFields.addAll(Arrays.asList(fields));
         this.selectedFields = null;
+        return this;
+    }
+
+    @Override
+    public @NonNull EntityQuery<T> withDataScope() {
+        // TODO: 自动检测实体中的部门字段并应用数据权限
+        return this;
+    }
+
+    @Override
+    public @NonNull EntityQuery<T> withDataScope(String deptField) {
+        // TODO: 使用指定部门字段应用数据权限
+        return this;
+    }
+
+    @Override
+    public @NonNull EntityQuery<T> withDataScope(DataScopeType scopeType) {
+        // TODO: 使用指定数据范围类型应用数据权限
         return this;
     }
 

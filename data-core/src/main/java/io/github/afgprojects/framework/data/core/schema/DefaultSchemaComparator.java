@@ -14,7 +14,28 @@ import java.util.stream.Collectors;
 public class DefaultSchemaComparator implements SchemaComparator {
 
     @Override
-    public SchemaDiff compare(SchemaMetadata source, SchemaMetadata target) {
+    public SchemaDiff compare(SchemaMetadata source, @Nullable SchemaMetadata target) {
+        // 如果 target 为 null，表示目标表不存在，所有列都是新增
+        if (target == null) {
+            List<ColumnDiff> columnDiffs = new ArrayList<>();
+            for (ColumnMetadata col : source.getColumns()) {
+                columnDiffs.add(new ColumnDiff(
+                        col.getColumnName(),
+                        DiffType.ADD,
+                        col,
+                        null,
+                        List.of("Table not exists in target")
+                ));
+            }
+            return new SchemaDiff(
+                    source.getTableName(),
+                    true,
+                    columnDiffs,
+                    null,
+                    null
+            );
+        }
+
         List<ColumnDiff> columnDiffs = compareColumns(source, target);
         IndexDiff indexDiff = compareIndexes(source, target);
         ForeignKeyDiff foreignKeyDiff = compareForeignKeys(source, target);

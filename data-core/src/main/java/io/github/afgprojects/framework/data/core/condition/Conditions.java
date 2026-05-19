@@ -88,12 +88,8 @@ public final class Conditions {
             return conditions[0];
         }
         ConditionBuilder builder = builder();
-        for (int i = 0; i < conditions.length; i++) {
-            if (i == 0) {
-                builder.and(conditions[i]);
-            } else {
-                builder.or(conditions[i]);
-            }
+        for (Condition condition : conditions) {
+            builder.or(condition);
         }
         return builder.build();
     }
@@ -152,6 +148,30 @@ public final class Conditions {
             return isNull(field);
         }
         return builder().like(field, value).build();
+    }
+
+    /**
+     * 创建左 LIKE 条件（value%）
+     * <p>
+     * 匹配以指定值开头的字符串
+     */
+    public static Condition likeLeft(String field, @Nullable String value) {
+        if (value == null) {
+            return isNull(field);
+        }
+        return builder().likeLeft(field, value).build();
+    }
+
+    /**
+     * 创建右 LIKE 条件（%value）
+     * <p>
+     * 匹配以指定值结尾的字符串
+     */
+    public static Condition likeRight(String field, @Nullable String value) {
+        if (value == null) {
+            return isNull(field);
+        }
+        return builder().likeRight(field, value).build();
     }
 
     /**
@@ -231,6 +251,30 @@ public final class Conditions {
             return isNull(entityClass, getter);
         }
         return builder(entityClass).like(getter, value).build();
+    }
+
+    /**
+     * 创建类型化左 LIKE 条件（value%）
+     * <p>
+     * 匹配以指定值开头的字符串
+     */
+    public static <T> Condition likeLeft(Class<T> entityClass, SFunction<T, String> getter, @Nullable String value) {
+        if (value == null) {
+            return isNull(entityClass, getter);
+        }
+        return builder(entityClass).likeLeft(getter, value).build();
+    }
+
+    /**
+     * 创建类型化右 LIKE 条件（%value）
+     * <p>
+     * 匹配以指定值结尾的字符串
+     */
+    public static <T> Condition likeRight(Class<T> entityClass, SFunction<T, String> getter, @Nullable String value) {
+        if (value == null) {
+            return isNull(entityClass, getter);
+        }
+        return builder(entityClass).likeRight(getter, value).build();
     }
 
     /**

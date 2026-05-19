@@ -40,7 +40,7 @@ class ChangeLogGeneratorTest {
             SchemaMetadata schema = createTestSchema();
             Path outputPath = tempDir.resolve("changelog.xml");
 
-            generator.generateCreateTable(schema, "test-author", outputPath);
+            generator.generateCreateTable(schema, "platform", "1.0.0", 1, "test-author", outputPath, null);
 
             assertThat(outputPath).exists();
             String content = Files.readString(outputPath);
@@ -55,7 +55,7 @@ class ChangeLogGeneratorTest {
             SchemaMetadata schema = createTestSchema();
             Path outputPath = tempDir.resolve("changelog.xml");
 
-            generator.generateCreateTable(schema, "test-author", outputPath);
+            generator.generateCreateTable(schema, "platform", "1.0.0", 1, "test-author", outputPath, null);
 
             String content = Files.readString(outputPath);
             assertThat(content).contains("<createTable tableName=\"test_table\"");
@@ -69,7 +69,7 @@ class ChangeLogGeneratorTest {
             SchemaMetadata schema = createTestSchema();
             Path outputPath = tempDir.resolve("changelog.xml");
 
-            generator.generateCreateTable(schema, "test-author", outputPath);
+            generator.generateCreateTable(schema, "platform", "1.0.0", 1, "test-author", outputPath, null);
 
             String content = Files.readString(outputPath);
             assertThat(content).contains("primaryKey=\"true\"");
@@ -81,7 +81,7 @@ class ChangeLogGeneratorTest {
             SchemaMetadata schema = createTestSchema();
             Path outputPath = tempDir.resolve("changelog.xml");
 
-            generator.generateCreateTable(schema, "test-author", outputPath);
+            generator.generateCreateTable(schema, "platform", "1.0.0", 1, "test-author", outputPath, null);
 
             String content = Files.readString(outputPath);
             assertThat(content).contains("author=\"test-author\"");
@@ -111,7 +111,7 @@ class ChangeLogGeneratorTest {
 
             Path outputPath = tempDir.resolve("incremental.xml");
 
-            generator.generateIncremental(diff, "test-author", outputPath);
+            generator.generateIncremental(diff, "platform", "1.0.0", 1, "test-author", outputPath);
 
             String content = Files.readString(outputPath);
             assertThat(content).contains("<addColumn");
@@ -131,7 +131,7 @@ class ChangeLogGeneratorTest {
 
             Path outputPath = tempDir.resolve("incremental.xml");
 
-            generator.generateIncremental(diff, "test-author", outputPath);
+            generator.generateIncremental(diff, "platform", "1.0.0", 1, "test-author", outputPath);
 
             String content = Files.readString(outputPath);
             assertThat(content).contains("<dropColumn");
@@ -157,7 +157,7 @@ class ChangeLogGeneratorTest {
 
             Path outputPath = tempDir.resolve("incremental.xml");
 
-            generator.generateIncremental(diff, "test-author", outputPath);
+            generator.generateIncremental(diff, "platform", "1.0.0", 1, "test-author", outputPath);
 
             String content = Files.readString(outputPath);
             assertThat(content).contains("<modifyDataType");
@@ -185,7 +185,7 @@ class ChangeLogGeneratorTest {
                     .build();
 
             Path outputPath = tempDir.resolve("changelog.xml");
-            generator.generateCreateTable(schema, "test-author", outputPath);
+            generator.generateCreateTable(schema, "platform", "1.0.0", 1, "test-author", outputPath, null);
 
             String content = Files.readString(outputPath);
             assertThat(content).contains("<defaultValue>ACTIVE</defaultValue>");
@@ -207,7 +207,7 @@ class ChangeLogGeneratorTest {
                     .build();
 
             Path outputPath = tempDir.resolve("changelog.xml");
-            generator.generateCreateTable(schema, "test-author", outputPath);
+            generator.generateCreateTable(schema, "platform", "1.0.0", 1, "test-author", outputPath, null);
 
             String content = Files.readString(outputPath);
             assertThat(content).contains("unique=\"true\"");
@@ -230,7 +230,7 @@ class ChangeLogGeneratorTest {
                     .build();
 
             Path outputPath = tempDir.resolve("changelog.xml");
-            generator.generateCreateTable(schema, "test-author", outputPath);
+            generator.generateCreateTable(schema, "platform", "1.0.0", 1, "test-author", outputPath, null);
 
             String content = Files.readString(outputPath);
             assertThat(content).contains("nullable=\"false\"");
@@ -254,7 +254,7 @@ class ChangeLogGeneratorTest {
                     .build();
 
             Path outputPath = tempDir.resolve("changelog.xml");
-            generator.generateCreateTable(schema, "test-author", outputPath);
+            generator.generateCreateTable(schema, "platform", "1.0.0", 1, "test-author", outputPath, null);
 
             String content = Files.readString(outputPath);
             assertThat(content).contains("primaryKey=\"true\"");
@@ -278,7 +278,7 @@ class ChangeLogGeneratorTest {
                     .build();
 
             Path outputPath = tempDir.resolve("changelog.xml");
-            generator.generateCreateTable(schema, "test-author", outputPath);
+            generator.generateCreateTable(schema, "platform", "1.0.0", 1, "test-author", outputPath, null);
 
             String content = Files.readString(outputPath);
             assertThat(content).contains("primaryKey=\"true\"");
@@ -303,7 +303,7 @@ class ChangeLogGeneratorTest {
                     .build();
 
             Path outputPath = tempDir.resolve("changelog.xml");
-            generator.generateCreateTable(schema, "test-author", outputPath);
+            generator.generateCreateTable(schema, "platform", "1.0.0", 1, "test-author", outputPath, null);
 
             String content = Files.readString(outputPath);
             assertThat(content).contains("nullable=\"false\"");
@@ -328,7 +328,7 @@ class ChangeLogGeneratorTest {
                     .build();
 
             Path outputPath = tempDir.resolve("changelog.xml");
-            generator.generateCreateTable(schema, "test-author", outputPath);
+            generator.generateCreateTable(schema, "platform", "1.0.0", 1, "test-author", outputPath, null);
 
             String content = Files.readString(outputPath);
             assertThat(content).contains("<column name=\"description\" type=\"VARCHAR(500)\"/>");
@@ -357,7 +357,7 @@ class ChangeLogGeneratorTest {
                     .build();
 
             Path outputPath = tempDir.resolve("changelog.xml");
-            generator.generateCreateTable(schema, "test-author", outputPath);
+            generator.generateCreateTable(schema, "platform", "1.0.0", 1, "test-author", outputPath, null);
 
             String content = Files.readString(outputPath);
             assertThat(content).contains("<defaultValue>http://example.com?a=1&amp;b=2</defaultValue>");
@@ -379,7 +379,7 @@ class ChangeLogGeneratorTest {
                     .build();
 
             Path outputPath = tempDir.resolve("changelog.xml");
-            generator.generateCreateTable(schema, "test-author", outputPath);
+            generator.generateCreateTable(schema, "platform", "1.0.0", 1, "test-author", outputPath, null);
 
             String content = Files.readString(outputPath);
             assertThat(content).contains("<defaultValue>age &lt; 18</defaultValue>");
@@ -401,7 +401,7 @@ class ChangeLogGeneratorTest {
                     .build();
 
             Path outputPath = tempDir.resolve("changelog.xml");
-            generator.generateCreateTable(schema, "test-author", outputPath);
+            generator.generateCreateTable(schema, "platform", "1.0.0", 1, "test-author", outputPath, null);
 
             String content = Files.readString(outputPath);
             assertThat(content).contains("<defaultValue>age &gt; 65</defaultValue>");
@@ -423,7 +423,7 @@ class ChangeLogGeneratorTest {
                     .build();
 
             Path outputPath = tempDir.resolve("changelog.xml");
-            generator.generateCreateTable(schema, "test-author", outputPath);
+            generator.generateCreateTable(schema, "platform", "1.0.0", 1, "test-author", outputPath, null);
 
             String content = Files.readString(outputPath);
             assertThat(content).contains("<defaultValue>Say &quot;Hello&quot;</defaultValue>");
@@ -445,7 +445,7 @@ class ChangeLogGeneratorTest {
                     .build();
 
             Path outputPath = tempDir.resolve("changelog.xml");
-            generator.generateCreateTable(schema, "test-author", outputPath);
+            generator.generateCreateTable(schema, "platform", "1.0.0", 1, "test-author", outputPath, null);
 
             String content = Files.readString(outputPath);
             assertThat(content).contains("<defaultValue>It&apos;s a test</defaultValue>");
@@ -467,7 +467,7 @@ class ChangeLogGeneratorTest {
                     .build();
 
             Path outputPath = tempDir.resolve("changelog.xml");
-            generator.generateCreateTable(schema, "test-author", outputPath);
+            generator.generateCreateTable(schema, "platform", "1.0.0", 1, "test-author", outputPath, null);
 
             String content = Files.readString(outputPath);
             assertThat(content).contains("<defaultValue>&lt;script&gt;alert(&quot;test&quot;);&lt;/script&gt;</defaultValue>");
@@ -497,7 +497,7 @@ class ChangeLogGeneratorTest {
             );
 
             Path outputPath = tempDir.resolve("incremental.xml");
-            generator.generateIncremental(diff, "test-author", outputPath);
+            generator.generateIncremental(diff, "platform", "1.0.0", 1, "test-author", outputPath);
 
             String content = Files.readString(outputPath);
             assertThat(content).contains("<addColumn");
@@ -523,7 +523,7 @@ class ChangeLogGeneratorTest {
             );
 
             Path outputPath = tempDir.resolve("incremental.xml");
-            generator.generateIncremental(diff, "test-author", outputPath);
+            generator.generateIncremental(diff, "platform", "1.0.0", 1, "test-author", outputPath);
 
             String content = Files.readString(outputPath);
             assertThat(content).contains("unique=\"true\"");
@@ -541,7 +541,7 @@ class ChangeLogGeneratorTest {
             );
 
             Path outputPath = tempDir.resolve("incremental.xml");
-            generator.generateIncremental(diff, "test-author", outputPath);
+            generator.generateIncremental(diff, "platform", "1.0.0", 1, "test-author", outputPath);
 
             String content = Files.readString(outputPath);
             assertThat(content).doesNotContain("<addColumn");
@@ -565,7 +565,7 @@ class ChangeLogGeneratorTest {
             );
 
             Path outputPath = tempDir.resolve("incremental.xml");
-            generator.generateIncremental(diff, "test-author", outputPath);
+            generator.generateIncremental(diff, "platform", "1.0.0", 1, "test-author", outputPath);
 
             String content = Files.readString(outputPath);
             assertThat(content).doesNotContain("<modifyDataType");

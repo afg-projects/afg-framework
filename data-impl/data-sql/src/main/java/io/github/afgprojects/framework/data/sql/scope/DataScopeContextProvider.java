@@ -17,7 +17,7 @@ import java.util.Set;
  *     &#64;Override
  *     public Long getCurrentUserId() {
  *         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
- *         if (auth != null && auth.getPrincipal() instanceof UserDetails) {
+ *         if (auth != null &amp;&amp; auth.getPrincipal() instanceof UserDetails) {
  *             return ((CustomUserDetails) auth.getPrincipal()).getUserId();
  *         }
  *         return null;

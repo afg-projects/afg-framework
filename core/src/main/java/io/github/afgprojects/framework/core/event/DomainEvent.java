@@ -8,10 +8,10 @@ import org.jspecify.annotations.Nullable;
 /**
  * 领域事件接口（DDD 风格）
  *
- * <p><strong>注意：</strong>此接口用于 DDD 领域事件，与 {@link io.github.afgprojects.framework.core.api.event.DomainEvent} 不同：
+ * <p><strong>注意：</strong>此接口用于 DDD 领域事件，与 {@link io.github.afgprojects.framework.core.api.event.MessageEvent} 不同：
  * <ul>
  *   <li>此接口 - DDD 风格，需要实现 getEventId、getEventType、getTimestamp 等方法，用于本地事件总线</li>
- *   <li>{@code api.event.DomainEvent} - 简单 record，用于 Kafka/RabbitMQ 等消息队列</li>
+ *   <li>{@code api.event.MessageEvent} - 简单 record，用于 Kafka/RabbitMQ 等消息队列</li>
  * </ul>
  *
  * <p>所有领域事件都需要实现此接口，提供事件的基本属性。

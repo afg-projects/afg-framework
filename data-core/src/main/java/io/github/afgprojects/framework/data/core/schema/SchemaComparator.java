@@ -1,5 +1,7 @@
 package io.github.afgprojects.framework.data.core.schema;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.List;
 
 /**
@@ -11,10 +13,10 @@ public interface SchemaComparator {
      * 比对两个 Schema 的差异
      *
      * @param source 源 Schema（通常是实体定义）
-     * @param target 目标 Schema（通常是数据库或 ChangeLog）
+     * @param target 目标 Schema（通常是数据库或 ChangeLog，可为 null 表示表不存在）
      * @return 差异结果
      */
-    SchemaDiff compare(SchemaMetadata source, SchemaMetadata target);
+    SchemaDiff compare(SchemaMetadata source, @Nullable SchemaMetadata target);
 
     /**
      * 三向比对：实体 vs 数据库 vs ChangeLog
@@ -26,7 +28,7 @@ public interface SchemaComparator {
      */
     ThreeWayDiff compareThreeWay(
             SchemaMetadata fromEntity,
-            SchemaMetadata fromDatabase,
-            SchemaMetadata fromChangeLog
+            @Nullable SchemaMetadata fromDatabase,
+            @Nullable SchemaMetadata fromChangeLog
     );
 }

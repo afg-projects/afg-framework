@@ -155,6 +155,7 @@ public class DefaultRetryPolicy implements RetryPolicy {
                     Thread.sleep(waitTime);
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
+                    e.addSuppressed(ie);
                     throw e;
                 }
 

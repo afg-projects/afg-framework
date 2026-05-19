@@ -19,10 +19,17 @@ import java.util.Map;
  */
 public class SqlUpdateBuilderImpl implements SqlUpdateBuilder {
 
+    /**
+     * 合法标识符正则：字母/下划线开头，后跟字母/数字/下划线
+     */
+    private static final java.util.regex.Pattern VALID_IDENTIFIER_PATTERN =
+            java.util.regex.Pattern.compile("^[a-zA-Z_][a-zA-Z0-9_]*$");
+
     private final Dialect dialect;
     private String tableName;
     private final Map<String, Object> setValues = new LinkedHashMap<>();
     private Condition whereCondition;
+    private final ConditionToSqlConverter conditionConverter = new ConditionToSqlConverter();
 
     public SqlUpdateBuilderImpl() {
         this.dialect = new MySQLDialect();
@@ -34,18 +41,23 @@ public class SqlUpdateBuilderImpl implements SqlUpdateBuilder {
 
     @Override
     public @NonNull SqlUpdateBuilder table(@NonNull String table) {
+        validateIdentifier(table, "table name");
         this.tableName = table;
         return this;
     }
 
     @Override
     public @NonNull SqlUpdateBuilder set(@NonNull String column, Object value) {
+        validateIdentifier(column, "column name");
         setValues.put(column, value);
         return this;
     }
 
     @Override
     public @NonNull SqlUpdateBuilder set(@NonNull Map<String, Object> values) {
+        for (String column : values.keySet()) {
+            validateIdentifier(column, "column name");
+        }
         setValues.putAll(values);
         return this;
     }
@@ -76,8 +88,7 @@ public class SqlUpdateBuilderImpl implements SqlUpdateBuilder {
         sql.append(String.join(", ", setParts));
 
         if (whereCondition != null && !whereCondition.isEmpty()) {
-            ConditionToSqlConverter converter = new ConditionToSqlConverter();
-            ConditionToSqlConverter.SqlResult result = converter.convert(whereCondition);
+            ConditionToSqlConverter.SqlResult result = conditionConverter.convert(whereCondition);
             sql.append(" WHERE ").append(result.sql());
         }
 
@@ -89,8 +100,7 @@ public class SqlUpdateBuilderImpl implements SqlUpdateBuilder {
         List<Object> params = new ArrayList<>(setValues.values());
 
         if (whereCondition != null && !whereCondition.isEmpty()) {
-            ConditionToSqlConverter converter = new ConditionToSqlConverter();
-            params.addAll(converter.convert(whereCondition).parameters());
+            params.addAll(conditionConverter.convert(whereCondition).parameters());
         }
 
         return params;
@@ -99,5 +109,24 @@ public class SqlUpdateBuilderImpl implements SqlUpdateBuilder {
     @Override
     public int execute() {
         throw new UnsupportedOperationException("Use DataManager to execute update");
+    }
+
+    /**
+     * 验证标识符合法性，防止 SQL 注入
+     *
+     * @param identifier 标识符
+     * @param type       标识符类型描述（用于错误消息）
+     * @throws IllegalArgumentException 如果标识符非法
+     */
+    private void validateIdentifier(String identifier, String type) {
+        if (identifier == null || identifier.isEmpty()) {
+            throw new IllegalArgumentException(type + " cannot be null or empty");
+        }
+        if (!VALID_IDENTIFIER_PATTERN.matcher(identifier).matches()) {
+            throw new IllegalArgumentException(
+                    "Invalid " + type + ": '" + identifier + "'. " +
+                    "Identifier must start with a letter or underscore, " +
+                    "followed by letters, digits, or underscores.");
+        }
     }
 }

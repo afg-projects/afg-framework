@@ -134,6 +134,9 @@
         <!-- Lambda 转方法引用：有时 Lambda 更清晰 -->
         <exclude name="LambdaCanBeMethodReference"/>
 
+        <!-- 空方法应为抽象方法：模板方法模式中的钩子方法是合理的设计 -->
+        <exclude name="EmptyMethodInAbstractClassShouldBeAbstract"/>
+
         <!-- 修饰符顺序：IDE 可自动格式化 -->
         <exclude name="ModifierOrder"/>
 
@@ -194,6 +197,9 @@
         <!-- 不可变字段：Lombok @Value/@Builder 使用 -->
         <exclude name="ImmutableField"/>
 
+        <!-- final 字段应为 static：实例优先级字段（如 order）不应为 static -->
+        <exclude name="FinalFieldCouldBeStatic"/>
+
         <!-- NCSS 计数：与 CyclomaticComplexity 重复 -->
         <exclude name="NcssCount"/>
 
@@ -206,7 +212,7 @@
         <!-- God Class：企业级框架核心类职责复杂是合理的 -->
         <exclude name="GodClass"/>
 
-        <!-- 参数数量限制：使用自定义配置 -->
+        <!-- 参数数量限制：Builder 模式、数据对象构造函数需要较多参数 -->
         <exclude name="ExcessiveParameterList"/>
     </rule>
 
@@ -295,6 +301,9 @@
 
         <!-- 返回空集合而非 null：有时 null 有特殊语义 -->
         <exclude name="ReturnEmptyCollectionRatherThanNull"/>
+
+        <!-- 单例多方法：重载方法不应被误报为单例问题 -->
+        <exclude name="SingleMethodSingleton"/>
     </rule>
 
     <!-- 空的 catch 块必须注释说明原因 -->
@@ -356,13 +365,6 @@
     <rule ref="category/java/security.xml"/>
 
     <!-- ==================== 自定义规则配置 ==================== -->
-
-    <!-- 参数数量限制：10 个（Builder 模式可能需要更多参数） -->
-    <rule ref="category/java/design.xml/ExcessiveParameterList">
-        <properties>
-            <property name="minimum" value="10"/>
-        </properties>
-    </rule>
 
     <!-- 圈复杂度限制：方法级 35，类级 300（JdbcEntityProxy 等复杂 ORM 实现需要） -->
     <rule ref="category/java/design.xml/CyclomaticComplexity">

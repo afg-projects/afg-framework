@@ -4,8 +4,6 @@ import io.github.afgprojects.framework.data.core.EntityProxy;
 import io.github.afgprojects.framework.data.core.EntityQuery;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
 import io.github.afgprojects.framework.data.core.entity.SoftDeleteStrategy;
-import io.github.afgprojects.framework.data.core.entity.Versioned;
-import io.github.afgprojects.framework.data.core.exception.OptimisticLockException;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
 import io.github.afgprojects.framework.data.core.page.PageRequest;
 import io.github.afgprojects.framework.data.core.query.Condition;
@@ -13,34 +11,47 @@ import io.github.afgprojects.framework.data.core.query.Page;
 import io.github.afgprojects.framework.data.core.relation.RelationMetadata;
 import io.github.afgprojects.framework.data.core.relation.RelationType;
 import io.github.afgprojects.framework.data.core.scope.DataScope;
-import io.github.afgprojects.framework.data.jdbc.cache.EntityCache;
+import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheHandler;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheManager;
-import io.github.afgprojects.framework.data.sql.converter.ConditionToSqlConverter;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.JdbcClient;
 
-import java.time.LocalDateTime;
 import java.util.*;
 
 /**
  * JDBC EntityProxy 实现（基于 Spring JdbcClient）
  * <p>
- * 此类已重构，将职责委托给辅助类：
+ * 此类已重构，将职责委托给辅助类，按功能分组如下：
+ * <p>
+ * <strong>查询操作：</strong>
  * <ul>
  *   <li>{@link EntityQueryHelper} - SQL 构建、参数提取、结果映射</li>
+ *   <li>{@link EntityQueryExecutor} - 基础查询执行</li>
+ *   <li>{@link EntityConditionQueryHandler} - 条件查询处理</li>
+ * </ul>
+ * <p>
+ * <strong>数据变更操作：</strong>
+ * <ul>
+ *   <li>{@link EntityInsertHandler} - 插入操作处理</li>
+ *   <li>{@link EntityUpdateHandler} - 更新操作处理</li>
+ *   <li>{@link EntityDeleteHandler} - 删除操作处理</li>
+ *   <li>{@link EntityConditionalHandler} - 条件更新/删除处理</li>
+ * </ul>
+ * <p>
+ * <strong>特殊功能：</strong>
+ * <ul>
  *   <li>{@link EntitySoftDeleteHandler} - 软删除处理</li>
  *   <li>{@link AssociationLoader} - 关联关系加载</li>
+ *   <li>{@link EntityCacheHandler} - 缓存处理</li>
  * </ul>
+ * <p>
+ * 实现 {@link ProxyStateProvider} 接口，让 handler 可以直接读取状态，
+ * 避免在每个方法中手动同步。
  */
 @SuppressWarnings({"PMD.AvoidCatchingGenericException", "PMD.CouplingBetweenObjects", "PMD.CyclomaticComplexity"})
-public class JdbcEntityProxy<T> implements EntityProxy<T> {
-
-    /**
-     * 默认批次大小
-     */
-    private static final int DEFAULT_BATCH_SIZE = 1000;
+public class JdbcEntityProxy<T> implements EntityProxy<T>, ProxyStateProvider {
 
     private final Class<T> entityClass;
     private final JdbcClient jdbcClient;
@@ -55,9 +66,39 @@ public class JdbcEntityProxy<T> implements EntityProxy<T> {
     private final EntityQueryHelper<T> queryHelper;
 
     /**
-     * 实体缓存管理器（可选）
+     * 实体缓存处理器
      */
-    private final @Nullable EntityCacheManager cacheManager;
+    private final EntityCacheHandler<T> cacheHandler;
+
+    /**
+     * 插入操作处理器
+     */
+    private final EntityInsertHandler<T> insertHandler;
+
+    /**
+     * 更新操作处理器
+     */
+    private final EntityUpdateHandler<T> updateHandler;
+
+    /**
+     * 查询执行器
+     */
+    private final EntityQueryExecutor<T> queryExecutor;
+
+    /**
+     * 删除操作处理器
+     */
+    private final EntityDeleteHandler<T> deleteHandler;
+
+    /**
+     * 条件查询处理器
+     */
+    private final EntityConditionQueryHandler<T> conditionQueryHandler;
+
+    /**
+     * 条件操作处理器
+     */
+    private final EntityConditionalHandler<T> conditionalHandler;
 
     /**
      * 软删除处理器
@@ -74,7 +115,6 @@ public class JdbcEntityProxy<T> implements EntityProxy<T> {
     private String dataSourceName;
     private boolean readOnly = false;
     private boolean includeDeleted = false;
-    private int batchSize = DEFAULT_BATCH_SIZE;
 
     /**
      * 要急加载的关联字段名集合
@@ -91,11 +131,17 @@ public class JdbcEntityProxy<T> implements EntityProxy<T> {
         this.jdbcClient = jdbcClient;
         this.dialect = dialect;
         this.dataManager = dataManager;
-        this.cacheManager = cacheManager;
+        this.cacheHandler = new EntityCacheHandler<>(entityClass, cacheManager, dataManager.getTenantContextHolder());
         this.metadata = dataManager.getEntityMetadata(entityClass);
         this.queryHelper = new EntityQueryHelper<>(entityClass, dialect, metadata);
         this.rowMapper = queryHelper::mapRow;
+        this.insertHandler = new EntityInsertHandler<>(entityClass, jdbcClient, dialect, metadata, queryHelper, dataManager, cacheHandler);
+        this.updateHandler = new EntityUpdateHandler<>(entityClass, jdbcClient, metadata, queryHelper, dataManager, cacheHandler);
         this.softDeleteHandler = new EntitySoftDeleteHandler<>(entityClass, dialect, metadata, jdbcClient, cacheManager);
+        this.queryExecutor = new EntityQueryExecutor<>(entityClass, jdbcClient, dialect, metadata, rowMapper, cacheHandler, softDeleteHandler, this);
+        this.deleteHandler = new EntityDeleteHandler<>(entityClass, jdbcClient, dialect, metadata, softDeleteHandler, cacheHandler, queryHelper);
+        this.conditionQueryHandler = new EntityConditionQueryHandler<>(entityClass, jdbcClient, dialect, metadata, rowMapper, dataManager, softDeleteHandler, this);
+        this.conditionalHandler = new EntityConditionalHandler<>(entityClass, dialect, metadata, dataManager, cacheHandler);
         this.associationLoader = new AssociationLoader(dialect, dataManager);
     }
 
@@ -113,36 +159,7 @@ public class JdbcEntityProxy<T> implements EntityProxy<T> {
 
     @Override
     public @NonNull List<T> saveAll(@NonNull Iterable<T> entities) {
-        List<T> result = new ArrayList<>();
-        for (T entity : entities) {
-            result.add(save(entity));
-        }
-        return result;
-    }
-
-    @Override
-    public @NonNull T insert(@NonNull T entity) {
-        // 检查实体是否已有ID（应用主动传入）
-        Object existingId = queryHelper.getIdValue(entity);
-        if (existingId != null) {
-            // 使用应用传入的ID直接插入
-            String sql = queryHelper.buildInsertWithIdSql();
-            List<Object> params = queryHelper.extractInsertWithIdParams(entity);
-            dataManager.executeUpdate(sql, params);
-            return entity;
-        }
-
-        // 没有ID时，从数据库获取生成的主键
-        String sql = queryHelper.buildInsertSql();
-        List<Object> params = queryHelper.extractInsertParams(entity);
-        long generatedId = dataManager.executeInsertAndReturnKey(sql, params);
-        queryHelper.setIdValue(entity, generatedId);
-        return entity;
-    }
-
-    @Override
-    public @NonNull List<T> insertAll(@NonNull Iterable<T> entities) {
-        // 将 Iterable 转换为 List
+        // 将 Iterable 转换为 List，同时记录原始索引
         List<T> entityList = new ArrayList<>();
         entities.forEach(entityList::add);
 
@@ -150,353 +167,109 @@ public class JdbcEntityProxy<T> implements EntityProxy<T> {
             return entityList;
         }
 
-        // 分批处理
-        List<T> result = new ArrayList<>(entityList.size());
-        int totalBatches = (entityList.size() + batchSize - 1) / batchSize;
+        // 分离新实体（需要插入）和已有实体（需要更新），记录原始索引
+        Map<Integer, T> insertMap = new LinkedHashMap<>();
+        Map<Integer, T> updateMap = new LinkedHashMap<>();
 
-        for (int batch = 0; batch < totalBatches; batch++) {
-            int fromIndex = batch * batchSize;
-            int toIndex = Math.min(fromIndex + batchSize, entityList.size());
-            List<T> batchEntities = entityList.subList(fromIndex, toIndex);
-
-            // 执行批量插入
-            List<T> inserted = executeBatchInsert(batchEntities);
-            result.addAll(inserted);
-        }
-
-        return result;
-    }
-
-    /**
-     * 执行批量插入
-     *
-     * @param entities 当前批次的实体列表（调用方已确保非空）
-     * @return 插入后的实体列表（包含生成的主键）
-     */
-    private List<T> executeBatchInsert(List<T> entities) {
-        // 单条记录时，直接使用单条插入以获取生成的主键
-        if (entities.size() == 1) {
-            return List.of(insert(entities.getFirst()));
-        }
-
-        // 对于支持 RETURNING 的数据库（PostgreSQL、H2），使用批量插入返回主键
-        if (supportsBatchReturning()) {
-            return executeBatchInsertWithReturning(entities);
-        }
-
-        // 对于不支持 RETURNING 的数据库，逐条插入
-        List<T> result = new ArrayList<>(entities.size());
-        for (T entity : entities) {
-            result.add(insert(entity));
-        }
-        return result;
-    }
-
-    /**
-     * 检查数据库是否支持 INSERT ... RETURNING 语法
-     */
-    private boolean supportsBatchReturning() {
-        return switch (dialect.getDatabaseType()) {
-            case POSTGRESQL, OPENGAUSS, GAUSSDB, KINGBASE, H2 -> true;
-            default -> false;
-        };
-    }
-
-    /**
-     * 使用 INSERT ... RETURNING 执行批量插入并返回生成的主键
-     */
-    private <S extends T> List<S> executeBatchInsertWithReturning(List<S> entities) {
-        // 分离有ID和无ID的实体
-        List<S> withId = new ArrayList<>();
-        List<S> withoutId = new ArrayList<>();
-        for (S entity : entities) {
-            if (getIdValue(entity) != null) {
-                withId.add(entity);
+        for (int i = 0; i < entityList.size(); i++) {
+            T entity = entityList.get(i);
+            Object id = queryHelper.getIdValue(entity);
+            if (id == null) {
+                insertMap.put(i, entity);
             } else {
-                withoutId.add(entity);
+                updateMap.put(i, entity);
             }
         }
 
-        List<S> result = new ArrayList<>(entities.size());
-
-        // 处理有ID的实体（直接插入，包含ID字段）
-        if (!withId.isEmpty()) {
-            for (S entity : withId) {
-                String sql = queryHelper.buildInsertWithIdSql();
-                List<Object> params = queryHelper.extractInsertWithIdParams(entity);
-                dataManager.executeUpdate(sql, params);
-                result.add(entity);
-            }
+        // 批量插入新实体
+        List<T> insertedEntities = new ArrayList<>();
+        if (!insertMap.isEmpty()) {
+            insertedEntities = insertAll(insertMap.values());
         }
 
-        // 处理无ID的实体（获取生成的主键）
-        if (!withoutId.isEmpty()) {
-            String sql = buildBatchInsertSql(withoutId.size());
-            List<Object> params = extractBatchInsertParams(withoutId);
-            long[] generatedIds = dataManager.executeBatchInsertAndReturnKeys(sql, params, withoutId.size());
-            for (int i = 0; i < withoutId.size(); i++) {
-                queryHelper.setIdValue(withoutId.get(i), generatedIds[i]);
+        // 逐条更新已有实体（更新操作通常需要检查乐观锁，不适合批量）
+        Map<Integer, T> updateResults = new LinkedHashMap<>();
+        for (Map.Entry<Integer, T> entry : updateMap.entrySet()) {
+            updateResults.put(entry.getKey(), update(entry.getValue()));
+        }
+
+        // 按原始顺序组装结果
+        List<T> result = new ArrayList<>(entityList.size());
+        int insertedIndex = 0;
+        for (int i = 0; i < entityList.size(); i++) {
+            if (insertMap.containsKey(i)) {
+                result.add(insertedEntities.get(insertedIndex++));
+            } else {
+                result.add(updateResults.get(i));
             }
-            result.addAll(withoutId);
         }
 
         return result;
     }
 
-    /**
-     * 构建批量 INSERT SQL
-     * <p>
-     * 生成格式：INSERT INTO table (col1, col2, ...) VALUES (?, ?, ...), (?, ?, ...), ...
-     *
-     * @param batchSize 批次大小
-     * @return 批量 INSERT SQL
-     */
-    private String buildBatchInsertSql(int batchSize) {
-        StringBuilder sql = new StringBuilder("INSERT INTO ");
-        sql.append(dialect.quoteIdentifier(metadata.getTableName())).append(" (");
-
-        // 收集列名（排除自增主键）
-        List<String> columns = new ArrayList<>();
-        for (var field : metadata.getFields()) {
-            if (!field.isGenerated()) {
-                columns.add(field.getColumnName());
-            }
-        }
-
-        // 构建 VALUES 部分
-        sql.append(String.join(", ", columns));
-        sql.append(") VALUES ");
-
-        // 构建 VALUES 占位符
-        String valuePlaceholders = "(" + String.join(", ", Collections.nCopies(columns.size(), "?")) + ")";
-        sql.append(String.join(", ", Collections.nCopies(batchSize, valuePlaceholders)));
-
-        return sql.toString();
+    @Override
+    public @NonNull T insert(@NonNull T entity) {
+        return insertHandler.insert(entity);
     }
 
-    /**
-     * 提取批量插入参数
-     * <p>
-     * 使用缓存的字段访问器优化反射性能
-     *
-     * @param entities 实体列表
-     * @return 参数列表（按顺序排列）
-     */
-    private <S extends T> List<Object> extractBatchInsertParams(List<S> entities) {
-        List<Object> params = new ArrayList<>();
-        for (S entity : entities) {
-            params.addAll(queryHelper.extractInsertParams(entity));
-        }
-        return params;
+    @Override
+    public @NonNull List<T> insertAll(@NonNull Iterable<T> entities) {
+        return insertHandler.insertAll(entities);
     }
 
     @Override
     public @NonNull T update(@NonNull T entity) {
-        boolean isVersioned = Versioned.class.isAssignableFrom(entityClass);
-        String sql = queryHelper.buildUpdateSql(isVersioned);
-        List<Object> params = queryHelper.extractUpdateParams(entity, isVersioned);
-        int affectedRows = dataManager.executeUpdate(sql, params);
-
-        // 乐观锁检测：如果实体实现了 Versioned 接口，检查更新行数
-        if (isVersioned && affectedRows == 0) {
-            Object id = queryHelper.getIdValue(entity);
-            long version = ((Versioned) entity).getVersion();
-            throw new OptimisticLockException(entityClass.getSimpleName(), id, version);
-        }
-
-        // 更新成功后，递增实体中的版本号
-        if (isVersioned) {
-            ((Versioned) entity).incrementVersion();
-        }
-
-        // 失效缓存
-        evictCache(entity);
-
-        return entity;
+        return updateHandler.update(entity);
     }
 
     @Override
     public @NonNull List<T> updateAll(@NonNull Iterable<T> entities) {
-        List<T> result = new ArrayList<>();
-        for (T entity : entities) {
-            result.add(update(entity));
-        }
-        return result;
+        return updateHandler.updateAll(entities);
     }
 
     @Override
     public @NonNull Optional<T> findById(@NonNull Object id) {
-        // 尝试从缓存获取
-        if (isCacheEnabled()) {
-            EntityCache<T> cache = cacheManager.getCache(entityClass);
-            Optional<T> cached = cache.get(id);
-            if (cached.isPresent()) {
-                return cached;
-            }
-            // 检查缓存中是否有 null 标记（防穿透）
-            if (cache.containsKey(id)) {
-                return Optional.empty();
-            }
-        }
-
-        // 从数据库查询
-        StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM ")
-                .append(dialect.quoteIdentifier(metadata.getTableName()))
-                .append(" WHERE id = :id");
-
-        // 自动过滤已删除记录
-        if (softDeleteHandler.getSoftDeleteStrategy() != null && !includeDeleted) {
-            appendSoftDeleteFilter(sqlBuilder, true);
-        }
-
-        Optional<T> result = jdbcClient.sql(sqlBuilder.toString())
-                .param("id", id)
-                .query(rowMapper)
-                .optional();
-
-        // 缓存结果
-        if (isCacheEnabled()) {
-            EntityCache<T> cache = cacheManager.getCache(entityClass);
-            result.ifPresentOrElse(
-                    entity -> cache.put(id, entity),
-                    () -> {
-                        // 缓存 null 标记以防止缓存穿透
-                        if (cacheManager.getProperties().isCacheNull()) {
-                            cache.put(id, null);
-                        }
-                    }
-            );
-        }
-
-        return result;
+        return queryExecutor.findById(id);
     }
 
     @Override
     public @NonNull List<T> findAll() {
-        StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM ")
-                .append(dialect.quoteIdentifier(metadata.getTableName()));
-
-        // 自动过滤已删除记录
-        if (softDeleteHandler.getSoftDeleteStrategy() != null && !includeDeleted) {
-            appendSoftDeleteFilter(sqlBuilder, false);
-        }
-
-        return jdbcClient.sql(sqlBuilder.toString())
-                .query(rowMapper)
-                .list();
+        return queryExecutor.findAll();
     }
 
     @Override
     public @NonNull List<T> findAllById(@NonNull Iterable<?> ids) {
-        List<Object> idList = new ArrayList<>();
-        ids.forEach(idList::add);
-        if (idList.isEmpty()) {
-            return List.of();
-        }
-
-        StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM ")
-                .append(dialect.quoteIdentifier(metadata.getTableName()))
-                .append(" WHERE id IN (:ids)");
-
-        // 自动过滤已删除记录
-        if (softDeleteHandler.getSoftDeleteStrategy() != null && !includeDeleted) {
-            appendSoftDeleteFilter(sqlBuilder, true);
-        }
-
-        return jdbcClient.sql(sqlBuilder.toString())
-                .param("ids", idList)
-                .query(rowMapper)
-                .list();
+        return queryExecutor.findAllById(ids);
     }
 
     @Override
     public long count() {
-        StringBuilder sqlBuilder = new StringBuilder("SELECT COUNT(*) FROM ")
-                .append(dialect.quoteIdentifier(metadata.getTableName()));
-
-        // 自动过滤已删除记录
-        if (softDeleteHandler.getSoftDeleteStrategy() != null && !includeDeleted) {
-            appendSoftDeleteFilter(sqlBuilder, false);
-        }
-
-        Long result = jdbcClient.sql(sqlBuilder.toString())
-                .query(Long.class)
-                .single();
-        return result != null ? result : 0L;
+        return queryExecutor.count();
     }
 
     @Override
     public boolean existsById(@NonNull Object id) {
-        return findById(id).isPresent();
+        return queryExecutor.existsById(id);
     }
 
     @Override
     public void deleteById(@NonNull Object id) {
-        // 如果实体支持软删除，执行软删除
-        if (softDeleteHandler.isSoftDeletable()) {
-            softDeleteById(id);
-            return;
-        }
-
-        // 物理删除
-        String sql = "DELETE FROM " + dialect.quoteIdentifier(metadata.getTableName()) + " WHERE id = :id";
-        jdbcClient.sql(sql)
-                .param("id", id)
-                .update();
-
-        // 失效缓存
-        evictCacheById(id);
-    }
-
-    /**
-     * 软删除指定 ID 的记录
-     *
-     * @param id 实体 ID
-     */
-    private void softDeleteById(@NonNull Object id) {
-        String sql;
-        if (softDeleteHandler.getSoftDeleteStrategy() == SoftDeleteStrategy.TIMESTAMP) {
-            // 时间戳模式：设置 deleted_at 为当前时间
-            sql = "UPDATE " + dialect.quoteIdentifier(metadata.getTableName()) +
-                    " SET deleted_at = :deletedAt WHERE id = :id";
-            jdbcClient.sql(sql)
-                    .param("deletedAt", LocalDateTime.now())
-                    .param("id", id)
-                    .update();
-        } else {
-            // Boolean 模式：设置 deleted = true/1
-            sql = "UPDATE " + dialect.quoteIdentifier(metadata.getTableName()) +
-                    " SET deleted = :deleted WHERE id = :id";
-            jdbcClient.sql(sql)
-                    .param("deleted", true)
-                    .param("id", id)
-                    .update();
-        }
-
-        // 失效缓存
-        evictCacheById(id);
+        deleteHandler.deleteById(id);
     }
 
     @Override
     public void delete(@NonNull T entity) {
-        Object id = getIdValue(entity);
-        if (id != null) {
-            deleteById(id);
-        }
+        deleteHandler.delete(entity);
     }
 
     @Override
     public void deleteAllById(@NonNull Iterable<?> ids) {
-        for (Object id : ids) {
-            deleteById(id);
-        }
+        deleteHandler.deleteAllById(ids);
     }
 
     @Override
     public void deleteAll(@NonNull Iterable<? extends T> entities) {
-        for (T entity : entities) {
-            delete(entity);
-        }
+        deleteHandler.deleteAll(entities);
     }
 
     // ==================== 条件查询 ====================
@@ -515,124 +288,24 @@ public class JdbcEntityProxy<T> implements EntityProxy<T> {
 
     @Override
     public @NonNull List<T> findAll(@NonNull Condition condition) {
-        ConditionToSqlConverter converter = new ConditionToSqlConverter();
-        ConditionToSqlConverter.SqlResult result = converter.convert(condition);
-
-        StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM ")
-                .append(dialect.quoteIdentifier(metadata.getTableName()));
-
-        // 构建 WHERE 子句
-        StringBuilder whereClause = new StringBuilder(result.sql());
-
-        // 自动过滤已删除记录
-        if (softDeleteHandler.getSoftDeleteStrategy() != null && !includeDeleted) {
-            if (whereClause.length() > 0) {
-                whereClause.append(" AND ");
-            }
-            if (softDeleteHandler.getSoftDeleteStrategy() == SoftDeleteStrategy.TIMESTAMP) {
-                whereClause.append("deleted_at IS NULL");
-            } else {
-                whereClause.append("deleted = false");
-            }
-        }
-
-        if (whereClause.length() > 0) {
-            sqlBuilder.append(" WHERE ").append(whereClause);
-        }
-
-        return jdbcClient.sql(sqlBuilder.toString())
-                .params(result.parameters())
-                .query(rowMapper)
-                .list();
+        return conditionQueryHandler.findAll(condition);
     }
 
     @Override
     public @NonNull Page<T> findAll(@NonNull Condition condition, @NonNull PageRequest pageable) {
-        ConditionToSqlConverter converter = new ConditionToSqlConverter();
-        ConditionToSqlConverter.SqlResult whereResult = converter.convert(condition);
-
-        // 构建基础 WHERE 子句
-        StringBuilder whereClause = new StringBuilder(whereResult.sql());
-
-        // 自动过滤已删除记录
-        if (softDeleteHandler.getSoftDeleteStrategy() != null && !includeDeleted) {
-            if (softDeleteHandler.getSoftDeleteStrategy() == SoftDeleteStrategy.TIMESTAMP) {
-                if (whereClause.length() > 0) {
-                    whereClause.append(" AND ");
-                }
-                whereClause.append("deleted_at IS NULL");
-            } else {
-                if (whereClause.length() > 0) {
-                    whereClause.append(" AND ");
-                }
-                whereClause.append("deleted = false");
-            }
-        }
-
-        // 构建完整 SQL
-        String whereSql = whereClause.length() > 0 ? " WHERE " + whereClause : "";
-
-        // 计数查询
-        String countSql = "SELECT COUNT(*) FROM " + dialect.quoteIdentifier(metadata.getTableName()) + whereSql;
-        long total = dataManager.queryForCount(countSql, whereResult.parameters());
-
-        // 数据查询
-        String dataSql = "SELECT * FROM " + dialect.quoteIdentifier(metadata.getTableName()) +
-                whereSql +
-                " LIMIT " + pageable.size() + " OFFSET " + pageable.offset();
-        List<T> records = jdbcClient.sql(dataSql)
-                .params(whereResult.parameters())
-                .query(rowMapper)
-                .list();
-
-        return new Page<>(records, total, pageable.page(), pageable.size());
+        return conditionQueryHandler.findAll(condition, pageable);
     }
 
     // ==================== 条件更新/删除 ====================
 
     @Override
     public long updateAll(@NonNull Condition condition, @NonNull Map<String, Object> updates) {
-        long affected = executeConditionalUpdate(condition, updates);
-        if (affected > 0 && isCacheEnabled()) {
-            cacheManager.getCacheIfPresent(entityClass).clear();
-        }
-        return affected;
-    }
-
-    private long executeConditionalUpdate(@NonNull Condition condition, @NonNull Map<String, Object> updates) {
-        ConditionToSqlConverter converter = new ConditionToSqlConverter();
-        ConditionToSqlConverter.SqlResult whereResult = converter.convert(condition);
-
-        StringBuilder sql = new StringBuilder("UPDATE ");
-        sql.append(dialect.quoteIdentifier(metadata.getTableName())).append(" SET ");
-
-        List<String> setParts = new ArrayList<>();
-        List<Object> params = new ArrayList<>();
-        for (Map.Entry<String, Object> entry : updates.entrySet()) {
-            setParts.add(entry.getKey() + " = ?");
-            params.add(entry.getValue());
-        }
-        sql.append(String.join(", ", setParts));
-        sql.append(" WHERE ").append(whereResult.sql());
-        params.addAll(whereResult.parameters());
-
-        return dataManager.executeUpdate(sql.toString(), params);
+        return conditionalHandler.updateAll(condition, updates);
     }
 
     @Override
     public long deleteAll(@NonNull Condition condition) {
-        long affected = executeConditionalDelete(condition);
-        if (affected > 0 && isCacheEnabled()) {
-            cacheManager.getCacheIfPresent(entityClass).clear();
-        }
-        return affected;
-    }
-
-    private long executeConditionalDelete(@NonNull Condition condition) {
-        ConditionToSqlConverter converter = new ConditionToSqlConverter();
-        ConditionToSqlConverter.SqlResult result = converter.convert(condition);
-        String sql = "DELETE FROM " + dialect.quoteIdentifier(metadata.getTableName()) + " WHERE " + result.sql();
-        return dataManager.executeUpdate(sql, result.parameters());
+        return conditionalHandler.deleteAll(condition);
     }
 
     // ==================== 企业级特性（内部状态，供 JdbcEntityQuery 使用） ====================
@@ -668,7 +341,8 @@ public class JdbcEntityProxy<T> implements EntityProxy<T> {
     /**
      * 是否包含已删除记录
      */
-    boolean isIncludeDeleted() {
+    @Override
+    public boolean isIncludeDeleted() {
         return includeDeleted;
     }
 
@@ -682,7 +356,7 @@ public class JdbcEntityProxy<T> implements EntityProxy<T> {
         if (batchSize <= 0) {
             throw new IllegalArgumentException("batchSize must be greater than 0");
         }
-        this.batchSize = batchSize;
+        this.insertHandler.setBatchSize(batchSize);
         return this;
     }
 
@@ -692,7 +366,7 @@ public class JdbcEntityProxy<T> implements EntityProxy<T> {
      * @return 批次大小
      */
     public int getBatchSize() {
-        return batchSize;
+        return insertHandler.getBatchSize();
     }
 
     /**
@@ -889,65 +563,21 @@ public class JdbcEntityProxy<T> implements EntityProxy<T> {
         return queryHelper.getIdValue(entity);
     }
 
-    // ==================== 缓存辅助方法 ====================
-
-    /**
-     * 检查缓存是否启用
-     *
-     * @return 启用返回 true
-     */
-    private boolean isCacheEnabled() {
-        return cacheManager != null && cacheManager.isEnabled();
-    }
-
-    /**
-     * 失效实体缓存
-     *
-     * @param entity 实体对象
-     */
-    private void evictCache(@NonNull T entity) {
-        if (!isCacheEnabled()) {
-            return;
-        }
-        Object id = queryHelper.getIdValue(entity);
-        if (id != null) {
-            evictCacheById(id);
-        }
-    }
-
-    /**
-     * 根据 ID 失效缓存
-     *
-     * @param id 实体 ID
-     */
-    private void evictCacheById(@NonNull Object id) {
-        if (!isCacheEnabled()) {
-            return;
-        }
-        EntityCache<T> cache = cacheManager.getCacheIfPresent(entityClass);
-        if (cache != null) {
-            cache.evict(id);
-        }
-    }
-
     /**
      * 获取缓存管理器
      *
      * @return 缓存管理器，可能为 null
      */
     public @Nullable EntityCacheManager getCacheManager() {
-        return cacheManager;
+        return cacheHandler.getCacheManager();
     }
 
-    // ==================== 软删除辅助方法 ====================
-
     /**
-     * 追加软删除过滤条件到 SQL
+     * 获取缓存处理器
      *
-     * @param sqlBuilder     SQL 构建器
-     * @param hasWhereClause 是否已有 WHERE 子句
+     * @return 缓存处理器
      */
-    private void appendSoftDeleteFilter(StringBuilder sqlBuilder, boolean hasWhereClause) {
-        softDeleteHandler.appendSoftDeleteFilter(sqlBuilder, hasWhereClause, includeDeleted);
+    public EntityCacheHandler<T> getCacheHandler() {
+        return cacheHandler;
     }
 }

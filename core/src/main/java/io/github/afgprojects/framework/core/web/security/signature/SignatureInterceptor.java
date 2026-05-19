@@ -233,23 +233,32 @@ public class SignatureInterceptor implements HandlerInterceptor {
      * 获取请求体
      * <p>
      * 对于可重复读取的请求（如 ContentCachingRequestWrapper），直接读取；
-     * 否则返回 null。
+     * 否则返回 null，避免消耗输入流导致后续处理失败。
+     * <p>
+     * 注意：为确保签名验证能读取请求体，应在 Filter 中将请求包装为
+     * ContentCachingRequestWrapper，例如：
+     * <pre>{@code
+     * @Component
+     * public class ContentCachingFilter extends OncePerRequestFilter {
+     *     @Override
+     *     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) {
+     *         ContentCachingRequestWrapper wrappedRequest = new ContentCachingRequestWrapper(request);
+     *         filterChain.doFilter(wrappedRequest, response);
+     *     }
+     * }
+     * }</pre>
      */
     private @Nullable String getRequestBody(HttpServletRequest request) {
         try {
-            // 尝试从缓存中读取请求体
+            // 仅从 ContentCachingRequestWrapper 缓存中读取，避免消耗原始输入流
             if (request instanceof org.springframework.web.util.ContentCachingRequestWrapper wrapper) {
                 byte[] content = wrapper.getContentAsByteArray();
                 if (content.length > 0) {
                     return new String(content, StandardCharsets.UTF_8);
                 }
             }
-
-            // 尝试直接读取（可能会消耗输入流）
-            if (request.getInputStream().available() > 0) {
-                return new String(request.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-            }
-        } catch (IOException e) {
+            // 不直接读取输入流，避免消耗流导致后续处理失败
+        } catch (Exception e) {
             log.debug("Failed to read request body: {}", e.getMessage());
         }
 

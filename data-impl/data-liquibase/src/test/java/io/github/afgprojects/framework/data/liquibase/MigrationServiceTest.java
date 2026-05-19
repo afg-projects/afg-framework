@@ -109,7 +109,7 @@ class MigrationServiceTest {
             Path outputPath = tempDir.resolve("changelog.xml");
 
             // Act
-            migrationService.generateMigrationFromEntity(entityMetadata, "test-author", outputPath);
+            migrationService.generateMigrationFromEntity(entityMetadata, "platform", "1.0.0", 1, outputPath);
 
             // Assert
             assertThat(outputPath).exists();
@@ -131,7 +131,7 @@ class MigrationServiceTest {
             Path outputPath = tempDir.resolve("changelog-pk.xml");
 
             // Act
-            migrationService.generateMigrationFromEntity(entityMetadata, "test-author", outputPath);
+            migrationService.generateMigrationFromEntity(entityMetadata, "platform", "1.0.0", 1, outputPath);
 
             // Assert
             String content = Files.readString(outputPath);
@@ -147,11 +147,11 @@ class MigrationServiceTest {
             Path outputPath = tempDir.resolve("changelog-author.xml");
 
             // Act
-            migrationService.generateMigrationFromEntity(entityMetadata, "my-author", outputPath);
+            migrationService.generateMigrationFromEntity(entityMetadata, "platform", "1.0.0", 1, outputPath);
 
             // Assert
             String content = Files.readString(outputPath);
-            assertThat(content).contains("author=\"my-author\"");
+            assertThat(content).contains("author=\"afg\"");
         }
 
         @Test
@@ -163,7 +163,7 @@ class MigrationServiceTest {
 
             // Act & Assert
             assertThatThrownBy(() ->
-                migrationService.generateMigrationFromEntity(entityMetadata, "test-author", outputPath)
+                migrationService.generateMigrationFromEntity(entityMetadata, "platform", "1.0.0", 1, outputPath)
             ).isInstanceOf(IOException.class);
         }
     }
@@ -173,8 +173,8 @@ class MigrationServiceTest {
     class GenerateMigrationWithComparisonTests {
 
         @Test
-        @DisplayName("表不存在时应生成增量变更（addColumn）")
-        void shouldGenerateAddColumnWhenNotExists() throws Exception {
+        @DisplayName("表不存在时应生成 createTable")
+        void shouldGenerateCreateTableWhenNotExists() throws Exception {
             // Arrange
             TestEntityMetadata entityMetadata = new TestEntityMetadata();
             Path outputPath = tempDir.resolve("changelog-new.xml");
@@ -184,22 +184,23 @@ class MigrationServiceTest {
                     entityMetadata,
                     connection,
                     null,
-                    "test-author",
+                    "platform",
+                    "1.0.0",
+                    1,
+                    "afg",
                     outputPath
             );
 
             // Assert
             assertThat(diff).isNotNull();
             assertThat(diff.tableName()).isEqualTo("test_entity");
-            // 当表不存在时，entityVsDatabase 会显示所有列为 ADD 类型
-            assertThat(diff.entityVsDatabase()).isNotNull();
-            assertThat(diff.entityVsDatabase().hasAddedColumns()).isTrue();
+            // 当表不存在时，fromDatabase 为 null，entityVsDatabase 也为 null
+            assertThat(diff.entityVsDatabase()).isNull();
             assertThat(diff.hasConflicts()).isFalse();
             assertThat(outputPath).exists();
             String content = Files.readString(outputPath);
-            // 由于 jdbcReader 即使表不存在也返回 SchemaMetadata（空列列表），
-            // 所以会生成 addColumn 而不是 createTable
-            assertThat(content).contains("<addColumn");
+            // 表不存在时应生成 createTable
+            assertThat(content).contains("<createTable");
         }
 
         @Test
@@ -215,7 +216,10 @@ class MigrationServiceTest {
                     entityMetadata,
                     connection,
                     null,
-                    "test-author",
+                    "platform",
+                    "1.0.0",
+                    1,
+                    "afg",
                     outputPath
             );
 
@@ -237,7 +241,10 @@ class MigrationServiceTest {
                     entityMetadata,
                     null,
                     null,
-                    "test-author",
+                    "platform",
+                    "1.0.0",
+                    1,
+                    "afg",
                     outputPath
             );
 
@@ -259,7 +266,10 @@ class MigrationServiceTest {
                     entityMetadata,
                     null,
                     "/non/existing/path/changelog.xml",
-                    "test-author",
+                    "platform",
+                    "1.0.0",
+                    1,
+                    "afg",
                     outputPath
             );
 
@@ -281,7 +291,10 @@ class MigrationServiceTest {
                     entityMetadata,
                     connection,
                     null,
-                    "test-author",
+                    "platform",
+                    "1.0.0",
+                    1,
+                    "afg",
                     outputPath
             );
 
@@ -615,8 +628,8 @@ class MigrationServiceTest {
         }
 
         @Test
-        @DisplayName("表不存在时应返回存在标记")
-        void shouldReturnNotExistsWhenTableNotFound() throws SQLException {
+        @DisplayName("表不存在时应返回所有列为新增")
+        void shouldReturnAllColumnsAsAddedWhenTableNotFound() throws SQLException {
             // Arrange
             TestEntityMetadata entityMetadata = new TestEntityMetadata();
 
@@ -625,8 +638,9 @@ class MigrationServiceTest {
 
             // Assert
             assertThat(diff).isNotNull();
-            // JdbcSchemaReader 会尝试读取表，即使不存在也会返回 SchemaMetadata
             assertThat(diff.tableName()).isEqualTo("test_entity");
+            // 表不存在时，所有列都应标记为 ADD
+            assertThat(diff.hasAddedColumns()).isTrue();
         }
 
         @Test

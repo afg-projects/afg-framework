@@ -42,7 +42,7 @@ import io.github.afgprojects.framework.core.datasource.lb.WeightedStrategy;
  *   <li>基于注解的数据源切换</li>
  * </ul>
  *
- * <h3>配置示例</h3>
+ * <h3>基础配置示例</h3>
  * <pre>
  * afg:
  *   datasource:
@@ -64,6 +64,71 @@ import io.github.afgprojects.framework.core.datasource.lb.WeightedStrategy;
  *           username: root
  *           password: root
  * </pre>
+ *
+ * <h3>连接池配置示例（HikariCP）</h3>
+ * <pre>
+ * afg:
+ *   datasource:
+ *     dynamic:
+ *       enabled: true
+ *       primary: master
+ *       datasources:
+ *         master:
+ *           url: jdbc:mysql://localhost:3306/db_master
+ *           username: root
+ *           password: root
+ *           driver-class-name: com.mysql.cj.jdbc.Driver
+ *           pool-config:
+ *             # 连接池大小配置
+ *             minimum-idle: 5           # 最小空闲连接数
+ *             maximum-pool-size: 20     # 最大连接数
+ *             # 连接超时配置
+ *             connection-timeout: 30000 # 连接获取超时（毫秒）
+ *             idle-timeout: 600000      # 空闲连接超时（毫秒）
+ *             max-lifetime: 1800000     # 连接最大存活时间（毫秒）
+ *             # 连接验证配置
+ *             validation-timeout: 5000  # 连接验证超时（毫秒）
+ *             leak-detection-threshold: 60000 # 连接泄露检测阈值（毫秒）
+ *             # 连接池名称
+ *             pool-name: AfgMasterPool
+ *         slave_1:
+ *           url: jdbc:mysql://localhost:3306/db_slave_1
+ *           username: root
+ *           password: root
+ *           pool-config:
+ *             minimum-idle: 3
+ *             maximum-pool-size: 10
+ *             pool-name: AfgSlave1Pool
+ * </pre>
+ *
+ * <h3>读写分离配置示例</h3>
+ * <pre>
+ * afg:
+ *   datasource:
+ *     dynamic:
+ *       enabled: true
+ *       primary: master
+ *       read-write-separation:
+ *         enabled: true
+ *         write-datasource: master     # 写数据源
+ *         read-datasources:            # 读数据源列表
+ *           - slave_1
+ *           - slave_2
+ *         load-balance:
+ *           strategy: ROUND_ROBIN      # 负载均衡策略
+ *           health-check-enabled: true # 启用健康检查
+ *           health-check-interval: 30000 # 健康检查间隔（毫秒）
+ *           weights:                   # 权重配置（仅 WEIGHTED 策略）
+ *             slave_1: 70
+ *             slave_2: 30
+ * </pre>
+ *
+ * <h3>负载均衡策略</h3>
+ * <ul>
+ *   <li>ROUND_ROBIN - 轮询：依次选择读数据源</li>
+ *   <li>WEIGHTED - 权重：按权重比例选择读数据源</li>
+ *   <li>LEAST_CONNECTIONS - 最少连接：选择当前连接数最少的数据源</li>
+ * </ul>
  *
  * <h3>使用示例</h3>
  * <pre>

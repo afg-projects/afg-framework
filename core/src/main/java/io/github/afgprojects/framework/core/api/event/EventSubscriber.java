@@ -7,5 +7,5 @@ import org.jspecify.annotations.NonNull;
  */
 @FunctionalInterface
 public interface EventSubscriber<T> {
-    void onEvent(@NonNull DomainEvent<T> event);
+    void onEvent(@NonNull MessageEvent<T> event);
 }

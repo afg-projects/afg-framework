@@ -8,9 +8,9 @@ import org.jspecify.annotations.NonNull;
  * 具体实现由 afg-event-kafka、afg-event-rabbitmq 或 core 内置的本地事件发布提供
  */
 public interface EventPublisher<T> {
-    void publish(@NonNull DomainEvent<T> event);
-    CompletableFuture<Void> publishAsync(@NonNull DomainEvent<T> event);
+    void publish(@NonNull MessageEvent<T> event);
+    CompletableFuture<Void> publishAsync(@NonNull MessageEvent<T> event);
     default void publish(@NonNull String topic, @NonNull T payload) {
-        publish(new DomainEvent<>(topic, payload));
+        publish(new MessageEvent<>(topic, payload));
     }
 }

@@ -642,6 +642,34 @@ class SqlQueryBuilderImplTest {
     }
 
     @Test
+    @DisplayName("LEAD with string containing single quote - SQL injection prevention")
+    void testLeadWithSingleQuoteInDefaultValue() {
+        // 测试单引号转义，防止 SQL 注入
+        String sql = new SqlQueryBuilderImpl()
+            .select("id", "status")
+            .lead("status", 1, "O'Reilly")
+            .from("orders")
+            .toSql();
+
+        // 单引号应该被转义为两个单引号
+        assertThat(sql).isEqualTo("SELECT id, status, LEAD(`status`, 1, 'O''Reilly') FROM `orders`");
+    }
+
+    @Test
+    @DisplayName("LAG with string containing single quote - SQL injection prevention")
+    void testLagWithSingleQuoteInDefaultValue() {
+        // 测试单引号转义，防止 SQL 注入
+        String sql = new SqlQueryBuilderImpl()
+            .select("id", "status")
+            .lag("status", 1, "'; DROP TABLE users; --")
+            .from("orders")
+            .toSql();
+
+        // 单引号应该被转义为两个单引号，防止 SQL 注入
+        assertThat(sql).isEqualTo("SELECT id, status, LAG(`status`, 1, '''; DROP TABLE users; --') FROM `orders`");
+    }
+
+    @Test
     @DisplayName("LAG(column) 窗口函数")
     void testLag() {
         String sql = new SqlQueryBuilderImpl()

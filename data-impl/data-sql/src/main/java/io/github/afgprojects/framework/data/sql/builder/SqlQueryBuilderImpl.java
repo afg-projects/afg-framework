@@ -19,35 +19,54 @@ import java.util.Optional;
 
 /**
  * SQL 查询构建器实现
+ * <p>
+ * 使用门面模式组合各子构建器，保持 API 简洁
+ * <p>
+ * <strong>线程安全说明：</strong>此类不是线程安全的。每个实例应该只在单个线程中使用。
+ * 如果需要在多线程环境中使用，应该为每个线程创建独立的实例，或者使用外部同步机制。
+ * <p>
+ * 典型用法是在方法内部创建实例并立即使用：
+ * <pre>
+ * String sql = new SqlQueryBuilderImpl()
+ *     .select("id", "name")
+ *     .from("user")
+ *     .where(Conditions.builder(User.class).eq(User::getStatus, 1).build())
+ *     .toSql();
+ * </pre>
  */
 public class SqlQueryBuilderImpl implements SqlQueryBuilder {
 
     private final Dialect dialect;
     private final ConditionToSqlConverter conditionConverter;
 
-    private List<String> selectColumns = new ArrayList<>();
-    private boolean distinct = false;
+    // 子构建器
+    private final SelectClauseBuilder selectBuilder;
+    private final JoinClauseBuilder joinBuilder;
+    private final OrderByClauseBuilder orderByBuilder;
+    private final CteClauseBuilder cteBuilder;
+
+    // 查询状态
     private String fromTable;
     private String fromAlias;
-    private final List<JoinClause> joins = new ArrayList<>();
     private Condition whereCondition;
     private List<String> groupByColumns = new ArrayList<>();
     private Condition havingCondition;
-    private Sort orderBySort;
     private Long limitValue;
     private Long offsetValue;
     private final List<ExistsClause> existsClauses = new ArrayList<>();
-    private final List<CteClause> cteClauses = new ArrayList<>();
     private String pendingWindowFunction;
 
     public SqlQueryBuilderImpl() {
-        this.dialect = new MySQLDialect();
-        this.conditionConverter = new ConditionToSqlConverter();
+        this(new MySQLDialect());
     }
 
     public SqlQueryBuilderImpl(Dialect dialect) {
         this.dialect = dialect;
         this.conditionConverter = new ConditionToSqlConverter();
+        this.selectBuilder = new SelectClauseBuilder(dialect);
+        this.joinBuilder = new JoinClauseBuilder(dialect, conditionConverter);
+        this.orderByBuilder = new OrderByClauseBuilder(dialect);
+        this.cteBuilder = new CteClauseBuilder(dialect);
     }
 
     /**
@@ -59,72 +78,73 @@ public class SqlQueryBuilderImpl implements SqlQueryBuilder {
         return dialect;
     }
 
+    // ==================== SELECT ====================
+
     @Override
     public @NonNull SqlQueryBuilder select(@NonNull String... columns) {
-        selectColumns = new ArrayList<>(List.of(columns));
+        selectBuilder.select(columns);
         return this;
     }
 
     @Override
     public @NonNull SqlQueryBuilder select(@NonNull SFunction<?, ?>... getters) {
-        selectColumns = new ArrayList<>();
-        for (SFunction<?, ?> getter : getters) {
-            selectColumns.add(Conditions.getFieldName(getter));
-        }
+        selectBuilder.select(getters);
         return this;
     }
 
     @Override
     public @NonNull SqlQueryBuilder distinct() {
-        this.distinct = true;
+        selectBuilder.distinct();
         return this;
     }
 
     @Override
     public @NonNull SqlQueryBuilder selectAll() {
-        this.selectColumns = List.of("*");
+        selectBuilder.selectAll();
         return this;
     }
 
+    // ==================== 聚合函数 ====================
+
     @Override
     public @NonNull SqlQueryBuilder count(@NonNull String column) {
-        selectColumns.add("COUNT(" + dialect.quoteIdentifier(column) + ")");
+        selectBuilder.count(column);
         return this;
     }
 
     @Override
     public @NonNull SqlQueryBuilder count() {
-        selectColumns.add("COUNT(*)");
+        selectBuilder.count();
         return this;
     }
 
     @Override
     public @NonNull SqlQueryBuilder countDistinct(@NonNull String column) {
-        selectColumns.add("COUNT(DISTINCT " + dialect.quoteIdentifier(column) + ")");
+        selectBuilder.countDistinct(column);
         return this;
     }
 
     @Override
     public @NonNull SqlQueryBuilder sum(@NonNull String column) {
-        selectColumns.add("SUM(" + dialect.quoteIdentifier(column) + ")");
+        selectBuilder.sum(column);
         return this;
     }
 
     @Override
     public @NonNull SqlQueryBuilder avg(@NonNull String column) {
-        selectColumns.add("AVG(" + dialect.quoteIdentifier(column) + ")");
+        selectBuilder.avg(column);
         return this;
     }
 
     @Override
     public @NonNull SqlQueryBuilder max(@NonNull String column) {
-        selectColumns.add("MAX(" + dialect.quoteIdentifier(column) + ")");
+        selectBuilder.max(column);
         return this;
     }
 
     @Override
     public @NonNull SqlQueryBuilder min(@NonNull String column) {
-        selectColumns.add("MIN(" + dialect.quoteIdentifier(column) + ")");
+        selectBuilder.min(column);
         return this;
     }
 
@@ -187,42 +207,42 @@ public class SqlQueryBuilderImpl implements SqlQueryBuilder {
     @Override
     public @NonNull SqlQueryBuilder rowNumberOver(@NonNull String partitionBy, @NonNull String orderBy) {
         String overClause = buildOverClause(partitionBy, orderBy);
-        selectColumns.add("ROW_NUMBER() " + overClause);
+        selectBuilder.addWindowFunctionExpression("ROW_NUMBER() " + overClause);
         return this;
     }
 
     @Override
     public @NonNull SqlQueryBuilder rowNumberOver(@NonNull String partitionBy, @NonNull Sort orderBy) {
         String overClause = buildOverClause(partitionBy, orderBy);
-        selectColumns.add("ROW_NUMBER() " + overClause);
+        selectBuilder.addWindowFunctionExpression("ROW_NUMBER() " + overClause);
         return this;
     }
 
     @Override
     public @NonNull SqlQueryBuilder rankOver(@NonNull String partitionBy, @NonNull String orderBy) {
         String overClause = buildOverClause(partitionBy, orderBy);
-        selectColumns.add("RANK() " + overClause);
+        selectBuilder.addWindowFunctionExpression("RANK() " + overClause);
         return this;
     }
 
     @Override
     public @NonNull SqlQueryBuilder rankOver(@NonNull String partitionBy, @NonNull Sort orderBy) {
         String overClause = buildOverClause(partitionBy, orderBy);
-        selectColumns.add("RANK() " + overClause);
+        selectBuilder.addWindowFunctionExpression("RANK() " + overClause);
         return this;
     }
 
     @Override
     public @NonNull SqlQueryBuilder denseRankOver(@NonNull String partitionBy, @NonNull String orderBy) {
         String overClause = buildOverClause(partitionBy, orderBy);
-        selectColumns.add("DENSE_RANK() " + overClause);
+        selectBuilder.addWindowFunctionExpression("DENSE_RANK() " + overClause);
         return this;
     }
 
     @Override
     public @NonNull SqlQueryBuilder denseRankOver(@NonNull String partitionBy, @NonNull Sort orderBy) {
         String overClause = buildOverClause(partitionBy, orderBy);
-        selectColumns.add("DENSE_RANK() " + overClause);
+        selectBuilder.addWindowFunctionExpression("DENSE_RANK() " + overClause);
         return this;
     }
 
@@ -327,13 +347,16 @@ public class SqlQueryBuilderImpl implements SqlQueryBuilder {
 
     /**
      * 格式化默认值
+     * <p>
+     * 注意：字符串值会转义单引号以防止 SQL 注入
      */
     private String formatDefaultValue(Object value) {
         if (value == null) {
             return "NULL";
         }
-        if (value instanceof String) {
-            return "'" + value + "'";
+        if (value instanceof String str) {
+            // 转义单引号：' -> ''
+            return "'" + str.replace("'", "''") + "'";
         }
         return String.valueOf(value);
     }
@@ -343,7 +366,7 @@ public class SqlQueryBuilderImpl implements SqlQueryBuilder {
      * 由 WindowFunctionBuilderImpl 调用
      */
     void addWindowFunctionExpression(String expression) {
-        selectColumns.add(expression);
+        selectBuilder.addWindowFunctionExpression(expression);
     }
 
     /**
@@ -351,10 +374,12 @@ public class SqlQueryBuilderImpl implements SqlQueryBuilder {
      */
     private void flushPendingWindowFunction() {
         if (pendingWindowFunction != null) {
-            selectColumns.add(pendingWindowFunction);
+            selectBuilder.addWindowFunctionExpression(pendingWindowFunction);
             pendingWindowFunction = null;
         }
     }
+
+    // ==================== FROM ====================
 
     @Override
     public @NonNull SqlQueryBuilder from(@NonNull String table) {
@@ -372,41 +397,45 @@ public class SqlQueryBuilderImpl implements SqlQueryBuilder {
         return this;
     }
 
+    // ==================== JOIN ====================
+
     @Override
     public @NonNull SqlQueryBuilder join(@NonNull String table, @NonNull Condition on) {
-        joins.add(new JoinClause("JOIN", table, null, on));
+        joinBuilder.join(table, on);
         return this;
     }
 
     @Override
     public @NonNull SqlQueryBuilder leftJoin(@NonNull String table, @NonNull Condition on) {
-        joins.add(new JoinClause("LEFT JOIN", table, null, on));
+        joinBuilder.leftJoin(table, on);
         return this;
     }
 
     @Override
     public @NonNull SqlQueryBuilder rightJoin(@NonNull String table, @NonNull Condition on) {
-        joins.add(new JoinClause("RIGHT JOIN", table, null, on));
+        joinBuilder.rightJoin(table, on);
         return this;
     }
 
     @Override
     public @NonNull SqlQueryBuilder innerJoin(@NonNull String table, @NonNull Condition on) {
-        joins.add(new JoinClause("INNER JOIN", table, null, on));
+        joinBuilder.innerJoin(table, on);
         return this;
     }
 
     @Override
     public @NonNull SqlQueryBuilder join(@NonNull String table, @NonNull String alias, @NonNull Condition on) {
-        joins.add(new JoinClause("JOIN", table, alias, on));
+        joinBuilder.join(table, alias, on);
         return this;
     }
 
     @Override
     public @NonNull SqlQueryBuilder leftJoin(@NonNull String table, @NonNull String alias, @NonNull Condition on) {
-        joins.add(new JoinClause("LEFT JOIN", table, alias, on));
+        joinBuilder.leftJoin(table, alias, on);
         return this;
     }
+
+    // ==================== WHERE ====================
 
     @Override
     public @NonNull SqlQueryBuilder where(@NonNull Condition condition) {
@@ -434,6 +463,8 @@ public class SqlQueryBuilderImpl implements SqlQueryBuilder {
         return this;
     }
 
+    // ==================== GROUP BY / HAVING ====================
+
     @Override
     public @NonNull SqlQueryBuilder groupBy(@NonNull String... columns) {
         this.groupByColumns = new ArrayList<>(List.of(columns));
@@ -446,17 +477,21 @@ public class SqlQueryBuilderImpl implements SqlQueryBuilder {
         return this;
     }
 
+    // ==================== ORDER BY ====================
+
     @Override
     public @NonNull SqlQueryBuilder orderBy(@NonNull Sort sort) {
-        this.orderBySort = sort;
+        orderByBuilder.orderBy(sort);
         return this;
     }
 
     @Override
     public @NonNull SqlQueryBuilder orderBy(@NonNull String column, Sort.@NonNull Direction direction) {
-        this.orderBySort = direction == Sort.Direction.ASC ? Sort.asc(column) : Sort.desc(column);
+        orderByBuilder.orderBy(column, direction);
         return this;
     }
+
+    // ==================== LIMIT / OFFSET ====================
 
     @Override
     public @NonNull SqlQueryBuilder limit(long limit) {
@@ -482,10 +517,38 @@ public class SqlQueryBuilderImpl implements SqlQueryBuilder {
         this.offsetValue = pageable.offset();
         this.limitValue = (long) pageable.size();
         if (pageable.hasSort()) {
-            this.orderBySort = pageable.sort();
+            orderByBuilder.setSort(pageable.sort());
         }
         return this;
     }
+
+    // ==================== CTE ====================
+
+    @Override
+    public @NonNull SqlQueryBuilder with(@NonNull String name, @NonNull SqlQueryBuilder cte) {
+        cteBuilder.with(name, cte);
+        return this;
+    }
+
+    @Override
+    public @NonNull SqlQueryBuilder withRecursive(@NonNull String name, @NonNull SqlQueryBuilder cte) {
+        cteBuilder.withRecursive(name, cte);
+        return this;
+    }
+
+    @Override
+    public @NonNull SqlQueryBuilder withColumnNames(@NonNull String name, @NonNull String[] columns, @NonNull SqlQueryBuilder cte) {
+        cteBuilder.withColumnNames(name, columns, cte);
+        return this;
+    }
+
+    @Override
+    public @NonNull SqlQueryBuilder withRecursiveColumnNames(@NonNull String name, @NonNull String[] columns, @NonNull SqlQueryBuilder cte) {
+        cteBuilder.withRecursiveColumnNames(name, columns, cte);
+        return this;
+    }
+
+    // ==================== 子查询 ====================
 
     @Override
     public @NonNull SqlQueryBuilder fromSubquery(@NonNull SqlQueryBuilder subquery, @NonNull String alias) {
@@ -507,29 +570,7 @@ public class SqlQueryBuilderImpl implements SqlQueryBuilder {
         return this;
     }
 
-    @Override
-    public @NonNull SqlQueryBuilder with(@NonNull String name, @NonNull SqlQueryBuilder cte) {
-        cteClauses.add(new CteClause(name, null, cte, false));
-        return this;
-    }
-
-    @Override
-    public @NonNull SqlQueryBuilder withRecursive(@NonNull String name, @NonNull SqlQueryBuilder cte) {
-        cteClauses.add(new CteClause(name, null, cte, true));
-        return this;
-    }
-
-    @Override
-    public @NonNull SqlQueryBuilder withColumnNames(@NonNull String name, @NonNull String[] columns, @NonNull SqlQueryBuilder cte) {
-        cteClauses.add(new CteClause(name, columns, cte, false));
-        return this;
-    }
-
-    @Override
-    public @NonNull SqlQueryBuilder withRecursiveColumnNames(@NonNull String name, @NonNull String[] columns, @NonNull SqlQueryBuilder cte) {
-        cteClauses.add(new CteClause(name, columns, cte, true));
-        return this;
-    }
+    // ==================== 构建 ====================
 
     @Override
     public @NonNull String toSql() {
@@ -539,20 +580,12 @@ public class SqlQueryBuilderImpl implements SqlQueryBuilder {
         StringBuilder sql = new StringBuilder();
 
         // WITH (CTE) - 放在 SELECT 之前
-        if (!cteClauses.isEmpty()) {
-            sql.append(buildWithClause());
+        if (cteBuilder.hasCtes()) {
+            sql.append(cteBuilder.build());
         }
 
         // SELECT
-        sql.append("SELECT ");
-        if (distinct) {
-            sql.append("DISTINCT ");
-        }
-        if (selectColumns.isEmpty()) {
-            sql.append("*");
-        } else {
-            sql.append(String.join(", ", selectColumns));
-        }
+        sql.append("SELECT ").append(selectBuilder.build());
 
         // FROM
         sql.append(" FROM ").append(dialect.quoteIdentifier(fromTable));
@@ -561,14 +594,7 @@ public class SqlQueryBuilderImpl implements SqlQueryBuilder {
         }
 
         // JOINs
-        for (JoinClause join : joins) {
-            sql.append(" ").append(join.type());
-            sql.append(" ").append(dialect.quoteIdentifier(join.table()));
-            if (join.alias() != null) {
-                sql.append(" ").append(join.alias());
-            }
-            sql.append(" ON ").append(conditionConverter.convert(join.on()).sql());
-        }
+        sql.append(joinBuilder.build());
 
         // WHERE
         if (whereCondition != null && !whereCondition.isEmpty()) {
@@ -599,14 +625,7 @@ public class SqlQueryBuilderImpl implements SqlQueryBuilder {
         }
 
         // ORDER BY
-        if (orderBySort != null && orderBySort.isSorted()) {
-            sql.append(" ORDER BY ");
-            List<String> orderParts = new ArrayList<>();
-            for (Sort.Order order : orderBySort.getOrders()) {
-                orderParts.add(dialect.quoteIdentifier(order.getProperty()) + " " + order.getDirection().getSymbol());
-            }
-            sql.append(String.join(", ", orderParts));
-        }
+        sql.append(orderByBuilder.build());
 
         // LIMIT / OFFSET
         if (limitValue != null) {
@@ -624,9 +643,7 @@ public class SqlQueryBuilderImpl implements SqlQueryBuilder {
         List<Object> params = new ArrayList<>();
 
         // CTE 参数
-        for (CteClause cteClause : cteClauses) {
-            params.addAll(cteClause.cte().getParameters());
-        }
+        params.addAll(cteBuilder.getParameters());
 
         // WHERE 参数
         if (whereCondition != null && !whereCondition.isEmpty()) {
@@ -645,6 +662,8 @@ public class SqlQueryBuilderImpl implements SqlQueryBuilder {
 
         return params;
     }
+
+    // ==================== 执行 ====================
 
     @Override
     public <T> @NonNull List<T> fetch(@NonNull Class<T> resultType) {
@@ -672,9 +691,7 @@ public class SqlQueryBuilderImpl implements SqlQueryBuilder {
         throw new UnsupportedOperationException("Use DataManager to execute query");
     }
 
-    private record JoinClause(String type, String table, String alias, Condition on) {}
     private record ExistsClause(String type, SqlQueryBuilder subquery) {}
-    private record CteClause(String name, String[] columns, SqlQueryBuilder cte, boolean recursive) {}
 
     /**
      * 拼接 EXISTS / NOT EXISTS 子查询
@@ -690,42 +707,5 @@ public class SqlQueryBuilderImpl implements SqlQueryBuilder {
             }
             sql.append(clause.type()).append(" (").append(clause.subquery().toSql()).append(")");
         }
-    }
-
-    /**
-     * 构建 WITH 子句（CTE）
-     *
-     * @return WITH 子句字符串
-     */
-    private String buildWithClause() {
-        StringBuilder sb = new StringBuilder();
-
-        // 检查是否有递归 CTE
-        boolean hasRecursive = cteClauses.stream().anyMatch(CteClause::recursive);
-
-        sb.append("WITH ");
-        if (hasRecursive) {
-            sb.append("RECURSIVE ");
-        }
-
-        for (int i = 0; i < cteClauses.size(); i++) {
-            CteClause cte = cteClauses.get(i);
-            if (i > 0) {
-                sb.append(", ");
-            }
-            sb.append(dialect.quoteIdentifier(cte.name()));
-            // 添加列名（如果有）
-            if (cte.columns() != null && cte.columns().length > 0) {
-                List<String> quotedColumns = new ArrayList<>();
-                for (String column : cte.columns()) {
-                    quotedColumns.add(dialect.quoteIdentifier(column));
-                }
-                sb.append("(").append(String.join(", ", quotedColumns)).append(")");
-            }
-            sb.append(" AS (").append(cte.cte().toSql()).append(")");
-        }
-        sb.append(" ");
-
-        return sb.toString();
     }
 }

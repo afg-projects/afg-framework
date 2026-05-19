@@ -9,6 +9,9 @@ import org.jspecify.annotations.Nullable;
  * @param column          权限过滤列名
  * @param scopeType       数据范围类型
  * @param customCondition 自定义 SQL 条件（scopeType 为 CUSTOM 时使用）
+ *                        <p><b>警告：</b>此字段允许直接传入 SQL 片段，存在 SQL 注入风险。
+ *                        <b>仅供内部框架使用</b>，禁止在业务代码中直接设置此字段。
+ *                        如需自定义条件，请使用 {@link io.github.afgprojects.framework.data.core.condition.Conditions} API。
  * @param aliasPrefix     别名前缀
  */
 public record DataScope(

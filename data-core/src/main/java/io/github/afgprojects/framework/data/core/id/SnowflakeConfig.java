@@ -18,6 +18,11 @@ public class SnowflakeConfig {
     public static final long DEFAULT_DATACENTER_ID = 0L;
 
     /**
+     * 默认最大时钟回拨容忍时间（毫秒）
+     */
+    public static final long DEFAULT_MAX_CLOCK_DRIFT = 5L;
+
+    /**
      * 工作节点ID（0-31）
      */
     private final long workerId;
@@ -48,6 +53,11 @@ public class SnowflakeConfig {
     private final int datacenterIdBits;
 
     /**
+     * 最大时钟回拨容忍时间（毫秒）
+     */
+    private final long maxClockDrift;
+
+    /**
      * 使用默认配置构造
      */
     public SnowflakeConfig() {
@@ -72,7 +82,7 @@ public class SnowflakeConfig {
      * @param epoch        起始时间戳
      */
     public SnowflakeConfig(long workerId, long datacenterId, long epoch) {
-        this(workerId, datacenterId, epoch, 12, 5, 5);
+        this(workerId, datacenterId, epoch, 12, 5, 5, DEFAULT_MAX_CLOCK_DRIFT);
     }
 
     /**
@@ -87,6 +97,23 @@ public class SnowflakeConfig {
      */
     public SnowflakeConfig(long workerId, long datacenterId, long epoch,
                            int sequenceBits, int workerIdBits, int datacenterIdBits) {
+        this(workerId, datacenterId, epoch, sequenceBits, workerIdBits, datacenterIdBits, DEFAULT_MAX_CLOCK_DRIFT);
+    }
+
+    /**
+     * 完整构造（包含时钟回拨容忍配置）
+     *
+     * @param workerId         工作节点ID
+     * @param datacenterId     数据中心ID
+     * @param epoch            起始时间戳
+     * @param sequenceBits     序列号位数
+     * @param workerIdBits     工作节点ID位数
+     * @param datacenterIdBits 数据中心ID位数
+     * @param maxClockDrift    最大时钟回拨容忍时间（毫秒）
+     */
+    public SnowflakeConfig(long workerId, long datacenterId, long epoch,
+                           int sequenceBits, int workerIdBits, int datacenterIdBits,
+                           long maxClockDrift) {
         validateWorkerId(workerId, workerIdBits);
         validateDatacenterId(datacenterId, datacenterIdBits);
 
@@ -96,6 +123,7 @@ public class SnowflakeConfig {
         this.sequenceBits = sequenceBits;
         this.workerIdBits = workerIdBits;
         this.datacenterIdBits = datacenterIdBits;
+        this.maxClockDrift = maxClockDrift;
     }
 
     private void validateWorkerId(long workerId, int workerIdBits) {
@@ -136,6 +164,10 @@ public class SnowflakeConfig {
 
     public int getDatacenterIdBits() {
         return datacenterIdBits;
+    }
+
+    public long getMaxClockDrift() {
+        return maxClockDrift;
     }
 
     public long getMaxWorkerId() {

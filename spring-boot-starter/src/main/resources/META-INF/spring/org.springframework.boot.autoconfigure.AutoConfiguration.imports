@@ -1,2 +1,3 @@
 io.github.afgprojects.framework.starter.AfgStarterAutoConfiguration
 io.github.afgprojects.framework.starter.openapi.AfgOpenApiAutoConfiguration
+io.github.afgprojects.framework.starter.transaction.TransactionAutoConfiguration

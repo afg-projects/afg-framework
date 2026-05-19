@@ -324,7 +324,7 @@ public class DefaultPiiDetector implements PiiDetector {
         }
 
         // 根据检测到的 PII 类型和数量计算风险等级
-        Set<PiiType> types = new HashSet<>();
+        Set<PiiType> types = EnumSet.noneOf(PiiType.class);
         for (PiiMatch match : matches) {
             types.add(match.getType());
         }
@@ -342,7 +342,7 @@ public class DefaultPiiDetector implements PiiDetector {
     }
 
     private List<PiiType> getPiiTypes(List<PiiMatch> matches) {
-        Set<PiiType> types = new HashSet<>();
+        Set<PiiType> types = EnumSet.noneOf(PiiType.class);
         for (PiiMatch match : matches) {
             types.add(match.getType());
         }

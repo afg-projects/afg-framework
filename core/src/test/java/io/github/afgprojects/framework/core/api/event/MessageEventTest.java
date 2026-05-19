@@ -8,9 +8,9 @@ import java.time.Instant;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * {@link DomainEvent} 领域事件测试
+ * {@link MessageEvent} 消息事件测试
  *
- * <p>测试领域事件的创建和属性：
+ * <p>测试消息事件的创建和属性：
  * <ul>
  *   <li>简化构造函数（自动生成 eventId 和 occurredAt）</li>
  *   <li>完整构造函数（指定所有属性）</li>
@@ -18,19 +18,19 @@ import static org.junit.jupiter.api.Assertions.*;
  *   <li>eventId 唯一性</li>
  * </ul>
  *
- * @see DomainEvent
+ * @see MessageEvent
  */
-@DisplayName("DomainEvent 测试")
-class DomainEventTest {
+@DisplayName("MessageEvent 测试")
+class MessageEventTest {
 
     /**
      * 测试使用简化构造函数创建事件
      */
     @Test
-    @DisplayName("应该使用简化构造函数创建 DomainEvent")
+    @DisplayName("应该使用简化构造函数创建 MessageEvent")
     void shouldCreateWithSimpleConstructor() {
         TestPayload payload = new TestPayload("test", 123);
-        DomainEvent<TestPayload> event = new DomainEvent<>("user.created", payload);
+        MessageEvent<TestPayload> event = new MessageEvent<>("user.created", payload);
 
         assertNotNull(event.eventId());
         assertEquals("user.created", event.topic());
@@ -43,11 +43,11 @@ class DomainEventTest {
      * 测试使用完整构造函数创建事件
      */
     @Test
-    @DisplayName("应该使用完整构造函数创建 DomainEvent")
+    @DisplayName("应该使用完整构造函数创建 MessageEvent")
     void shouldCreateWithFullConstructor() {
         TestPayload payload = new TestPayload("test", 456);
         Instant now = Instant.now();
-        DomainEvent<TestPayload> event = new DomainEvent<>(
+        MessageEvent<TestPayload> event = new MessageEvent<>(
                 "evt-001",
                 "order.completed",
                 payload,
@@ -66,10 +66,10 @@ class DomainEventTest {
      * 测试使用自定义 source 创建事件
      */
     @Test
-    @DisplayName("应该使用自定义 source 创建 DomainEvent")
+    @DisplayName("应该使用自定义 source 创建 MessageEvent")
     void shouldCreateWithCustomSource() {
         TestPayload payload = new TestPayload("data", 789);
-        DomainEvent<TestPayload> event = new DomainEvent<>("payment.processed", payload, "payment-service");
+        MessageEvent<TestPayload> event = new MessageEvent<>("payment.processed", payload, "payment-service");
 
         assertNotNull(event.eventId());
         assertEquals("payment.processed", event.topic());
@@ -85,8 +85,8 @@ class DomainEventTest {
     @DisplayName("eventId 应该是唯一的")
     void eventIdShouldBeUnique() {
         TestPayload payload = new TestPayload("test", 1);
-        DomainEvent<TestPayload> event1 = new DomainEvent<>("topic", payload);
-        DomainEvent<TestPayload> event2 = new DomainEvent<>("topic", payload);
+        MessageEvent<TestPayload> event1 = new MessageEvent<>("topic", payload);
+        MessageEvent<TestPayload> event2 = new MessageEvent<>("topic", payload);
 
         assertNotEquals(event1.eventId(), event2.eventId());
     }
@@ -99,7 +99,7 @@ class DomainEventTest {
     void occurredAtShouldBeCloseToNow() {
         Instant before = Instant.now().minusSeconds(1);
         TestPayload payload = new TestPayload("test", 1);
-        DomainEvent<TestPayload> event = new DomainEvent<>("topic", payload);
+        MessageEvent<TestPayload> event = new MessageEvent<>("topic", payload);
         Instant after = Instant.now().plusSeconds(1);
 
         assertTrue(event.occurredAt().isAfter(before) || event.occurredAt().equals(before));

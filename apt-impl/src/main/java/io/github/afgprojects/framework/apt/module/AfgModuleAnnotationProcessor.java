@@ -118,7 +118,11 @@ public class AfgModuleAnnotationProcessor extends AbstractProcessor {
             return lastDot >= 0 ? packageName.substring(lastDot + 1) : packageName;
 
         } catch (Exception e) {
-            // 回退到包名
+            // 回退到包名，打印详细警告信息
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING,
+                "Failed to extract module ID from annotation for " + typeElement.getQualifiedName() +
+                ", falling back to package name. Exception: " + e.getClass().getName() + " - " + e.getMessage(),
+                typeElement);
             PackageElement pkg = processingEnv.getElementUtils().getPackageOf(typeElement);
             return pkg.getQualifiedName().toString();
         }

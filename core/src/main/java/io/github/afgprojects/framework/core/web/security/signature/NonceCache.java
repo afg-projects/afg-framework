@@ -1,8 +1,8 @@
 package io.github.afgprojects.framework.core.web.security.signature;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -10,14 +10,17 @@ import org.jspecify.annotations.Nullable;
 /**
  * Nonce 缓存
  * <p>
- * 使用 LRU 策略缓存已使用的 nonce，防止重放攻击。
- * 线程安全，支持并发访问。
+ * 使用 ConcurrentHashMap 配合自定义 LRU 逻辑实现线程安全的 nonce 缓存，
+ * 防止重放攻击。
+ * <p>
+ * 使用 ConcurrentLinkedDeque 维护访问顺序，实现 LRU 淘汰策略。
  */
 public class NonceCache {
 
     private final int maxSize;
-    private final LinkedHashMap<String, Long> cache;
-    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    private final ConcurrentHashMap<String, Long> cache;
+    private final ConcurrentLinkedDeque<String> accessOrder;
+    private final AtomicInteger size;
 
     /**
      * 创建 Nonce 缓存
@@ -26,13 +29,9 @@ public class NonceCache {
      */
     public NonceCache(int maxSize) {
         this.maxSize = maxSize;
-        // 使用访问顺序的 LinkedHashMap 实现 LRU
-        this.cache = new LinkedHashMap<>(16, 0.75f, true) {
-            @Override
-            protected boolean removeEldestEntry(Map.Entry<String, Long> eldest) {
-                return size() > NonceCache.this.maxSize;
-            }
-        };
+        this.cache = new ConcurrentHashMap<>(16);
+        this.accessOrder = new ConcurrentLinkedDeque<>();
+        this.size = new AtomicInteger(0);
     }
 
     /**
@@ -46,17 +45,32 @@ public class NonceCache {
      * @return 如果 nonce 未被使用返回 true
      */
     public boolean checkAndAdd(@NonNull String nonce, long timestamp) {
-        lock.writeLock().lock();
-        try {
-            // 检查是否已存在
-            if (cache.containsKey(nonce)) {
-                return false;
-            }
-            // 添加到缓存
-            cache.put(nonce, timestamp);
-            return true;
-        } finally {
-            lock.writeLock().unlock();
+        // 使用 putIfAbsent 保证原子性
+        Long existing = cache.putIfAbsent(nonce, timestamp);
+        if (existing != null) {
+            return false; // 已存在
+        }
+
+        // 添加到访问顺序队列
+        accessOrder.addLast(nonce);
+        int currentSize = size.incrementAndGet();
+
+        // 如果超过最大容量，移除最旧的条目
+        if (currentSize > maxSize) {
+            evictOldest();
+        }
+
+        return true;
+    }
+
+    /**
+     * 移除最旧的条目（LRU 淘汰）
+     */
+    private void evictOldest() {
+        String oldest = accessOrder.pollFirst();
+        if (oldest != null) {
+            cache.remove(oldest);
+            size.decrementAndGet();
         }
     }
 
@@ -67,12 +81,7 @@ public class NonceCache {
      * @return 如果存在返回 true
      */
     public boolean contains(@NonNull String nonce) {
-        lock.readLock().lock();
-        try {
-            return cache.containsKey(nonce);
-        } finally {
-            lock.readLock().unlock();
-        }
+        return cache.containsKey(nonce);
     }
 
     /**
@@ -82,12 +91,7 @@ public class NonceCache {
      * @return 时间戳，如果不存在返回 null
      */
     public @Nullable Long getTimestamp(@NonNull String nonce) {
-        lock.readLock().lock();
-        try {
-            return cache.get(nonce);
-        } finally {
-            lock.readLock().unlock();
-        }
+        return cache.get(nonce);
     }
 
     /**
@@ -96,35 +100,30 @@ public class NonceCache {
      * @param expireTime 过期时间点（毫秒时间戳）
      */
     public void cleanExpired(long expireTime) {
-        lock.writeLock().lock();
-        try {
-            cache.entrySet().removeIf(entry -> entry.getValue() < expireTime);
-        } finally {
-            lock.writeLock().unlock();
-        }
+        // 遍历并移除过期的条目
+        cache.entrySet().removeIf(entry -> entry.getValue() < expireTime);
+        // 同步更新访问顺序队列
+        accessOrder.removeIf(nonce -> {
+            Long timestamp = cache.get(nonce);
+            return timestamp == null || timestamp < expireTime;
+        });
+        // 更新大小
+        size.set(cache.size());
     }
 
     /**
      * 清空缓存
      */
     public void clear() {
-        lock.writeLock().lock();
-        try {
-            cache.clear();
-        } finally {
-            lock.writeLock().unlock();
-        }
+        cache.clear();
+        accessOrder.clear();
+        size.set(0);
     }
 
     /**
      * 获取当前缓存大小
      */
     public int size() {
-        lock.readLock().lock();
-        try {
-            return cache.size();
-        } finally {
-            lock.readLock().unlock();
-        }
+        return size.get();
     }
 }

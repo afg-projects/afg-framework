@@ -33,6 +33,7 @@ public class SpringTransactionAdapter implements TransactionAdapter {
 
     private final PlatformTransactionManager transactionManager;
     private final TransactionTemplate transactionTemplate;
+    private final TransactionTemplate readOnlyTransactionTemplate;
 
     /**
      * 创建事务适配器
@@ -42,6 +43,11 @@ public class SpringTransactionAdapter implements TransactionAdapter {
     public SpringTransactionAdapter(@NonNull PlatformTransactionManager transactionManager) {
         this.transactionManager = transactionManager;
         this.transactionTemplate = new TransactionTemplate(transactionManager);
+
+        // 预创建只读事务模板，避免每次调用都创建新实例
+        DefaultTransactionDefinition readOnlyDef = new DefaultTransactionDefinition();
+        readOnlyDef.setReadOnly(true);
+        this.readOnlyTransactionTemplate = new TransactionTemplate(transactionManager, readOnlyDef);
     }
 
     @Override
@@ -56,14 +62,15 @@ public class SpringTransactionAdapter implements TransactionAdapter {
 
     @Override
     public <T> T executeInReadOnly(@NonNull Supplier<T> action) {
-        DefaultTransactionDefinition def = new DefaultTransactionDefinition();
-        def.setReadOnly(true);
-        TransactionTemplate readOnlyTemplate = new TransactionTemplate(transactionManager, def);
-        return readOnlyTemplate.execute(status -> action.get());
+        return readOnlyTransactionTemplate.execute(status -> action.get());
     }
 
     /**
      * 在指定事务定义下执行操作
+     * <p>
+     * 注意：此方法每次调用都会创建新的 {@link TransactionTemplate} 实例，
+     * 因此适用于低频调用场景。对于高频调用，建议使用 {@link #executeInTransaction(Runnable)}
+     * 或 {@link #executeInReadOnly(Supplier)} 等预缓存模板的方法。
      *
      * @param definition 事务定义
      * @param action     要执行的操作
@@ -75,6 +82,10 @@ public class SpringTransactionAdapter implements TransactionAdapter {
 
     /**
      * 在指定事务定义下执行操作并返回结果
+     * <p>
+     * 注意：此方法每次调用都会创建新的 {@link TransactionTemplate} 实例，
+     * 因此适用于低频调用场景。对于高频调用，建议使用 {@link #executeInTransaction(Supplier)}
+     * 或 {@link #executeInReadOnly(Supplier)} 等预缓存模板的方法。
      *
      * @param definition 事务定义
      * @param action     要执行的操作

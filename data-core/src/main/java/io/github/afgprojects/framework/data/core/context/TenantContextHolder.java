@@ -7,7 +7,45 @@ import org.jspecify.annotations.Nullable;
 /**
  * 租户上下文持有者
  * <p>
- * 基于 ThreadLocal 实现租户上下文管理，支持跨线程传播
+ * 基于 ThreadLocal 实现租户上下文管理，支持跨线程传播。
+ * <p>
+ * <b>功能特点：</b>
+ * <ul>
+ *   <li>快照/恢复机制：支持将当前租户上下文快照保存，在另一个线程中恢复</li>
+ *   <li>作用域管理：支持 try-with-resources 语法的租户作用域</li>
+ *   <li>跨线程传播：配合 {@link TenantContextTaskDecorator} 实现异步任务的租户上下文传播</li>
+ * </ul>
+ * <p>
+ * <b>使用场景：</b>异步执行、线程池、定时任务等需要跨线程传播租户上下文的场景。
+ * <p>
+ * <b>与 ThreadLocalTenantContext 的区别：</b>
+ * <ul>
+ *   <li>{@link io.github.afgprojects.framework.data.core.tenant.ThreadLocalTenantContext}：
+ *       简单实现，仅提供基本的 ThreadLocal 存储，适用于单线程场景</li>
+ *   <li>{@code TenantContextHolder}：高级实现，支持快照/恢复和跨线程传播，
+ *       适用于异步执行、线程池等场景</li>
+ * </ul>
+ * <p>
+ * <b>使用示例：</b>
+ * <pre>{@code
+ * // 在主线程中创建快照
+ * TenantContextSnapshot snapshot = holder.snapshot();
+ *
+ * // 在异步线程中恢复
+ * executor.submit(() -> {
+ *     holder.runWithSnapshot(snapshot, () -> {
+ *         // 业务逻辑，可以获取到租户ID
+ *     });
+ * });
+ *
+ * // 使用作用域（try-with-resources）
+ * try (TenantScope scope = holder.scope("tenant-123")) {
+ *     // 在此作用域内，租户ID为 "tenant-123"
+ * }
+ * }</pre>
+ *
+ * @see io.github.afgprojects.framework.data.core.tenant.ThreadLocalTenantContext
+ * @see TenantContextTaskDecorator
  */
 public class TenantContextHolder {
 
