@@ -106,6 +106,11 @@ public class SignatureException extends BusinessException {
         KEY_DISABLED("指定的密钥已禁用"),
 
         /**
+         * 密钥无权访问该路径
+         */
+        ACCESS_DENIED("密钥无权访问该路径"),
+
+        /**
          * 签名算法不支持
          */
         UNSUPPORTED_ALGORITHM("不支持的签名算法");

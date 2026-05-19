@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -20,7 +21,9 @@ import lombok.extern.slf4j.Slf4j;
  * <p>
  * 签名流程：
  * <ol>
- *   <li>从请求头获取签名相关信息：X-Signature、X-Timestamp、X-Nonce</li>
+ *   <li>从请求头获取签名相关信息：X-Signature、X-Timestamp、X-Nonce、X-Key-Id</li>
+ *   <li>验证密钥是否存在且启用</li>
+ *   <li>验证密钥是否有权限访问当前路径</li>
  *   <li>验证时间戳是否在容忍度范围内</li>
  *   <li>验证 nonce 是否已被使用（防重放）</li>
  *   <li>根据配置的密钥重新计算签名</li>
@@ -53,9 +56,15 @@ public class SignatureInterceptor implements HandlerInterceptor {
      */
     public static final String HEADER_KEY_ID = "X-Key-Id";
 
+    /**
+     * 请求属性：已验证的密钥标识
+     */
+    public static final String ATTR_VERIFIED_KEY_ID = "afg.signature.verifiedKeyId";
+
     private final SignatureProperties properties;
     private final SignatureGenerator signatureGenerator;
     private final NonceCache nonceCache;
+    private final AntPathMatcher pathMatcher;
 
     /**
      * 创建签名拦截器
@@ -71,6 +80,7 @@ public class SignatureInterceptor implements HandlerInterceptor {
         this.properties = properties;
         this.signatureGenerator = signatureGenerator;
         this.nonceCache = nonceCache;
+        this.pathMatcher = new AntPathMatcher();
     }
 
     @Override
@@ -118,10 +128,13 @@ public class SignatureInterceptor implements HandlerInterceptor {
         String keyId = getKeyId(request, annotation);
         SignatureProperties.KeyConfig keyConfig = getKeyConfig(keyId);
 
-        // 5. 获取请求体
+        // 5. 验证密钥路径权限
+        validatePathPermission(keyId, keyConfig, request.getRequestURI());
+
+        // 6. 获取请求体
         String body = getRequestBody(request);
 
-        // 6. 验证签名
+        // 7. 验证签名
         boolean valid = signatureGenerator.verify(
                 annotation.algorithm(),
                 keyConfig.getSecret(),
@@ -135,7 +148,20 @@ public class SignatureInterceptor implements HandlerInterceptor {
             throw new SignatureException(SignatureException.SignatureErrorType.INVALID_SIGNATURE);
         }
 
-        log.debug("Signature verification passed: keyId={}, nonce={}", keyId, nonce);
+        // 8. 将验证通过的 keyId 存入请求属性，供后续业务使用
+        request.setAttribute(ATTR_VERIFIED_KEY_ID, keyId);
+
+        log.debug("Signature verification passed: keyId={}, nonce={}, path={}", keyId, nonce, request.getRequestURI());
+    }
+
+    /**
+     * 验证密钥路径权限
+     */
+    private void validatePathPermission(String keyId, SignatureProperties.KeyConfig keyConfig, String path) {
+        if (!keyConfig.isPathAllowed(path, pathMatcher)) {
+            log.warn("Key not authorized for path: keyId={}, path={}", keyId, path);
+            throw new SignatureException(SignatureException.SignatureErrorType.ACCESS_DENIED);
+        }
     }
 
     /**
