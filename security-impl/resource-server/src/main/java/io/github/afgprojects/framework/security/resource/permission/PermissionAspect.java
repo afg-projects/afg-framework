@@ -1,17 +1,19 @@
 package io.github.afgprojects.framework.security.resource.permission;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * 权限校验切面。
@@ -20,6 +22,7 @@ import java.util.Set;
  *
  * <h3>校验策略</h3>
  * <ul>
+ *   <li>如果动态权限拦截器已校验通过，跳过注解校验</li>
  *   <li>角色：直接从 JWT Token 获取，无需远程调用</li>
  *   <li>权限：优先从 JWT Token 获取，未命中时调用远程客户端（带缓存）</li>
  * </ul>
@@ -34,6 +37,12 @@ public class PermissionAspect {
 
     @Around("@annotation(io.github.afgprojects.framework.security.resource.permission.RequirePermission)")
     public Object checkPermission(ProceedingJoinPoint joinPoint) throws Throwable {
+        // 检查动态权限是否已校验通过
+        if (isDynamicPermissionChecked()) {
+            log.debug("Dynamic permission already checked, skipping @RequirePermission");
+            return joinPoint.proceed();
+        }
+
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         Method method = signature.getMethod();
         RequirePermission annotation = method.getAnnotation(RequirePermission.class);
@@ -58,6 +67,12 @@ public class PermissionAspect {
 
     @Around("@annotation(io.github.afgprojects.framework.security.resource.permission.RequireRole)")
     public Object checkRole(ProceedingJoinPoint joinPoint) throws Throwable {
+        // 检查动态权限是否已校验通过
+        if (isDynamicPermissionChecked()) {
+            log.debug("Dynamic permission already checked, skipping @RequireRole");
+            return joinPoint.proceed();
+        }
+
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         Method method = signature.getMethod();
         RequireRole annotation = method.getAnnotation(RequireRole.class);
@@ -78,6 +93,19 @@ public class PermissionAspect {
         }
 
         return joinPoint.proceed();
+    }
+
+    /**
+     * 检查动态权限拦截器是否已校验通过。
+     */
+    private boolean isDynamicPermissionChecked() {
+        ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (attrs == null) {
+            return false;
+        }
+        HttpServletRequest request = attrs.getRequest();
+        Object checked = request.getAttribute(DynamicApiPermissionInterceptor.PERMISSION_CHECKED_ATTR);
+        return Boolean.TRUE.equals(checked);
     }
 
     private boolean checkAllPermissions(String[] permissions) {

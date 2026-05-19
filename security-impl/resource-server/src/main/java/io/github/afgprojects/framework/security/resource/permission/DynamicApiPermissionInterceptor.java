@@ -4,7 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jspecify.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -18,11 +18,20 @@ import java.util.Set;
  *
  * <p>根据治理中心的配置动态校验接口权限。
  * 支持动态调整接口是否需要登录、是否需要权限。
+ *
+ * <p>校验通过后，会设置请求属性标记权限已校验，
+ * 后续的注解式权限校验（@RequirePermission/@RequireRole）可以跳过已校验的请求。
  */
 @Component
 @Slf4j
 @RequiredArgsConstructor
 public class DynamicApiPermissionInterceptor implements HandlerInterceptor {
+
+    /**
+     * 请求属性：标记动态权限校验已通过。
+     * 后续 PermissionAspect 检查此属性，如果为 true 则跳过校验。
+     */
+    public static final String PERMISSION_CHECKED_ATTR = "afg.security.permission.checked";
 
     private final DynamicApiPermissionManager permissionManager;
     private final CachedPermissionChecker permissionChecker;
@@ -39,8 +48,9 @@ public class DynamicApiPermissionInterceptor implements HandlerInterceptor {
             return true;
         }
 
-        // 不需要登录，放行
+        // 不需要登录，标记已校验并放行
         if (!config.isRequireAuth()) {
+            request.setAttribute(PERMISSION_CHECKED_ATTR, true);
             return true;
         }
 
@@ -52,16 +62,10 @@ public class DynamicApiPermissionInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        // 不需要权限校验，放行
+        // 不需要权限校验，标记已校验并放行
         if (!config.isRequirePermission()) {
+            request.setAttribute(PERMISSION_CHECKED_ATTR, true);
             return true;
-        }
-
-        // 获取用户信息
-        UserInfo userInfo = getUserInfo(authentication);
-        if (userInfo == null) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            return false;
         }
 
         // 校验角色
@@ -82,6 +86,10 @@ public class DynamicApiPermissionInterceptor implements HandlerInterceptor {
             }
         }
 
+        // 校验通过，设置标记，后续注解校验可跳过
+        request.setAttribute(PERMISSION_CHECKED_ATTR, true);
+        log.debug("Dynamic permission check passed: {} {}", method, path);
+
         return true;
     }
 
@@ -101,8 +109,7 @@ public class DynamicApiPermissionInterceptor implements HandlerInterceptor {
         }
     }
 
-    @Nullable
-    private UserInfo getUserInfo(Authentication authentication) {
+    private @NonNull UserInfo getUserInfo(Authentication authentication) {
         Object principal = authentication.getPrincipal();
         if (principal instanceof Jwt jwt) {
             String userId = jwt.getSubject();
