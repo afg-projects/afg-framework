@@ -7,7 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import io.github.afgprojects.framework.core.cloud.KubernetesProbeProperties.ProbeConfig;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties.CloudNativeConfig.ProbeDetailConfig;
 
 /**
  * {@link StartupProbeEndpoint} 的单元测试。
@@ -15,17 +15,17 @@ import io.github.afgprojects.framework.core.cloud.KubernetesProbeProperties.Prob
  * 测试 Kubernetes 启动探针端点的初始化、路径获取和启动状态管理功能。
  *
  * @see StartupProbeEndpoint
- * @see ProbeConfig
+ * @see ProbeDetailConfig
  */
 @DisplayName("StartupProbeEndpoint 测试")
 class StartupProbeEndpointTest {
 
     private StartupProbeEndpoint endpoint;
-    private ProbeConfig config;
+    private ProbeDetailConfig config;
 
     @BeforeEach
     void setUp() {
-        config = new ProbeConfig();
+        config = new ProbeDetailConfig();
         config.setPath("/health/startup");
         endpoint = new StartupProbeEndpoint(config);
     }

@@ -1,7 +1,7 @@
 package io.github.afgprojects.framework.data.jdbc.cache;
 
 import io.github.afgprojects.framework.data.core.condition.Conditions;
-import io.github.afgprojects.framework.core.cache.CacheProperties;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.cache.DefaultCacheManager;
 import io.github.afgprojects.framework.data.jdbc.JdbcDataManager;
 import io.github.afgprojects.framework.data.jdbc.JdbcEntityProxy;
@@ -38,9 +38,9 @@ class EntityCacheTest {
         dataSource = createDataSource();
 
         // 创建缓存管理器
-        CacheProperties cacheProperties = new CacheProperties();
-        cacheProperties.setEnabled(true);
-        DefaultCacheManager defaultCacheManager = new DefaultCacheManager(cacheProperties);
+        AfgCoreProperties coreProperties = new AfgCoreProperties();
+        coreProperties.getCache().setEnabled(true);
+        DefaultCacheManager defaultCacheManager = new DefaultCacheManager(coreProperties);
 
         // 创建实体缓存管理器
         EntityCacheProperties entityCacheProperties = new EntityCacheProperties();
@@ -225,8 +225,8 @@ class EntityCacheTest {
             EntityCacheProperties disabledProps = new EntityCacheProperties();
             disabledProps.setEnabled(false);
 
-            CacheProperties cacheProps = new CacheProperties();
-            DefaultCacheManager defaultManager = new DefaultCacheManager(cacheProps);
+            AfgCoreProperties coreProps = new AfgCoreProperties();
+            DefaultCacheManager defaultManager = new DefaultCacheManager(coreProps);
             EntityCacheManager disabledCacheManager = new EntityCacheManager(defaultManager, disabledProps);
 
             JdbcDataManager dmWithoutCache = new JdbcDataManager(dataSource);

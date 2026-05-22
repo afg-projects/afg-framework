@@ -8,13 +8,12 @@
  * <ul>
  *   <li>{@link io.github.afgprojects.framework.core.web.ratelimit.RateLimit} - 限流注解，支持多级限流</li>
  *   <li>{@link io.github.afgprojects.framework.core.web.ratelimit.RateLimits} - 多级限流注解容器</li>
- *   <li>{@link io.github.afgprojects.framework.core.web.ratelimit.RateLimiter} - 限流器核心实现</li>
+ *   <li>{@link io.github.afgprojects.framework.core.api.ratelimit.RateLimiter} - 限流器核心实现</li>
  *   <li>{@link io.github.afgprojects.framework.core.web.ratelimit.RateLimitInterceptor} - 限流切面</li>
- *   <li>{@link io.github.afgprojects.framework.core.web.ratelimit.RateLimitProperties} - 配置属性</li>
- *   <li>{@link io.github.afgprojects.framework.core.web.ratelimit.RateLimitDimension} - 限流维度枚举</li>
+ *   <li>{@link io.github.afgprojects.framework.core.config.AfgCoreProperties.RateLimitConfig} - 配置属性（在 AfgCoreProperties 中）</li>
+ *   <li>{@link io.github.afgprojects.framework.core.api.ratelimit.RateLimitDimension} - 限流维度枚举</li>
  *   <li>{@link io.github.afgprojects.framework.core.api.ratelimit.RateLimitAlgorithm} - 限流算法枚举</li>
- *   <li>{@link io.github.afgprojects.framework.core.web.ratelimit.RateLimitResult} - 限流结果</li>
- *   <li>{@link io.github.afgprojects.framework.core.web.ratelimit.RateLimitWhitelistChecker} - 白名单检查器</li>
+ *   <li>{@link io.github.afgprojects.framework.core.api.ratelimit.RateLimitResult} - 限流结果</li>
  *   <li>{@link io.github.afgprojects.framework.core.web.ratelimit.RateLimitResponseHeaderFilter} - 响应头过滤器</li>
  * </ul>
  *
@@ -75,35 +74,46 @@
  *
  * <h2>配置示例</h2>
  * <pre>
- * afg.rate-limit.enabled=true
- * afg.rate-limit.default-rate=10
- * afg.rate-limit.default-burst=20
- * afg.rate-limit.key-prefix=rateLimit
- * afg.rate-limit.default-algorithm=TOKEN_BUCKET
+ * afg:
+ *   core:
+ *     rate-limit:
+ *       enabled: true
+ *       default-rate: 10
+ *       default-burst: 20
+ *       key-prefix: rateLimit
+ *       default-algorithm: TOKEN_BUCKET
  *
- * # 维度配置
- * afg.rate-limit.dimensions.ip.rate=20
- * afg.rate-limit.dimensions.ip.burst=40
- * afg.rate-limit.dimensions.user.rate=50
- * afg.rate-limit.dimensions.user.burst=100
+ *       # 维度配置
+ *       dimensions:
+ *         ip:
+ *           rate: 20
+ *           burst: 40
+ *         user:
+ *           rate: 50
+ *           burst: 100
  *
- * # 白名单配置
- * afg.rate-limit.whitelist.enabled=true
- * afg.rate-limit.whitelist.ips=192.168.1.100,10.0.0.*
- * afg.rate-limit.whitelist.user-ids=1,2,3
- * afg.rate-limit.whitelist.usernames=admin,system
+ *       # 白名单配置
+ *       whitelist:
+ *         enabled: true
+ *         ips: 192.168.1.100,10.0.0.*
+ *         user-ids: 1,2,3
+ *         usernames: admin,system
  *
- * # 响应头配置
- * afg.rate-limit.response-headers.enabled=true
+ *       # 响应头配置
+ *       response-headers:
+ *         enabled: true
  *
- * # 本地限流配置（单机模式）
- * afg.rate-limit.local.enabled=false
- * afg.rate-limit.local.cache-size=10000
- * afg.rate-limit.local.expire-after-seconds=3600
+ *       # 本地限流配置（单机模式）
+ *       local:
+ *         enabled: false
+ *         cache-size: 10000
+ *         expire-after-seconds: 3600
  *
- * # 指标配置
- * afg.rate-limit.metrics.enabled=true
- * afg.rate-limit.metrics.prefix=afg.rate.limit
+ *       # 回退配置
+ *       fallback:
+ *         enabled: true
+ *         default-message: "请求过于频繁，请稍后再试"
+ *         failure-mode: ALLOW
  * </pre>
  *
  * <h2>响应头</h2>

@@ -14,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import io.github.afgprojects.framework.core.api.scheduler.SchedulerProperties;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.api.scheduler.TaskDefinition;
 import io.github.afgprojects.framework.core.api.scheduler.TaskExecutionLog;
 import io.github.afgprojects.framework.core.api.scheduler.TaskExecutionLogStorage;
@@ -50,7 +50,7 @@ public class LocalTaskScheduler implements TaskScheduler, DisposableBean {
     private final ScheduledExecutorService executorService;
     private final TaskExecutionMetrics metrics;
     private final TaskExecutionLogStorage logStorage;
-    private final SchedulerProperties properties;
+    private final AfgCoreProperties.SchedulerConfig properties;
     private final String nodeId;
 
     private final ConcurrentMap<String, ScheduledFuture<?>> scheduledTasks = new ConcurrentHashMap<>();
@@ -64,9 +64,9 @@ public class LocalTaskScheduler implements TaskScheduler, DisposableBean {
      * @param metrics    执行监控
      * @param logStorage 日志存储
      */
-    public LocalTaskScheduler(@NonNull SchedulerProperties properties,
-                              @NonNull TaskExecutionMetrics metrics,
-                              @NonNull TaskExecutionLogStorage logStorage) {
+    public LocalTaskScheduler(AfgCoreProperties.SchedulerConfig properties,
+                              TaskExecutionMetrics metrics,
+                              TaskExecutionLogStorage logStorage) {
         this.properties = properties;
         this.metrics = metrics;
         this.logStorage = logStorage;

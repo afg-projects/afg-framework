@@ -9,11 +9,11 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.api.ratelimit.DefaultDimensionResolver;
 import io.github.afgprojects.framework.core.api.ratelimit.DefaultWhitelistStrategy;
 import io.github.afgprojects.framework.core.api.ratelimit.DimensionResolver;
 import io.github.afgprojects.framework.core.api.ratelimit.LocalRateLimitStorage;
-import io.github.afgprojects.framework.core.api.ratelimit.RateLimitAlgorithm;
 import io.github.afgprojects.framework.core.api.ratelimit.RateLimitDimension;
 import io.github.afgprojects.framework.core.api.ratelimit.RateLimitResult;
 import io.github.afgprojects.framework.core.api.ratelimit.RateLimitStorage;
@@ -33,7 +33,7 @@ import io.github.afgprojects.framework.core.web.context.RequestContext;
 class RateLimiterTest extends BaseUnitTest {
 
     private RateLimitStorage storage;
-    private RateLimitProperties properties;
+    private AfgCoreProperties properties;
     private WhitelistStrategy whitelistStrategy;
     private DimensionResolver dimensionResolver;
     private RateLimiter rateLimiter;
@@ -41,7 +41,7 @@ class RateLimiterTest extends BaseUnitTest {
     @BeforeEach
     void setUp() {
         storage = new LocalRateLimitStorage();
-        properties = new RateLimitProperties();
+        properties = new AfgCoreProperties();
         whitelistStrategy = new DefaultWhitelistStrategy(properties);
         dimensionResolver = new DefaultDimensionResolver();
         rateLimiter = new RateLimiter(storage, properties, whitelistStrategy, dimensionResolver);
@@ -187,8 +187,8 @@ class RateLimiterTest extends BaseUnitTest {
 
     @Test
     void should_useWhitelist_when_ipInWhitelist() {
-        properties.getWhitelist().setEnabled(true);
-        properties.getWhitelist().getIps().add("192.168.1.1");
+        properties.getRateLimit().getWhitelist().setEnabled(true);
+        properties.getRateLimit().getWhitelist().getIps().add("192.168.1.1");
 
         RequestContext context = new RequestContext();
         context.setClientIp("192.168.1.1");
@@ -214,7 +214,7 @@ class RateLimiterTest extends BaseUnitTest {
             .key("test")
             .dimension(RateLimitDimension.IP)
             .rate(10)
-            .algorithm(RateLimitAlgorithm.SLIDING_WINDOW)
+            .algorithm(AfgCoreProperties.RateLimitConfig.RateLimitAlgorithm.SLIDING_WINDOW)
             .windowSize(60)
             .tryAcquire();
 
@@ -223,7 +223,7 @@ class RateLimiterTest extends BaseUnitTest {
 
     @Test
     void should_useDefaultRate_when_notSpecified() {
-        properties.setDefaultRate(5);
+        properties.getRateLimit().setDefaultRate(5);
 
         RequestContext context = new RequestContext();
         context.setClientIp("192.168.1.1");
@@ -239,7 +239,7 @@ class RateLimiterTest extends BaseUnitTest {
 
     @Test
     void should_useCustomKeyPrefix() {
-        properties.setKeyPrefix("customPrefix");
+        properties.getRateLimit().setKeyPrefix("customPrefix");
 
         RequestContext context = new RequestContext();
         context.setClientIp("192.168.1.1");

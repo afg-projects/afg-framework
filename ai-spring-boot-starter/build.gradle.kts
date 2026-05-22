@@ -9,11 +9,16 @@ dependencies {
     // 依赖 ai-impl 实现（可选）
     compileOnly(project(":ai-impl:ai-llm"))
     compileOnly(project(":ai-impl:ai-agent"))
+    compileOnly(project(":ai-impl:ai-agent-utils"))
     compileOnly(project(":ai-impl:ai-resilience"))
     compileOnly(project(":ai-impl:ai-observability"))
     compileOnly(project(":ai-impl:ai-security"))
     compileOnly(project(":ai-impl:ai-persistence"))
     compileOnly(project(":ai-impl:ai-performance"))
+    compileOnly(project(":ai-impl:ai-rag"))
+
+    // Spring AI VectorStore (可选，用于 RAG)
+    compileOnly("org.springframework.ai:spring-ai-vector-store:1.1.6")
 
     // Spring Boot Autoconfigure
     api(libs.spring.boot.autoconfigure)
@@ -41,9 +46,11 @@ dependencies {
     testImplementation(libs.spring.boot.starter.test)
     testImplementation(project(":ai-impl:ai-llm"))
     testImplementation(project(":ai-impl:ai-agent"))
+    testImplementation(project(":ai-impl:ai-agent-utils"))
     testImplementation(project(":ai-impl:ai-resilience"))
     testImplementation(project(":ai-impl:ai-observability"))
     testImplementation(project(":ai-impl:ai-security"))
     testImplementation(project(":ai-impl:ai-persistence"))
     testImplementation(project(":ai-impl:ai-performance"))
+    testImplementation(project(":ai-impl:ai-rag"))
 }

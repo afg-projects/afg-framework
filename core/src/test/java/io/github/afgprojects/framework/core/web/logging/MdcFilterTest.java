@@ -15,6 +15,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.web.context.AfgRequestContextHolder;
 import io.github.afgprojects.framework.core.web.context.RequestContext;
 
@@ -28,7 +29,7 @@ import io.github.afgprojects.framework.core.web.context.RequestContext;
 class MdcFilterTest {
 
     private MdcFilter filter;
-    private LoggingProperties properties;
+    private AfgCoreProperties properties;
 
     @BeforeEach
     void setUp() {
@@ -50,7 +51,7 @@ class MdcFilterTest {
     @Test
     void should_populateMdc_when_contextAvailable() throws Exception {
         // Given
-        properties = new LoggingProperties();
+        properties = new AfgCoreProperties();
         filter = new MdcFilter(properties);
 
         RequestContext context = RequestContext.builder()
@@ -77,7 +78,7 @@ class MdcFilterTest {
     @Test
     void should_notSetMdc_when_contextNull() throws Exception {
         // Given
-        properties = new LoggingProperties();
+        properties = new AfgCoreProperties();
         filter = new MdcFilter(properties);
         AfgRequestContextHolder.clear();
 
@@ -95,7 +96,7 @@ class MdcFilterTest {
     @Test
     void should_clearMdc_afterFilter() throws Exception {
         // Given
-        properties = new LoggingProperties();
+        properties = new AfgCoreProperties();
         filter = new MdcFilter(properties);
 
         RequestContext context = RequestContext.builder().userId(1L).build();
@@ -115,8 +116,8 @@ class MdcFilterTest {
     @Test
     void should_useCustomFields_when_configured() throws Exception {
         // Given
-        properties = new LoggingProperties();
-        properties.getMdc().setFields(new String[] {"tenantId", "requestId"});
+        properties = new AfgCoreProperties();
+        properties.getLogging().getMdc().setFields(new String[] {"tenantId", "requestId"});
         filter = new MdcFilter(properties);
 
         RequestContext context = RequestContext.builder()
@@ -140,8 +141,8 @@ class MdcFilterTest {
     @Test
     void should_setAllFields_when_allPresent() throws Exception {
         // Given
-        properties = new LoggingProperties();
-        properties.getMdc().setFields(new String[] {
+        properties = new AfgCoreProperties();
+        properties.getLogging().getMdc().setFields(new String[] {
             "tenantId", "userId", "requestPath", "requestId", "username", "clientIp", "requestMethod"
         });
         filter = new MdcFilter(properties);
@@ -171,7 +172,7 @@ class MdcFilterTest {
     @Test
     void should_handleNullFields_gracefully() throws Exception {
         // Given
-        properties = new LoggingProperties();
+        properties = new AfgCoreProperties();
         filter = new MdcFilter(properties);
 
         RequestContext context = new RequestContext(); // All fields null
@@ -191,8 +192,8 @@ class MdcFilterTest {
     @Test
     void should_logWarning_when_unknownFieldConfigured() throws Exception {
         // Given
-        properties = new LoggingProperties();
-        properties.getMdc().setFields(new String[] {"traceId", "unknownField"});
+        properties = new AfgCoreProperties();
+        properties.getLogging().getMdc().setFields(new String[] {"traceId", "unknownField"});
         filter = new MdcFilter(properties);
 
         RequestContext context = RequestContext.builder().build();

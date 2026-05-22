@@ -15,6 +15,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.client.ResilienceInterceptor.CircuitBreakerOpenException;
 import io.github.afgprojects.framework.core.client.ResilienceInterceptor.RetryExhaustedException;
 import io.github.afgprojects.framework.core.model.exception.CommonErrorCode;
@@ -66,7 +67,7 @@ public class AsyncResilienceInterceptor {
     /**
      * HTTP 客户端配置属性
      */
-    private final HttpClientProperties properties;
+    private final AfgCoreProperties properties;
 
     /**
      * 调度执行器，用于延迟执行重试任务
@@ -81,9 +82,9 @@ public class AsyncResilienceInterceptor {
     /**
      * 创建异步弹性拦截器（使用默认调度器）
      *
-     * @param properties HTTP 客户端配置属性
+     * @param properties 核心配置属性
      */
-    public AsyncResilienceInterceptor(@NonNull HttpClientProperties properties) {
+    public AsyncResilienceInterceptor(@NonNull AfgCoreProperties properties) {
         this(properties, Executors.newScheduledThreadPool(DEFAULT_SCHEDULER_POOL_SIZE, r -> {
             Thread thread = new Thread(r, "async-resilience-scheduler");
             thread.setDaemon(true);
@@ -94,10 +95,10 @@ public class AsyncResilienceInterceptor {
     /**
      * 创建异步弹性拦截器（使用指定调度器）
      *
-     * @param properties HTTP 客户端配置属性
+     * @param properties 核心配置属性
      * @param scheduler  调度执行器
      */
-    public AsyncResilienceInterceptor(@NonNull HttpClientProperties properties, @NonNull ScheduledExecutorService scheduler) {
+    public AsyncResilienceInterceptor(@NonNull AfgCoreProperties properties, @NonNull ScheduledExecutorService scheduler) {
         this.properties = properties;
         this.scheduler = scheduler;
     }
@@ -138,7 +139,7 @@ public class AsyncResilienceInterceptor {
             String circuitBreakerKey = extractKey(request);
             CircuitBreaker circuitBreaker = getCircuitBreaker(circuitBreakerKey);
 
-            if (properties.getCircuitBreaker().isEnabled() && !circuitBreaker.allowRequest()) {
+            if (properties.getHttpClient().getCircuitBreaker().isEnabled() && !circuitBreaker.allowRequest()) {
                 log.warn("Circuit breaker is OPEN for {}", circuitBreakerKey);
                 throw new CircuitBreakerOpenException(
                         CommonErrorCode.CLIENT_CIRCUIT_OPEN.getCode(),
@@ -288,7 +289,7 @@ public class AsyncResilienceInterceptor {
      */
     private CircuitBreaker getCircuitBreaker(String key) {
         return circuitBreakers.computeIfAbsent(key, k -> {
-            HttpClientProperties.CircuitBreakerConfig config = properties.getCircuitBreaker();
+            AfgCoreProperties.HttpClientConfig.HttpCircuitBreakerConfig config = properties.getHttpClient().getCircuitBreaker();
             return new CircuitBreaker(
                     k,
                     config.getFailureThreshold(),
@@ -302,7 +303,7 @@ public class AsyncResilienceInterceptor {
      * 创建重试策略
      */
     private RetryPolicy createRetryPolicy() {
-        HttpClientProperties.RetryConfig config = properties.getRetry();
+        AfgCoreProperties.HttpClientConfig.HttpRetryConfig config = properties.getHttpClient().getRetry();
         return RetryPolicy.builder()
                 .maxAttempts(config.getMaxAttempts())
                 .initialInterval(config.getInitialInterval())

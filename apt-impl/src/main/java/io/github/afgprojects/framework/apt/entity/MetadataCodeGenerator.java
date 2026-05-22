@@ -1,20 +1,34 @@
 package io.github.afgprojects.framework.apt.entity;
 
+import com.squareup.javapoet.AnnotationSpec;
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.FieldSpec;
+import com.squareup.javapoet.JavaFile;
+import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
+import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.WildcardTypeName;
 import io.github.afgprojects.framework.commons.naming.NamingUtils;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
+import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * 元数据类代码生成器
  * <p>
- * 负责生成实体元数据类的源代码。
+ * 负责生成实体元数据类的源代码。使用 JavaPoet 构建 AST，类型安全且可读性强。
  * <p>
  * 生成的元数据类实现 DatabaseEntityMetadata 接口，提供：
  * <ul>
@@ -29,50 +43,23 @@ class MetadataCodeGenerator {
 
     private final ProcessingEnvironment processingEnv;
     private final CommonFieldRegistry commonFieldRegistry;
-    private final RelationMetadataGenerator relationMetadataGenerator;
+
+    // 类型引用
+    private static final ClassName NAMING_UTILS = ClassName.get("io.github.afgprojects.framework.commons.naming", "NamingUtils");
+    private static final ClassName ENTITY_METADATA = ClassName.get("io.github.afgprojects.framework.data.core.metadata", "DatabaseEntityMetadata");
+    private static final ClassName FIELD_METADATA = ClassName.get("io.github.afgprojects.framework.data.core.metadata", "FieldMetadata");
+    private static final ClassName DATABASE_FIELD_METADATA = ClassName.get("io.github.afgprojects.framework.data.core.metadata", "DatabaseFieldMetadata");
+    private static final ClassName COMMON_FIELD_METADATA = ClassName.get("io.github.afgprojects.framework.data.core.metadata", "CommonFieldMetadata");
+    private static final ClassName RELATION_METADATA = ClassName.get("io.github.afgprojects.framework.data.core.relation", "RelationMetadata");
+    private static final ClassName RELATION_TYPE = ClassName.get("io.github.afgprojects.framework.data.core.relation", "RelationType");
+    private static final ClassName RELATION_METADATA_IMPL = ClassName.get("io.github.afgprojects.framework.data.core.relation", "RelationMetadataImpl");
+    private static final ClassName CASCADE_TYPE = ClassName.get("jakarta.persistence", "CascadeType");
+    private static final ClassName FETCH_TYPE = ClassName.get("jakarta.persistence", "FetchType");
 
     MetadataCodeGenerator(ProcessingEnvironment processingEnv,
-                          CommonFieldRegistry commonFieldRegistry,
-                          RelationMetadataGenerator relationMetadataGenerator) {
+                          CommonFieldRegistry commonFieldRegistry) {
         this.processingEnv = processingEnv;
         this.commonFieldRegistry = commonFieldRegistry;
-        this.relationMetadataGenerator = relationMetadataGenerator;
-    }
-
-    /**
-     * 验证 SQL 标识符是否安全
-     * <p>
-     * 只允许字母、数字和下划线，且不能以数字开头。
-     * 这可以防止 SQL 注入和语法错误。
-     *
-     * @param identifier 标识符
-     * @return 是否安全
-     */
-    private boolean isValidSqlIdentifier(String identifier) {
-        if (identifier == null || identifier.isEmpty()) {
-            return false;
-        }
-        // 只允许字母、数字、下划线，且不能以数字开头
-        return identifier.matches("^[a-zA-Z_][a-zA-Z0-9_]*$");
-    }
-
-    /**
-     * 验证并转义 SQL 标识符
-     * <p>
-     * 如果标识符合法，直接返回；否则打印警告并返回空字符串。
-     *
-     * @param identifier 标识符
-     * @param context     上下文描述（用于错误信息）
-     * @return 验证后的标识符，非法时返回空字符串
-     */
-    private String validateSqlIdentifier(String identifier, String context) {
-        if (!isValidSqlIdentifier(identifier)) {
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-                "Invalid SQL identifier in " + context + ": '" + identifier +
-                "'. Only letters, digits, and underscores are allowed, and it cannot start with a digit.");
-            return "";
-        }
-        return identifier;
     }
 
     /**
@@ -94,271 +81,384 @@ class MetadataCodeGenerator {
                                   List<FieldMetadataGenerator.FieldInfo> fields,
                                   List<RelationMetadataGenerator.RelationInfo> relations,
                                   EntityFeatureDetector.FeatureDetectionResult features) {
-        StringBuilder sb = new StringBuilder();
-
         // 验证表名
         String validatedTableName = validateSqlIdentifier(tableName,
             "table name for entity " + typeElement.getQualifiedName());
         if (validatedTableName.isEmpty()) {
-            // 使用默认表名作为降级
             validatedTableName = NamingUtils.toSnakeCase(typeElement.getSimpleName().toString());
         }
 
-        // 包声明
-        sb.append("package ").append(packageName).append(".metadata;\n\n");
+        // 实体类类型
+        ClassName entityClass = ClassName.get(typeElement);
 
-        // 导入
-        sb.append("import io.github.afgprojects.framework.data.core.metadata.*;\n");
-        sb.append("import io.github.afgprojects.framework.data.core.relation.*;\n");
-        sb.append("import java.util.*;\n");
-        sb.append("import java.util.stream.Collectors;\n");
-        sb.append("import ").append(typeElement.getQualifiedName()).append(";\n\n");
+        // 构建类
+        TypeSpec.Builder classBuilder = TypeSpec.classBuilder(metadataClassName)
+            .addModifiers(Modifier.PUBLIC)
+            .addSuperinterface(ParameterizedTypeName.get(ENTITY_METADATA, entityClass))
+            .addJavadoc("自动生成的实体元数据类\n")
+            .addJavadoc("@generated by AFG Framework APT\n")
+            .addJavadoc("@see $L\n", typeElement.getQualifiedName().toString());
 
-        // 类注释
-        sb.append("/**\n");
-        sb.append(" * 自动生成的实体元数据类\n");
-        sb.append(" * @generated by AFG Framework APT\n");
-        sb.append(" * @see ").append(typeElement.getQualifiedName()).append("\n");
-        sb.append(" */\n");
-
-        // 类声明
-        sb.append("public class ").append(metadataClassName)
-          .append(" implements DatabaseEntityMetadata<").append(typeElement.getSimpleName()).append("> {\n\n");
-
-        // 表名
-        sb.append("    private static final String TABLE_NAME = \"").append(validatedTableName).append("\";\n\n");
+        // 表名常量
+        classBuilder.addField(FieldSpec.builder(String.class, "TABLE_NAME",
+                Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+            .initializer("$S", validatedTableName)
+            .build());
 
         // 实体类引用
-        sb.append("    private final Class<").append(typeElement.getSimpleName()).append("> entityClass = ")
-          .append(typeElement.getSimpleName()).append(".class;\n\n");
+        classBuilder.addField(FieldSpec.builder(
+                ParameterizedTypeName.get(ClassName.get(Class.class), entityClass),
+                "entityClass",
+                Modifier.PRIVATE, Modifier.FINAL)
+            .initializer("$T.class", entityClass)
+            .build());
 
-        // 字段列表（优先使用通用字段元数据）
-        sb.append("    private static final List<FieldMetadata> FIELDS = List.of(\n");
-        for (int i = 0; i < fields.size(); i++) {
-            FieldMetadataGenerator.FieldInfo field = fields.get(i);
-            String fieldMetadataRef = getCommonFieldMetadataRef(field);
-            if (fieldMetadataRef != null) {
-                // 使用通用字段元数据
-                sb.append("        ").append(fieldMetadataRef);
-            } else {
-                // 生成特定字段的内部类
-                sb.append("        new ").append(capitalize(field.propertyName())).append("FieldMetadata()");
-            }
-            if (i < fields.size() - 1) {
-                sb.append(",");
-            }
-            sb.append("\n");
-        }
-        sb.append("    );\n\n");
+        // 字段列表
+        classBuilder.addField(FieldSpec.builder(
+                ParameterizedTypeName.get(ClassName.get(List.class), FIELD_METADATA),
+                "FIELDS",
+                Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+            .initializer(buildFieldsInitializer(fields))
+            .build());
 
         // 关联列表
-        if (!relations.isEmpty()) {
-            sb.append("    private static final List<RelationMetadata> RELATIONS = List.of(\n");
-            for (int i = 0; i < relations.size(); i++) {
-                RelationMetadataGenerator.RelationInfo relation = relations.get(i);
-                sb.append("        ").append(relationMetadataGenerator.generateRelationMetadata(relation, typeElement.getSimpleName().toString()));
-                if (i < relations.size() - 1) {
-                    sb.append(",");
-                }
-                sb.append("\n");
-            }
-            sb.append("    );\n\n");
-        } else {
-            sb.append("    private static final List<RelationMetadata> RELATIONS = Collections.emptyList();\n\n");
-        }
+        classBuilder.addField(FieldSpec.builder(
+                ParameterizedTypeName.get(ClassName.get(List.class), RELATION_METADATA),
+                "RELATIONS",
+                Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+            .initializer(buildRelationsInitializer(relations, entityClass))
+            .build());
 
-        // ==================== EntityMetadata 接口方法 ====================
+        // 添加接口方法
+        addInterfaceMethods(classBuilder, entityClass, features);
 
-        sb.append("    @Override\n");
-        sb.append("    public Class<").append(typeElement.getSimpleName()).append("> getEntityClass() {\n");
-        sb.append("        return entityClass;\n");
-        sb.append("    }\n\n");
+        // 添加 getColumnName 方法
+        addGetColumnNameMethod(classBuilder);
 
-        sb.append("    @Override\n");
-        sb.append("    public String getTableName() {\n");
-        sb.append("        return TABLE_NAME;\n");
-        sb.append("    }\n\n");
-
-        // 主键字段
-        sb.append("    @Override\n");
-        sb.append("    public DatabaseFieldMetadata getIdField() {\n");
-        sb.append("        return (DatabaseFieldMetadata) FIELDS.stream()\n");
-        sb.append("            .filter(FieldMetadata::isId)\n");
-        sb.append("            .findFirst()\n");
-        sb.append("            .orElse(null);\n");
-        sb.append("    }\n\n");
-
-        sb.append("    @Override\n");
-        sb.append("    public List<FieldMetadata> getFields() {\n");
-        sb.append("        return FIELDS;\n");
-        sb.append("    }\n\n");
-
-        sb.append("    @Override\n");
-        sb.append("    public DatabaseFieldMetadata getField(String propertyName) {\n");
-        sb.append("        return (DatabaseFieldMetadata) FIELDS.stream()\n");
-        sb.append("            .filter(f -> f.getPropertyName().equals(propertyName))\n");
-        sb.append("            .findFirst()\n");
-        sb.append("            .orElse(null);\n");
-        sb.append("    }\n\n");
-
-        // 特性标记方法
-        sb.append("    @Override\n");
-        sb.append("    public boolean isSoftDeletable() {\n");
-        sb.append("        return ").append(features.softDeletable()).append(";\n");
-        sb.append("    }\n\n");
-
-        sb.append("    @Override\n");
-        sb.append("    public boolean isTenantAware() {\n");
-        sb.append("        return ").append(features.tenantAware()).append(";\n");
-        sb.append("    }\n\n");
-
-        sb.append("    @Override\n");
-        sb.append("    public boolean isAuditable() {\n");
-        sb.append("        return ").append(features.auditable()).append(";\n");
-        sb.append("    }\n\n");
-
-        sb.append("    @Override\n");
-        sb.append("    public boolean isVersioned() {\n");
-        sb.append("        return ").append(features.versioned()).append(";\n");
-        sb.append("    }\n\n");
-
-        // 关联方法
-        sb.append("    @Override\n");
-        sb.append("    public List<RelationMetadata> getRelations() {\n");
-        sb.append("        return RELATIONS;\n");
-        sb.append("    }\n\n");
-
-        sb.append("    @Override\n");
-        sb.append("    public Optional<RelationMetadata> getRelation(String fieldName) {\n");
-        sb.append("        return RELATIONS.stream()\n");
-        sb.append("            .filter(r -> r.getFieldName().equals(fieldName))\n");
-        sb.append("            .findFirst();\n");
-        sb.append("    }\n\n");
-
-        sb.append("    @Override\n");
-        sb.append("    public boolean hasRelation(String fieldName) {\n");
-        sb.append("        return RELATIONS.stream()\n");
-        sb.append("            .anyMatch(r -> r.getFieldName().equals(fieldName));\n");
-        sb.append("    }\n\n");
-
-        // ==================== ColumnNameAware 接口方法 ====================
-
-        sb.append("    @Override\n");
-        sb.append("    public String getColumnName(String propertyName) {\n");
-        sb.append("        FieldMetadata field = getField(propertyName);\n");
-        sb.append("        if (field != null) {\n");
-        sb.append("            return field.getColumnName();\n");
-        sb.append("        }\n");
-        sb.append("        return toSnakeCase(propertyName);\n");
-        sb.append("    }\n\n");
-
-        sb.append("    private static String toSnakeCase(String name) {\n");
-        sb.append("        StringBuilder result = new StringBuilder();\n");
-        sb.append("        for (int i = 0; i < name.length(); i++) {\n");
-        sb.append("            char c = name.charAt(i);\n");
-        sb.append("            if (i > 0 && Character.isUpperCase(c)) {\n");
-        sb.append("                result.append('_');\n");
-        sb.append("            }\n");
-        sb.append("            result.append(Character.toLowerCase(c));\n");
-        sb.append("        }\n");
-        sb.append("        return result.toString();\n");
-        sb.append("    }\n\n");
-
-        // ==================== 字段元数据内部类（仅生成非通用字段）====================
-
+        // 添加字段元数据内部类（仅非通用字段）
         for (FieldMetadataGenerator.FieldInfo field : fields) {
-            // 跳过通用字段，使用 CommonFieldMetadata
             if (!isCommonField(field)) {
-                sb.append(generateFieldMetadataClass(field));
+                classBuilder.addType(buildFieldMetadataInnerClass(field));
             }
         }
 
-        sb.append("}\n");
+        // 生成 Java 文件（JavaPoet 会自动添加必要的导入）
+        JavaFile javaFile = JavaFile.builder(packageName + ".metadata", classBuilder.build())
+            .addFileComment("Auto-generated by AFG Framework APT")
+            .build();
 
-        return sb.toString();
+        return javaFile.toString();
     }
 
     /**
-     * 生成字段元数据内部类
+     * 构建字段列表初始化代码
      */
-    private String generateFieldMetadataClass(FieldMetadataGenerator.FieldInfo field) {
-        String className = capitalize(field.propertyName()) + "FieldMetadata";
-        StringBuilder sb = new StringBuilder();
-        sb.append("    /**\n");
-        sb.append("     * 字段 ").append(field.propertyName()).append(" 的元数据\n");
-        sb.append("     */\n");
-        sb.append("    private static class ").append(className).append(" implements DatabaseFieldMetadata {\n");
+    private CodeBlock buildFieldsInitializer(List<FieldMetadataGenerator.FieldInfo> fields) {
+        CodeBlock.Builder builder = CodeBlock.builder();
+        builder.add("$T.of(\n", ClassName.get(List.class));
 
-        sb.append("        @Override\n");
-        sb.append("        public String getPropertyName() {\n");
-        sb.append("            return \"").append(escapeJavaString(field.propertyName())).append("\";\n");
-        sb.append("        }\n\n");
+        for (int i = 0; i < fields.size(); i++) {
+            FieldMetadataGenerator.FieldInfo field = fields.get(i);
+            String fieldMetadataRef = getCommonFieldMetadataRef(field);
+
+            if (fieldMetadataRef != null) {
+                // 使用完整类名引用
+                builder.add("    $T.$L", COMMON_FIELD_METADATA, fieldMetadataRef);
+            } else {
+                builder.add("    new $LFieldMetadata()", capitalize(field.propertyName()));
+            }
+
+            if (i < fields.size() - 1) {
+                builder.add(",");
+            }
+            builder.add("\n");
+        }
+
+        builder.add(")");
+        return builder.build();
+    }
+
+    /**
+     * 构建关联列表初始化代码
+     */
+    private CodeBlock buildRelationsInitializer(List<RelationMetadataGenerator.RelationInfo> relations, ClassName entityClass) {
+        if (relations.isEmpty()) {
+            return CodeBlock.builder().add("$T.emptyList()", ClassName.get(Collections.class)).build();
+        }
+
+        CodeBlock.Builder builder = CodeBlock.builder();
+        builder.add("$T.of(\n", ClassName.get(List.class));
+
+        for (int i = 0; i < relations.size(); i++) {
+            RelationMetadataGenerator.RelationInfo relation = relations.get(i);
+            builder.add("    $L", buildRelationMetadata(relation, entityClass.simpleName()));
+
+            if (i < relations.size() - 1) {
+                builder.add(",");
+            }
+            builder.add("\n");
+        }
+
+        builder.add(")");
+        return builder.build();
+    }
+
+    /**
+     * 构建单个关联元数据
+     */
+    private CodeBlock buildRelationMetadata(RelationMetadataGenerator.RelationInfo relation, String entitySimpleName) {
+        CodeBlock.Builder builder = CodeBlock.builder();
+        builder.add("$T.builder()\n", RELATION_METADATA_IMPL);
+        builder.add("    .relationType($T.$L)\n", RELATION_TYPE, relation.relationType());
+        builder.add("    .entityClass($L.class)\n", entitySimpleName);
+        builder.add("    .targetEntityClass($L.class)\n", relation.targetEntity());
+        builder.add("    .fieldName($S)\n", relation.fieldName());
+
+        if (relation.mappedBy() != null && !relation.mappedBy().isEmpty()) {
+            builder.add("    .mappedBy($S)\n", relation.mappedBy());
+        }
+
+        builder.add("    .foreignKeyColumn($S)\n", relation.foreignKeyColumn());
+
+        if (relation.joinTable() != null && !relation.joinTable().isEmpty()) {
+            builder.add("    .joinTable($S)\n", relation.joinTable());
+        }
+        if (relation.joinColumn() != null && !relation.joinColumn().isEmpty()) {
+            builder.add("    .joinColumn($S)\n", relation.joinColumn());
+        }
+        if (relation.inverseJoinColumn() != null && !relation.inverseJoinColumn().isEmpty()) {
+            builder.add("    .inverseJoinColumn($S)\n", relation.inverseJoinColumn());
+        }
+
+        // 级联类型
+        builder.add("    .cascadeTypes(");
+        if (relation.cascadeTypes().isEmpty()) {
+            builder.add("$T.emptySet()", ClassName.get(Collections.class));
+        } else {
+            builder.add("$T.of(", ClassName.get(EnumSet.class));
+            for (int i = 0; i < relation.cascadeTypes().size(); i++) {
+                if (i > 0) builder.add(", ");
+                builder.add("$T.$L", CASCADE_TYPE, relation.cascadeTypes().get(i));
+            }
+            builder.add(")");
+        }
+        builder.add(")\n");
+
+        builder.add("    .fetchType($T.$L)\n", FETCH_TYPE, relation.fetchType());
+        builder.add("    .orphanRemoval($L)\n", relation.orphanRemoval());
+        builder.add("    .optional($L)\n", relation.optional());
+        builder.add("    .build()");
+
+        return builder.build();
+    }
+
+    /**
+     * 添加接口方法
+     */
+    private void addInterfaceMethods(TypeSpec.Builder classBuilder, ClassName entityClass,
+                                      EntityFeatureDetector.FeatureDetectionResult features) {
+        // getEntityClass
+        classBuilder.addMethod(MethodSpec.methodBuilder("getEntityClass")
+            .addAnnotation(Override.class)
+            .addModifiers(Modifier.PUBLIC)
+            .returns(ParameterizedTypeName.get(ClassName.get(Class.class), entityClass))
+            .addStatement("return entityClass")
+            .build());
+
+        // getTableName
+        classBuilder.addMethod(MethodSpec.methodBuilder("getTableName")
+            .addAnnotation(Override.class)
+            .addModifiers(Modifier.PUBLIC)
+            .returns(String.class)
+            .addStatement("return TABLE_NAME")
+            .build());
+
+        // getIdField
+        classBuilder.addMethod(MethodSpec.methodBuilder("getIdField")
+            .addAnnotation(Override.class)
+            .addModifiers(Modifier.PUBLIC)
+            .returns(DATABASE_FIELD_METADATA)
+            .addStatement("return ($T) FIELDS.stream()\n" +
+                "    .filter($T::isId)\n" +
+                "    .findFirst()\n" +
+                "    .orElse(null)", DATABASE_FIELD_METADATA, FIELD_METADATA)
+            .build());
+
+        // getFields
+        classBuilder.addMethod(MethodSpec.methodBuilder("getFields")
+            .addAnnotation(Override.class)
+            .addModifiers(Modifier.PUBLIC)
+            .returns(ParameterizedTypeName.get(ClassName.get(List.class), FIELD_METADATA))
+            .addStatement("return FIELDS")
+            .build());
+
+        // getField
+        classBuilder.addMethod(MethodSpec.methodBuilder("getField")
+            .addAnnotation(Override.class)
+            .addModifiers(Modifier.PUBLIC)
+            .addParameter(String.class, "propertyName")
+            .returns(DATABASE_FIELD_METADATA)
+            .addStatement("return ($T) FIELDS.stream()\n" +
+                "    .filter(f -> f.getPropertyName().equals(propertyName))\n" +
+                "    .findFirst()\n" +
+                "    .orElse(null)", DATABASE_FIELD_METADATA)
+            .build());
+
+        // 特性标记方法
+        classBuilder.addMethod(MethodSpec.methodBuilder("isSoftDeletable")
+            .addAnnotation(Override.class)
+            .addModifiers(Modifier.PUBLIC)
+            .returns(boolean.class)
+            .addStatement("return $L", features.softDeletable())
+            .build());
+
+        classBuilder.addMethod(MethodSpec.methodBuilder("isTenantAware")
+            .addAnnotation(Override.class)
+            .addModifiers(Modifier.PUBLIC)
+            .returns(boolean.class)
+            .addStatement("return $L", features.tenantAware())
+            .build());
+
+        classBuilder.addMethod(MethodSpec.methodBuilder("isAuditable")
+            .addAnnotation(Override.class)
+            .addModifiers(Modifier.PUBLIC)
+            .returns(boolean.class)
+            .addStatement("return $L", features.auditable())
+            .build());
+
+        classBuilder.addMethod(MethodSpec.methodBuilder("isVersioned")
+            .addAnnotation(Override.class)
+            .addModifiers(Modifier.PUBLIC)
+            .returns(boolean.class)
+            .addStatement("return $L", features.versioned())
+            .build());
+
+        // 关联方法
+        classBuilder.addMethod(MethodSpec.methodBuilder("getRelations")
+            .addAnnotation(Override.class)
+            .addModifiers(Modifier.PUBLIC)
+            .returns(ParameterizedTypeName.get(ClassName.get(List.class), RELATION_METADATA))
+            .addStatement("return RELATIONS")
+            .build());
+
+        classBuilder.addMethod(MethodSpec.methodBuilder("getRelation")
+            .addAnnotation(Override.class)
+            .addModifiers(Modifier.PUBLIC)
+            .addParameter(String.class, "fieldName")
+            .returns(ParameterizedTypeName.get(ClassName.get(Optional.class), RELATION_METADATA))
+            .addStatement("return RELATIONS.stream()\n" +
+                "    .filter(r -> r.getFieldName().equals(fieldName))\n" +
+                "    .findFirst()")
+            .build());
+
+        classBuilder.addMethod(MethodSpec.methodBuilder("hasRelation")
+            .addAnnotation(Override.class)
+            .addModifiers(Modifier.PUBLIC)
+            .addParameter(String.class, "fieldName")
+            .returns(boolean.class)
+            .addStatement("return RELATIONS.stream()\n" +
+                "    .anyMatch(r -> r.getFieldName().equals(fieldName))")
+            .build());
+    }
+
+    /**
+     * 添加 getColumnName 方法（使用 NamingUtils.toSnakeCase）
+     */
+    private void addGetColumnNameMethod(TypeSpec.Builder classBuilder) {
+        classBuilder.addMethod(MethodSpec.methodBuilder("getColumnName")
+            .addAnnotation(Override.class)
+            .addModifiers(Modifier.PUBLIC)
+            .addParameter(String.class, "propertyName")
+            .returns(String.class)
+            .addStatement("$T field = getField(propertyName)", FIELD_METADATA)
+            .beginControlFlow("if (field != null)")
+            .addStatement("return field.getColumnName()")
+            .endControlFlow()
+            .addStatement("return $T.toSnakeCase(propertyName)", NAMING_UTILS)
+            .build());
+    }
+
+    /**
+     * 构建字段元数据内部类
+     */
+    private TypeSpec buildFieldMetadataInnerClass(FieldMetadataGenerator.FieldInfo field) {
+        String className = capitalize(field.propertyName()) + "FieldMetadata";
 
         // 验证列名
         String columnName = validateSqlIdentifier(field.columnName(),
             "column name for field " + field.propertyName());
         if (columnName.isEmpty()) {
-            // 使用默认列名作为降级
             columnName = NamingUtils.toSnakeCase(field.propertyName());
         }
 
-        sb.append("        @Override\n");
-        sb.append("        public String getColumnName() {\n");
-        sb.append("            return \"").append(columnName).append("\";\n");
-        sb.append("        }\n\n");
-
-        sb.append("        @Override\n");
-        sb.append("        public Class<?> getFieldType() {\n");
-        sb.append("            return ").append(field.fieldType()).append(".class;\n");
-        sb.append("        }\n\n");
-
-        sb.append("        @Override\n");
-        sb.append("        public boolean isId() {\n");
-        sb.append("            return ").append(field.isId()).append(";\n");
-        sb.append("        }\n\n");
-
-        sb.append("        @Override\n");
-        sb.append("        public boolean isGenerated() {\n");
-        sb.append("            return ").append(field.isGenerated()).append(";\n");
-        sb.append("        }\n");
-
-        sb.append("    }\n\n");
-        return sb.toString();
+        return TypeSpec.classBuilder(className)
+            .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+            .addSuperinterface(DATABASE_FIELD_METADATA)
+            .addJavadoc("字段 $L 的元数据\n", field.propertyName())
+            .addMethod(MethodSpec.methodBuilder("getPropertyName")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .returns(String.class)
+                .addStatement("return $S", field.propertyName())
+                .build())
+            .addMethod(MethodSpec.methodBuilder("getColumnName")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .returns(String.class)
+                .addStatement("return $S", columnName)
+                .build())
+            .addMethod(MethodSpec.methodBuilder("getFieldType")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .returns(ParameterizedTypeName.get(ClassName.get(Class.class), WildcardTypeName.subtypeOf(Object.class)))
+                .addStatement("return $L.class", field.fieldType())
+                .build())
+            .addMethod(MethodSpec.methodBuilder("isId")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .returns(boolean.class)
+                .addStatement("return $L", field.isId())
+                .build())
+            .addMethod(MethodSpec.methodBuilder("isGenerated")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .returns(boolean.class)
+                .addStatement("return $L", field.isGenerated())
+                .build())
+            .build();
     }
 
     /**
-     * 转义 Java 字符串中的特殊字符
-     *
-     * @param str 原始字符串
-     * @return 转义后的字符串
+     * 验证 SQL 标识符是否安全
      */
-    private String escapeJavaString(String str) {
-        if (str == null) {
+    private boolean isValidSqlIdentifier(String identifier) {
+        if (identifier == null || identifier.isEmpty()) {
+            return false;
+        }
+        return identifier.matches("^[a-zA-Z_][a-zA-Z0-9_]*$");
+    }
+
+    /**
+     * 验证并转义 SQL 标识符
+     */
+    private String validateSqlIdentifier(String identifier, String context) {
+        if (!isValidSqlIdentifier(identifier)) {
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+                "Invalid SQL identifier in " + context + ": '" + identifier +
+                "'. Only letters, digits, and underscores are allowed, and it cannot start with a digit.");
             return "";
         }
-        return str.replace("\\", "\\\\")
-                  .replace("\"", "\\\"")
-                  .replace("\n", "\\n")
-                  .replace("\r", "\\r")
-                  .replace("\t", "\\t");
+        return identifier;
     }
 
     /**
      * 获取通用字段元数据引用
-     * <p>
-     * 检查字段是否为通用字段，如果是且类型匹配，返回对应的 CommonFieldMetadata 引用代码。
-     * 注意：如果字段有自定义列名（@Column(name=...) 与默认 snake_case 不同），则不使用通用字段元数据。
-     *
-     * @param field 字段信息
-     * @return 通用字段元数据引用代码，如 "CommonFieldMetadata.CREATED_AT"；如果不是通用字段则返回 null
      */
     private String getCommonFieldMetadataRef(FieldMetadataGenerator.FieldInfo field) {
-        // 如果有自定义列名，不使用通用字段元数据
         if (field.hasCustomColumnName()) {
             return null;
         }
 
-        // 从注册表查找
         CommonFieldInfo commonField = commonFieldRegistry.find(field.propertyName(), field.fieldType());
         if (commonField != null) {
             return commonFieldRegistry.generateRef(commonField);
@@ -369,9 +469,6 @@ class MetadataCodeGenerator {
 
     /**
      * 检查字段是否为通用字段
-     *
-     * @param field 字段信息
-     * @return 是否为通用字段
      */
     private boolean isCommonField(FieldMetadataGenerator.FieldInfo field) {
         return getCommonFieldMetadataRef(field) != null;
@@ -391,7 +488,6 @@ class MetadataCodeGenerator {
      * 提取表名
      */
     String extractTableName(TypeElement typeElement) {
-        // 检查 @Table 注解
         for (AnnotationMirror am : typeElement.getAnnotationMirrors()) {
             if (am.getAnnotationType().toString().contains("Table")) {
                 for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : am.getElementValues().entrySet()) {
@@ -401,7 +497,6 @@ class MetadataCodeGenerator {
                 }
             }
         }
-        // 默认：类名转 snake_case
         return NamingUtils.toSnakeCase(typeElement.getSimpleName().toString());
     }
 

@@ -8,12 +8,12 @@ dependencies {
     api(project(":data-impl:data-jdbc"))
     api(project(":apt-api"))
 
-    // 权限模块
-    api(project(":security-impl:security-permission"))
-    api(project(":security-impl:security-data-scope"))
-
     api(libs.spring.boot.starter.web)
     api(libs.jspecify)
+
+    // Spring Security Web（用于 SecurityFilterChain 配置）
+    api(libs.spring.security.web)
+    api(libs.spring.security.config)
 
     // Nimbus JOSE JWT（JWT 处理）
     api(libs.nimbus.jose.jwt)
@@ -25,6 +25,13 @@ dependencies {
 
     api(libs.caffeine)
     implementation(libs.spring.jdbc)
+
+    // Casbin（权限管理）
+    api(libs.jcasbin)
+
+    // Liquibase (for auto-configuration ordering)
+    compileOnly(libs.spring.boot.starter.data.jdbc)
+
     // APT 处理器（编译时生成元数据）
     annotationProcessor(project(":apt-impl"))
     compileOnly(libs.lombok)

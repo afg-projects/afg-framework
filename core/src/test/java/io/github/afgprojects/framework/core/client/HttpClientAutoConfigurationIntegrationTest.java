@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.web.client.RestClient;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.support.TestApplication;
 
 /**
@@ -18,28 +19,28 @@ import io.github.afgprojects.framework.core.support.TestApplication;
  * 测试 HTTP 客户端自动配置功能，包括属性绑定、Bean 创建等。
  *
  * @see HttpClientAutoConfiguration
- * @see HttpClientProperties
+ * @see AfgCoreProperties.HttpClientConfig
  */
 @DisplayName("HttpClientAutoConfiguration 集成测试")
 @SpringBootTest(
         classes = TestApplication.class,
         properties = {
-                "afg.http-client.enabled=true",
-                "afg.http-client.connect-timeout=5000",
-                "afg.http-client.read-timeout=30000",
-                "afg.http-client.retry.enabled=true",
-                "afg.http-client.retry.max-attempts=3",
-                "afg.http-client.retry.initial-interval=1000",
-                "afg.http-client.circuit-breaker.enabled=true",
-                "afg.http-client.circuit-breaker.failure-threshold=5",
-                "afg.http-client.circuit-breaker.open-duration=30000"
+                "afg.core.http-client.enabled=true",
+                "afg.core.http-client.connect-timeout=5000",
+                "afg.core.http-client.read-timeout=30000",
+                "afg.core.http-client.retry.enabled=true",
+                "afg.core.http-client.retry.max-attempts=3",
+                "afg.core.http-client.retry.initial-interval=1000",
+                "afg.core.http-client.circuit-breaker.enabled=true",
+                "afg.core.http-client.circuit-breaker.failure-threshold=5",
+                "afg.core.http-client.circuit-breaker.open-duration=30000"
         }
 )
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class HttpClientAutoConfigurationIntegrationTest {
 
     @Autowired(required = false)
-    private HttpClientProperties httpClientProperties;
+    private AfgCoreProperties afgCoreProperties;
 
     @Autowired(required = false)
     private RestClient.Builder restClientBuilder;
@@ -63,7 +64,7 @@ class HttpClientAutoConfigurationIntegrationTest {
         @Test
         @DisplayName("应该自动配置 HTTP 客户端属性")
         void shouldAutoConfigureHttpClientProperties() {
-            assertThat(httpClientProperties).isNotNull();
+            assertThat(afgCoreProperties.getHttpClient()).isNotNull();
         }
 
         /**
@@ -107,7 +108,7 @@ class HttpClientAutoConfigurationIntegrationTest {
         @Test
         @DisplayName("应该正确配置连接超时")
         void shouldConfigureConnectTimeout() {
-            assertThat(httpClientProperties.getConnectTimeout()).isEqualTo(5000);
+            assertThat(afgCoreProperties.getHttpClient().getConnectTimeout()).isEqualTo(5000);
         }
 
         /**
@@ -116,7 +117,7 @@ class HttpClientAutoConfigurationIntegrationTest {
         @Test
         @DisplayName("应该正确配置读取超时")
         void shouldConfigureReadTimeout() {
-            assertThat(httpClientProperties.getReadTimeout()).isEqualTo(30000);
+            assertThat(afgCoreProperties.getHttpClient().getReadTimeout()).isEqualTo(30000);
         }
     }
 
@@ -133,7 +134,7 @@ class HttpClientAutoConfigurationIntegrationTest {
         @Test
         @DisplayName("应该正确配置重试启用状态")
         void shouldConfigureRetryEnabled() {
-            assertThat(httpClientProperties.getRetry().isEnabled()).isTrue();
+            assertThat(afgCoreProperties.getHttpClient().getRetry().isEnabled()).isTrue();
         }
 
         /**
@@ -142,7 +143,7 @@ class HttpClientAutoConfigurationIntegrationTest {
         @Test
         @DisplayName("应该正确配置最大重试次数")
         void shouldConfigureMaxAttempts() {
-            assertThat(httpClientProperties.getRetry().getMaxAttempts()).isEqualTo(3);
+            assertThat(afgCoreProperties.getHttpClient().getRetry().getMaxAttempts()).isEqualTo(3);
         }
 
         /**
@@ -151,7 +152,7 @@ class HttpClientAutoConfigurationIntegrationTest {
         @Test
         @DisplayName("应该正确配置初始间隔")
         void shouldConfigureInitialInterval() {
-            assertThat(httpClientProperties.getRetry().getInitialInterval()).isEqualTo(1000);
+            assertThat(afgCoreProperties.getHttpClient().getRetry().getInitialInterval()).isEqualTo(1000);
         }
     }
 
@@ -168,7 +169,7 @@ class HttpClientAutoConfigurationIntegrationTest {
         @Test
         @DisplayName("应该正确配置熔断启用状态")
         void shouldConfigureCircuitBreakerEnabled() {
-            assertThat(httpClientProperties.getCircuitBreaker().isEnabled()).isTrue();
+            assertThat(afgCoreProperties.getHttpClient().getCircuitBreaker().isEnabled()).isTrue();
         }
 
         /**
@@ -177,7 +178,7 @@ class HttpClientAutoConfigurationIntegrationTest {
         @Test
         @DisplayName("应该正确配置失败次数阈值")
         void shouldConfigureFailureThreshold() {
-            assertThat(httpClientProperties.getCircuitBreaker().getFailureThreshold()).isEqualTo(5);
+            assertThat(afgCoreProperties.getHttpClient().getCircuitBreaker().getFailureThreshold()).isEqualTo(5);
         }
 
         /**
@@ -186,7 +187,7 @@ class HttpClientAutoConfigurationIntegrationTest {
         @Test
         @DisplayName("应该正确配置开启持续时间")
         void shouldConfigureOpenDuration() {
-            assertThat(httpClientProperties.getCircuitBreaker().getOpenDuration()).isEqualTo(30000);
+            assertThat(afgCoreProperties.getHttpClient().getCircuitBreaker().getOpenDuration()).isEqualTo(30000);
         }
     }
 

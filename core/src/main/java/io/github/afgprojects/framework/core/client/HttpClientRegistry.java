@@ -11,6 +11,8 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.support.RestClientAdapter;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
+
 import io.micrometer.tracing.Tracer;
 
 /**
@@ -40,7 +42,7 @@ public class HttpClientRegistry {
     private final Environment environment;
     private final RestClient.Builder restClientBuilder;
     private final @Nullable Tracer tracer;
-    private final @Nullable HttpClientProperties properties;
+    private final @Nullable AfgCoreProperties properties;
 
     /**
      * 构造函数（无弹性配置）
@@ -59,13 +61,13 @@ public class HttpClientRegistry {
      * @param environment         Spring 环境
      * @param restClientBuilder   RestClient 构建器
      * @param tracer              链路追踪器（可选）
-     * @param properties          HTTP 客户端配置（可选，用于重试和熔断）
+     * @param properties          核心配置属性（可选，用于重试和熔断）
      */
     public HttpClientRegistry(
             Environment environment,
             RestClient.Builder restClientBuilder,
             @Nullable Tracer tracer,
-            @Nullable HttpClientProperties properties) {
+            @Nullable AfgCoreProperties properties) {
         this.environment = environment;
         this.restClientBuilder = restClientBuilder;
         this.tracer = tracer;
@@ -91,7 +93,7 @@ public class HttpClientRegistry {
 
         // 添加 ResilienceInterceptor 用于重试和熔断（如果配置启用）
         if (properties != null
-                && (properties.getRetry().isEnabled() || properties.getCircuitBreaker().isEnabled())) {
+                && (properties.getHttpClient().getRetry().isEnabled() || properties.getHttpClient().getCircuitBreaker().isEnabled())) {
             builder.requestInterceptor(new ResilienceInterceptor(properties));
         }
 

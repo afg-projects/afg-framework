@@ -6,11 +6,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
+
 /**
  * VirtualThreadProperties 单元测试。
  * 测试虚拟线程配置属性类的默认值和属性设置。
  *
- * @see VirtualThreadProperties
+ * @see AfgCoreProperties.VirtualThreadConfig
  */
 @DisplayName("VirtualThreadProperties 测试")
 class VirtualThreadPropertiesTest {
@@ -29,7 +31,7 @@ class VirtualThreadPropertiesTest {
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
-            VirtualThreadProperties props = new VirtualThreadProperties();
+            AfgCoreProperties.VirtualThreadConfig props = new AfgCoreProperties.VirtualThreadConfig();
 
             assertThat(props.isEnabled()).isTrue();
             assertThat(props.getNamePrefix()).isEqualTo("afg-vt-");
@@ -50,7 +52,7 @@ class VirtualThreadPropertiesTest {
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
-            VirtualThreadProperties props = new VirtualThreadProperties();
+            AfgCoreProperties.VirtualThreadConfig props = new AfgCoreProperties.VirtualThreadConfig();
             props.setEnabled(false);
             props.setNamePrefix("custom-vt-");
 

@@ -98,8 +98,12 @@ public class EntityConditionalHandler<T> {
         List<String> setParts = new ArrayList<>();
         List<Object> params = new ArrayList<>();
         for (Map.Entry<String, Object> entry : updates.entrySet()) {
-            // 使用 dialect.quoteIdentifier() 对字段名进行引用，防止 SQL 注入
-            setParts.add(dialect.quoteIdentifier(entry.getKey()) + " = ?");
+            String fieldName = entry.getKey();
+            // 将字段名转换为数据库列名
+            var fieldMetadata = metadata.getField(fieldName);
+            String columnName = fieldMetadata != null ? fieldMetadata.getColumnName() : fieldName;
+            // 使用 dialect.quoteIdentifier() 对列名进行引用，防止 SQL 注入
+            setParts.add(dialect.quoteIdentifier(columnName) + " = ?");
             params.add(entry.getValue());
         }
         sql.append(String.join(", ", setParts));

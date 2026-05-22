@@ -9,23 +9,24 @@ import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 
 /**
- * {@link SchedulerProperties} 调度器配置属性测试
+ * {@link AfgCoreProperties.SchedulerConfig} 调度器配置属性测试
  *
  * <p>测试调度器的各项配置及其嵌套配置类：
  * <ul>
  *   <li>默认值验证</li>
  *   <li>LogStorageConfig - 日志存储配置</li>
- *   <li>MetricsConfig - 指标配置</li>
+ *   <li>SchedulerMetricsConfig - 指标配置</li>
  *   <li>DynamicTaskConfig - 动态任务配置</li>
- *   <li>AnnotationConfig - 注解配置</li>
- *   <li>ApiConfig - API 配置</li>
+ *   <li>SchedulerAnnotationConfig - 注解配置</li>
+ *   <li>SchedulerApiConfig - API 配置</li>
  * </ul>
  *
- * @see SchedulerProperties
+ * @see AfgCoreProperties.SchedulerConfig
  */
-@DisplayName("SchedulerProperties 测试")
+@DisplayName("SchedulerConfig 测试")
 class SchedulerPropertiesTest {
 
     /**
@@ -41,7 +42,7 @@ class SchedulerPropertiesTest {
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
-            SchedulerProperties props = new SchedulerProperties();
+            AfgCoreProperties.SchedulerConfig props = new AfgCoreProperties.SchedulerConfig();
 
             assertThat(props.isEnabled()).isTrue();
             assertThat(props.getDefaultTimeout()).isEqualTo(Duration.ofMinutes(30));
@@ -70,7 +71,7 @@ class SchedulerPropertiesTest {
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
-            SchedulerProperties.LogStorageConfig config = new SchedulerProperties.LogStorageConfig();
+            AfgCoreProperties.SchedulerConfig.LogStorageConfig config = new AfgCoreProperties.SchedulerConfig.LogStorageConfig();
 
             assertThat(config.getType()).isEqualTo("memory");
             assertThat(config.getMaxSize()).isEqualTo(10000);
@@ -85,7 +86,7 @@ class SchedulerPropertiesTest {
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
-            SchedulerProperties.LogStorageConfig config = new SchedulerProperties.LogStorageConfig();
+            AfgCoreProperties.SchedulerConfig.LogStorageConfig config = new AfgCoreProperties.SchedulerConfig.LogStorageConfig();
             config.setType("redis");
             config.setMaxSize(5000);
             config.setRetention(Duration.ofDays(14));
@@ -104,7 +105,7 @@ class SchedulerPropertiesTest {
      * MetricsConfig 指标配置测试
      */
     @Nested
-    @DisplayName("MetricsConfig 测试")
+    @DisplayName("SchedulerMetricsConfig 测试")
     class MetricsConfigTests {
 
         /**
@@ -113,7 +114,7 @@ class SchedulerPropertiesTest {
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
-            SchedulerProperties.MetricsConfig config = new SchedulerProperties.MetricsConfig();
+            AfgCoreProperties.SchedulerConfig.SchedulerMetricsConfig config = new AfgCoreProperties.SchedulerConfig.SchedulerMetricsConfig();
 
             assertThat(config.isEnabled()).isTrue();
             assertThat(config.getPrefix()).isEqualTo("afg.scheduler");
@@ -127,7 +128,7 @@ class SchedulerPropertiesTest {
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
-            SchedulerProperties.MetricsConfig config = new SchedulerProperties.MetricsConfig();
+            AfgCoreProperties.SchedulerConfig.SchedulerMetricsConfig config = new AfgCoreProperties.SchedulerConfig.SchedulerMetricsConfig();
             config.setEnabled(false);
             config.setPrefix("custom.scheduler");
             Map<String, String> tags = new HashMap<>();
@@ -155,7 +156,7 @@ class SchedulerPropertiesTest {
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
-            SchedulerProperties.DynamicTaskConfig config = new SchedulerProperties.DynamicTaskConfig();
+            AfgCoreProperties.SchedulerConfig.DynamicTaskConfig config = new AfgCoreProperties.SchedulerConfig.DynamicTaskConfig();
 
             assertThat(config.isEnabled()).isFalse();
             assertThat(config.getSourceType()).isEqualTo("config-center");
@@ -169,7 +170,7 @@ class SchedulerPropertiesTest {
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
-            SchedulerProperties.DynamicTaskConfig config = new SchedulerProperties.DynamicTaskConfig();
+            AfgCoreProperties.SchedulerConfig.DynamicTaskConfig config = new AfgCoreProperties.SchedulerConfig.DynamicTaskConfig();
             config.setEnabled(true);
             config.setSourceType("jdbc");
             config.setRefreshInterval(Duration.ofMinutes(5));
@@ -186,7 +187,7 @@ class SchedulerPropertiesTest {
      * AnnotationConfig 注解配置测试
      */
     @Nested
-    @DisplayName("AnnotationConfig 测试")
+    @DisplayName("SchedulerAnnotationConfig 测试")
     class AnnotationConfigTests {
 
         /**
@@ -195,7 +196,7 @@ class SchedulerPropertiesTest {
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
-            SchedulerProperties.AnnotationConfig config = new SchedulerProperties.AnnotationConfig();
+            AfgCoreProperties.SchedulerConfig.SchedulerAnnotationConfig config = new AfgCoreProperties.SchedulerConfig.SchedulerAnnotationConfig();
 
             assertThat(config.isEnabled()).isTrue();
         }
@@ -206,7 +207,7 @@ class SchedulerPropertiesTest {
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
-            SchedulerProperties.AnnotationConfig config = new SchedulerProperties.AnnotationConfig();
+            AfgCoreProperties.SchedulerConfig.SchedulerAnnotationConfig config = new AfgCoreProperties.SchedulerConfig.SchedulerAnnotationConfig();
             config.setEnabled(false);
 
             assertThat(config.isEnabled()).isFalse();
@@ -217,7 +218,7 @@ class SchedulerPropertiesTest {
      * ApiConfig API 配置测试
      */
     @Nested
-    @DisplayName("ApiConfig 测试")
+    @DisplayName("SchedulerApiConfig 测试")
     class ApiConfigTests {
 
         /**
@@ -226,7 +227,7 @@ class SchedulerPropertiesTest {
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
-            SchedulerProperties.ApiConfig config = new SchedulerProperties.ApiConfig();
+            AfgCoreProperties.SchedulerConfig.SchedulerApiConfig config = new AfgCoreProperties.SchedulerConfig.SchedulerApiConfig();
 
             assertThat(config.isEnabled()).isFalse();
             assertThat(config.getBasePath()).isEqualTo("/afg/scheduler");
@@ -238,7 +239,7 @@ class SchedulerPropertiesTest {
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
-            SchedulerProperties.ApiConfig config = new SchedulerProperties.ApiConfig();
+            AfgCoreProperties.SchedulerConfig.SchedulerApiConfig config = new AfgCoreProperties.SchedulerConfig.SchedulerApiConfig();
             config.setEnabled(true);
             config.setBasePath("/custom/scheduler");
 

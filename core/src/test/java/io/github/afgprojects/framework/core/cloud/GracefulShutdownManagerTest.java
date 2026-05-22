@@ -9,7 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import io.github.afgprojects.framework.core.cloud.CloudNativeProperties.GracefulShutdownConfig;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties.CloudNativeConfig.GracefulShutdownConfig;
 
 /**
  * {@link GracefulShutdownManager} 的单元测试。

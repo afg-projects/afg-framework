@@ -9,7 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import io.github.afgprojects.framework.core.web.security.autoconfigure.AfgSecurityProperties;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 
 /**
  * EnhancedInputSanitizer 测试
@@ -20,7 +20,7 @@ import io.github.afgprojects.framework.core.web.security.autoconfigure.AfgSecuri
 class EnhancedInputSanitizerTest {
 
     private EnhancedInputSanitizer sanitizer;
-    private AfgSecurityProperties properties;
+    private AfgCoreProperties properties;
 
     @BeforeEach
     void setUp() {
@@ -28,13 +28,13 @@ class EnhancedInputSanitizerTest {
         sanitizer = new EnhancedInputSanitizer(properties);
     }
 
-    private AfgSecurityProperties createDefaultProperties() {
-        AfgSecurityProperties props = new AfgSecurityProperties();
-        props.getXss().setEnabled(true);
-        props.getXss().setRichTextMode(false);
-        props.getXss().setAllowedTags(Set.of("p", "b", "i", "a"));
-        props.getXss().setAllowedAttributes(Set.of("href", "class"));
-        props.getSqlInjection().setEnabled(true);
+    private AfgCoreProperties createDefaultProperties() {
+        AfgCoreProperties props = new AfgCoreProperties();
+        props.getSecurity().getXss().setEnabled(true);
+        props.getSecurity().getXss().setRichTextMode(false);
+        props.getSecurity().getXss().setAllowedTags(Set.of("p", "b", "i", "a"));
+        props.getSecurity().getXss().setAllowedAttributes(Set.of("href", "class"));
+        props.getSecurity().getSqlInjection().setEnabled(true);
         return props;
     }
 
@@ -223,9 +223,9 @@ class EnhancedInputSanitizerTest {
 
         @BeforeEach
         void enableRichTextMode() {
-            properties.getXss().setRichTextMode(true);
-            properties.getXss().setAllowedTags(Set.of("p", "b", "i", "a", "img"));
-            properties.getXss().setAllowedAttributes(Set.of("href", "src", "alt"));
+            properties.getSecurity().getXss().setRichTextMode(true);
+            properties.getSecurity().getXss().setAllowedTags(Set.of("p", "b", "i", "a", "img"));
+            properties.getSecurity().getXss().setAllowedAttributes(Set.of("href", "src", "alt"));
             sanitizer = new EnhancedInputSanitizer(properties);
         }
 
@@ -346,7 +346,7 @@ class EnhancedInputSanitizerTest {
         @DisplayName("XSS 禁用时不应该检测 XSS")
         void shouldNotDetectXssWhenDisabled() {
             // given
-            properties.getXss().setEnabled(false);
+            properties.getSecurity().getXss().setEnabled(false);
             sanitizer = new EnhancedInputSanitizer(properties);
 
             // then
@@ -357,7 +357,7 @@ class EnhancedInputSanitizerTest {
         @DisplayName("SQL 注入禁用时不应该检测 SQL 注入")
         void shouldNotDetectSqlInjectionWhenDisabled() {
             // given
-            properties.getSqlInjection().setEnabled(false);
+            properties.getSecurity().getSqlInjection().setEnabled(false);
             sanitizer = new EnhancedInputSanitizer(properties);
 
             // then
@@ -398,7 +398,7 @@ class EnhancedInputSanitizerTest {
         @DisplayName("XSS 禁用时不应该清洗")
         void shouldNotSanitizeWhenDisabled() {
             // given
-            properties.getXss().setEnabled(false);
+            properties.getSecurity().getXss().setEnabled(false);
             sanitizer = new EnhancedInputSanitizer(properties);
             String input = "<script>alert(1)</script>";
 
@@ -444,7 +444,7 @@ class EnhancedInputSanitizerTest {
         @DisplayName("富文本模式应该允许安全链接")
         void shouldAllowSafeLinksInRichTextMode() {
             // given
-            properties.getXss().setRichTextMode(true);
+            properties.getSecurity().getXss().setRichTextMode(true);
             sanitizer = new EnhancedInputSanitizer(properties);
             String input = "<a href=\"https://example.com\">Safe Link</a>";
 

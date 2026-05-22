@@ -9,6 +9,7 @@ dynamic-datasource = "4.5.0"
 # 非 Spring Boot BOM 管理的依赖版本
 jspecify = "1.0.0"
 auto-service = "1.1.1"
+javapoet = "1.13.0"
 classgraph = "4.8.165"
 nimbus-jose-jwt = "9.37.3"
 jjwt = "0.12.6"
@@ -41,19 +42,20 @@ spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-start
 spring-boot-starter-data-jdbc = { module = "org.springframework.boot:spring-boot-starter-data-jdbc" }
 spring-boot-starter-validation = { module = "org.springframework.boot:spring-boot-starter-validation" }
 spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security" }
-spring-boot-starter-oauth2-authorization-server = { module = "org.springframework.boot:spring-boot-starter-oauth2-authorization-server" }
 spring-boot-starter-oauth2-resource-server = { module = "org.springframework.boot:spring-boot-starter-oauth2-resource-server" }
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
 spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
 spring-boot-starter-websocket = { module = "org.springframework.boot:spring-boot-starter-websocket" }
 spring-boot-starter-amqp = { module = "org.springframework.boot:spring-boot-starter-amqp" }
 spring-boot-starter-data-redis = { module = "org.springframework.boot:spring-boot-starter-data-redis" }
+spring-boot-starter-aspectj = { module = "org.springframework.boot:spring-boot-starter-aspectj" }
 spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure" }
 spring-boot-health = { module = "org.springframework.boot:spring-boot-health" }
 spring-boot-test = { module = "org.springframework.boot:spring-boot-test" }
 
 # Spring Framework（版本由 Spring Boot BOM 管理）
 spring-context = { module = "org.springframework:spring-context" }
+spring-beans = { module = "org.springframework:spring-beans" }
 spring-aop = { module = "org.springframework:spring-aop" }
 spring-expression = { module = "org.springframework:spring-expression" }
 spring-webflux = { module = "org.springframework:spring-webflux" }
@@ -61,9 +63,15 @@ spring-test = { module = "org.springframework:spring-test" }
 spring-kafka = { module = "org.springframework.kafka:spring-kafka" }
 spring-data-commons = { module = "org.springframework.data:spring-data-commons" }
 
+# Spring Security（版本由 Spring Boot BOM 管理）
+spring-security-core = { module = "org.springframework.security:spring-security-core" }
+spring-security-web = { module = "org.springframework.security:spring-security-web" }
+spring-security-config = { module = "org.springframework.security:spring-security-config" }
+
 # Jackson（版本由 Spring Boot BOM 管理）
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
 jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310" }
+jackson-yaml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml" }
 
 # Micrometer（版本由 Spring Boot BOM 管理）
 micrometer-tracing = { module = "io.micrometer:micrometer-tracing" }
@@ -108,6 +116,7 @@ testcontainers-rabbitmq = { module = "org.testcontainers:testcontainers-rabbitmq
 jcasbin = { module = "org.casbin:jcasbin", version.ref = "jcasbin" }
 dynamic-datasource = { module = "com.baomidou:dynamic-datasource-spring-boot4-starter", version.ref = "dynamic-datasource" }
 auto-service = { module = "com.google.auto.service:auto-service", version.ref = "auto-service" }
+javapoet = { module = "com.squareup:javapoet", version.ref = "javapoet" }
 classgraph = { module = "io.github.classgraph:classgraph", version.ref = "classgraph" }
 nimbus-jose-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version.ref = "nimbus-jose-jwt" }
 jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
@@ -117,6 +126,7 @@ clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
 spring-ai-openai = { module = "org.springframework.ai:spring-ai-openai", version.ref = "spring-ai" }
 spring-ai-anthropic = { module = "org.springframework.ai:spring-ai-anthropic", version.ref = "spring-ai" }
 spring-ai-ollama = { module = "org.springframework.ai:spring-ai-ollama", version.ref = "spring-ai" }
+spring-ai-client-chat = { module = "org.springframework.ai:spring-ai-client-chat", version.ref = "spring-ai" }
 jsqlparser = { module = "com.github.jsqlparser:jsqlparser", version.ref = "jsqlparser" }
 spring-jdbc = { module = "org.springframework.boot:spring-boot-starter-data-jdbc" }
 

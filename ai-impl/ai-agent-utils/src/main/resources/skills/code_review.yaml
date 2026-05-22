@@ -1,0 +1,65 @@
+# 示例 Skill 定义文件
+name: code_review
+description: Review code changes and provide feedback
+
+# 提示词模板（使用 {{variable}} 格式引用变量）
+prompt: |
+  Review the following code changes and provide feedback:
+
+  File: {{file_path}}
+
+  Changes:
+  {{code_changes}}
+
+  Please analyze:
+  1. Code quality and best practices
+  2. Potential bugs or issues
+  3. Performance considerations
+  4. Security concerns
+
+  Provide specific, actionable feedback.
+
+# 输入参数定义
+inputs:
+  - name: file_path
+    description: Path to the file being reviewed
+    type: STRING
+    required: true
+
+  - name: code_changes
+    description: The code changes to review
+    type: STRING
+    required: true
+
+  - name: review_focus
+    description: Specific areas to focus on
+    type: ENUM
+    required: false
+    defaultValue: general
+    enumValues:
+      - general
+      - security
+      - performance
+      - style
+
+# 可用的工具
+tools:
+  - get_current_time
+
+# 依赖的其他 skills
+dependsOn: []
+
+# 扩展元数据
+metadata:
+  version: 1.0.0
+  author: afg-projects
+  tags:
+    - code
+    - review
+  # 触发关键词（用于自动意图识别）
+  triggers:
+    - review
+    - 审查
+    - 代码审查
+    - 代码检查
+    - 代码评审

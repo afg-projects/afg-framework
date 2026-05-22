@@ -10,7 +10,7 @@
  *   <li>{@code io.github.afgprojects.impl.redis.lock.RedisDistributedLock} - Redis 实现（在 afg-redis 模块中）</li>
  *   <li>{@link io.github.afgprojects.framework.core.lock.Lock} - 声明式锁注解</li>
  *   <li>{@link io.github.afgprojects.framework.core.lock.LockAspect} - 锁切面</li>
- *   <li>{@link io.github.afgprojects.framework.core.lock.LockProperties} - 配置属性</li>
+ *   <li>{@link io.github.afgprojects.framework.core.config.AfgCoreProperties.LockConfig} - 配置属性（在 AfgCoreProperties 中）</li>
  * </ul>
  *
  * <h2>支持的锁类型</h2>
@@ -64,13 +64,14 @@
  * <h2>配置项</h2>
  * <pre>
  * afg:
- *   lock:
- *     enabled: true
- *     key-prefix: "afg:lock"
- *     default-wait-time: 5000
- *     default-lease-time: -1  # -1 表示使用 watchdog 自动续期
- *     annotations:
+ *   core:
+ *     lock:
  *       enabled: true
+ *       key-prefix: "afg:lock"
+ *       default-wait-time: 5000
+ *       default-lease-time: -1  # -1 表示使用 watchdog 自动续期
+ *       annotations:
+ *         enabled: true
  * </pre>
  *
  * @see io.github.afgprojects.framework.core.lock.DistributedLock

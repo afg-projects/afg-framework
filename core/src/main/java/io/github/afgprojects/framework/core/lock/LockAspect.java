@@ -15,6 +15,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.lock.exception.LockAcquisitionException;
 import io.github.afgprojects.framework.core.lock.exception.LockException;
 
@@ -43,17 +44,17 @@ public class LockAspect {
     private final DistributedLock distributedLock;
 
     /**
-     * 锁配置属性
+     * 核心配置属性
      */
-    private final LockProperties properties;
+    private final AfgCoreProperties properties;
 
     /**
      * 构造锁切面
      *
      * @param distributedLock 分布锁服务
-     * @param properties      锁配置属性
+     * @param properties      核心配置属性
      */
-    public LockAspect(@NonNull DistributedLock distributedLock, @NonNull LockProperties properties) {
+    public LockAspect(@NonNull DistributedLock distributedLock, @NonNull AfgCoreProperties properties) {
         this.distributedLock = distributedLock;
         this.properties = properties;
     }
@@ -168,7 +169,7 @@ public class LockAspect {
             key = prefix + ":" + key;
         } else {
             // 使用默认前缀
-            key = properties.getKeyPrefix() + ":" + key;
+            key = properties.getLock().getKeyPrefix() + ":" + key;
         }
 
         return key;
@@ -240,7 +241,7 @@ public class LockAspect {
         if (annotation.waitTime() >= 0) {
             return convertToMillis(annotation.waitTime(), annotation.timeUnit());
         }
-        return properties.getDefaultWaitTime();
+        return properties.getLock().getDefaultWaitTime();
     }
 
     /**
@@ -253,7 +254,7 @@ public class LockAspect {
         if (annotation.leaseTime() >= 0) {
             return convertToMillis(annotation.leaseTime(), annotation.timeUnit());
         }
-        return properties.getDefaultLeaseTime();
+        return properties.getLock().getDefaultLeaseTime();
     }
 
     /**

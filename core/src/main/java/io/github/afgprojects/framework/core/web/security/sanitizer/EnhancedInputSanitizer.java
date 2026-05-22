@@ -11,7 +11,7 @@ import org.owasp.validator.html.Policy;
 import org.owasp.validator.html.PolicyException;
 import org.owasp.validator.html.ScanException;
 
-import io.github.afgprojects.framework.core.web.security.autoconfigure.AfgSecurityProperties;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 
 /**
  * 增强的输入清洗工具类
@@ -44,17 +44,17 @@ public class EnhancedInputSanitizer {
      */
     private final Policy richTextPolicy;
 
-    private final AfgSecurityProperties.XssConfig xssConfig;
-    private final AfgSecurityProperties.SqlInjectionConfig sqlConfig;
+    private final AfgCoreProperties.SecurityConfig.XssConfig xssConfig;
+    private final AfgCoreProperties.SecurityConfig.SqlInjectionConfig sqlConfig;
 
     /**
      * 创建增强输入清洗器
      *
-     * @param properties 安全配置属性
+     * @param properties 核心配置属性
      */
-    public EnhancedInputSanitizer(@NonNull AfgSecurityProperties properties) {
-        this.xssConfig = properties.getXss();
-        this.sqlConfig = properties.getSqlInjection();
+    public EnhancedInputSanitizer(@NonNull AfgCoreProperties properties) {
+        this.xssConfig = properties.getSecurity().getXss();
+        this.sqlConfig = properties.getSecurity().getSqlInjection();
 
         try {
             this.antiSamy = new AntiSamy();

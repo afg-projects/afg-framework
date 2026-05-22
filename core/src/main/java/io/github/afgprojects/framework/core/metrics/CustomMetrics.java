@@ -5,7 +5,7 @@ import java.util.Map;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import io.github.afgprojects.framework.core.autoconfigure.MetricsProperties;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -38,25 +38,11 @@ import io.micrometer.core.instrument.Timer;
 public class CustomMetrics {
 
     private final MeterRegistry meterRegistry;
-    private final MetricsProperties properties;
+    private final AfgCoreProperties properties;
 
-    public CustomMetrics(MeterRegistry meterRegistry, MetricsProperties properties) {
+    public CustomMetrics(MeterRegistry meterRegistry, AfgCoreProperties properties) {
         this.meterRegistry = meterRegistry;
         this.properties = properties;
-        registerConfiguredMetrics();
-    }
-
-    /**
-     * 注册配置文件中定义的指标
-     */
-    private void registerConfiguredMetrics() {
-        if (!properties.getCustom().isEnabled()) {
-            return;
-        }
-
-        for (MetricsProperties.CounterConfig config : properties.getCustom().getCounters()) {
-            counter(config.getName(), config.getDescription(), config.getTags());
-        }
     }
 
     /**
@@ -113,8 +99,8 @@ public class CustomMetrics {
     @NonNull
     public Timer timer(@NonNull String name) {
         return Timer.builder(name)
-                .publishPercentiles(properties.getHistogram().getPercentiles())
-                .publishPercentileHistogram(properties.getHistogram().isPercentileHistogram())
+                .publishPercentiles(properties.getMetrics().getHistogram().getPercentiles())
+                .publishPercentileHistogram(properties.getMetrics().getHistogram().isPercentileHistogram())
                 .register(meterRegistry);
     }
 
@@ -129,8 +115,8 @@ public class CustomMetrics {
     public Timer timer(@NonNull String name, @NonNull String... tags) {
         return Timer.builder(name)
                 .tags(tags)
-                .publishPercentiles(properties.getHistogram().getPercentiles())
-                .publishPercentileHistogram(properties.getHistogram().isPercentileHistogram())
+                .publishPercentiles(properties.getMetrics().getHistogram().getPercentiles())
+                .publishPercentileHistogram(properties.getMetrics().getHistogram().isPercentileHistogram())
                 .register(meterRegistry);
     }
 

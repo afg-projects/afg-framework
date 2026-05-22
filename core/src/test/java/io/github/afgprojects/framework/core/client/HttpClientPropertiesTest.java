@@ -8,12 +8,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
+
 /**
  * HttpClientProperties 单元测试。
  * <p>
  * 测试 HTTP 客户端配置属性类及其嵌套配置类的默认值和属性设置。
  *
- * @see HttpClientProperties
+ * @see AfgCoreProperties.HttpClientConfig
  */
 @DisplayName("HttpClientProperties 测试")
 class HttpClientPropertiesTest {
@@ -31,7 +33,7 @@ class HttpClientPropertiesTest {
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
-            HttpClientProperties props = new HttpClientProperties();
+            AfgCoreProperties.HttpClientConfig props = new AfgCoreProperties.HttpClientConfig();
 
             assertThat(props.getConnectTimeout()).isEqualTo(5000);
             assertThat(props.getReadTimeout()).isEqualTo(30000);
@@ -44,7 +46,7 @@ class HttpClientPropertiesTest {
      * 测试重试配置类。
      */
     @Nested
-    @DisplayName("RetryConfig 测试")
+    @DisplayName("HttpRetryConfig 测试")
     class RetryConfigTests {
 
         /**
@@ -53,7 +55,7 @@ class HttpClientPropertiesTest {
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
-            HttpClientProperties.RetryConfig config = new HttpClientProperties.RetryConfig();
+            AfgCoreProperties.HttpClientConfig.HttpRetryConfig config = new AfgCoreProperties.HttpClientConfig.HttpRetryConfig();
 
             assertThat(config.isEnabled()).isTrue();
             assertThat(config.getMaxAttempts()).isEqualTo(3);
@@ -69,7 +71,7 @@ class HttpClientPropertiesTest {
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
-            HttpClientProperties.RetryConfig config = new HttpClientProperties.RetryConfig();
+            AfgCoreProperties.HttpClientConfig.HttpRetryConfig config = new AfgCoreProperties.HttpClientConfig.HttpRetryConfig();
             config.setEnabled(false);
             config.setMaxAttempts(5);
             config.setInitialInterval(2000);
@@ -90,7 +92,7 @@ class HttpClientPropertiesTest {
      * 测试熔断配置类。
      */
     @Nested
-    @DisplayName("CircuitBreakerConfig 测试")
+    @DisplayName("HttpCircuitBreakerConfig 测试")
     class CircuitBreakerConfigTests {
 
         /**
@@ -99,7 +101,7 @@ class HttpClientPropertiesTest {
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
-            HttpClientProperties.CircuitBreakerConfig config = new HttpClientProperties.CircuitBreakerConfig();
+            AfgCoreProperties.HttpClientConfig.HttpCircuitBreakerConfig config = new AfgCoreProperties.HttpClientConfig.HttpCircuitBreakerConfig();
 
             assertThat(config.isEnabled()).isTrue();
             assertThat(config.getFailureThreshold()).isEqualTo(5);
@@ -114,7 +116,7 @@ class HttpClientPropertiesTest {
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
-            HttpClientProperties.CircuitBreakerConfig config = new HttpClientProperties.CircuitBreakerConfig();
+            AfgCoreProperties.HttpClientConfig.HttpCircuitBreakerConfig config = new AfgCoreProperties.HttpClientConfig.HttpCircuitBreakerConfig();
             config.setEnabled(false);
             config.setFailureThreshold(10);
             config.setOpenDuration(60000);
@@ -126,51 +128,6 @@ class HttpClientPropertiesTest {
             assertThat(config.getOpenDuration()).isEqualTo(60000);
             assertThat(config.getHalfOpenMaxCalls()).isEqualTo(5);
             assertThat(config.getSuccessThreshold()).isEqualTo(5);
-        }
-    }
-
-    /**
-     * 测试命名客户端配置类。
-     */
-    @Nested
-    @DisplayName("NamedClientConfig 测试")
-    class NamedClientConfigTests {
-
-        /**
-         * 测试正确合并命名配置与默认配置。
-         */
-        @Test
-        @DisplayName("应该正确合并配置")
-        void shouldMergeConfig() {
-            HttpClientProperties defaults = new HttpClientProperties();
-            defaults.setConnectTimeout(5000);
-            defaults.setReadTimeout(30000);
-
-            HttpClientProperties.NamedClientConfig namedConfig = new HttpClientProperties.NamedClientConfig();
-            namedConfig.setBaseUrl("http://example.com");
-            namedConfig.setConnectTimeout(10000);
-            namedConfig.setReadTimeout(0); // 使用默认值
-
-            HttpClientProperties merged = namedConfig.merge(defaults);
-
-            assertThat(merged.getConnectTimeout()).isEqualTo(10000);
-            assertThat(merged.getReadTimeout()).isEqualTo(30000);
-        }
-
-        /**
-         * 测试正确设置命名客户端配置属性。
-         */
-        @Test
-        @DisplayName("应该正确设置属性")
-        void shouldSetProperties() {
-            HttpClientProperties.NamedClientConfig config = new HttpClientProperties.NamedClientConfig();
-            config.setBaseUrl("http://example.com");
-            config.setConnectTimeout(10000);
-            config.setReadTimeout(60000);
-
-            assertThat(config.getBaseUrl()).isEqualTo("http://example.com");
-            assertThat(config.getConnectTimeout()).isEqualTo(10000);
-            assertThat(config.getReadTimeout()).isEqualTo(60000);
         }
     }
 }

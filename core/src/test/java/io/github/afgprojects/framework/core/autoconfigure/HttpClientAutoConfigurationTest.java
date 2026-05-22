@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.env.Environment;
 
 import io.github.afgprojects.framework.core.client.AsyncResilienceInterceptor;
-import io.github.afgprojects.framework.core.client.HttpClientProperties;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.client.HttpClientRegistry;
 import io.micrometer.tracing.Tracer;
 
@@ -46,7 +46,7 @@ class HttpClientAutoConfigurationTest {
         @Test
         @DisplayName("应该创建 RestClient Builder")
         void shouldCreateRestClientBuilder() {
-            HttpClientProperties properties = new HttpClientProperties();
+            AfgCoreProperties properties = new AfgCoreProperties();
 
             var builder = configuration.restClientBuilder(properties);
 
@@ -59,8 +59,8 @@ class HttpClientAutoConfigurationTest {
         @Test
         @DisplayName("启用重试时应该添加 ResilienceInterceptor")
         void shouldAddResilienceInterceptorWhenRetryEnabled() {
-            HttpClientProperties properties = new HttpClientProperties();
-            properties.getRetry().setEnabled(true);
+            AfgCoreProperties properties = new AfgCoreProperties();
+            properties.getHttpClient().getRetry().setEnabled(true);
 
             var builder = configuration.restClientBuilder(properties);
 
@@ -73,8 +73,8 @@ class HttpClientAutoConfigurationTest {
         @Test
         @DisplayName("启用熔断时应该添加 ResilienceInterceptor")
         void shouldAddResilienceInterceptorWhenCircuitBreakerEnabled() {
-            HttpClientProperties properties = new HttpClientProperties();
-            properties.getCircuitBreaker().setEnabled(true);
+            AfgCoreProperties properties = new AfgCoreProperties();
+            properties.getHttpClient().getCircuitBreaker().setEnabled(true);
 
             var builder = configuration.restClientBuilder(properties);
 
@@ -117,7 +117,7 @@ class HttpClientAutoConfigurationTest {
         @Test
         @DisplayName("应该创建异步弹性拦截器")
         void shouldCreateAsyncResilienceInterceptor() {
-            HttpClientProperties properties = new HttpClientProperties();
+            AfgCoreProperties properties = new AfgCoreProperties();
             ScheduledExecutorService scheduler = configuration.resilienceScheduler();
 
             AsyncResilienceInterceptor interceptor = configuration.asyncResilienceInterceptor(
@@ -143,7 +143,7 @@ class HttpClientAutoConfigurationTest {
         @DisplayName("应该创建 HTTP 客户端注册表")
         void shouldCreateHttpClientRegistry() {
             Environment environment = mock(Environment.class);
-            HttpClientProperties properties = new HttpClientProperties();
+            AfgCoreProperties properties = new AfgCoreProperties();
             var builder = configuration.restClientBuilder(properties);
 
             HttpClientRegistry registry = configuration.httpClientRegistry(

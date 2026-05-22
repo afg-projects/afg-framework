@@ -9,18 +9,20 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
+
 /**
  * SensitiveFieldProcessor 测试。
  * <p>
  * 测试敏感字段处理器的核心功能，包括敏感字段合并、识别和标准化。
  *
  * @see SensitiveFieldProcessor
- * @see AuditLogProperties
+ * @see AfgCoreProperties.AuditConfig
  */
 @DisplayName("SensitiveFieldProcessor 测试")
 class SensitiveFieldProcessorTest {
 
-    private AuditLogProperties properties;
+    private AfgCoreProperties properties;
     private SensitiveFieldProcessor processor;
 
     /**
@@ -28,7 +30,7 @@ class SensitiveFieldProcessorTest {
      */
     @BeforeEach
     void setUp() {
-        properties = new AuditLogProperties();
+        properties = new AfgCoreProperties();
         processor = new SensitiveFieldProcessor(properties);
     }
 
@@ -47,7 +49,7 @@ class SensitiveFieldProcessorTest {
         @Test
         @DisplayName("应该合并注解和全局配置的敏感字段")
         void shouldMergeSensitiveFields() {
-            properties.setSensitiveFields(new String[]{"globalField"});
+            properties.getAudit().setSensitiveFields(new String[]{"globalField"});
 
             Audited annotation = createAuditedAnnotation(new String[]{"annotationField"});
 

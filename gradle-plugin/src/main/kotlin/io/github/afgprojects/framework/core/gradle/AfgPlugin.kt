@@ -139,9 +139,6 @@ class AfgPlugin : Plugin<Project> {
             // 添加框架核心依赖
             val frameworkVersion = extension.frameworkVersion.getOrElse(DEFAULT_FRAMEWORK_VERSION)
 
-            // 根据模块类型添加不同依赖
-            val moduleType = extension.moduleType.getOrElse("starter")
-
             // 核心依赖
             add("implementation", "io.github.afg-projects:afg-framework-core:$frameworkVersion")
 
@@ -151,20 +148,6 @@ class AfgPlugin : Plugin<Project> {
 
             // 自动添加 APT 注解依赖（编译时可用）
             add("compileOnly", "io.github.afg-projects:afg-framework-apt-api:$frameworkVersion")
-
-            when (moduleType) {
-                "data" -> {
-                    add("implementation", "io.github.afg-projects:afg-framework-data-jdbc:$frameworkVersion")
-                    add("implementation", "io.github.afg-projects:afg-framework-data-liquibase:$frameworkVersion")
-                }
-                "starter" -> {
-                    // Starter 模块只依赖核心，其他依赖由使用者引入
-                }
-                "integration" -> {
-                    // 集成模块：添加 spring-boot-starter
-                    add("implementation", "io.github.afg-projects:afg-framework-spring-boot-starter:$frameworkVersion")
-                }
-            }
 
             // 自动添加 Lombok（如果启用）- 版本由 Spring Boot BOM 管理
             if (extension.useLombok.getOrElse(true)) {
@@ -177,16 +160,6 @@ class AfgPlugin : Plugin<Project> {
             // 自动添加 Spring Boot 配置元数据处理器
             // 生成 META-INF/spring-configuration-metadata.json，支持 IDE 配置提示
             add("annotationProcessor", "org.springframework.boot:spring-boot-configuration-processor")
-
-            // 自动添加 JSR-305 空安全注解（如果启用）
-            if (extension.useJsr305.getOrElse(true)) {
-                add("compileOnly", "com.google.code.findbugs:jsr305:3.0.2")
-            }
-
-            // 自动添加 Validation API（如果启用）- 版本由 Spring Boot BOM 管理
-            if (extension.useValidation.getOrElse(true)) {
-                add("implementation", "jakarta.validation:jakarta.validation-api")
-            }
 
             // 自动添加测试依赖 - 版本由 Spring Boot BOM 管理
             add("testImplementation", "org.junit.jupiter:junit-jupiter")
@@ -293,14 +266,6 @@ class AfgPlugin : Plugin<Project> {
      * 注册自定义任务
      */
     private fun registerTasks(project: Project, extension: AfgExtension) {
-        project.tasks.register("generateEntity", GenerateEntityTask::class.java)
-        project.tasks.register("generateMigration", GenerateMigrationTask::class.java)
-        project.tasks.register("generateEntityFromDb", GenerateEntityFromDbTask::class.java)
-        project.tasks.register("dbMigrate", DbMigrateTask::class.java)
-        project.tasks.register("apiDoc", ApiDocTask::class.java)
-        project.tasks.register("createProject", CreateProjectTask::class.java)
-        project.tasks.register("scaffold", ScaffoldTask::class.java)
-
         // 注册框架配置任务
         project.tasks.register("afgInfo") {
             group = "afg"
@@ -309,22 +274,53 @@ class AfgPlugin : Plugin<Project> {
                 println("AFG Framework 配置信息:")
                 println("  Spring Boot 版本: ${extension.springBootVersion.getOrElse(DEFAULT_SPRING_BOOT_VERSION)}")
                 println("  框架版本: ${extension.frameworkVersion.getOrElse(DEFAULT_FRAMEWORK_VERSION)}")
-                println("  模块类型: ${extension.moduleType.getOrElse("starter")}")
                 println("  独立部署: ${extension.standalone.getOrElse(true)}")
                 println("  使用 Lombok: ${extension.useLombok.getOrElse(true)}")
-                println("  使用 JSR-305: ${extension.useJsr305.getOrElse(true)}")
-                println("  使用 Validation: ${extension.useValidation.getOrElse(true)}")
                 println("  启用代码生成: ${extension.enableCodegen.getOrElse(false)}")
+                println("  基础包名: ${extension.basePackage.orNull ?: project.group}")
+                println("  安全模式: ${extension.securityMode.orNull ?: "无"}")
+                println("  数据库类型: ${extension.databaseType.getOrElse("H2")}")
             }
         }
 
         // 注册初始化配置任务
-        project.tasks.register("afgInitConfig") {
+        project.tasks.register("afgInit", AfgInitTask::class.java) {
             group = "afg"
-            description = "生成框架配置文件模板"
-            doLast {
-                generateConfigTemplate(project, extension)
-            }
+            description = "生成项目初始文件（Application.java, application.yml, UserDetailsServiceImpl.java 等）"
+            basePackage.convention(extension.basePackage.getOrElse(project.group.toString().ifEmpty { "com.example" }))
+            securityMode.convention(extension.securityMode)
+            databaseType.convention(extension.databaseType.getOrElse("H2"))
+            outputDir.convention(project.projectDir)
+            overwrite.convention(false)
+        }
+
+        // 注册迁移生成任务（仅在配置了 entityPackages 时有效）
+        project.tasks.register("generateMigration", GenerateMigrationTask::class.java) {
+            group = "afg"
+            description = "扫描实体类，生成 Liquibase 迁移脚本"
+            entityPackages.convention(extension.migration.entityPackages)
+            changesetAuthor.convention(extension.migration.author)
+            checkDatabase.convention(extension.migration.checkDatabase)
+            checkChangeLog.convention(extension.migration.checkChangeLog)
+            changeLogFile.convention(extension.migration.changeLogFile)
+        }
+
+        // 注册实体生成任务
+        project.tasks.register("generateEntity", GenerateEntityTask::class.java) {
+            group = "afg"
+            description = "从数据库逆向生成实体类"
+        }
+
+        // 注册数据库迁移任务
+        project.tasks.register("generateEntityFromDb", GenerateEntityFromDbTask::class.java) {
+            group = "afg"
+            description = "从数据库表结构生成实体类"
+        }
+
+        // 注册数据库迁移执行任务
+        project.tasks.register("dbMigrate", DbMigrateTask::class.java) {
+            group = "afg"
+            description = "执行 Liquibase 数据库迁移"
         }
     }
 
@@ -338,117 +334,6 @@ class AfgPlugin : Plugin<Project> {
                 dependsOn("generateEntity")
             }
         }
-
-        // 配置迁移任务
-        val migration = extension.migration
-        if (migration.entityPackages.isPresent) {
-            project.tasks.named("generateMigration", GenerateMigrationTask::class.java) {
-                entityPackages.set(migration.entityPackages)
-                changesetAuthor.set(migration.author)
-                checkDatabase.set(migration.checkDatabase)
-                checkChangeLog.set(migration.checkChangeLog)
-                changeLogFile.set(migration.changeLogFile)
-            }
-        }
     }
 
-    /**
-     * 生成配置文件模板
-     */
-    private fun generateConfigTemplate(project: Project, extension: AfgExtension) {
-        val resourcesDir = project.layout.projectDirectory.dir("src/main/resources").asFile
-        if (!resourcesDir.exists()) {
-            resourcesDir.mkdirs()
-        }
-
-        // 生成 application.yml 模板
-        val applicationYml = File(resourcesDir, "application.yml")
-        if (!applicationYml.exists()) {
-            applicationYml.writeText("""
-# AFG Framework Application Configuration
-spring:
-  application:
-    name: ${project.name}
-
-  # 数据源配置（根据实际环境修改）
-  datasource:
-    driver-class-name: org.h2.Driver
-    url: jdbc:h2:mem:testdb
-    username: sa
-    password:
-
-  # Liquibase 配置
-  liquibase:
-    enabled: true
-    change-log: classpath:db/changelog.xml
-
-# AFG Framework 配置
-afg:
-  data:
-    # 数据权限配置
-    data-scope:
-      enabled: true
-    # 租户隔离配置
-    tenant:
-      enabled: false
-    # 软删除配置
-    soft-delete:
-      enabled: true
-      field-name: deleted
-
-# 日志配置
-logging:
-  level:
-    root: INFO
-    io.github.afgprojects: DEBUG
-
-            """.trimIndent())
-            println("生成配置文件: ${applicationYml.absolutePath}")
-        }
-
-        // 生成数据库迁移目录
-        val dbDir = File(resourcesDir, "db/changelog")
-        if (!dbDir.exists()) {
-            dbDir.mkdirs()
-        }
-
-        val changelogXml = File(dbDir.parentFile, "changelog.xml")
-        if (!changelogXml.exists()) {
-            changelogXml.writeText("""
-<?xml version="1.0" encoding="UTF-8"?>
-<databaseChangeLog
-    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
-
-    <!-- 包含迁移文件 -->
-    <include file="changelog/init.xml" relativeToChangelogFile="true"/>
-
-</databaseChangeLog>
-
-            """.trimIndent())
-            println("生成迁移配置: ${changelogXml.absolutePath}")
-        }
-
-        val initXml = File(dbDir, "init.xml")
-        if (!initXml.exists()) {
-            initXml.writeText("""
-<?xml version="1.0" encoding="UTF-8"?>
-<databaseChangeLog
-    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
-
-    <!-- 初始化迁移 -->
-
-</databaseChangeLog>
-
-            """.trimIndent())
-            println("生成初始迁移: ${initXml.absolutePath}")
-        }
-
-        println("\n配置文件模板生成完成！请根据实际环境修改配置。")
-    }
 }

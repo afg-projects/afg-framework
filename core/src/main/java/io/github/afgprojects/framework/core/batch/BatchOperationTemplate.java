@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.batch.BatchResult.Builder;
 
 import lombok.extern.slf4j.Slf4j;
@@ -53,21 +54,21 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class BatchOperationTemplate {
 
-    private final BatchProperties properties;
+    private final AfgCoreProperties properties;
 
     /**
      * 使用默认配置创建模板
      */
     public BatchOperationTemplate() {
-        this(new BatchProperties());
+        this(new AfgCoreProperties());
     }
 
     /**
      * 使用指定配置创建模板
      *
-     * @param properties 批量操作配置
+     * @param properties 核心配置属性
      */
-    public BatchOperationTemplate(@NonNull BatchProperties properties) {
+    public BatchOperationTemplate(@NonNull AfgCoreProperties properties) {
         this.properties = Objects.requireNonNull(properties, "properties must not be null");
     }
 
@@ -126,7 +127,7 @@ public class BatchOperationTemplate {
                 handleFailure(builder, i, item, e);
                 notifyItemComplete(callback, item, i, null, false);
 
-                if (properties.isStopOnError()) {
+                if (properties.getBatch().isStopOnError()) {
                     break;
                 }
             }
@@ -179,7 +180,7 @@ public class BatchOperationTemplate {
             return BatchResult.empty();
         }
 
-        int actualParallelism = parallelism > 0 ? parallelism : properties.getActualParallelism();
+        int actualParallelism = parallelism > 0 ? parallelism : properties.getBatch().getActualParallelism();
         Instant start = Instant.now();
         Builder<R> builder = BatchResult.<R>builder().total(items.size());
 
@@ -281,10 +282,10 @@ public class BatchOperationTemplate {
             return BatchResult.empty();
         }
 
-        int actualMaxAttempts = maxAttempts > 0 ? maxAttempts : properties.getRetry().getMaxAttempts();
-        long initialInterval = properties.getRetry().getInitialInterval();
-        double multiplier = properties.getRetry().getMultiplier();
-        long maxInterval = properties.getRetry().getMaxInterval();
+        int actualMaxAttempts = maxAttempts > 0 ? maxAttempts : properties.getBatch().getRetry().getMaxAttempts();
+        long initialInterval = properties.getBatch().getRetry().getInitialInterval();
+        double multiplier = properties.getBatch().getRetry().getMultiplier();
+        long maxInterval = properties.getBatch().getRetry().getMaxInterval();
 
         Instant start = Instant.now();
         Builder<R> builder = BatchResult.<R>builder().total(items.size());
@@ -330,7 +331,7 @@ public class BatchOperationTemplate {
                 handleFailure(builder, i, item, lastException);
                 notifyItemComplete(callback, item, i, null, false);
 
-                if (properties.isStopOnError()) {
+                if (properties.getBatch().isStopOnError()) {
                     break;
                 }
             }
@@ -386,7 +387,7 @@ public class BatchOperationTemplate {
             return BatchResult.empty();
         }
 
-        int actualBatchSize = batchSize > 0 ? batchSize : properties.getDefaultBatchSize();
+        int actualBatchSize = batchSize > 0 ? batchSize : properties.getBatch().getDefaultBatchSize();
         Instant start = Instant.now();
         Builder<R> builder = BatchResult.<R>builder().total(items.size());
 
@@ -416,7 +417,7 @@ public class BatchOperationTemplate {
                     handleFailure(builder, globalIndex, item, e);
                     notifyItemComplete(callback, item, globalIndex, null, false);
 
-                    if (properties.isStopOnError()) {
+                    if (properties.getBatch().isStopOnError()) {
                         break;
                     }
                 }
@@ -425,7 +426,7 @@ public class BatchOperationTemplate {
                 notifyProgress(callback, processedCount, items.size());
             }
 
-            if (shouldStop(builder, items.size()) || properties.isStopOnError() && builder.build().failed() > 0) {
+            if (shouldStop(builder, items.size()) || properties.getBatch().isStopOnError() && builder.build().failed() > 0) {
                 break;
             }
         }
@@ -439,10 +440,10 @@ public class BatchOperationTemplate {
      * 创建限流器
      */
     private Semaphore createRateLimiter() {
-        if (!properties.getRateLimit().isEnabled()) {
+        if (!properties.getBatch().getRateLimit().isEnabled()) {
             return null;
         }
-        return new Semaphore(properties.getRateLimit().getPermitsPerSecond());
+        return new Semaphore(properties.getBatch().getRateLimit().getPermitsPerSecond());
     }
 
     /**
@@ -453,7 +454,7 @@ public class BatchOperationTemplate {
             return;
         }
 
-        long maxWait = properties.getRateLimit().getMaxWaitMillis();
+        long maxWait = properties.getBatch().getRateLimit().getMaxWaitMillis();
         try {
             // maxWait < 0 视为无限等待，但设置上限为 30 秒防止永久阻塞
             if (maxWait < 0) {
@@ -483,7 +484,7 @@ public class BatchOperationTemplate {
             return false;
         }
 
-        double tolerance = properties.getErrorTolerance();
+        double tolerance = properties.getBatch().getErrorTolerance();
         if (tolerance >= 1.0) {
             return false;
         }
@@ -501,14 +502,14 @@ public class BatchOperationTemplate {
      * 根据配置决定是否重试
      */
     private <T, R> R executeWithRetryIfNeeded(BatchOperation<T, R> operation, T item, int index) throws Exception {
-        if (!properties.getRetry().isEnabled()) {
+        if (!properties.getBatch().getRetry().isEnabled()) {
             return operation.execute(item, index);
         }
 
-        int maxAttempts = properties.getRetry().getMaxAttempts();
-        long initialInterval = properties.getRetry().getInitialInterval();
-        double multiplier = properties.getRetry().getMultiplier();
-        long maxInterval = properties.getRetry().getMaxInterval();
+        int maxAttempts = properties.getBatch().getRetry().getMaxAttempts();
+        long initialInterval = properties.getBatch().getRetry().getInitialInterval();
+        double multiplier = properties.getBatch().getRetry().getMultiplier();
+        long maxInterval = properties.getBatch().getRetry().getMaxInterval();
 
         Exception lastException = null;
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {

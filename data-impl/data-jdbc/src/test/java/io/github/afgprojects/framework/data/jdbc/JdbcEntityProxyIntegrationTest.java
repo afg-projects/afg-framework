@@ -17,7 +17,7 @@ import io.github.afgprojects.framework.data.core.scope.DataScope;
 import io.github.afgprojects.framework.data.core.scope.DataScopeType;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheManager;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheProperties;
-import io.github.afgprojects.framework.core.cache.CacheProperties;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.cache.DefaultCacheManager;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -1628,7 +1628,7 @@ class JdbcEntityProxyIntegrationTest {
             cacheDataSource = createCacheDataSource();
 
             // 创建带缓存的 DataManager
-            CacheProperties cacheProperties = new CacheProperties();
+            AfgCoreProperties cacheProperties = new AfgCoreProperties()();
             cacheProperties.setEnabled(true);
             cacheProperties.setCacheNull(true);
             DefaultCacheManager defaultCacheManager = new DefaultCacheManager(cacheProperties);

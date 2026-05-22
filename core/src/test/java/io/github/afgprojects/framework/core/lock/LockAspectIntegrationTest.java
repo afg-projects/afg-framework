@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.support.TestApplication;
 
 /**
@@ -19,18 +20,18 @@ import io.github.afgprojects.framework.core.support.TestApplication;
 @SpringBootTest(
         classes = TestApplication.class,
         properties = {
-                "afg.lock.enabled=true",
-                "afg.lock.key-prefix=afg:lock:",
-                "afg.lock.default-wait-time=5000",
-                "afg.lock.default-lease-time=30000",
-                "afg.lock.annotations.enabled=true"
+                "afg.core.lock.enabled=true",
+                "afg.core.lock.key-prefix=afg:lock:",
+                "afg.core.lock.default-wait-time=5000",
+                "afg.core.lock.default-lease-time=30000",
+                "afg.core.lock.annotations.enabled=true"
         }
 )
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class LockAspectIntegrationTest {
 
     @Autowired(required = false)
-    private LockProperties lockProperties;
+    private AfgCoreProperties afgCoreProperties;
 
     @Nested
     @DisplayName("锁配置测试")
@@ -39,32 +40,32 @@ class LockAspectIntegrationTest {
         @Test
         @DisplayName("应该自动配置锁属性")
         void shouldAutoConfigureLockProperties() {
-            assertThat(lockProperties).isNotNull();
-            assertThat(lockProperties.isEnabled()).isTrue();
+            assertThat(afgCoreProperties).isNotNull();
+            assertThat(afgCoreProperties.getLock().isEnabled()).isTrue();
         }
 
         @Test
         @DisplayName("应该正确配置键前缀")
         void shouldConfigureKeyPrefix() {
-            assertThat(lockProperties.getKeyPrefix()).isEqualTo("afg:lock:");
+            assertThat(afgCoreProperties.getLock().getKeyPrefix()).isEqualTo("afg:lock:");
         }
 
         @Test
         @DisplayName("应该正确配置默认等待时间")
         void shouldConfigureDefaultWaitTime() {
-            assertThat(lockProperties.getDefaultWaitTime()).isEqualTo(5000);
+            assertThat(afgCoreProperties.getLock().getDefaultWaitTime()).isEqualTo(5000);
         }
 
         @Test
         @DisplayName("应该正确配置默认租约时间")
         void shouldConfigureDefaultLeaseTime() {
-            assertThat(lockProperties.getDefaultLeaseTime()).isEqualTo(30000);
+            assertThat(afgCoreProperties.getLock().getDefaultLeaseTime()).isEqualTo(30000);
         }
 
         @Test
         @DisplayName("应该正确配置注解启用状态")
         void shouldConfigureAnnotationsEnabled() {
-            assertThat(lockProperties.getAnnotations().isEnabled()).isTrue();
+            assertThat(afgCoreProperties.getLock().getAnnotations().isEnabled()).isTrue();
         }
     }
 

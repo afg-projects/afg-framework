@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.26.xsd">
+
+    <changeSet id="v1.0.0-002-ai-vector-index" author="afg">
+        <sql dbms="postgresql">
+            <!-- 创建 HNSW 向量索引 -->
+            CREATE INDEX IF NOT EXISTS idx_ai_vector_embedding ON ai_vector
+            USING hnsw (embedding vector_cosine_ops)
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

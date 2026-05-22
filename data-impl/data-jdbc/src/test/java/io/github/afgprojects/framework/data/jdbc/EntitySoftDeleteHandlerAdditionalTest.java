@@ -10,7 +10,7 @@ import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheManager;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheProperties;
 import io.github.afgprojects.framework.data.jdbc.metadata.ReflectiveEntityMetadata;
 import io.github.afgprojects.framework.core.cache.DefaultCacheManager;
-import io.github.afgprojects.framework.core.cache.CacheProperties;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -588,7 +588,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
     }
 
     private EntityCacheManager createEntityCacheManager() {
-        CacheProperties cacheProperties = new CacheProperties();
+        AfgCoreProperties cacheProperties = new AfgCoreProperties()();
         DefaultCacheManager defaultCacheManager = new DefaultCacheManager(cacheProperties);
         EntityCacheProperties properties = new EntityCacheProperties();
         properties.setEnabled(true);

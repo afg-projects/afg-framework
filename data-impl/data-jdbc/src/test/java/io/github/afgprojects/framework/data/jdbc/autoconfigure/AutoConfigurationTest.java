@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.data.jdbc.autoconfigure;
 
-import io.github.afgprojects.framework.core.cache.CacheProperties;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.cache.DefaultCacheManager;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheManager;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheProperties;
@@ -24,8 +24,8 @@ class AutoConfigurationTest {
         .withConfiguration(AutoConfigurations.of(EntityCacheAutoConfiguration.class));
 
     private static DefaultCacheManager createDefaultCacheManager() {
-        CacheProperties props = new CacheProperties();
-        props.setEnabled(true);
+        AfgCoreProperties props = new AfgCoreProperties();
+        props.getCache().setEnabled(true);
         return new DefaultCacheManager(props);
     }
 

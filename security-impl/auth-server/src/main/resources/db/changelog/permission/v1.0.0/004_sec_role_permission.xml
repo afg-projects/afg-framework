@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.26.xsd">
+
+    <changeSet id="v1.0.0-004-sec-role-permission" author="afg">
+        <createTable tableName="sec_role_permission" remarks="角色权限关联表">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_sec_role_permission"/>
+            </column>
+            <column name="role_id" type="BIGINT" remarks="角色ID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="permission_id" type="BIGINT" remarks="权限ID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tenant_id" type="VARCHAR(50)" remarks="租户ID"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueDate="CURRENT_TIMESTAMP" remarks="创建时间"/>
+        </createTable>
+
+        <addUniqueConstraint tableName="sec_role_permission" columnNames="role_id,permission_id"
+                             constraintName="uk_sec_role_permission"/>
+        <createIndex tableName="sec_role_permission" indexName="idx_sec_role_permission_role">
+            <column name="role_id"/>
+        </createIndex>
+        <createIndex tableName="sec_role_permission" indexName="idx_sec_role_permission_permission">
+            <column name="permission_id"/>
+        </createIndex>
+        <createIndex tableName="sec_role_permission" indexName="idx_sec_role_permission_tenant">
+            <column name="tenant_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

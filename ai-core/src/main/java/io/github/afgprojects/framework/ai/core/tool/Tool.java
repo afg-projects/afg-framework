@@ -1,5 +1,8 @@
 package io.github.afgprojects.framework.ai.core.tool;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import org.jspecify.annotations.Nullable;
+
 /**
  * Tool interface for AI agent function calling.
  * <p>
@@ -48,6 +51,19 @@ public interface Tool<I, O> {
      */
     default String inputSchema() {
         return "{}";
+    }
+
+    /**
+     * Returns the TypeReference for the input type.
+     * <p>
+     * This is used for precise JSON deserialization of tool inputs.
+     * If not provided, the input will be deserialized as Map&lt;String, Object&gt;.
+     * </p>
+     *
+     * @return the TypeReference for the input type, or null to use default Map type
+     */
+    default @Nullable TypeReference<I> inputType() {
+        return null;
     }
 
     /**

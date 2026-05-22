@@ -23,6 +23,7 @@ import java.util.*;
  * <p>
  * 解析 Liquibase XML ChangeLog 提取 SchemaMetadata
  */
+@SuppressWarnings("PMD.PreserveStackTrace")
 public class ChangeLogSchemaReader {
 
     /**

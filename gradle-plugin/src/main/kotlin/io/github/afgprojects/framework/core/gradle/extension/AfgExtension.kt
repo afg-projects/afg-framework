@@ -17,6 +17,11 @@ import javax.inject.Inject
  *     useLombok.set(true)
  *     useValidation.set(true)
  *
+ *     // 安全模式配置
+ *     basePackage.set("com.example.myapp")
+ *     securityMode.set("MONOLITH")  // AUTH_SERVER, RESOURCE_SERVER, MONOLITH
+ *     databaseType.set("MYSQL")
+ *
  *     migration {
  *         entityPackages.set(listOf("com.example.entity"))
  *         changeLogFile.set("src/main/resources/db/changelog.xml")
@@ -38,16 +43,6 @@ abstract class AfgExtension @Inject constructor(
      * 默认: 4.0.5
      */
     abstract val springBootVersion: Property<String>
-
-    /**
-     * 模块类型：starter, data, integration
-     *
-     * 决定自动添加哪些框架依赖：
-     * - starter: 仅核心依赖
-     * - data: 核心 + data-jdbc + data-liquibase
-     * - integration: 核心 + spring-boot-starter
-     */
-    abstract val moduleType: Property<String>
 
     /**
      * 是否独立部署
@@ -80,18 +75,33 @@ abstract class AfgExtension @Inject constructor(
     abstract val useLombok: Property<Boolean>
 
     /**
-     * 是否使用 JSR-305 空安全注解
+     * 基础包名
      *
-     * 自动配置 findbugs-jsr305 依赖
+     * 用于 afgInit 任务生成代码。
+     * 默认使用项目 group。
      */
-    abstract val useJsr305: Property<Boolean>
+    abstract val basePackage: Property<String>
 
     /**
-     * 是否使用 Bean Validation
+     * 安全模式
      *
-     * 自动配置 jakarta.validation-api 依赖（版本由 Spring Boot BOM 管理）
+     * 用于 afgInit 任务生成安全相关代码。
+     * 可选值：
+     * - AUTH_SERVER: 认证服务器
+     * - RESOURCE_SERVER: 资源服务器
+     * - MONOLITH: 单体应用（认证+资源）
+     * - 空: 不生成安全相关代码
      */
-    abstract val useValidation: Property<Boolean>
+    abstract val securityMode: Property<String>
+
+    /**
+     * 数据库类型
+     *
+     * 用于 afgInit 任务生成数据库配置。
+     * 可选值：H2, MYSQL, POSTGRESQL, ORACLE
+     * 默认：H2
+     */
+    abstract val databaseType: Property<String>
 
     /**
      * 迁移配置

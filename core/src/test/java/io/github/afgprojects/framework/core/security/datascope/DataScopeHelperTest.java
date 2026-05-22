@@ -9,6 +9,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
+
 /**
  * DataScopeHelper 测试
  */
@@ -69,7 +71,7 @@ class DataScopeHelperTest {
     @DisplayName("SQL 条件生成测试")
     class ConditionBuildingTests {
 
-        private final DataScopeProperties properties = new DataScopeProperties();
+        private final AfgCoreProperties properties = new AfgCoreProperties();
 
         @Test
         @DisplayName("应该生成本部门条件")
@@ -204,8 +206,8 @@ class DataScopeHelperTest {
         @DisplayName("应该识别忽略的表")
         void shouldIdentifyIgnoredTable() {
             // given
-            DataScopeProperties properties = new DataScopeProperties();
-            properties.setIgnoreTables(new String[]{"sys_config", "sys_dict"});
+            AfgCoreProperties properties = new AfgCoreProperties();
+            properties.getDataScope().setIgnoreTables(new String[]{"sys_config", "sys_dict"});
 
             // then
             assertThat(DataScopeHelper.isIgnoredTable("sys_config", properties)).isTrue();
@@ -217,8 +219,8 @@ class DataScopeHelperTest {
         @DisplayName("应该识别忽略的方法")
         void shouldIdentifyIgnoredMethod() {
             // given
-            DataScopeProperties properties = new DataScopeProperties();
-            properties.setIgnoreMethods(new String[]{"select*", "get*"});
+            AfgCoreProperties properties = new AfgCoreProperties();
+            properties.getDataScope().setIgnoreMethods(new String[]{"select*", "get*"});
 
             // then
             assertThat(DataScopeHelper.isIgnoredMethod("selectList", properties)).isTrue();

@@ -9,6 +9,9 @@ dependencies {
     // Spring AI OpenAI
     api(libs.spring.ai.openai)
 
+    // Spring AI Chat (可选)
+    compileOnly(libs.spring.ai.client.chat)
+
     // Spring AI Anthropic (可选)
     compileOnly(libs.spring.ai.anthropic)
 
@@ -35,4 +38,5 @@ dependencies {
     testImplementation(libs.spring.boot.starter.test)
     testImplementation(libs.spring.ai.anthropic)
     testImplementation(libs.spring.ai.ollama)
+    testImplementation(project(":ai-impl:ai-agent"))
 }

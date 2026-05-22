@@ -2,7 +2,6 @@ package io.github.afgprojects.framework.security.auth.api;
 
 import io.github.afgprojects.framework.core.web.security.signature.SignatureRequired;
 import io.github.afgprojects.framework.security.core.permission.RbacService;
-import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,12 +19,15 @@ import java.util.Set;
  *   <li>X-Key-Id - 密钥标识（可选，使用默认密钥时可不传）</li>
  * </ul>
  */
-@RestController
+@ResponseBody
 @RequestMapping("/internal/permissions")
-@RequiredArgsConstructor
 public class PermissionQueryController {
 
     private final RbacService rbacService;
+
+    public PermissionQueryController(RbacService rbacService) {
+        this.rbacService = rbacService;
+    }
 
     /**
      * 检查用户是否具有指定权限。

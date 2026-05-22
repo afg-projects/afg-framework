@@ -4,6 +4,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.web.context.RequestContext;
 import org.jspecify.annotations.NonNull;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -62,11 +63,11 @@ import org.springframework.core.task.support.TaskExecutorAdapter;
  *   <li>建议 {@code afg.virtual-thread.enabled} 与 {@code spring.threads.virtual.enabled} 保持一致</li>
  * </ul>
  *
- * @see VirtualThreadProperties
+ * @see AfgCoreProperties.VirtualThreadConfig
  */
 @AutoConfiguration
 @ConditionalOnClass(name = "java.lang.VirtualThread")
-@EnableConfigurationProperties(VirtualThreadProperties.class)
+@EnableConfigurationProperties(AfgCoreProperties.class)
 public class VirtualThreadAutoConfiguration {
 
     /**
@@ -81,10 +82,10 @@ public class VirtualThreadAutoConfiguration {
      */
     @Bean
     @ConditionalOnProperty(prefix = "spring.threads.virtual", name = "enabled", havingValue = "true")
-    @ConditionalOnProperty(prefix = "afg.virtual-thread", name = "enabled", havingValue = "true", matchIfMissing = true)
+    @ConditionalOnProperty(prefix = "afg.core.virtual-thread", name = "enabled", havingValue = "true", matchIfMissing = true)
     @ConditionalOnMissingBean
-    public ThreadFactory virtualThreadFactory(VirtualThreadProperties properties) {
-        final String prefix = properties.getNamePrefix();
+    public ThreadFactory virtualThreadFactory(AfgCoreProperties properties) {
+        final String prefix = properties.getVirtualThread().getNamePrefix();
         return Thread.ofVirtual().name(prefix, 0).factory();
     }
 
@@ -101,7 +102,7 @@ public class VirtualThreadAutoConfiguration {
      */
     @Bean("afgVirtualThreadExecutor")
     @ConditionalOnProperty(prefix = "spring.threads.virtual", name = "enabled", havingValue = "true")
-    @ConditionalOnProperty(prefix = "afg.virtual-thread", name = "enabled", havingValue = "true", matchIfMissing = true)
+    @ConditionalOnProperty(prefix = "afg.core.virtual-thread", name = "enabled", havingValue = "true", matchIfMissing = true)
     @ConditionalOnMissingBean(name = "afgVirtualThreadExecutor")
     public Executor afgVirtualThreadExecutor() {
         return Executors.newVirtualThreadPerTaskExecutor();

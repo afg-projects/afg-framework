@@ -184,7 +184,7 @@ public class AnthropicLlmClient implements LlmClient {
             finishReason = convertFinishReason(result.getMetadata().getFinishReason());
         }
 
-        return new LlmResponse(content, toolCalls, tokenUsage, finishReason);
+        return new LlmResponse(content, toolCalls, List.of(), tokenUsage, finishReason);
     }
 
     /**

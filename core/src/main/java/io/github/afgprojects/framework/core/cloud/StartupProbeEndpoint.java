@@ -4,6 +4,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.jspecify.annotations.NonNull;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
+
 /**
  * 启动探针端点
  *
@@ -13,10 +15,10 @@ import org.jspecify.annotations.NonNull;
  */
 public class StartupProbeEndpoint {
 
-    private final KubernetesProbeProperties.ProbeConfig config;
+    private final AfgCoreProperties.CloudNativeConfig.ProbeDetailConfig config;
     private final AtomicBoolean started = new AtomicBoolean(false);
 
-    public StartupProbeEndpoint(KubernetesProbeProperties.ProbeConfig config) {
+    public StartupProbeEndpoint(AfgCoreProperties.CloudNativeConfig.ProbeDetailConfig config) {
         this.config = config;
     }
 
@@ -60,7 +62,7 @@ public class StartupProbeEndpoint {
      *
      * @return 探针配置
      */
-    public KubernetesProbeProperties.@NonNull ProbeConfig getConfig() {
+    public AfgCoreProperties.CloudNativeConfig.@NonNull ProbeDetailConfig getConfig() {
         return config;
     }
 }

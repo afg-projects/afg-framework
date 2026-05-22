@@ -1,5 +1,9 @@
-io.github.afgprojects.framework.security.auth.config.LoginAutoConfiguration
-io.github.afgprojects.framework.security.auth.config.AfgAuthorizationServerConfig
-io.github.afgprojects.framework.security.auth.oauth2.config.OAuth2AutoConfiguration
-io.github.afgprojects.framework.security.auth.permission.config.PermissionAutoConfiguration
-io.github.afgprojects.framework.security.auth.audit.config.AuditAutoConfiguration
+io.github.afgprojects.framework.security.auth.autoconfigure.AuthorizationServerAutoConfiguration
+io.github.afgprojects.framework.security.auth.autoconfigure.LoginAutoConfiguration
+io.github.afgprojects.framework.security.auth.autoconfigure.OAuth2AutoConfiguration
+io.github.afgprojects.framework.security.auth.autoconfigure.CasbinAutoConfiguration
+io.github.afgprojects.framework.security.auth.autoconfigure.PermissionAutoConfiguration
+io.github.afgprojects.framework.security.auth.autoconfigure.DataScopeAutoConfiguration
+io.github.afgprojects.framework.security.auth.autoconfigure.TenantAutoConfiguration
+io.github.afgprojects.framework.security.auth.autoconfigure.SecurityStrategyAutoConfiguration
+io.github.afgprojects.framework.security.auth.autoconfigure.AuditAutoConfiguration

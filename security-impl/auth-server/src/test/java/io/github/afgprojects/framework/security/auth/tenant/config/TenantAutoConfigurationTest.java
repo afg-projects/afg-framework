@@ -1,5 +1,8 @@
 package io.github.afgprojects.framework.security.auth.tenant.config;
 
+import io.github.afgprojects.framework.security.auth.autoconfigure.AuthSecurityProperties;
+import io.github.afgprojects.framework.security.auth.autoconfigure.TenantAutoConfiguration;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.DisplayName;
@@ -35,24 +38,24 @@ class TenantAutoConfigurationTest {
     class ConditionalTests {
 
         @Test
-        @DisplayName("当 afg.auth.tenant.enabled=true 时应该创建所有 Bean")
+        @DisplayName("当 afg.security.auth-server.tenant.enabled=true 时应该创建所有 Bean")
         void shouldCreateBeansWhenEnabled() {
             contextRunner
-                    .withPropertyValues("afg.auth.tenant.enabled=true")
+                    .withPropertyValues("afg.security.auth-server.tenant.enabled=true")
                     .run(context -> {
                         assertThat(context).hasSingleBean(TenantContextHolder.class);
                         assertThat(context).hasSingleBean(TenantResolverChain.class);
                         assertThat(context).hasSingleBean(TenantFilter.class);
                         assertThat(context).hasSingleBean(TenantValidator.class);
-                        assertThat(context).hasSingleBean(TenantProperties.class);
+                        assertThat(context).hasSingleBean(AuthSecurityProperties.class);
                     });
         }
 
         @Test
-        @DisplayName("当 afg.auth.tenant.enabled=false 时不应该创建 Bean")
+        @DisplayName("当 afg.security.auth-server.tenant.enabled=false 时不应该创建 Bean")
         void shouldNotCreateBeansWhenDisabled() {
             contextRunner
-                    .withPropertyValues("afg.auth.tenant.enabled=false")
+                    .withPropertyValues("afg.security.auth-server.tenant.enabled=false")
                     .run(context -> {
                         assertThat(context).doesNotHaveBean(TenantContextHolder.class);
                         assertThat(context).doesNotHaveBean(TenantResolverChain.class);
@@ -80,7 +83,7 @@ class TenantAutoConfigurationTest {
         @DisplayName("当 AfgTenantService 存在时应该创建 DefaultTenantValidator")
         void shouldCreateDefaultValidatorWhenTenantServiceExists() {
             contextRunner
-                    .withPropertyValues("afg.auth.tenant.enabled=true")
+                    .withPropertyValues("afg.security.auth-server.tenant.enabled=true")
                     .withUserConfiguration(TestTenantServiceConfig.class)
                     .run(context -> {
                         assertThat(context).hasSingleBean(TenantValidator.class);
@@ -94,7 +97,7 @@ class TenantAutoConfigurationTest {
         @DisplayName("当 AfgTenantService 不存在时应该创建 NoOpTenantValidator")
         void shouldCreateNoOpValidatorWhenTenantServiceNotExists() {
             contextRunner
-                    .withPropertyValues("afg.auth.tenant.enabled=true")
+                    .withPropertyValues("afg.security.auth-server.tenant.enabled=true")
                     .run(context -> {
                         assertThat(context).hasSingleBean(TenantValidator.class);
                         assertThat(context).hasSingleBean(NoOpTenantValidator.class);
@@ -113,8 +116,8 @@ class TenantAutoConfigurationTest {
         void shouldCreateResolverChainFromConfig() {
             contextRunner
                     .withPropertyValues(
-                            "afg.auth.tenant.enabled=true",
-                            "afg.auth.tenant.fail-if-unresolved=false")
+                            "afg.security.auth-server.tenant.enabled=true",
+                            "afg.security.auth-server.tenant.fail-if-unresolved=false")
                     .run(context -> {
                         assertThat(context).hasSingleBean(TenantResolverChain.class);
 
@@ -128,11 +131,11 @@ class TenantAutoConfigurationTest {
         void shouldConfigureFailIfUnresolved() {
             contextRunner
                     .withPropertyValues(
-                            "afg.auth.tenant.enabled=true",
-                            "afg.auth.tenant.fail-if-unresolved=true")
+                            "afg.security.auth-server.tenant.enabled=true",
+                            "afg.security.auth-server.tenant.fail-if-unresolved=true")
                     .run(context -> {
-                        TenantProperties properties = context.getBean(TenantProperties.class);
-                        assertThat(properties.isFailIfUnresolved()).isTrue();
+                        AuthSecurityProperties properties = context.getBean(AuthSecurityProperties.class);
+                        assertThat(properties.getTenant().isFailIfUnresolved()).isTrue();
                     });
         }
     }
@@ -145,7 +148,7 @@ class TenantAutoConfigurationTest {
         @DisplayName("应该创建 TenantFilter 并注入依赖")
         void shouldCreateTenantFilterWithDependencies() {
             contextRunner
-                    .withPropertyValues("afg.auth.tenant.enabled=true")
+                    .withPropertyValues("afg.security.auth-server.tenant.enabled=true")
                     .run(context -> {
                         assertThat(context).hasSingleBean(TenantFilter.class);
 
@@ -163,7 +166,7 @@ class TenantAutoConfigurationTest {
         @DisplayName("应该创建验证缓存")
         void shouldCreateValidationCache() {
             contextRunner
-                    .withPropertyValues("afg.auth.tenant.enabled=true")
+                    .withPropertyValues("afg.security.auth-server.tenant.enabled=true")
                     .withUserConfiguration(TestTenantServiceConfig.class)
                     .run(context -> {
                         assertThat(context).hasSingleBean(Cache.class);

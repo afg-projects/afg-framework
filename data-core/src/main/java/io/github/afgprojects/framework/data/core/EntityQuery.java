@@ -69,6 +69,32 @@ public interface EntityQuery<T> {
     @NonNull EntityQuery<T> orderBy(@NonNull Sort sort);
 
     /**
+     * 添加升序排序（Lambda 方式）
+     * <p>
+     * 类型安全的排序方式，避免字段名拼写错误。
+     *
+     * @param getter 字段 getter 方法引用
+     * @param <R>    字段类型
+     * @return 查询构建器（支持链式调用）
+     */
+    default <R> @NonNull EntityQuery<T> orderByAsc(@NonNull SFunction<T, R> getter) {
+        return orderBy(Sort.asc(getter));
+    }
+
+    /**
+     * 添加降序排序（Lambda 方式）
+     * <p>
+     * 类型安全的排序方式，避免字段名拼写错误。
+     *
+     * @param getter 字段 getter 方法引用
+     * @param <R>    字段类型
+     * @return 查询构建器（支持链式调用）
+     */
+    default <R> @NonNull EntityQuery<T> orderByDesc(@NonNull SFunction<T, R> getter) {
+        return orderBy(Sort.desc(getter));
+    }
+
+    /**
      * 选择部分字段查询（字符串字段名）
      * <p>
      * 默认查询所有字段（SELECT *），使用此方法可以指定只查询部分字段。

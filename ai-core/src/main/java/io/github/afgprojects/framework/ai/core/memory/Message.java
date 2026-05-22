@@ -1,5 +1,8 @@
 package io.github.afgprojects.framework.ai.core.memory;
 
+import io.github.afgprojects.framework.ai.core.media.MediaContent;
+import io.github.afgprojects.framework.ai.core.tool.ToolCall;
+import io.github.afgprojects.framework.ai.core.tool.ToolResult;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -16,18 +19,20 @@ import java.util.List;
  *   <li>content - the message text content</li>
  *   <li>toolCalls - tool calls made by the assistant (if any)</li>
  *   <li>toolResults - results from tool executions (if any)</li>
+ *   <li>media - media content (images, audio) for USER messages</li>
  * </ul>
  *
  * <p>Example usage:
  * <pre>{@code
  * // User message
- * Message userMessage = new Message(Message.Role.USER, "Hello!", List.of(), List.of());
+ * Message userMessage = new Message(Message.Role.USER, "Hello!", List.of(), List.of(), List.of());
  *
  * // Assistant message with tool call
  * Message assistantMessage = new Message(
  *     Message.Role.ASSISTANT,
  *     "Let me check that for you.",
  *     List.of(toolCall),
+ *     List.of(),
  *     List.of()
  * );
  *
@@ -36,7 +41,8 @@ import java.util.List;
  *     Message.Role.TOOL,
  *     "Result: 42",
  *     List.of(),
- *     List.of(toolResult)
+ *     List.of(toolResult),
+ *     List.of()
  * );
  * }</pre>
  *
@@ -44,14 +50,16 @@ import java.util.List;
  * @param content     the text content of the message
  * @param toolCalls   the list of tool calls (for ASSISTANT messages)
  * @param toolResults the list of tool results (for TOOL messages)
+ * @param media       the list of media content (for USER messages)
  * @author AFG Projects
  * @since 1.0.0
  */
 public record Message(
     @NonNull Role role,
     @Nullable String content,
-    @NonNull List<Object> toolCalls,
-    @NonNull List<Object> toolResults
+    @NonNull List<ToolCall> toolCalls,
+    @NonNull List<ToolResult> toolResults,
+    @NonNull List<MediaContent> media
 ) {
 
     /**
@@ -61,13 +69,14 @@ public record Message(
      * <ul>
      *   <li>role cannot be null</li>
      *   <li>content can be null (for tool calls without text)</li>
-     *   <li>toolCalls and toolResults default to empty lists if null</li>
+     *   <li>toolCalls, toolResults, and media default to empty lists if null</li>
      * </ul>
      *
      * @param role        the role of the message sender
      * @param content     the text content of the message
      * @param toolCalls   the list of tool calls
      * @param toolResults the list of tool results
+     * @param media       the list of media content
      * @throws IllegalArgumentException if role is null
      */
     public Message {
@@ -84,6 +93,11 @@ public record Message(
         } else {
             toolResults = Collections.unmodifiableList(new ArrayList<>(toolResults));
         }
+        if (media == null) {
+            media = List.of();
+        } else {
+            media = Collections.unmodifiableList(new ArrayList<>(media));
+        }
     }
 
     /**
@@ -94,7 +108,19 @@ public record Message(
      */
     @NonNull
     public static Message user(@Nullable String content) {
-        return new Message(Role.USER, content, List.of(), List.of());
+        return new Message(Role.USER, content, List.of(), List.of(), List.of());
+    }
+
+    /**
+     * Creates a user message with media content.
+     *
+     * @param content the message content
+     * @param media   the media content list
+     * @return a new Message with USER role and media
+     */
+    @NonNull
+    public static Message userWithMedia(@Nullable String content, @NonNull List<MediaContent> media) {
+        return new Message(Role.USER, content, List.of(), List.of(), media);
     }
 
     /**
@@ -105,7 +131,7 @@ public record Message(
      */
     @NonNull
     public static Message system(@Nullable String content) {
-        return new Message(Role.SYSTEM, content, List.of(), List.of());
+        return new Message(Role.SYSTEM, content, List.of(), List.of(), List.of());
     }
 
     /**
@@ -116,7 +142,7 @@ public record Message(
      */
     @NonNull
     public static Message assistant(@Nullable String content) {
-        return new Message(Role.ASSISTANT, content, List.of(), List.of());
+        return new Message(Role.ASSISTANT, content, List.of(), List.of(), List.of());
     }
 
     /**
@@ -127,8 +153,8 @@ public record Message(
      * @return a new Message with ASSISTANT role and tool calls
      */
     @NonNull
-    public static Message assistantWithTools(@Nullable String content, @NonNull List<Object> toolCalls) {
-        return new Message(Role.ASSISTANT, content, toolCalls, List.of());
+    public static Message assistantWithTools(@Nullable String content, @NonNull List<ToolCall> toolCalls) {
+        return new Message(Role.ASSISTANT, content, toolCalls, List.of(), List.of());
     }
 
     /**
@@ -139,8 +165,8 @@ public record Message(
      * @return a new Message with TOOL role
      */
     @NonNull
-    public static Message tool(@Nullable String content, @NonNull List<Object> toolResults) {
-        return new Message(Role.TOOL, content, List.of(), toolResults);
+    public static Message tool(@Nullable String content, @NonNull List<ToolResult> toolResults) {
+        return new Message(Role.TOOL, content, List.of(), toolResults, List.of());
     }
 
     /**

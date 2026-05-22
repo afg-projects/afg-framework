@@ -153,21 +153,22 @@ public class GovernanceRegistryClient {
      */
     public boolean register(String host, int port) {
         // 如果 host 为空，自动获取本机 IP
+        String resolvedHost = host;
         if (host == null || host.isBlank()) {
             try {
-                host = java.net.InetAddress.getLocalHost().getHostAddress();
+                resolvedHost = java.net.InetAddress.getLocalHost().getHostAddress();
             } catch (Exception e) {
-                host = "127.0.0.1";
+                resolvedHost = "localhost";
             }
         }
-        this.host = host;
+        this.host = resolvedHost;
         this.port = port;
 
         int maxRetries = properties.getRetryCount();
         for (int i = 0; i <= maxRetries; i++) {
             RegisterServiceRequest request = RegisterServiceRequest.newBuilder()
                     .setServiceName(serviceName)
-                    .setHost(host)
+                    .setHost(resolvedHost)
                     .setPort(port)
                     .build();
 
@@ -178,7 +179,7 @@ public class GovernanceRegistryClient {
                 connected.set(true);
                 reconnectAttempts.set(0);
                 log.info("Service registered: serviceName={}, instanceId={}, host={}, port={}",
-                        serviceName, instanceId, host, port);
+                        serviceName, instanceId, resolvedHost, port);
 
                 // 启动心跳
                 startHeartbeat();

@@ -7,23 +7,24 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 
 import io.github.afgprojects.framework.core.config.AesConfigEncryptor;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.config.ConfigEncryptor;
 
 /**
  * 配置加密自动配置类
  */
 @AutoConfiguration
-@EnableConfigurationProperties(EncryptionProperties.class)
-@ConditionalOnProperty(prefix = "afg.encryption", name = "enabled", havingValue = "true", matchIfMissing = false)
+@EnableConfigurationProperties(AfgCoreProperties.class)
+@ConditionalOnProperty(prefix = "afg.core.encryption", name = "enabled", havingValue = "true", matchIfMissing = false)
 public class EncryptionAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public ConfigEncryptor configEncryptor(EncryptionProperties properties) {
-        String secretKey = properties.getSecretKey();
+    public ConfigEncryptor configEncryptor(AfgCoreProperties properties) {
+        String secretKey = properties.getEncryption().getSecretKey();
         if (secretKey == null || secretKey.isBlank()) {
             throw new IllegalStateException("Encryption is enabled but no secret key is configured. "
-                    + "Please set afg.encryption.secret-key or ENCRYPTION_KEY environment variable.");
+                    + "Please set afg.core.encryption.secret-key or ENCRYPTION_KEY environment variable.");
         }
         return new AesConfigEncryptor(secretKey);
     }

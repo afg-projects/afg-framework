@@ -11,6 +11,8 @@ import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.HealthIndicator;
 import org.springframework.boot.health.contributor.Status;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
+
 /**
  * 存活探针健康指示器
  * 用于 Kubernetes Liveness Probe，检查应用是否存活
@@ -26,14 +28,14 @@ import org.springframework.boot.health.contributor.Status;
 @Slf4j
 public class LivenessHealthIndicator implements HealthIndicator {
 
-    private final HealthCheckProperties properties;
+    private final AfgCoreProperties properties;
 
     /**
      * 构造函数
      *
-     * @param properties 健康检查配置
+     * @param properties 核心配置
      */
-    public LivenessHealthIndicator(@NonNull HealthCheckProperties properties) {
+    public LivenessHealthIndicator(@NonNull AfgCoreProperties properties) {
         this.properties = properties;
     }
 
@@ -42,12 +44,12 @@ public class LivenessHealthIndicator implements HealthIndicator {
         Health.Builder builder = Health.up();
 
         // JVM 内存检查
-        if (properties.getLiveness().isMemoryCheckEnabled()) {
+        if (properties.getHealth().getLiveness().isMemoryCheckEnabled()) {
             checkMemory(builder);
         }
 
         // 线程死锁检查
-        if (properties.getLiveness().isDeadlockDetectionEnabled()) {
+        if (properties.getHealth().getLiveness().isDeadlockDetectionEnabled()) {
             checkDeadlock(builder);
         }
 
@@ -72,13 +74,13 @@ public class LivenessHealthIndicator implements HealthIndicator {
                 .withDetail("nonHeapUsed", formatBytes(nonHeapUsed));
 
         // 检查内存阈值
-        int criticalThreshold = properties.getLiveness().getMemoryCriticalThreshold();
+        int criticalThreshold = properties.getHealth().getLiveness().getMemoryCriticalThreshold();
         if (heapUsagePercent >= criticalThreshold) {
             log.warn("内存使用率过高: {}%, 已达到严重阈值: {}%", heapUsagePercent, criticalThreshold);
             builder.status(Status.DOWN);
             builder.withDetail("memoryStatus", "CRITICAL");
         } else {
-            int warningThreshold = properties.getLiveness().getMemoryWarningThreshold();
+            int warningThreshold = properties.getHealth().getLiveness().getMemoryWarningThreshold();
             if (heapUsagePercent >= warningThreshold) {
                 log.warn("内存使用率较高: {}%, 已达到告警阈值: {}%", heapUsagePercent, warningThreshold);
                 builder.withDetail("memoryStatus", "WARNING");

@@ -14,6 +14,7 @@ class ConversationMemoryTest {
             Message.Role.USER,
             "Hello!",
             List.of(),
+            List.of(),
             List.of()
         );
 
@@ -21,6 +22,7 @@ class ConversationMemoryTest {
         assertEquals("Hello!", message.content());
         assertTrue(message.toolCalls().isEmpty());
         assertTrue(message.toolResults().isEmpty());
+        assertTrue(message.media().isEmpty());
     }
 
     @Test

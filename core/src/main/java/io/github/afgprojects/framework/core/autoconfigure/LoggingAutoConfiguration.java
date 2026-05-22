@@ -10,7 +10,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplicat
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
-import io.github.afgprojects.framework.core.web.logging.LoggingProperties;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.web.logging.MdcFilter;
 
 /**
@@ -19,13 +19,13 @@ import io.github.afgprojects.framework.core.web.logging.MdcFilter;
 @AutoConfiguration
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @ConditionalOnClass(Servlet.class)
-@EnableConfigurationProperties(LoggingProperties.class)
+@EnableConfigurationProperties(AfgCoreProperties.class)
 public class LoggingAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnProperty(prefix = "afg.logging.mdc", name = "enabled", havingValue = "true", matchIfMissing = true)
-    public MdcFilter mdcFilter(LoggingProperties properties) {
+    @ConditionalOnProperty(prefix = "afg.core.logging.mdc", name = "enabled", havingValue = "true", matchIfMissing = true)
+    public MdcFilter mdcFilter(AfgCoreProperties properties) {
         return new MdcFilter(properties);
     }
 }

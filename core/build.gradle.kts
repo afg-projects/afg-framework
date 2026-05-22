@@ -58,8 +58,7 @@ dependencies {
     compileOnly(libs.spring.boot.starter.data.jdbc)
 
     // AOP (指标注解切面)
-    compileOnly(libs.spring.aop)
-    compileOnly(libs.aspectj.weaver)
+    api(libs.spring.boot.starter.aspectj)
 
     // Logback (结构化日志)
     api(libs.logback.classic)

@@ -1,6 +1,13 @@
 package io.github.afgprojects.framework.security.auth.audit;
 
-import io.github.afgprojects.framework.data.jdbc.JdbcDataManager;
+import io.github.afgprojects.framework.core.model.result.PageData;
+import io.github.afgprojects.framework.data.core.DataManager;
+import io.github.afgprojects.framework.data.core.condition.Conditions;
+import io.github.afgprojects.framework.data.core.condition.TypedConditionBuilder;
+import io.github.afgprojects.framework.data.core.page.PageRequest;
+import io.github.afgprojects.framework.data.core.query.Condition;
+import io.github.afgprojects.framework.data.core.query.Page;
+import io.github.afgprojects.framework.data.core.query.Sort;
 import io.github.afgprojects.framework.security.auth.audit.model.LoginLog;
 import io.github.afgprojects.framework.security.auth.audit.model.LoginResult;
 import io.github.afgprojects.framework.security.core.audit.LoginLogService;
@@ -10,22 +17,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
+import java.util.Map;
+
+import static io.github.afgprojects.framework.data.core.condition.Conditions.builder;
 
 /**
- * 基于 JDBC 的登录日志服务实现。
+ * 基于 DataManager 的登录日志服务实现。
  *
- * <p>使用 {@link JdbcDataManager} 将登录日志持久化到数据库。
+ * <p>使用 {@link DataManager} 将登录日志持久化到数据库。
  *
  * @author afg-projects
  * @since 1.0.0
@@ -33,77 +35,68 @@ import java.util.UUID;
 @Slf4j
 public class JdbcLoginLogService implements LoginLogService {
 
-    private static final String TABLE_NAME = "auth_login_log";
-
-    private static final String INSERT_SQL = """
-            INSERT INTO %s
-            (id, user_id, username, tenant_id, ip, device_id, device_name, browser, os, location, result, fail_reason, login_time, logout_time)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """.formatted(TABLE_NAME);
-
-    // NOTE: ORDER BY ... LIMIT 1 is MySQL-specific syntax. For database portability,
-    // consider using a subquery or ROW_NUMBER() window function for PostgreSQL/Oracle.
-    private static final String UPDATE_LOGOUT_SQL = """
-            UPDATE %s
-            SET logout_time = ?
-            WHERE user_id = ?
-            AND (tenant_id = ? OR (? IS NULL AND tenant_id IS NULL))
-            AND logout_time IS NULL
-            ORDER BY login_time DESC
-            LIMIT 1
-            """.formatted(TABLE_NAME);
-
-    private static final String COUNT_SQL = "SELECT COUNT(*) FROM %s".formatted(TABLE_NAME);
-
-    private static final String SELECT_SQL = "SELECT id, user_id, username, tenant_id, ip, device_id, device_name, browser, os, location, result, fail_reason, login_time, logout_time FROM %s".formatted(TABLE_NAME);
-
-    private final JdbcDataManager dataManager;
+    private final DataManager dataManager;
 
     /**
      * 创建 JdbcLoginLogService 实例。
      *
-     * @param dataManager JDBC 数据管理器，永不为 null
+     * @param dataManager 数据管理器，永不为 null
      */
-    public JdbcLoginLogService(@NonNull JdbcDataManager dataManager) {
+    public JdbcLoginLogService(@NonNull DataManager dataManager) {
         this.dataManager = dataManager;
     }
 
     @Override
     public void recordLogin(@NonNull LoginLogInfo loginLog) {
-        String id = UUID.randomUUID().toString();
+        LoginLog entity = LoginLog.builder()
+                .userId(loginLog.getUserId())
+                .username(loginLog.getUsername())
+                .tenantId(loginLog.getTenantId())
+                .ip(loginLog.getIp())
+                .deviceId(loginLog.getDeviceId())
+                .deviceName(loginLog.getDeviceName())
+                .browser(loginLog.getBrowser())
+                .os(loginLog.getOs())
+                .location(loginLog.getLocation())
+                .result(loginLog.getResult() != null ? LoginResult.valueOf(loginLog.getResult()) : null)
+                .failReason(loginLog.getFailReason())
+                .loginTime(loginLog.getLoginTime() != null ? loginLog.getLoginTime() : Instant.now())
+                .logoutTime(loginLog.getLogoutTime())
+                .build();
 
-        List<Object> params = new ArrayList<>();
-        params.add(id);
-        params.add(loginLog.getUserId());
-        params.add(loginLog.getUsername());
-        params.add(loginLog.getTenantId());
-        params.add(loginLog.getIp());
-        params.add(loginLog.getDeviceId());
-        params.add(loginLog.getDeviceName());
-        params.add(loginLog.getBrowser());
-        params.add(loginLog.getOs());
-        params.add(loginLog.getLocation());
-        params.add(loginLog.getResult());
-        params.add(loginLog.getFailReason());
-        params.add(loginLog.getLoginTime() != null ? Timestamp.from(loginLog.getLoginTime()) : Timestamp.from(Instant.now()));
-        params.add(loginLog.getLogoutTime() != null ? Timestamp.from(loginLog.getLogoutTime()) : null);
-
-        dataManager.executeUpdate(INSERT_SQL, params);
+        dataManager.save(LoginLog.class, entity);
 
         log.debug("Recorded login log: username={}, result={}", loginLog.getUsername(), loginLog.getResult());
     }
 
     @Override
     public void recordLogout(@NonNull String userId, @Nullable String tenantId, @NonNull String ip) {
-        List<Object> params = new ArrayList<>();
-        params.add(Timestamp.from(Instant.now()));
-        params.add(userId);
-        params.add(tenantId);
-        params.add(tenantId);
+        // 构建查询条件：查找用户最近的未登出记录
+        TypedConditionBuilder<LoginLog> builder = builder(LoginLog.class)
+                .eq(LoginLog::getUserId, userId)
+                .isNull(LoginLog::getLogoutTime);
 
-        int updated = dataManager.executeUpdate(UPDATE_LOGOUT_SQL, params);
+        // 处理 tenantId 为 null 的情况
+        if (tenantId == null) {
+            builder.isNull(LoginLog::getTenantId);
+        } else {
+            builder.eq(LoginLog::getTenantId, tenantId);
+        }
 
-        if (updated > 0) {
+        Condition condition = builder.build();
+
+        // 查找最近一条登录记录
+        List<LoginLog> logs = dataManager.entity(LoginLog.class)
+                .query()
+                .where(condition)
+                .orderBy(Sort.desc(LoginLog::getLoginTime))
+                .limit(1)
+                .list();
+
+        if (!logs.isEmpty()) {
+            LoginLog loginLog = logs.getFirst();
+            loginLog.setLogoutTime(Instant.now());
+            dataManager.save(LoginLog.class, loginLog);
             log.debug("Recorded logout for user: userId={}, tenantId={}, ip={}", userId, tenantId, ip);
         } else {
             log.debug("No active login session found for user: userId={}, tenantId={}, ip={}", userId, tenantId, ip);
@@ -111,95 +104,56 @@ public class JdbcLoginLogService implements LoginLogService {
     }
 
     @Override
-    public Page<LoginLogInfo> queryLogs(@NonNull LoginLogQuery query, @NonNull Pageable pageable) {
-        StringBuilder whereClause = new StringBuilder(" WHERE 1=1");
-        List<Object> params = new ArrayList<>();
-
+    public PageData<LoginLogInfo> queryLogs(@NonNull LoginLogQuery query, @NonNull PageRequest pageRequest) {
         // 构建查询条件
+        TypedConditionBuilder<LoginLog> builder = builder(LoginLog.class);
+
         if (query.getUserId() != null) {
-            whereClause.append(" AND user_id = ?");
-            params.add(query.getUserId());
+            builder.eq(LoginLog::getUserId, query.getUserId());
         }
         if (query.getUsername() != null) {
-            whereClause.append(" AND username LIKE ?");
-            params.add("%" + query.getUsername() + "%");
+            builder.like(LoginLog::getUsername, query.getUsername());
         }
         if (query.getTenantId() != null) {
-            whereClause.append(" AND tenant_id = ?");
-            params.add(query.getTenantId());
+            builder.eq(LoginLog::getTenantId, query.getTenantId());
         }
         if (query.getIp() != null) {
-            whereClause.append(" AND ip = ?");
-            params.add(query.getIp());
+            builder.eq(LoginLog::getIp, query.getIp());
         }
         if (query.getResult() != null) {
-            whereClause.append(" AND result = ?");
-            params.add(query.getResult());
+            builder.eq(LoginLog::getResult, LoginResult.valueOf(query.getResult()));
         }
         if (query.getStartTime() != null) {
-            whereClause.append(" AND login_time >= ?");
-            params.add(Timestamp.from(query.getStartTime()));
+            builder.ge(LoginLog::getLoginTime, query.getStartTime());
         }
         if (query.getEndTime() != null) {
-            whereClause.append(" AND login_time <= ?");
-            params.add(Timestamp.from(query.getEndTime()));
+            builder.le(LoginLog::getLoginTime, query.getEndTime());
         }
 
-        // Count query
-        String countSql = COUNT_SQL + whereClause;
-        Long total = dataManager.getJdbcClient()
-                .sql(countSql)
-                .params(params)
-                .query(Long.class)
-                .single();
+        Condition condition = builder.build();
 
-        // Build ORDER BY clause
-        StringBuilder orderByClause = new StringBuilder(" ORDER BY ");
-        if (pageable.getSort().isSorted()) {
-            List<String> orderParts = new ArrayList<>();
-            for (org.springframework.data.domain.Sort.Order order : pageable.getSort()) {
-                orderParts.add(order.getProperty() + " " + order.getDirection().name());
-            }
-            orderByClause.append(String.join(", ", orderParts));
+        // 分页查询
+        Page<LoginLog> page;
+        if (pageRequest.hasSort()) {
+            page = dataManager.entity(LoginLog.class)
+                    .query()
+                    .where(condition)
+                    .orderBy(pageRequest.sort())
+                    .page(pageRequest);
         } else {
-            orderByClause.append("login_time DESC");
+            // 默认按登录时间降序
+            page = dataManager.entity(LoginLog.class)
+                    .query()
+                    .where(condition)
+                    .orderBy(Sort.desc(LoginLog::getLoginTime))
+                    .page(pageRequest);
         }
 
-        // Data query with pagination (H2/MySQL syntax)
-        String dataSql = SELECT_SQL + whereClause + orderByClause + " LIMIT ? OFFSET ?";
-        List<Object> dataParams = new ArrayList<>(params);
-        dataParams.add(pageable.getPageSize());
-        dataParams.add(pageable.getOffset());
+        // 转换结果
+        List<LoginLogInfo> logs = page.getContent().stream()
+                .map(log -> (LoginLogInfo) log)
+                .toList();
 
-        List<LoginLogInfo> logs = dataManager.queryForList(dataSql, dataParams, new LoginLogRowMapper());
-
-        return new PageImpl<>(logs, pageable, total != null ? total : 0);
-    }
-
-    /**
-     * 登录日志行映射器。
-     */
-    private static class LoginLogRowMapper implements org.springframework.jdbc.core.RowMapper<LoginLogInfo> {
-        @Override
-        public LoginLogInfo mapRow(ResultSet rs, int rowNum) throws SQLException {
-            return LoginLog.builder()
-                    .id(rs.getLong("id"))
-                    .userId(rs.getString("user_id"))
-                    .username(rs.getString("username"))
-                    .tenantId(rs.getString("tenant_id"))
-                    .ip(rs.getString("ip"))
-                    .deviceId(rs.getString("device_id"))
-                    .deviceName(rs.getString("device_name"))
-                    .browser(rs.getString("browser"))
-                    .os(rs.getString("os"))
-                    .location(rs.getString("location"))
-                    .result(rs.getString("result") != null ? LoginResult.valueOf(rs.getString("result")) : null)
-                    .failReason(rs.getString("fail_reason"))
-                    .loginTime(rs.getTimestamp("login_time") != null ?
-                            rs.getTimestamp("login_time").toInstant() : null)
-                    .logoutTime(rs.getTimestamp("logout_time") != null ?
-                            rs.getTimestamp("logout_time").toInstant() : null)
-                    .build();
-        }
+        return PageData.of(logs, page.getTotal(), page.getPage(), page.getSize());
     }
 }

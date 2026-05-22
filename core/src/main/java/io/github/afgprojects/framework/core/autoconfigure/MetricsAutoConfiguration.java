@@ -11,11 +11,11 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.metrics.CustomMetrics;
 import io.github.afgprojects.framework.core.metrics.DefaultMetricsTagProvider;
 import io.github.afgprojects.framework.core.metrics.MetricsTagProvider;
 import io.github.afgprojects.framework.core.web.metrics.MetricsAspect;
-import io.github.afgprojects.framework.core.web.metrics.MetricsProperties;
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -56,8 +56,8 @@ import io.micrometer.core.instrument.distribution.DistributionStatisticConfig;
  */
 @AutoConfiguration
 @ConditionalOnBean(MeterRegistry.class)
-@ConditionalOnProperty(prefix = "afg.metrics", name = "enabled", havingValue = "true", matchIfMissing = true)
-@EnableConfigurationProperties({MetricsProperties.class, io.github.afgprojects.framework.core.autoconfigure.MetricsProperties.class})
+@ConditionalOnProperty(prefix = "afg.core.metrics", name = "enabled", havingValue = "true", matchIfMissing = true)
+@EnableConfigurationProperties(AfgCoreProperties.class)
 public class MetricsAutoConfiguration {
 
     /**
@@ -70,11 +70,11 @@ public class MetricsAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(
-            prefix = "afg.metrics.annotations",
-            name = "enabled",
+            prefix = "afg.core.metrics",
+            name = "annotationsEnabled",
             havingValue = "true",
             matchIfMissing = true)
-    public MetricsAspect metricsAspect(MeterRegistry meterRegistry, MetricsProperties properties) {
+    public MetricsAspect metricsAspect(MeterRegistry meterRegistry, AfgCoreProperties properties) {
         return new MetricsAspect(meterRegistry, properties);
     }
 
@@ -84,13 +84,10 @@ public class MetricsAutoConfiguration {
      * <p>为所有指标添加通用标签
      */
     @Bean
-    public MeterFilter commonTagsMeterFilter(io.github.afgprojects.framework.core.autoconfigure.MetricsProperties properties) {
+    public MeterFilter commonTagsMeterFilter(AfgCoreProperties properties) {
         Map<String, String> tags = new HashMap<>();
-        if (properties.getTags() != null) {
-            tags.putAll(properties.getTags());
-        }
-        if (properties.getCommonTags() != null) {
-            tags.putAll(properties.getCommonTags());
+        if (properties.getMetrics().getTags() != null) {
+            tags.putAll(properties.getMetrics().getTags());
         }
 
         // 将 Map 转换为 Iterable<Tag>
@@ -107,8 +104,9 @@ public class MetricsAutoConfiguration {
      * <p>为 Timer 指标配置百分位直方图
      */
     @Bean
-    public MeterFilter histogramMeterFilter(io.github.afgprojects.framework.core.autoconfigure.MetricsProperties properties) {
-        if (!properties.getHistogram().isEnabled()) {
+    public MeterFilter histogramMeterFilter(AfgCoreProperties properties) {
+        AfgCoreProperties.MetricsConfig.HistogramConfig histogram = properties.getMetrics().getHistogram();
+        if (!histogram.isEnabled()) {
             return MeterFilter.accept();
         }
 
@@ -118,12 +116,12 @@ public class MetricsAutoConfiguration {
                 // 为所有 Timer 指标应用 histogram 配置
                 if (id.getType() == Meter.Type.TIMER) {
                     // 将 Duration 转换为纳秒，用于 Timer 指标
-                    double minNanos = properties.getHistogram().getMinimumExpectedValue().toNanos();
-                    double maxNanos = properties.getHistogram().getMaximumExpectedValue().toNanos();
+                    double minNanos = histogram.getMinimumExpectedValue().toNanos();
+                    double maxNanos = histogram.getMaximumExpectedValue().toNanos();
 
                     return DistributionStatisticConfig.builder()
-                            .percentiles(properties.getHistogram().getPercentiles())
-                            .percentilesHistogram(properties.getHistogram().isPercentileHistogram())
+                            .percentiles(histogram.getPercentiles())
+                            .percentilesHistogram(histogram.isPercentileHistogram())
                             .minimumExpectedValue(minNanos)
                             .maximumExpectedValue(maxNanos)
                             .build()
@@ -152,7 +150,7 @@ public class MetricsAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public CustomMetrics customMetrics(MeterRegistry meterRegistry, io.github.afgprojects.framework.core.autoconfigure.MetricsProperties properties) {
+    public CustomMetrics customMetrics(MeterRegistry meterRegistry, AfgCoreProperties properties) {
         return new CustomMetrics(meterRegistry, properties);
     }
 }

@@ -10,9 +10,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.metrics.CustomMetrics;
 import io.github.afgprojects.framework.core.metrics.DefaultMetricsTagProvider;
-import io.github.afgprojects.framework.core.web.metrics.MetricsProperties;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.config.MeterFilter;
 
@@ -48,7 +48,7 @@ class MetricsAutoConfigurationTest {
         @Test
         @DisplayName("应该创建指标切面")
         void shouldCreateMetricsAspect() {
-            MetricsProperties properties = new MetricsProperties();
+            AfgCoreProperties properties = new AfgCoreProperties();
 
             var aspect = configuration.metricsAspect(meterRegistry, properties);
 
@@ -70,25 +70,8 @@ class MetricsAutoConfigurationTest {
         @Test
         @DisplayName("应该创建通用标签过滤器")
         void shouldCreateCommonTagsMeterFilter() {
-            io.github.afgprojects.framework.core.autoconfigure.MetricsProperties properties =
-                    new io.github.afgprojects.framework.core.autoconfigure.MetricsProperties();
-            properties.setTags(Map.of("app", "test-app", "env", "test"));
-
-            MeterFilter filter = configuration.commonTagsMeterFilter(properties);
-
-            assertThat(filter).isNotNull();
-        }
-
-        /**
-         * 测试合并 tags 和 commonTags。
-         */
-        @Test
-        @DisplayName("应该合并 tags 和 commonTags")
-        void shouldMergeTagsAndCommonTags() {
-            io.github.afgprojects.framework.core.autoconfigure.MetricsProperties properties =
-                    new io.github.afgprojects.framework.core.autoconfigure.MetricsProperties();
-            properties.setTags(Map.of("app", "test-app"));
-            properties.setCommonTags(Map.of("env", "test"));
+            AfgCoreProperties properties = new AfgCoreProperties();
+            properties.getMetrics().setTags(Map.of("app", "test-app", "env", "test"));
 
             MeterFilter filter = configuration.commonTagsMeterFilter(properties);
 
@@ -101,8 +84,7 @@ class MetricsAutoConfigurationTest {
         @Test
         @DisplayName("空标签时应该创建过滤器")
         void shouldCreateFilterWithEmptyTags() {
-            io.github.afgprojects.framework.core.autoconfigure.MetricsProperties properties =
-                    new io.github.afgprojects.framework.core.autoconfigure.MetricsProperties();
+            AfgCoreProperties properties = new AfgCoreProperties();
 
             MeterFilter filter = configuration.commonTagsMeterFilter(properties);
 
@@ -124,9 +106,8 @@ class MetricsAutoConfigurationTest {
         @Test
         @DisplayName("启用 histogram 时应该创建过滤器")
         void shouldCreateHistogramFilterWhenEnabled() {
-            io.github.afgprojects.framework.core.autoconfigure.MetricsProperties properties =
-                    new io.github.afgprojects.framework.core.autoconfigure.MetricsProperties();
-            properties.getHistogram().setEnabled(true);
+            AfgCoreProperties properties = new AfgCoreProperties();
+            properties.getMetrics().getHistogram().setEnabled(true);
 
             MeterFilter filter = configuration.histogramMeterFilter(properties);
 
@@ -139,9 +120,8 @@ class MetricsAutoConfigurationTest {
         @Test
         @DisplayName("禁用 histogram 时应该创建 accept 过滤器")
         void shouldCreateAcceptFilterWhenDisabled() {
-            io.github.afgprojects.framework.core.autoconfigure.MetricsProperties properties =
-                    new io.github.afgprojects.framework.core.autoconfigure.MetricsProperties();
-            properties.getHistogram().setEnabled(false);
+            AfgCoreProperties properties = new AfgCoreProperties();
+            properties.getMetrics().getHistogram().setEnabled(false);
 
             MeterFilter filter = configuration.histogramMeterFilter(properties);
 
@@ -184,8 +164,7 @@ class MetricsAutoConfigurationTest {
         @Test
         @DisplayName("应该创建自定义指标")
         void shouldCreateCustomMetrics() {
-            io.github.afgprojects.framework.core.autoconfigure.MetricsProperties properties =
-                    new io.github.afgprojects.framework.core.autoconfigure.MetricsProperties();
+            AfgCoreProperties properties = new AfgCoreProperties();
 
             CustomMetrics customMetrics = configuration.customMetrics(meterRegistry, properties);
 

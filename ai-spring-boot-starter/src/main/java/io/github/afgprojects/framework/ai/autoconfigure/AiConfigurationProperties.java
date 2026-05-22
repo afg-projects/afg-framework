@@ -409,6 +409,7 @@ public class AiConfigurationProperties {
         private boolean enabled = true;
         private int maxSessionsPerUser = 100;
         private long defaultExpiresInSeconds = 3600;
+        private String tableName = "ai_session";
 
         public boolean isEnabled() { return enabled; }
         public void setEnabled(boolean enabled) { this.enabled = enabled; }
@@ -416,6 +417,8 @@ public class AiConfigurationProperties {
         public void setMaxSessionsPerUser(int maxSessionsPerUser) { this.maxSessionsPerUser = maxSessionsPerUser; }
         public long getDefaultExpiresInSeconds() { return defaultExpiresInSeconds; }
         public void setDefaultExpiresInSeconds(long defaultExpiresInSeconds) { this.defaultExpiresInSeconds = defaultExpiresInSeconds; }
+        public String getTableName() { return tableName; }
+        public void setTableName(String tableName) { this.tableName = tableName; }
     }
 
     /**
@@ -424,11 +427,14 @@ public class AiConfigurationProperties {
     public static class MessageHistoryConfig {
         private boolean enabled = true;
         private int maxMessagesPerSession = 1000;
+        private String tableName = "ai_message_history";
 
         public boolean isEnabled() { return enabled; }
         public void setEnabled(boolean enabled) { this.enabled = enabled; }
         public int getMaxMessagesPerSession() { return maxMessagesPerSession; }
         public void setMaxMessagesPerSession(int maxMessagesPerSession) { this.maxMessagesPerSession = maxMessagesPerSession; }
+        public String getTableName() { return tableName; }
+        public void setTableName(String tableName) { this.tableName = tableName; }
     }
 
     /**

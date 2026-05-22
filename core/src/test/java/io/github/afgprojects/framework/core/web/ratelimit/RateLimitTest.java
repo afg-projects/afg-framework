@@ -6,7 +6,7 @@ import java.lang.reflect.Method;
 
 import org.junit.jupiter.api.Test;
 
-import io.github.afgprojects.framework.core.api.ratelimit.RateLimitAlgorithm;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.api.ratelimit.RateLimitDimension;
 
 /**
@@ -31,7 +31,7 @@ class RateLimitTest {
         assertThat(annotation.rate()).isEqualTo(10);
         assertThat(annotation.burst()).isEqualTo(0);
         assertThat(annotation.dimension()).isEqualTo(RateLimitDimension.IP);
-        assertThat(annotation.algorithm()).isEqualTo(RateLimitAlgorithm.TOKEN_BUCKET);
+        assertThat(annotation.algorithm()).isEqualTo(AfgCoreProperties.RateLimitConfig.RateLimitAlgorithm.TOKEN_BUCKET);
         assertThat(annotation.windowSize()).isEqualTo(1);
         assertThat(annotation.fallbackMethod()).isEmpty();
         assertThat(annotation.message()).isEqualTo("请求过于频繁，请稍后再试");
@@ -48,7 +48,7 @@ class RateLimitTest {
         assertThat(annotation.rate()).isEqualTo(100);
         assertThat(annotation.burst()).isEqualTo(200);
         assertThat(annotation.dimension()).isEqualTo(RateLimitDimension.USER);
-        assertThat(annotation.algorithm()).isEqualTo(RateLimitAlgorithm.SLIDING_WINDOW);
+        assertThat(annotation.algorithm()).isEqualTo(AfgCoreProperties.RateLimitConfig.RateLimitAlgorithm.SLIDING_WINDOW);
         assertThat(annotation.windowSize()).isEqualTo(60);
         assertThat(annotation.fallbackMethod()).isEqualTo("userFallback");
         assertThat(annotation.message()).isEqualTo("用户请求过于频繁");
@@ -92,10 +92,12 @@ class RateLimitTest {
 
     @Test
     void should_supportAllAlgorithms() {
-        assertThat(RateLimitAlgorithm.values())
+        assertThat(AfgCoreProperties.RateLimitConfig.RateLimitAlgorithm.values())
                 .containsExactly(
-                        RateLimitAlgorithm.TOKEN_BUCKET,
-                        RateLimitAlgorithm.SLIDING_WINDOW);
+                        AfgCoreProperties.RateLimitConfig.RateLimitAlgorithm.TOKEN_BUCKET,
+                        AfgCoreProperties.RateLimitConfig.RateLimitAlgorithm.SLIDING_WINDOW,
+                        AfgCoreProperties.RateLimitConfig.RateLimitAlgorithm.FIXED_WINDOW,
+                        AfgCoreProperties.RateLimitConfig.RateLimitAlgorithm.LEAKY_BUCKET);
     }
 
     // 带注解方法的测试类
@@ -109,7 +111,7 @@ class RateLimitTest {
                 rate = 100,
                 burst = 200,
                 dimension = RateLimitDimension.USER,
-                algorithm = RateLimitAlgorithm.SLIDING_WINDOW,
+                algorithm = AfgCoreProperties.RateLimitConfig.RateLimitAlgorithm.SLIDING_WINDOW,
                 windowSize = 60,
                 fallbackMethod = "userFallback",
                 message = "用户请求过于频繁")

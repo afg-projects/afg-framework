@@ -9,6 +9,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.api.ratelimit.DefaultWhitelistStrategy;
 import io.github.afgprojects.framework.core.api.ratelimit.RateLimitDimension;
 import io.github.afgprojects.framework.core.support.BaseUnitTest;
@@ -24,12 +25,12 @@ import io.github.afgprojects.framework.core.web.context.RequestContext;
  */
 class RateLimitWhitelistCheckerTest extends BaseUnitTest {
 
-    private RateLimitProperties properties;
+    private AfgCoreProperties properties;
     private DefaultWhitelistStrategy checker;
 
     @BeforeEach
     void setUp() {
-        properties = new RateLimitProperties();
+        properties = new AfgCoreProperties();
         checker = new DefaultWhitelistStrategy(properties);
 
         MockHttpServletRequest request = new MockHttpServletRequest();
@@ -44,8 +45,8 @@ class RateLimitWhitelistCheckerTest extends BaseUnitTest {
 
     @Test
     void should_returnFalse_when_whitelistDisabled() {
-        properties.getWhitelist().setEnabled(false);
-        properties.getWhitelist().getIps().add("192.168.1.1");
+        properties.getRateLimit().getWhitelist().setEnabled(false);
+        properties.getRateLimit().getWhitelist().getIps().add("192.168.1.1");
 
         RequestContext context = new RequestContext();
         context.setClientIp("192.168.1.1");
@@ -60,8 +61,8 @@ class RateLimitWhitelistCheckerTest extends BaseUnitTest {
 
     @Test
     void should_matchExactIp() {
-        properties.getWhitelist().setEnabled(true);
-        properties.getWhitelist().getIps().add("192.168.1.1");
+        properties.getRateLimit().getWhitelist().setEnabled(true);
+        properties.getRateLimit().getWhitelist().getIps().add("192.168.1.1");
 
         RequestContext context = new RequestContext();
         context.setClientIp("192.168.1.1");
@@ -76,8 +77,8 @@ class RateLimitWhitelistCheckerTest extends BaseUnitTest {
 
     @Test
     void should_matchWildcardIp() {
-        properties.getWhitelist().setEnabled(true);
-        properties.getWhitelist().getIps().add("192.168.1.*");
+        properties.getRateLimit().getWhitelist().setEnabled(true);
+        properties.getRateLimit().getWhitelist().getIps().add("192.168.1.*");
 
         RequestContext context = new RequestContext();
         context.setClientIp("192.168.1.100");
@@ -92,8 +93,8 @@ class RateLimitWhitelistCheckerTest extends BaseUnitTest {
 
     @Test
     void should_notMatchDifferentIp() {
-        properties.getWhitelist().setEnabled(true);
-        properties.getWhitelist().getIps().add("192.168.1.1");
+        properties.getRateLimit().getWhitelist().setEnabled(true);
+        properties.getRateLimit().getWhitelist().getIps().add("192.168.1.1");
 
         RequestContext context = new RequestContext();
         context.setClientIp("192.168.1.2");
@@ -108,8 +109,8 @@ class RateLimitWhitelistCheckerTest extends BaseUnitTest {
 
     @Test
     void should_matchUserId() {
-        properties.getWhitelist().setEnabled(true);
-        properties.getWhitelist().getUserIds().add(12345L);
+        properties.getRateLimit().getWhitelist().setEnabled(true);
+        properties.getRateLimit().getWhitelist().getUserIds().add(12345L);
 
         RequestContext context = new RequestContext();
         context.setUserId(12345L);
@@ -124,8 +125,8 @@ class RateLimitWhitelistCheckerTest extends BaseUnitTest {
 
     @Test
     void should_matchUsername() {
-        properties.getWhitelist().setEnabled(true);
-        properties.getWhitelist().getUsernames().add("admin");
+        properties.getRateLimit().getWhitelist().setEnabled(true);
+        properties.getRateLimit().getWhitelist().getUsernames().add("admin");
 
         RequestContext context = new RequestContext();
         context.setUsername("admin");
@@ -140,8 +141,8 @@ class RateLimitWhitelistCheckerTest extends BaseUnitTest {
 
     @Test
     void should_matchTenantId() {
-        properties.getWhitelist().setEnabled(true);
-        properties.getWhitelist().getTenantIds().add(999L);
+        properties.getRateLimit().getWhitelist().setEnabled(true);
+        properties.getRateLimit().getWhitelist().getTenantIds().add(999L);
 
         RequestContext context = new RequestContext();
         context.setTenantId(999L);
@@ -156,7 +157,7 @@ class RateLimitWhitelistCheckerTest extends BaseUnitTest {
 
     @Test
     void should_returnFalse_forApiDimension() {
-        properties.getWhitelist().setEnabled(true);
+        properties.getRateLimit().getWhitelist().setEnabled(true);
 
         boolean result = checker.isInWhitelist(RateLimitDimension.API);
 
@@ -165,8 +166,8 @@ class RateLimitWhitelistCheckerTest extends BaseUnitTest {
 
     @Test
     void should_handleNullContext() {
-        properties.getWhitelist().setEnabled(true);
-        properties.getWhitelist().getIps().add("192.168.1.1");
+        properties.getRateLimit().getWhitelist().setEnabled(true);
+        properties.getRateLimit().getWhitelist().getIps().add("192.168.1.1");
 
         AfgRequestContextHolder.clear();
 

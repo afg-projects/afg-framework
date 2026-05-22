@@ -108,16 +108,4 @@ public class DynamicApiPermissionInterceptor implements HandlerInterceptor {
             return requiredPermissions.stream().anyMatch(permissionChecker::hasPermission);
         }
     }
-
-    private @NonNull UserInfo getUserInfo(Authentication authentication) {
-        Object principal = authentication.getPrincipal();
-        if (principal instanceof Jwt jwt) {
-            String userId = jwt.getSubject();
-            String tenantId = jwt.getClaimAsString("tenant_id");
-            return new UserInfo(userId, tenantId);
-        }
-        return new UserInfo(authentication.getName(), null);
-    }
-
-    private record UserInfo(String userId, String tenantId) {}
 }

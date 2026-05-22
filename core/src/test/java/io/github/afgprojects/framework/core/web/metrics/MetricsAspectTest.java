@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
+import java.util.Map;
+
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
@@ -29,7 +32,7 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 class MetricsAspectTest {
 
     private MeterRegistry meterRegistry;
-    private MetricsProperties properties;
+    private AfgCoreProperties properties;
     private MetricsAspect metricsAspect;
 
     @Mock
@@ -41,7 +44,7 @@ class MetricsAspectTest {
     @BeforeEach
     void setUp() {
         meterRegistry = new SimpleMeterRegistry();
-        properties = new MetricsProperties();
+        properties = new AfgCoreProperties();
         metricsAspect = new MetricsAspect(meterRegistry, properties);
     }
 
@@ -50,7 +53,6 @@ class MetricsAspectTest {
      */
     @Test
     void should_recordTimer_when_timedMetricAnnotation() throws Throwable {
-        // Given
         TimedMetric annotation = createdAtdMetric("test.timer", "Test description", new double[] {0.5, 0.95});
         setupJoinPoint("testMethod");
 
@@ -145,8 +147,7 @@ class MetricsAspectTest {
     @Test
     void should_addGlobalTags_when_configured() throws Throwable {
         // Given
-        properties.getTags().put("env", "test");
-        properties.getTags().put("service", "afg-core");
+        properties.getMetrics().setTags(Map.of("env", "test", "service", "afg-core"));
 
         TimedMetric annotation = createdAtdMetric("tagged.timer", "Tagged timer", new double[] {0.5});
         setupJoinPoint("taggedMethod");

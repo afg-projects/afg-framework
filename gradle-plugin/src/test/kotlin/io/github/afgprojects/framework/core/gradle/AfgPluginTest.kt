@@ -62,7 +62,6 @@ class AfgPluginTest {
         // 检查核心任务是否注册
         val coreTasks = listOf(
             "generateEntity",
-            "generateMigration",
             "afgInfo"
         )
 

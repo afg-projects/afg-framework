@@ -4,6 +4,8 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
+
 import org.jspecify.annotations.NonNull;
 
 /**
@@ -14,14 +16,14 @@ import org.jspecify.annotations.NonNull;
  */
 class SensitiveFieldProcessor {
 
-    private final AuditLogProperties properties;
+    private final AfgCoreProperties properties;
 
     /**
      * 构造函数
      *
-     * @param properties 审计日志配置
+     * @param properties 核心配置属性
      */
-    SensitiveFieldProcessor(@NonNull AuditLogProperties properties) {
+    SensitiveFieldProcessor(@NonNull AfgCoreProperties properties) {
         this.properties = properties;
     }
 
@@ -43,7 +45,7 @@ class SensitiveFieldProcessor {
         }
 
         // 添加全局配置的敏感字段
-        for (String field : properties.getSensitiveFields()) {
+        for (String field : properties.getAudit().getSensitiveFields()) {
             fields.add(normalizeFieldName(field));
         }
 

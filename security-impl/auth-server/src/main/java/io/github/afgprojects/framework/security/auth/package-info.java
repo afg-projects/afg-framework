@@ -11,7 +11,7 @@
  *
  * <p>主要子包：
  * <ul>
- *   <li>{@link io.github.afgprojects.framework.security.auth.config} - 配置属性和自动配置</li>
+ *   <li>{@link io.github.afgprojects.framework.security.auth.autoconfigure} - 配置属性和自动配置</li>
  *   <li>{@link io.github.afgprojects.framework.security.auth.endpoint} - 授权端点</li>
  *   <li>{@link io.github.afgprojects.framework.security.auth.token} - JWT Token 处理</li>
  * </ul>

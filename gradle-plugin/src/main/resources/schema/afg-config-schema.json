@@ -5,12 +5,6 @@
   "description": "Configuration schema for AFG Framework Gradle Plugin",
   "type": "object",
   "properties": {
-    "moduleType": {
-      "type": "string",
-      "description": "模块类型，决定自动添加哪些框架依赖",
-      "enum": ["core", "data", "auth", "storage", "job", "registry", "starter"],
-      "default": "data"
-    },
     "frameworkVersion": {
       "type": "string",
       "description": "AFG Framework 版本号",
@@ -25,16 +19,6 @@
     "useLombok": {
       "type": "boolean",
       "description": "是否自动配置 Lombok 依赖",
-      "default": true
-    },
-    "useJsr305": {
-      "type": "boolean",
-      "description": "是否自动配置 JSR-305 空安全注解",
-      "default": true
-    },
-    "useValidation": {
-      "type": "boolean",
-      "description": "是否自动配置 Bean Validation API",
       "default": true
     },
     "migration": {

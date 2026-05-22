@@ -7,9 +7,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.lock.DistributedLock;
 import io.github.afgprojects.framework.core.lock.LockAspect;
-import io.github.afgprojects.framework.core.lock.LockProperties;
 
 /**
  * 分布式锁自动配置
@@ -21,25 +21,26 @@ import io.github.afgprojects.framework.core.lock.LockProperties;
  * 配置示例：
  * <pre>
  * afg:
- *   lock:
- *     enabled: true
- *     key-prefix: "myapp:lock"
- *     default-wait-time: 5000
- *     default-lease-time: -1
- *     annotations:
+ *   core:
+ *     lock:
  *       enabled: true
+ *       key-prefix: "myapp:lock"
+ *       default-wait-time: 5000
+ *       default-lease-time: -1
+ *       annotations:
+ *         enabled: true
  * </pre>
  * </p>
  */
 @AutoConfiguration
-@ConditionalOnProperty(prefix = "afg.lock", name = "enabled", havingValue = "true", matchIfMissing = true)
-@EnableConfigurationProperties(LockProperties.class)
+@ConditionalOnProperty(prefix = "afg.core.lock", name = "enabled", havingValue = "true", matchIfMissing = true)
+@EnableConfigurationProperties(AfgCoreProperties.class)
 public class LockAutoConfiguration {
 
     /**
      * 配置锁切面
      * <p>
-     * 当 afg.lock.annotations.enabled=true 且存在 DistributedLock bean 时启用
+     * 当 afg.core.lock.annotations.enabled=true 且存在 DistributedLock bean 时启用
      * </p>
      *
      * @param distributedLock 分布式锁服务
@@ -50,11 +51,11 @@ public class LockAutoConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnBean(DistributedLock.class)
     @ConditionalOnProperty(
-            prefix = "afg.lock.annotations",
+            prefix = "afg.core.lock.annotations",
             name = "enabled",
             havingValue = "true",
             matchIfMissing = true)
-    public LockAspect lockAspect(DistributedLock distributedLock, LockProperties properties) {
+    public LockAspect lockAspect(DistributedLock distributedLock, AfgCoreProperties properties) {
         return new LockAspect(distributedLock, properties);
     }
 }

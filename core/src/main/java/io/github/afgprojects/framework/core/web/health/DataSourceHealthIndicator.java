@@ -16,6 +16,8 @@ import org.springframework.boot.health.contributor.Status;
 import com.zaxxer.hikari.HikariDataSource;
 import com.zaxxer.hikari.HikariPoolMXBean;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
+
 /**
  * 数据源健康检查指示器
  * 检查数据库连接池状态和连接可用性
@@ -37,15 +39,15 @@ import com.zaxxer.hikari.HikariPoolMXBean;
 public class DataSourceHealthIndicator implements HealthIndicator {
 
     private final DataSource dataSource;
-    private final DataSourceHealthProperties properties;
+    private final AfgCoreProperties properties;
 
     /**
      * 构造函数
      *
      * @param dataSource 数据源
-     * @param properties 健康检查配置
+     * @param properties 核心配置
      */
-    public DataSourceHealthIndicator(@NonNull DataSource dataSource, @NonNull DataSourceHealthProperties properties) {
+    public DataSourceHealthIndicator(@NonNull DataSource dataSource, @NonNull AfgCoreProperties properties) {
         this.dataSource = dataSource;
         this.properties = properties;
     }
@@ -81,12 +83,12 @@ public class DataSourceHealthIndicator implements HealthIndicator {
         try (Connection connection = dataSource.getConnection()) {
             // 使用配置的超时时间验证连接
             boolean valid = connection.isValid(
-                    (int) TimeUnit.MILLISECONDS.toSeconds(properties.getConnectionTimeout()));
+                    (int) TimeUnit.MILLISECONDS.toSeconds(properties.getHealth().getDatasource().getConnectionTimeout()));
             long duration = System.currentTimeMillis() - startTime;
 
             if (valid) {
                 builder.withDetail("database", "UP")
-                        .withDetail("validationQuery", properties.getValidationQuery())
+                        .withDetail("validationQuery", properties.getHealth().getDatasource().getValidationQuery())
                         .withDetail("responseTime", duration + "ms");
                 return true;
             } else {
@@ -174,12 +176,12 @@ public class DataSourceHealthIndicator implements HealthIndicator {
         }
 
         // 检查连接池使用率
-        boolean usageCritical = poolUsagePercent >= properties.getPoolUsageCriticalThreshold();
-        boolean usageWarning = poolUsagePercent >= properties.getPoolUsageWarningThreshold();
+        boolean usageCritical = poolUsagePercent >= properties.getHealth().getDatasource().getPoolUsageCriticalThreshold();
+        boolean usageWarning = poolUsagePercent >= properties.getHealth().getDatasource().getPoolUsageWarningThreshold();
 
         // 检查等待线程数
-        boolean threadsCritical = threadsAwaitingConnection >= properties.getThreadsAwaitingCriticalThreshold();
-        boolean threadsWarning = threadsAwaitingConnection >= properties.getThreadsAwaitingWarningThreshold();
+        boolean threadsCritical = threadsAwaitingConnection >= properties.getHealth().getDatasource().getThreadsAwaitingCriticalThreshold();
+        boolean threadsWarning = threadsAwaitingConnection >= properties.getHealth().getDatasource().getThreadsAwaitingWarningThreshold();
 
         // 确定整体状态
         if (usageCritical || threadsCritical) {
@@ -199,12 +201,12 @@ public class DataSourceHealthIndicator implements HealthIndicator {
         if (usageWarning) {
             builder.withDetail("poolUsageWarning",
                     String.format("Pool usage %d%% exceeds warning threshold %d%%",
-                            poolUsagePercent, properties.getPoolUsageWarningThreshold()));
+                            poolUsagePercent, properties.getHealth().getDatasource().getPoolUsageWarningThreshold()));
         }
         if (threadsWarning) {
             builder.withDetail("threadsAwaitingWarning",
                     String.format("%d threads awaiting connection exceeds warning threshold %d",
-                            threadsAwaitingConnection, properties.getThreadsAwaitingWarningThreshold()));
+                            threadsAwaitingConnection, properties.getHealth().getDatasource().getThreadsAwaitingWarningThreshold()));
         }
     }
 }

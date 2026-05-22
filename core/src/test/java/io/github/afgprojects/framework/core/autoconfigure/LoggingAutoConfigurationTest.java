@@ -7,7 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import io.github.afgprojects.framework.core.web.logging.LoggingProperties;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 
 /**
  * LoggingAutoConfiguration 单元测试。
@@ -39,7 +39,7 @@ class LoggingAutoConfigurationTest {
         @Test
         @DisplayName("应该创建 MDC 过滤器")
         void shouldCreateMdcFilter() {
-            LoggingProperties properties = new LoggingProperties();
+            AfgCoreProperties properties = new AfgCoreProperties();
 
             var filter = configuration.mdcFilter(properties);
 

@@ -16,12 +16,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import io.github.afgprojects.framework.core.api.ratelimit.RateLimitResult;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import io.github.afgprojects.framework.core.api.ratelimit.RateLimitResult;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 
 /**
  * RateLimitResponseHeaderFilter 单元测试
@@ -32,10 +34,13 @@ import io.github.afgprojects.framework.core.api.ratelimit.RateLimitResult;
 class RateLimitResponseHeaderFilterTest {
 
     @Mock
-    private RateLimitProperties properties;
+    private AfgCoreProperties properties;
 
     @Mock
-    private RateLimitProperties.ResponseHeaders responseHeadersConfig;
+    private AfgCoreProperties.RateLimitConfig rateLimitConfig;
+
+    @Mock
+    private AfgCoreProperties.RateLimitConfig.RateLimitResponseHeadersConfig responseHeadersConfig;
 
     @Mock
     private HttpServletRequest request;
@@ -50,7 +55,8 @@ class RateLimitResponseHeaderFilterTest {
 
     @BeforeEach
     void setUp() {
-        when(properties.getResponseHeaders()).thenReturn(responseHeadersConfig);
+        when(properties.getRateLimit()).thenReturn(rateLimitConfig);
+        when(rateLimitConfig.getResponseHeaders()).thenReturn(responseHeadersConfig);
         when(responseHeadersConfig.isEnabled()).thenReturn(true);
         when(responseHeadersConfig.getLimitHeader()).thenReturn("X-RateLimit-Limit");
         when(responseHeadersConfig.getRemainingHeader()).thenReturn("X-RateLimit-Remaining");

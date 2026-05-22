@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.core.model.exception;
 
-import io.github.afgprojects.framework.core.web.i18n.LocaleAutoConfiguration;
+import io.github.afgprojects.framework.core.autoconfigure.LocaleAutoConfiguration;
 import org.springframework.context.MessageSource;
 
 import lombok.RequiredArgsConstructor;

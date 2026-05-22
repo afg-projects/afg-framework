@@ -48,7 +48,7 @@ class JdbcLoginLogServiceTest {
             stmt.execute("DROP TABLE IF EXISTS auth_login_log");
             stmt.execute("""
                 CREATE TABLE auth_login_log (
-                    id VARCHAR(64) PRIMARY KEY,
+                    id BIGINT AUTO_INCREMENT PRIMARY KEY,
                     user_id VARCHAR(64),
                     username VARCHAR(128) NOT NULL,
                     tenant_id VARCHAR(64),

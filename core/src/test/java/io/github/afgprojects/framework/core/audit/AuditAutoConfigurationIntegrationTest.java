@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.support.TestApplication;
 
 /**
@@ -19,25 +20,23 @@ import io.github.afgprojects.framework.core.support.TestApplication;
  * 测试审计功能的自动配置，包括属性配置、敏感字段处理器等组件的自动装配。
  *
  * @see AuditAutoConfiguration
- * @see AuditLogProperties
+ * @see AfgCoreProperties.AuditConfig
  * @see SensitiveFieldProcessor
  */
 @DisplayName("AuditAutoConfiguration 集成测试")
 @SpringBootTest(
         classes = TestApplication.class,
         properties = {
-                "afg.audit.enabled=true",
-                "afg.audit.sensitive-fields=password,token,secret",
-                "afg.audit.mask-char=*",
-                "afg.audit.log-parameters=true",
-                "afg.audit.log-result=true"
+                "afg.core.audit.enabled=true",
+                "afg.core.audit.sensitive-fields=password,token,secret",
+                "afg.core.audit.mask-sensitive=true"
         }
 )
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class AuditAutoConfigurationIntegrationTest {
 
     @Autowired(required = false)
-    private AuditLogProperties auditLogProperties;
+    private AfgCoreProperties afgCoreProperties;
 
     @Autowired(required = false)
     private SensitiveFieldProcessor sensitiveFieldProcessor;
@@ -57,8 +56,8 @@ class AuditAutoConfigurationIntegrationTest {
         @Test
         @DisplayName("应该自动配置审计属性")
         void shouldAutoConfigureAuditProperties() {
-            if (auditLogProperties != null) {
-                assertThat(auditLogProperties.isEnabled()).isTrue();
+            if (afgCoreProperties != null) {
+                assertThat(afgCoreProperties.getAudit().isEnabled()).isTrue();
             }
         }
 
@@ -69,9 +68,9 @@ class AuditAutoConfigurationIntegrationTest {
         @DisplayName("应该自动配置敏感字段处理器")
         void shouldAutoConfigureSensitiveFieldProcessor() {
             // SensitiveFieldProcessor 是包级私有的，无法直接注入
-            // 通过检查 auditLogProperties 来验证配置
-            if (auditLogProperties != null) {
-                assertThat(auditLogProperties.getSensitiveFields()).isNotNull();
+            // 通过检查 afgCoreProperties 来验证配置
+            if (afgCoreProperties != null) {
+                assertThat(afgCoreProperties.getAudit().getSensitiveFields()).isNotNull();
             }
         }
     }
@@ -144,8 +143,8 @@ class AuditAutoConfigurationIntegrationTest {
         @Test
         @DisplayName("应该正确配置敏感字段列表")
         void shouldConfigureSensitiveFields() {
-            if (auditLogProperties != null) {
-                assertThat(auditLogProperties.getSensitiveFields()).contains("password", "token", "secret");
+            if (afgCoreProperties != null) {
+                assertThat(afgCoreProperties.getAudit().getSensitiveFields()).contains("password", "token", "secret");
             }
         }
 
@@ -155,8 +154,8 @@ class AuditAutoConfigurationIntegrationTest {
         @Test
         @DisplayName("应该正确配置存储类型")
         void shouldConfigureStorageType() {
-            if (auditLogProperties != null) {
-                assertThat(auditLogProperties.getStorageType()).isNotNull();
+            if (afgCoreProperties != null) {
+                assertThat(afgCoreProperties.getAudit().getStorageType()).isNotNull();
             }
         }
 
@@ -166,8 +165,8 @@ class AuditAutoConfigurationIntegrationTest {
         @Test
         @DisplayName("应该正确配置多租户模式")
         void shouldConfigureMultiTenant() {
-            if (auditLogProperties != null) {
-                assertThat(auditLogProperties.isMultiTenant()).isTrue();
+            if (afgCoreProperties != null) {
+                assertThat(afgCoreProperties.getAudit().isMultiTenant()).isTrue();
             }
         }
 
@@ -177,8 +176,8 @@ class AuditAutoConfigurationIntegrationTest {
         @Test
         @DisplayName("应该正确配置 TTL")
         void shouldConfigureTtl() {
-            if (auditLogProperties != null) {
-                assertThat(auditLogProperties.getTtl()).isNotNull();
+            if (afgCoreProperties != null) {
+                assertThat(afgCoreProperties.getAudit().getTtl()).isNotNull();
             }
         }
     }

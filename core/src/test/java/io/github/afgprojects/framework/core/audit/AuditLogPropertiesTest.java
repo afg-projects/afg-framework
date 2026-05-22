@@ -6,12 +6,14 @@ import java.time.Duration;
 
 import org.junit.jupiter.api.Test;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
+
 /**
  * AuditLogProperties 单元测试。
  * <p>
  * 测试审计日志配置属性的默认值和属性修改功能。
  *
- * @see AuditLogProperties
+ * @see AfgCoreProperties.AuditConfig
  */
 class AuditLogPropertiesTest {
 
@@ -21,11 +23,11 @@ class AuditLogPropertiesTest {
     @Test
     void should_haveDefaultValues() {
         // When
-        AuditLogProperties properties = new AuditLogProperties();
+        AfgCoreProperties.AuditConfig properties = new AfgCoreProperties.AuditConfig();
 
         // Then
         assertThat(properties.isEnabled()).isTrue();
-        assertThat(properties.getStorageType()).isEqualTo(AuditLogProperties.StorageType.LOG);
+        assertThat(properties.getStorageType()).isEqualTo(AfgCoreProperties.AuditConfig.StorageType.LOG);
         assertThat(properties.getMaxSize()).isEqualTo(10000);
         assertThat(properties.getTtl()).isEqualTo(Duration.ofDays(7));
         assertThat(properties.isMultiTenant()).isTrue();
@@ -39,11 +41,11 @@ class AuditLogPropertiesTest {
     @Test
     void should_allowChangingValues() {
         // Given
-        AuditLogProperties properties = new AuditLogProperties();
+        AfgCoreProperties.AuditConfig properties = new AfgCoreProperties.AuditConfig();
 
         // When
         properties.setEnabled(false);
-        properties.setStorageType(AuditLogProperties.StorageType.REDIS);
+        properties.setStorageType(AfgCoreProperties.AuditConfig.StorageType.REDIS);
         properties.setMaxSize(5000);
         properties.setTtl(Duration.ofDays(30));
         properties.setMultiTenant(false);
@@ -51,7 +53,7 @@ class AuditLogPropertiesTest {
 
         // Then
         assertThat(properties.isEnabled()).isFalse();
-        assertThat(properties.getStorageType()).isEqualTo(AuditLogProperties.StorageType.REDIS);
+        assertThat(properties.getStorageType()).isEqualTo(AfgCoreProperties.AuditConfig.StorageType.REDIS);
         assertThat(properties.getMaxSize()).isEqualTo(5000);
         assertThat(properties.getTtl()).isEqualTo(Duration.ofDays(30));
         assertThat(properties.isMultiTenant()).isFalse();

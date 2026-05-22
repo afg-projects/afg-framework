@@ -146,32 +146,54 @@ class EntityMapper<T> {
         if (targetType == LocalDateTime.class && value instanceof java.sql.Timestamp ts) {
             return ts.toLocalDateTime();
         }
+        // 处理 Instant 转换
+        if (targetType == java.time.Instant.class && value instanceof java.sql.Timestamp ts) {
+            return ts.toInstant();
+        }
         // 处理 LocalDate 转换
         if (targetType == java.time.LocalDate.class && value instanceof java.sql.Date date) {
             return date.toLocalDate();
         }
         // 处理枚举类型转换
-        if (targetType.isEnum() && value instanceof Number num) {
-            int codeValue = num.intValue();
-            // 尝试通过 code 字段匹配
-            for (Object enumConstant : targetType.getEnumConstants()) {
+        if (targetType.isEnum()) {
+            // 字符串转枚举（如 @Enumerated(EnumType.STRING)）
+            if (value instanceof String str) {
                 try {
-                    java.lang.reflect.Method getCodeMethod = enumConstant.getClass().getMethod("getCode");
-                    Object codeResult = getCodeMethod.invoke(enumConstant);
-                    if (codeResult instanceof Number codeNum && codeNum.intValue() == codeValue) {
-                        return enumConstant;
+                    @SuppressWarnings("unchecked")
+                    Class<? extends Enum<?>> enumType = (Class<? extends Enum<?>>) targetType;
+                    for (Object enumConstant : enumType.getEnumConstants()) {
+                        Enum<?> enumValue = (Enum<?>) enumConstant;
+                        if (enumValue.name().equals(str)) {
+                            return enumConstant;
+                        }
                     }
-                } catch (NoSuchMethodException e) {
-                    // 枚举没有 getCode 方法，跳出循环使用 ordinal 匹配
-                    break;
-                } catch (ReflectiveOperationException e) {
-                    // 反射调用失败，忽略并继续尝试下一个枚举值
+                } catch (Exception e) {
+                    // 忽略，返回原值
                 }
             }
-            // 回退到 ordinal 匹配
-            Object[] enumConstants = targetType.getEnumConstants();
-            if (codeValue >= 0 && codeValue < enumConstants.length) {
-                return enumConstants[codeValue];
+            // 数字转枚举（如 @Enumerated(EnumType.ORDINAL)）
+            if (value instanceof Number num) {
+                int codeValue = num.intValue();
+                // 尝试通过 code 字段匹配
+                for (Object enumConstant : targetType.getEnumConstants()) {
+                    try {
+                        java.lang.reflect.Method getCodeMethod = enumConstant.getClass().getMethod("getCode");
+                        Object codeResult = getCodeMethod.invoke(enumConstant);
+                        if (codeResult instanceof Number codeNum && codeNum.intValue() == codeValue) {
+                            return enumConstant;
+                        }
+                    } catch (NoSuchMethodException e) {
+                        // 枚举没有 getCode 方法，跳出循环使用 ordinal 匹配
+                        break;
+                    } catch (ReflectiveOperationException e) {
+                        // 反射调用失败，忽略并继续尝试下一个枚举值
+                    }
+                }
+                // 回退到 ordinal 匹配
+                Object[] enumConstants = targetType.getEnumConstants();
+                if (codeValue >= 0 && codeValue < enumConstants.length) {
+                    return enumConstants[codeValue];
+                }
             }
         }
         return value;

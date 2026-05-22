@@ -2,7 +2,8 @@ package io.github.afgprojects.framework.core.api.ratelimit;
 
 import lombok.extern.slf4j.Slf4j;
 
-import io.github.afgprojects.framework.core.web.ratelimit.RateLimitProperties;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties.RateLimitConfig.RateLimitAlgorithm;
 
 /**
  * 限流器入口
@@ -23,7 +24,7 @@ import io.github.afgprojects.framework.core.web.ratelimit.RateLimitProperties;
 public class RateLimiter {
 
     private final RateLimitStorage storage;
-    private final RateLimitProperties properties;
+    private final AfgCoreProperties properties;
     private final WhitelistStrategy whitelistStrategy;
     private final DimensionResolver dimensionResolver;
 
@@ -31,11 +32,11 @@ public class RateLimiter {
      * 构造函数
      *
      * @param storage            限流存储
-     * @param properties         限流配置属性
+     * @param properties         核心配置属性
      * @param whitelistStrategy  白名单策略
      * @param dimensionResolver  维度解析器
      */
-    public RateLimiter(RateLimitStorage storage, RateLimitProperties properties,
+    public RateLimiter(RateLimitStorage storage, AfgCoreProperties properties,
                        WhitelistStrategy whitelistStrategy, DimensionResolver dimensionResolver) {
         this.storage = storage;
         this.properties = properties;
@@ -68,11 +69,12 @@ public class RateLimiter {
             return switch (algorithm) {
                 case TOKEN_BUCKET -> storage.tryAcquireTokenBucket(key, rate, burst);
                 case SLIDING_WINDOW -> storage.tryAcquireSlidingWindow(key, rate, windowSize);
+                case FIXED_WINDOW, LEAKY_BUCKET -> storage.tryAcquireSlidingWindow(key, rate, windowSize);
             };
         } catch (Exception e) {
             log.error("Rate limiter error for key: {}", key, e);
             // 根据配置的故障模式决定行为
-            if (properties.getFallback().getFailureMode() == RateLimitProperties.FailureMode.REJECT) {
+            if (properties.getRateLimit().getFallback().getFailureMode() == AfgCoreProperties.RateLimitConfig.FailureMode.REJECT) {
                 log.warn("Rate limiter failure mode is REJECT, blocking request: {}", key);
                 return RateLimitResult.rejected(burst, System.currentTimeMillis() + 1000, 1000);
             }
@@ -106,7 +108,7 @@ public class RateLimiter {
      *
      * @return 配置属性
      */
-    RateLimitProperties getProperties() {
+    AfgCoreProperties getProperties() {
         return properties;
     }
 }

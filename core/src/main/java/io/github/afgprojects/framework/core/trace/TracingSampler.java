@@ -4,7 +4,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.jspecify.annotations.Nullable;
 
-import io.github.afgprojects.framework.core.trace.TracingProperties.Sampling;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 
 /**
  * 追踪采样器
@@ -14,15 +14,15 @@ import io.github.afgprojects.framework.core.trace.TracingProperties.Sampling;
  *
  * <h3>采样策略</h3>
  * <ul>
- *   <li>{@link SamplingStrategy#ALWAYS} - 全部采样</li>
- *   <li>{@link SamplingStrategy#NEVER} - 不采样</li>
- *   <li>{@link SamplingStrategy#PROBABILITY} - 概率采样</li>
- *   <li>{@link SamplingStrategy#RATE_LIMITING} - 限流采样</li>
+ *   <li>{@link AfgCoreProperties.TracingConfig.SamplingStrategy#ALWAYS} - 全部采样</li>
+ *   <li>{@link AfgCoreProperties.TracingConfig.SamplingStrategy#NEVER} - 不采样</li>
+ *   <li>{@link AfgCoreProperties.TracingConfig.SamplingStrategy#PROBABILITY} - 概率采样</li>
+ *   <li>{@link AfgCoreProperties.TracingConfig.SamplingStrategy#RATE_LIMITING} - 限流采样</li>
  * </ul>
  */
 public class TracingSampler {
 
-    private final SamplingStrategy strategy;
+    private final AfgCoreProperties.TracingConfig.SamplingStrategy strategy;
     private final double probability;
     private final int rateLimit;
     private final long windowSizeNanos;
@@ -36,7 +36,7 @@ public class TracingSampler {
      *
      * @param sampling 采样配置
      */
-    public TracingSampler(Sampling sampling) {
+    public TracingSampler(AfgCoreProperties.TracingConfig.SamplingConfig sampling) {
         this.strategy = sampling.getStrategy();
         this.probability = sampling.getProbability();
         this.rateLimit = sampling.getRate();
@@ -98,7 +98,7 @@ public class TracingSampler {
      *
      * @return 采样策略
      */
-    public SamplingStrategy getStrategy() {
+    public AfgCoreProperties.TracingConfig.SamplingStrategy getStrategy() {
         return strategy;
     }
 

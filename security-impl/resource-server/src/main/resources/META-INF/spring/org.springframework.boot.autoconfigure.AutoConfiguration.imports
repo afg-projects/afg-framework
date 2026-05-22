@@ -1,1 +1,3 @@
-io.github.afgprojects.framework.security.resource.config.ResourceServerAutoConfiguration
+io.github.afgprojects.framework.security.resource.autoconfigure.ResourceServerAutoConfiguration
+io.github.afgprojects.framework.security.resource.autoconfigure.DefaultSecurityAutoConfiguration
+io.github.afgprojects.framework.security.resource.autoconfigure.ResourceSecurityConfigValidator

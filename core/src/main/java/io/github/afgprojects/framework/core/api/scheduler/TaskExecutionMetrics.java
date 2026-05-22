@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -41,7 +42,7 @@ public class TaskExecutionMetrics {
     private static final String METRIC_EXECUTION_SKIPPED = "execution.skipped";
 
     private final MeterRegistry meterRegistry;
-    private final SchedulerProperties.MetricsConfig config;
+    private final AfgCoreProperties.SchedulerConfig.SchedulerMetricsConfig config;
 
     private final ConcurrentMap<String, AtomicLong> activeExecutions = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, Timer.Sample> activeTimers = new ConcurrentHashMap<>();
@@ -52,8 +53,8 @@ public class TaskExecutionMetrics {
      * @param meterRegistry Micrometer 注册表
      * @param config        监控配置
      */
-    public TaskExecutionMetrics(@NonNull MeterRegistry meterRegistry,
-                                SchedulerProperties.@NonNull MetricsConfig config) {
+    public TaskExecutionMetrics(MeterRegistry meterRegistry,
+                                AfgCoreProperties.SchedulerConfig.SchedulerMetricsConfig config) {
         this.meterRegistry = meterRegistry;
         this.config = config;
     }

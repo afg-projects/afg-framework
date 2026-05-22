@@ -7,6 +7,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
+
 /**
  * SignatureProperties 测试
  */
@@ -21,15 +23,15 @@ class SignaturePropertiesTest {
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
             // when
-            SignatureProperties properties = new SignatureProperties();
+            AfgCoreProperties properties = new AfgCoreProperties();
 
             // then
-            assertThat(properties.isEnabled()).isTrue();
-            assertThat(properties.getDefaultKeyId()).isEqualTo("default");
-            assertThat(properties.getTimestampTolerance()).isEqualTo(300);
-            assertThat(properties.getNonceCacheSize()).isEqualTo(10000);
-            assertThat(properties.isNonceRequired()).isTrue();
-            assertThat(properties.getDefaultAlgorithm()).isEqualTo(SignatureAlgorithm.HMAC_SHA256);
+            assertThat(properties.getSecurity().getSignature().isEnabled()).isTrue();
+            assertThat(properties.getSecurity().getSignature().getDefaultKeyId()).isEqualTo("default");
+            assertThat(properties.getSecurity().getSignature().getTimestampTolerance()).isEqualTo(300);
+            assertThat(properties.getSecurity().getSignature().getNonceCacheSize()).isEqualTo(10000);
+            assertThat(properties.getSecurity().getSignature().isNonceRequired()).isTrue();
+            assertThat(properties.getSecurity().getSignature().getDefaultAlgorithm()).isEqualTo(AfgCoreProperties.SecurityConfig.SignatureAlgorithm.HMAC_SHA256);
         }
     }
 
@@ -41,14 +43,14 @@ class SignaturePropertiesTest {
         @DisplayName("应该正确获取密钥配置")
         void shouldGetKeyConfig() {
             // given
-            SignatureProperties properties = new SignatureProperties();
-            SignatureProperties.KeyConfig keyConfig = new SignatureProperties.KeyConfig();
+            AfgCoreProperties properties = new AfgCoreProperties();
+            AfgCoreProperties.SecurityConfig.SignatureConfig.SignatureKeyConfig keyConfig = new AfgCoreProperties.SecurityConfig.SignatureConfig.SignatureKeyConfig();
             keyConfig.setSecret("test-secret");
             keyConfig.setEnabled(true);
-            properties.getKeys().put("app1", keyConfig);
+            properties.getSecurity().getSignature().getKeys().put("app1", keyConfig);
 
             // when
-            SignatureProperties.KeyConfig retrieved = properties.getKeyConfig("app1");
+            AfgCoreProperties.SecurityConfig.SignatureConfig.SignatureKeyConfig retrieved = properties.getSecurity().getSignature().getKeys().get("app1");
 
             // then
             assertThat(retrieved).isNotNull();
@@ -60,10 +62,10 @@ class SignaturePropertiesTest {
         @DisplayName("不存在的密钥应该返回 null")
         void shouldReturnNullForMissingKey() {
             // given
-            SignatureProperties properties = new SignatureProperties();
+            AfgCoreProperties properties = new AfgCoreProperties();
 
             // when
-            SignatureProperties.KeyConfig retrieved = properties.getKeyConfig("nonexistent");
+            AfgCoreProperties.SecurityConfig.SignatureConfig.SignatureKeyConfig retrieved = properties.getSecurity().getSignature().getKeys().get("nonexistent");
 
             // then
             assertThat(retrieved).isNull();
@@ -73,14 +75,14 @@ class SignaturePropertiesTest {
         @DisplayName("应该正确获取默认密钥配置")
         void shouldGetDefaultKeyConfig() {
             // given
-            SignatureProperties properties = new SignatureProperties();
-            properties.setDefaultKeyId("default");
-            SignatureProperties.KeyConfig keyConfig = new SignatureProperties.KeyConfig();
+            AfgCoreProperties properties = new AfgCoreProperties();
+            properties.getSecurity().getSignature().setDefaultKeyId("default");
+            AfgCoreProperties.SecurityConfig.SignatureConfig.SignatureKeyConfig keyConfig = new AfgCoreProperties.SecurityConfig.SignatureConfig.SignatureKeyConfig();
             keyConfig.setSecret("default-secret");
-            properties.getKeys().put("default", keyConfig);
+            properties.getSecurity().getSignature().getKeys().put("default", keyConfig);
 
             // when
-            SignatureProperties.KeyConfig retrieved = properties.getDefaultKeyConfig();
+            AfgCoreProperties.SecurityConfig.SignatureConfig.SignatureKeyConfig retrieved = properties.getSecurity().getSignature().getKeys().get(properties.getSecurity().getSignature().getDefaultKeyId());
 
             // then
             assertThat(retrieved).isNotNull();
@@ -96,7 +98,7 @@ class SignaturePropertiesTest {
         @DisplayName("KeyConfig 应该有正确的默认值")
         void keyConfigShouldHaveCorrectDefaults() {
             // when
-            SignatureProperties.KeyConfig config = new SignatureProperties.KeyConfig();
+            AfgCoreProperties.SecurityConfig.SignatureConfig.SignatureKeyConfig config = new AfgCoreProperties.SecurityConfig.SignatureConfig.SignatureKeyConfig();
 
             // then
             assertThat(config.isEnabled()).isTrue();

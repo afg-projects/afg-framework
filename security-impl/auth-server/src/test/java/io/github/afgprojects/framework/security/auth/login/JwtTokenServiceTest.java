@@ -24,7 +24,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import io.github.afgprojects.framework.security.auth.login.config.TokenProperties;
+import io.github.afgprojects.framework.security.auth.autoconfigure.AuthSecurityProperties;
 import io.github.afgprojects.framework.security.core.storage.AfgRefreshTokenStorage;
 import io.github.afgprojects.framework.security.core.storage.AfgTokenBlacklist;
 
@@ -52,13 +52,13 @@ class JwtTokenServiceTest {
 
     @BeforeEach
     void setUp() {
-        TokenProperties properties = new TokenProperties();
+        AuthSecurityProperties.TokenConfig properties = new AuthSecurityProperties.TokenConfig();
         properties.setSigningKey(SIGNING_KEY);
         properties.setIssuer(ISSUER);
         properties.setAccessTokenTtl(ACCESS_TOKEN_TTL);
         properties.setRefreshTokenTtl(REFRESH_TOKEN_TTL);
-        properties.setIncludeRoles(true);
-        properties.setIncludePermissions(true);
+        properties.setIncludeUserRoles(true);
+        properties.setIncludeUserPermissions(true);
 
         tokenService = new JwtTokenService(properties, refreshTokenStorage, tokenBlacklist);
     }
@@ -160,7 +160,7 @@ class JwtTokenServiceTest {
         @DisplayName("应该拒绝过期的 Access Token")
         void shouldRejectExpiredAccessToken() {
             // given - 创建一个使用已过期 TTL 的 token service
-            TokenProperties expiredProperties = new TokenProperties();
+            AuthSecurityProperties.TokenConfig expiredProperties = new AuthSecurityProperties.TokenConfig();
             expiredProperties.setSigningKey(SIGNING_KEY);
             expiredProperties.setIssuer(ISSUER);
             expiredProperties.setAccessTokenTtl(Duration.ofMillis(-1));
@@ -201,7 +201,7 @@ class JwtTokenServiceTest {
         @DisplayName("应该拒绝签名错误的 Access Token")
         void shouldRejectWrongSignatureAccessToken() {
             // given - 使用不同的签名密钥生成 token
-            TokenProperties otherProperties = new TokenProperties();
+            AuthSecurityProperties.TokenConfig otherProperties = new AuthSecurityProperties.TokenConfig();
             otherProperties.setSigningKey("different-signing-key-at-least-256-bits-long-for-hs256");
             otherProperties.setIssuer(ISSUER);
             otherProperties.setAccessTokenTtl(ACCESS_TOKEN_TTL);
@@ -349,7 +349,7 @@ class JwtTokenServiceTest {
         @DisplayName("应该拒绝过期的 Refresh Token")
         void shouldRejectExpiredRefreshToken() {
             // given - 创建一个使用已过期 TTL 的 token service
-            TokenProperties expiredProperties = new TokenProperties();
+            AuthSecurityProperties.TokenConfig expiredProperties = new AuthSecurityProperties.TokenConfig();
             expiredProperties.setSigningKey(SIGNING_KEY);
             expiredProperties.setIssuer(ISSUER);
             expiredProperties.setAccessTokenTtl(ACCESS_TOKEN_TTL);
@@ -580,7 +580,7 @@ class JwtTokenServiceTest {
         @DisplayName("应该拒绝过短的签名密钥")
         void shouldRejectShortSigningKey() {
             // given
-            TokenProperties properties = new TokenProperties();
+            AuthSecurityProperties.TokenConfig properties = new AuthSecurityProperties.TokenConfig();
             properties.setSigningKey("short-key"); // Less than 32 characters
             properties.setIssuer(ISSUER);
 
@@ -594,7 +594,7 @@ class JwtTokenServiceTest {
         @DisplayName("应该拒绝 null 签名密钥")
         void shouldRejectNullSigningKey() {
             // given
-            TokenProperties properties = new TokenProperties();
+            AuthSecurityProperties.TokenConfig properties = new AuthSecurityProperties.TokenConfig();
             properties.setSigningKey(null);
             properties.setIssuer(ISSUER);
 

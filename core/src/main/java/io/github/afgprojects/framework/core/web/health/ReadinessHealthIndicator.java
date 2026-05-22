@@ -17,6 +17,7 @@ import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.HealthIndicator;
 import org.springframework.boot.health.contributor.Status;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.module.ModuleDefinition;
 import io.github.afgprojects.framework.core.module.ModuleRegistry;
 import io.github.afgprojects.framework.core.module.ModuleState;
@@ -40,7 +41,7 @@ import io.github.afgprojects.framework.core.web.health.spi.RedisHealthResult;
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
 public class ReadinessHealthIndicator implements HealthIndicator {
 
-    private final HealthCheckProperties properties;
+    private final AfgCoreProperties properties;
     private final @Nullable DataSource dataSource;
     private final @NonNull RedisHealthChecker redisHealthChecker;
     private final @Nullable ModuleRegistry moduleRegistry;
@@ -48,13 +49,13 @@ public class ReadinessHealthIndicator implements HealthIndicator {
     /**
      * 构造函数
      *
-     * @param properties         健康检查配置
+     * @param properties         核心配置
      * @param dataSource         数据源（可为 null）
      * @param redisHealthChecker Redis 健康检查器（SPI 实现）
      * @param moduleRegistry     模块注册表（可为 null）
      */
     public ReadinessHealthIndicator(
-            @NonNull HealthCheckProperties properties,
+            @NonNull AfgCoreProperties properties,
             @Nullable DataSource dataSource,
             @NonNull RedisHealthChecker redisHealthChecker,
             @Nullable ModuleRegistry moduleRegistry) {
@@ -70,17 +71,17 @@ public class ReadinessHealthIndicator implements HealthIndicator {
         boolean allHealthy = true;
 
         // 数据库连接检查
-        if (properties.getReadiness().isDatabaseCheckEnabled()) {
+        if (properties.getHealth().getReadiness().isDatabaseCheckEnabled()) {
             allHealthy &= checkDatabase(builder);
         }
 
         // Redis 连接检查
-        if (properties.getReadiness().isRedisCheckEnabled()) {
+        if (properties.getHealth().getReadiness().isRedisCheckEnabled()) {
             allHealthy &= checkRedis(builder);
         }
 
         // 模块状态检查
-        if (properties.getReadiness().isModuleCheckEnabled()) {
+        if (properties.getHealth().getReadiness().isModuleCheckEnabled()) {
             allHealthy &= checkModules(builder);
         }
 
@@ -103,7 +104,7 @@ public class ReadinessHealthIndicator implements HealthIndicator {
         }
 
         long startTime = System.currentTimeMillis();
-        long timeoutMs = properties.getReadiness().getDatabaseCheckTimeout().toMillis();
+        long timeoutMs = properties.getHealth().getReadiness().getDatabaseCheckTimeout().toMillis();
 
         try (Connection connection = dataSource.getConnection()) {
             boolean valid = connection.isValid((int) TimeUnit.MILLISECONDS.toSeconds(timeoutMs));
@@ -135,7 +136,7 @@ public class ReadinessHealthIndicator implements HealthIndicator {
      * @return true 表示健康，false 表示不健康
      */
     private boolean checkRedis(Health.Builder builder) {
-        if (!properties.getReadiness().isRedisCheckEnabled()) {
+        if (!properties.getHealth().getReadiness().isRedisCheckEnabled()) {
             return true;
         }
 
@@ -180,7 +181,7 @@ public class ReadinessHealthIndicator implements HealthIndicator {
         }
 
         List<ModuleDefinition> modules = moduleRegistry.getAllModules();
-        Set<String> requiredModules = properties.getReadiness().getRequiredModules();
+        Set<String> requiredModules = properties.getHealth().getReadiness().getRequiredModules();
 
         // 过滤需要检查的模块
         Stream<ModuleDefinition> moduleStream = modules.stream();

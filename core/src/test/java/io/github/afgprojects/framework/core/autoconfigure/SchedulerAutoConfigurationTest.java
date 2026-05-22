@@ -11,9 +11,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import io.github.afgprojects.framework.core.api.scheduler.InMemoryTaskExecutionLogStorage;
-import io.github.afgprojects.framework.core.api.scheduler.SchedulerProperties;
 import io.github.afgprojects.framework.core.api.scheduler.TaskExecutionLogStorage;
 import io.github.afgprojects.framework.core.api.scheduler.TaskExecutionMetrics;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.lock.DistributedLock;
 import io.github.afgprojects.framework.core.lock.LockType;
 import io.github.afgprojects.framework.core.scheduler.DistributedTaskAspect;
@@ -150,7 +150,7 @@ class SchedulerAutoConfigurationTest {
         void shouldCreateDynamicTaskManagerWhenEnabled() {
             contextRunner
                     .withUserConfiguration(TestConfiguration.class)
-                    .withPropertyValues("afg.scheduler.dynamic-task.enabled=true")
+                    .withPropertyValues("afg.core.scheduler.dynamic-task.enabled=true")
                     .run(context -> {
                         assertThat(context).hasSingleBean(DynamicTaskManager.class);
                     });
@@ -164,7 +164,7 @@ class SchedulerAutoConfigurationTest {
         void shouldNotCreateDynamicTaskManagerWhenDisabled() {
             contextRunner
                     .withUserConfiguration(TestConfiguration.class)
-                    .withPropertyValues("afg.scheduler.dynamic-task.enabled=false")
+                    .withPropertyValues("afg.core.scheduler.dynamic-task.enabled=false")
                     .run(context -> {
                         assertThat(context).doesNotHaveBean(DynamicTaskManager.class);
                     });
@@ -187,7 +187,7 @@ class SchedulerAutoConfigurationTest {
         void shouldNotCreateBeansWhenDisabled() {
             contextRunner
                     .withUserConfiguration(TestConfiguration.class)
-                    .withPropertyValues("afg.scheduler.enabled=false")
+                    .withPropertyValues("afg.core.scheduler.enabled=false")
                     .run(context -> {
                         assertThat(context).doesNotHaveBean(LocalTaskScheduler.class);
                         assertThat(context).doesNotHaveBean(ScheduledTaskAspect.class);

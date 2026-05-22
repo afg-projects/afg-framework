@@ -774,22 +774,22 @@ class EntityMetadataProcessorTest {
     private static List<File> getClasspathFiles() {
         List<File> files = new ArrayList<>();
 
-        // 从当前类加载器获取 classpath
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        if (classLoader instanceof URLClassLoader urlClassLoader) {
-            for (URL url : urlClassLoader.getURLs()) {
-                File file = new File(url.getFile());
-                if (file.exists()) {
+        // 从 java.class.path 系统属性获取 classpath
+        String classpath = System.getProperty("java.class.path");
+        if (classpath != null) {
+            for (String path : classpath.split(File.pathSeparator)) {
+                File file = new File(path);
+                if (file.exists() && !files.contains(file)) {
                     files.add(file);
                 }
             }
         }
 
-        // 添加 java.class.path 中的条目
-        String classpath = System.getProperty("java.class.path");
-        if (classpath != null) {
-            for (String path : classpath.split(File.pathSeparator)) {
-                File file = new File(path);
+        // 从当前类加载器获取 classpath（作为补充）
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        if (classLoader instanceof URLClassLoader urlClassLoader) {
+            for (URL url : urlClassLoader.getURLs()) {
+                File file = new File(url.getFile());
                 if (file.exists() && !files.contains(file)) {
                     files.add(file);
                 }

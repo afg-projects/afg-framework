@@ -25,9 +25,9 @@ import io.github.afgprojects.framework.core.support.TestApplication;
 @SpringBootTest(
         classes = TestApplication.class,
         properties = {
-                "afg.cache.enabled=true",
-                "afg.cache.type=local",
-                "afg.cache.local.maximum-size=1000"
+                "afg.core.cache.enabled=true",
+                "afg.core.cache.type=local",
+                "afg.core.cache.local.maximum-size=1000"
         }
 )
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)

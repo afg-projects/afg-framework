@@ -10,13 +10,15 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
+
 /**
- * MultiDataSourceProperties 单元测试。
+ * DataSourceConfig 单元测试。
  * 测试多数据源配置属性类的默认值和属性设置。
  *
- * @see MultiDataSourceProperties
+ * @see AfgCoreProperties.DataSourceConfig
  */
-@DisplayName("MultiDataSourceProperties 测试")
+@DisplayName("DataSourceConfig 测试")
 class MultiDataSourcePropertiesTest {
 
     /**
@@ -33,7 +35,7 @@ class MultiDataSourcePropertiesTest {
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
-            MultiDataSourceProperties props = new MultiDataSourceProperties();
+            AfgCoreProperties.DataSourceConfig props = new AfgCoreProperties.DataSourceConfig();
 
             assertThat(props.isEnabled()).isFalse();
             assertThat(props.getPrimary()).isEqualTo("master");
@@ -44,32 +46,32 @@ class MultiDataSourcePropertiesTest {
     }
 
     /**
-     * DataSourceConfig 内嵌类测试。
+     * DataSourceInstanceConfig 内嵌类测试。
      * 验证数据源配置的默认值和属性设置。
      */
     @Nested
-    @DisplayName("DataSourceConfig 测试")
+    @DisplayName("DataSourceInstanceConfig 测试")
     class DataSourceConfigTests {
 
         /**
-         * 测试 DataSourceConfig 的默认值。
+         * 测试 DataSourceInstanceConfig 的默认值。
          */
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
-            MultiDataSourceProperties.DataSourceConfig config = new MultiDataSourceProperties.DataSourceConfig();
+            AfgCoreProperties.DataSourceConfig.DataSourceInstanceConfig config = new AfgCoreProperties.DataSourceConfig.DataSourceInstanceConfig();
 
             assertThat(config.isLazyInit()).isFalse();
             assertThat(config.getPoolConfig()).isEmpty();
         }
 
         /**
-         * 测试 DataSourceConfig 的属性设置。
+         * 测试 DataSourceInstanceConfig 的属性设置。
          */
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
-            MultiDataSourceProperties.DataSourceConfig config = new MultiDataSourceProperties.DataSourceConfig();
+            AfgCoreProperties.DataSourceConfig.DataSourceInstanceConfig config = new AfgCoreProperties.DataSourceConfig.DataSourceInstanceConfig();
             config.setUrl("jdbc:mysql://localhost:3306/test");
             config.setUsername("root");
             config.setPassword("password");
@@ -103,7 +105,7 @@ class MultiDataSourcePropertiesTest {
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
-            MultiDataSourceProperties.ReadWriteSeparationConfig config = new MultiDataSourceProperties.ReadWriteSeparationConfig();
+            AfgCoreProperties.DataSourceConfig.ReadWriteSeparationConfig config = new AfgCoreProperties.DataSourceConfig.ReadWriteSeparationConfig();
 
             assertThat(config.isEnabled()).isFalse();
             assertThat(config.getReadDatasources()).isEmpty();
@@ -116,7 +118,7 @@ class MultiDataSourcePropertiesTest {
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
-            MultiDataSourceProperties.ReadWriteSeparationConfig config = new MultiDataSourceProperties.ReadWriteSeparationConfig();
+            AfgCoreProperties.DataSourceConfig.ReadWriteSeparationConfig config = new AfgCoreProperties.DataSourceConfig.ReadWriteSeparationConfig();
             config.setEnabled(true);
             config.setReadDatasources(List.of("slave1", "slave2"));
             config.setWriteDatasource("master");
@@ -141,9 +143,9 @@ class MultiDataSourcePropertiesTest {
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
-            MultiDataSourceProperties.LoadBalanceConfig config = new MultiDataSourceProperties.LoadBalanceConfig();
+            AfgCoreProperties.DataSourceConfig.LoadBalanceConfig config = new AfgCoreProperties.DataSourceConfig.LoadBalanceConfig();
 
-            assertThat(config.getStrategy()).isEqualTo(MultiDataSourceProperties.LoadBalanceStrategyType.ROUND_ROBIN);
+            assertThat(config.getStrategy()).isEqualTo(AfgCoreProperties.DataSourceConfig.LoadBalanceStrategyType.ROUND_ROBIN);
             assertThat(config.getHealthCheckInterval()).isEqualTo(30000L);
             assertThat(config.isHealthCheckEnabled()).isTrue();
             assertThat(config.getWeights()).isEmpty();
@@ -155,8 +157,8 @@ class MultiDataSourcePropertiesTest {
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
-            MultiDataSourceProperties.LoadBalanceConfig config = new MultiDataSourceProperties.LoadBalanceConfig();
-            config.setStrategy(MultiDataSourceProperties.LoadBalanceStrategyType.WEIGHTED);
+            AfgCoreProperties.DataSourceConfig.LoadBalanceConfig config = new AfgCoreProperties.DataSourceConfig.LoadBalanceConfig();
+            config.setStrategy(AfgCoreProperties.DataSourceConfig.LoadBalanceStrategyType.WEIGHTED);
             config.setHealthCheckInterval(60000L);
             config.setHealthCheckEnabled(false);
 
@@ -165,7 +167,7 @@ class MultiDataSourcePropertiesTest {
             weights.put("slave2", 30);
             config.setWeights(weights);
 
-            assertThat(config.getStrategy()).isEqualTo(MultiDataSourceProperties.LoadBalanceStrategyType.WEIGHTED);
+            assertThat(config.getStrategy()).isEqualTo(AfgCoreProperties.DataSourceConfig.LoadBalanceStrategyType.WEIGHTED);
             assertThat(config.getHealthCheckInterval()).isEqualTo(60000L);
             assertThat(config.isHealthCheckEnabled()).isFalse();
             assertThat(config.getWeights()).containsEntry("slave1", 70);
@@ -186,13 +188,13 @@ class MultiDataSourcePropertiesTest {
         @Test
         @DisplayName("应该包含所有策略类型")
         void shouldContainAllTypes() {
-            MultiDataSourceProperties.LoadBalanceStrategyType[] types = MultiDataSourceProperties.LoadBalanceStrategyType.values();
+            AfgCoreProperties.DataSourceConfig.LoadBalanceStrategyType[] types = AfgCoreProperties.DataSourceConfig.LoadBalanceStrategyType.values();
 
             assertThat(types).hasSize(3);
             assertThat(types).contains(
-                    MultiDataSourceProperties.LoadBalanceStrategyType.ROUND_ROBIN,
-                    MultiDataSourceProperties.LoadBalanceStrategyType.WEIGHTED,
-                    MultiDataSourceProperties.LoadBalanceStrategyType.LEAST_CONNECTIONS
+                    AfgCoreProperties.DataSourceConfig.LoadBalanceStrategyType.ROUND_ROBIN,
+                    AfgCoreProperties.DataSourceConfig.LoadBalanceStrategyType.WEIGHTED,
+                    AfgCoreProperties.DataSourceConfig.LoadBalanceStrategyType.LEAST_CONNECTIONS
             );
         }
     }

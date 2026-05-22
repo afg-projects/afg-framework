@@ -18,7 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import io.github.afgprojects.framework.core.api.scheduler.InMemoryTaskExecutionLogStorage;
-import io.github.afgprojects.framework.core.api.scheduler.SchedulerProperties;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.api.scheduler.TaskExecutionLogStorage;
 import io.github.afgprojects.framework.core.api.scheduler.TaskExecutionMetrics;
 import io.github.afgprojects.framework.core.api.scheduler.TaskStatus;
@@ -35,14 +35,15 @@ class LocalTaskSchedulerTest {
 
     private LocalTaskScheduler scheduler;
     private MeterRegistry meterRegistry;
-    private SchedulerProperties properties;
+    private AfgCoreProperties.SchedulerConfig properties;
     private TaskExecutionLogStorage logStorage;
     private TaskExecutionMetrics metrics;
 
     @BeforeEach
     void setUp() {
         meterRegistry = new SimpleMeterRegistry();
-        properties = new SchedulerProperties();
+        AfgCoreProperties afgProps = new AfgCoreProperties();
+        properties = afgProps.getScheduler();
         properties.setThreadPoolSize(2);
         logStorage = new InMemoryTaskExecutionLogStorage(100);
         metrics = new TaskExecutionMetrics(meterRegistry, properties.getMetrics());

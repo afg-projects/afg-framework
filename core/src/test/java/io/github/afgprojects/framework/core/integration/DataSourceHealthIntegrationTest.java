@@ -18,8 +18,8 @@ import org.springframework.boot.health.contributor.Status;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.web.health.DataSourceHealthIndicator;
-import io.github.afgprojects.framework.core.web.health.DataSourceHealthProperties;
 
 /**
  * DataSourceHealthIndicator 集成测试
@@ -29,7 +29,7 @@ import io.github.afgprojects.framework.core.web.health.DataSourceHealthPropertie
 class DataSourceHealthIntegrationTest {
 
     private HikariDataSource dataSource;
-    private DataSourceHealthProperties properties;
+    private AfgCoreProperties properties;
     private DataSourceHealthIndicator healthIndicator;
 
     @BeforeEach
@@ -44,7 +44,7 @@ class DataSourceHealthIntegrationTest {
         config.setPoolName("testPool");
         dataSource = new HikariDataSource(config);
 
-        properties = new DataSourceHealthProperties();
+        properties = new AfgCoreProperties();
         healthIndicator = new DataSourceHealthIndicator(dataSource, properties);
     }
 
@@ -190,7 +190,7 @@ class DataSourceHealthIntegrationTest {
         @DisplayName("高使用率时应该报告警告")
         void shouldReportWarningWhenHighUsage() throws SQLException {
             // given - 修改警告阈值
-            properties.setPoolUsageWarningThreshold(5);
+            properties.getHealth().getDatasource().setPoolUsageWarningThreshold(5);
             DataSourceHealthIndicator indicator = new DataSourceHealthIndicator(dataSource, properties);
 
             // 获取多个连接提高使用率
@@ -224,7 +224,7 @@ class DataSourceHealthIntegrationTest {
         @DisplayName("自定义验证查询应该生效")
         void customValidationQueryShouldWork() {
             // given
-            properties.setValidationQuery("SELECT 1 FROM DUAL");
+            properties.getHealth().getDatasource().setValidationQuery("SELECT 1 FROM DUAL");
             DataSourceHealthIndicator indicator = new DataSourceHealthIndicator(dataSource, properties);
 
             // when
@@ -238,10 +238,10 @@ class DataSourceHealthIntegrationTest {
         @DisplayName("自定义阈值应该生效")
         void customThresholdsShouldWork() {
             // given
-            properties.setPoolUsageWarningThreshold(50);
-            properties.setPoolUsageCriticalThreshold(80);
-            properties.setThreadsAwaitingWarningThreshold(3);
-            properties.setThreadsAwaitingCriticalThreshold(8);
+            properties.getHealth().getDatasource().setPoolUsageWarningThreshold(50);
+            properties.getHealth().getDatasource().setPoolUsageCriticalThreshold(80);
+            properties.getHealth().getDatasource().setThreadsAwaitingWarningThreshold(3);
+            properties.getHealth().getDatasource().setThreadsAwaitingCriticalThreshold(8);
             DataSourceHealthIndicator indicator = new DataSourceHealthIndicator(dataSource, properties);
 
             // when

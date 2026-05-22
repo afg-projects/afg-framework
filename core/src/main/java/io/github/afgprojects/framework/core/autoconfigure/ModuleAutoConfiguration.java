@@ -28,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
  *   <li>运行时直接读取索引文件，零扫描开销</li>
  * </ol>
  *
- * <p>性能：索引文件加载 <5ms，相比运行时扫描（100-500ms）大幅提升。
+ * <p>性能：索引文件加载 &lt;5ms，相比运行时扫描（100-500ms）大幅提升。
  *
  * <p>可选配置：
  * <ul>
@@ -42,7 +42,7 @@ public class ModuleAutoConfiguration implements ImportSelector {
     private static final String INDEX_FILE = "META-INF/afg-modules.index";
 
     @Override
-    public String[] selectImports(@NonNull AnnotationMetadata importingClassMetadata) {
+    public @NonNull String[] selectImports(@NonNull AnnotationMetadata importingClassMetadata) {
         List<String> moduleConfigs = loadFromIndex();
 
         log.info("Loaded {} AFG module configurations from index: {}", moduleConfigs.size(), moduleConfigs);
@@ -53,6 +53,7 @@ public class ModuleAutoConfiguration implements ImportSelector {
     /**
      * 从编译时生成的索引文件加载模块配置
      */
+    @NonNull
     private List<String> loadFromIndex() {
         List<String> configs = new ArrayList<>();
 

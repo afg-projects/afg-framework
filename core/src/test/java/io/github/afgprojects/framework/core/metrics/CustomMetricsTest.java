@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.core.metrics;
 
-import io.github.afgprojects.framework.core.autoconfigure.MetricsProperties;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -23,13 +23,13 @@ import static org.junit.jupiter.api.Assertions.*;
 class CustomMetricsTest {
 
     private MeterRegistry meterRegistry;
-    private MetricsProperties properties;
+    private AfgCoreProperties properties;
     private CustomMetrics customMetrics;
 
     @BeforeEach
     void setUp() {
         meterRegistry = new SimpleMeterRegistry();
-        properties = new MetricsProperties();
+        properties = new AfgCoreProperties();
         customMetrics = new CustomMetrics(meterRegistry, properties);
     }
 

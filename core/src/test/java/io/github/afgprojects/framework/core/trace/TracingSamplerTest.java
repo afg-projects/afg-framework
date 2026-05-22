@@ -8,7 +8,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.github.afgprojects.framework.core.trace.TracingProperties.Sampling;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties.TracingConfig.SamplingConfig;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties.TracingConfig.SamplingStrategy;
 
 /**
  * TracingSampler 测试类
@@ -19,7 +20,7 @@ class TracingSamplerTest {
     @Test
     @DisplayName("ALWAYS 策略始终采样")
     void testAlwaysStrategy() {
-        Sampling sampling = new Sampling();
+        SamplingConfig sampling = new SamplingConfig();
         sampling.setStrategy(SamplingStrategy.ALWAYS);
 
         TracingSampler sampler = new TracingSampler(sampling);
@@ -32,7 +33,7 @@ class TracingSamplerTest {
     @Test
     @DisplayName("NEVER 策略从不采样")
     void testNeverStrategy() {
-        Sampling sampling = new Sampling();
+        SamplingConfig sampling = new SamplingConfig();
         sampling.setStrategy(SamplingStrategy.NEVER);
 
         TracingSampler sampler = new TracingSampler(sampling);
@@ -45,7 +46,7 @@ class TracingSamplerTest {
     @Test
     @DisplayName("概率采样概率为 1.0 时始终采样")
     void testProbabilityOne() {
-        Sampling sampling = new Sampling();
+        SamplingConfig sampling = new SamplingConfig();
         sampling.setStrategy(SamplingStrategy.PROBABILITY);
         sampling.setProbability(1.0);
 
@@ -59,7 +60,7 @@ class TracingSamplerTest {
     @Test
     @DisplayName("概率采样概率为 0.0 时从不采样")
     void testProbabilityZero() {
-        Sampling sampling = new Sampling();
+        SamplingConfig sampling = new SamplingConfig();
         sampling.setStrategy(SamplingStrategy.PROBABILITY);
         sampling.setProbability(0.0);
 
@@ -73,7 +74,7 @@ class TracingSamplerTest {
     @Test
     @DisplayName("概率采样概率为 0.5 时大约一半采样")
     void testProbabilityHalf() {
-        Sampling sampling = new Sampling();
+        SamplingConfig sampling = new SamplingConfig();
         sampling.setStrategy(SamplingStrategy.PROBABILITY);
         sampling.setProbability(0.5);
 
@@ -95,7 +96,7 @@ class TracingSamplerTest {
     @Test
     @DisplayName("限流采样限制每秒请求数")
     void testRateLimiting() throws InterruptedException {
-        Sampling sampling = new Sampling();
+        SamplingConfig sampling = new SamplingConfig();
         sampling.setStrategy(SamplingStrategy.RATE_LIMITING);
         sampling.setRate(10);
 
@@ -129,7 +130,7 @@ class TracingSamplerTest {
     @Test
     @DisplayName("获取采样策略")
     void testGetStrategy() {
-        Sampling sampling = new Sampling();
+        SamplingConfig sampling = new SamplingConfig();
         sampling.setStrategy(SamplingStrategy.PROBABILITY);
 
         TracingSampler sampler = new TracingSampler(sampling);
@@ -140,7 +141,7 @@ class TracingSamplerTest {
     @Test
     @DisplayName("获取概率配置")
     void testGetProbability() {
-        Sampling sampling = new Sampling();
+        SamplingConfig sampling = new SamplingConfig();
         sampling.setStrategy(SamplingStrategy.PROBABILITY);
         sampling.setProbability(0.8);
 
@@ -152,7 +153,7 @@ class TracingSamplerTest {
     @Test
     @DisplayName("获取限流配置")
     void testGetRateLimit() {
-        Sampling sampling = new Sampling();
+        SamplingConfig sampling = new SamplingConfig();
         sampling.setStrategy(SamplingStrategy.RATE_LIMITING);
         sampling.setRate(50);
 

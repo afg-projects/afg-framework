@@ -33,6 +33,7 @@ import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.client.ResilienceInterceptor.CircuitBreakerOpenException;
 import io.github.afgprojects.framework.core.client.ResilienceInterceptor.RetryExhaustedException;
 
@@ -47,7 +48,7 @@ import io.github.afgprojects.framework.core.client.ResilienceInterceptor.RetryEx
 class AsyncResilienceInterceptorTest {
 
     private AsyncResilienceInterceptor interceptor;
-    private HttpClientProperties properties;
+    private AfgCoreProperties properties;
     private ScheduledExecutorService scheduler;
 
     @Mock
@@ -72,15 +73,15 @@ class AsyncResilienceInterceptorTest {
         mocks.close();
     }
 
-    private HttpClientProperties createDefaultProperties() {
-        HttpClientProperties props = new HttpClientProperties();
-        props.getRetry().setEnabled(true);
-        props.getRetry().setMaxAttempts(3);
-        props.getRetry().setInitialInterval(50); // 短间隔用于测试
-        props.getRetry().setRetryOnStatus(Set.of(502, 503, 504));
-        props.getCircuitBreaker().setEnabled(true);
-        props.getCircuitBreaker().setFailureThreshold(5);
-        props.getCircuitBreaker().setOpenDuration(100);
+    private AfgCoreProperties createDefaultProperties() {
+        AfgCoreProperties props = new AfgCoreProperties();
+        props.getHttpClient().getRetry().setEnabled(true);
+        props.getHttpClient().getRetry().setMaxAttempts(3);
+        props.getHttpClient().getRetry().setInitialInterval(50); // 短间隔用于测试
+        props.getHttpClient().getRetry().setRetryOnStatus(Set.of(502, 503, 504));
+        props.getHttpClient().getCircuitBreaker().setEnabled(true);
+        props.getHttpClient().getCircuitBreaker().setFailureThreshold(5);
+        props.getHttpClient().getCircuitBreaker().setOpenDuration(100);
         return props;
     }
 
@@ -327,7 +328,7 @@ class AsyncResilienceInterceptorTest {
         @DisplayName("禁用熔断器时应该跳过熔断检查")
         void shouldSkipCircuitBreakerWhenDisabled() {
             // given
-            properties.getCircuitBreaker().setEnabled(false);
+            properties.getHttpClient().getCircuitBreaker().setEnabled(false);
             interceptor = new AsyncResilienceInterceptor(properties, scheduler);
 
             when(request.getURI()).thenReturn(URI.create("http://example.com/api"));

@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -15,7 +16,7 @@ import org.junit.jupiter.api.Test;
  * 测试缓存属性配置的功能，包括默认值、本地缓存配置、分布式缓存配置、配置转换和命名缓存配置。
  * </p>
  *
- * @see CacheProperties
+ * @see AfgCoreProperties.CacheConfig
  */
 @DisplayName("CacheProperties 测试")
 class CachePropertiesTest {
@@ -36,7 +37,7 @@ class CachePropertiesTest {
         @Test
         @DisplayName("默认应该启用缓存")
         void shouldBeEnabledByDefault() {
-            CacheProperties properties = new CacheProperties();
+            AfgCoreProperties.CacheConfig properties = new AfgCoreProperties.CacheConfig();
             assertThat(properties.isEnabled()).isTrue();
         }
 
@@ -46,8 +47,8 @@ class CachePropertiesTest {
         @Test
         @DisplayName("默认缓存类型应该是 LOCAL")
         void shouldDefaultToLocalCacheType() {
-            CacheProperties properties = new CacheProperties();
-            assertThat(properties.getType()).isEqualTo(CacheProperties.CacheType.LOCAL);
+            AfgCoreProperties.CacheConfig properties = new AfgCoreProperties.CacheConfig();
+            assertThat(properties.getType()).isEqualTo(AfgCoreProperties.CacheConfig.CacheType.LOCAL);
         }
 
         /**
@@ -56,7 +57,7 @@ class CachePropertiesTest {
         @Test
         @DisplayName("默认应该缓存 null 值")
         void shouldCacheNullByDefault() {
-            CacheProperties properties = new CacheProperties();
+            AfgCoreProperties.CacheConfig properties = new AfgCoreProperties.CacheConfig();
             assertThat(properties.isCacheNull()).isTrue();
         }
     }
@@ -77,7 +78,7 @@ class CachePropertiesTest {
         @Test
         @DisplayName("应该正确设置本地缓存配置")
         void shouldSetLocalConfig() {
-            CacheProperties properties = new CacheProperties();
+            AfgCoreProperties.CacheConfig properties = new AfgCoreProperties.CacheConfig();
             properties.getLocal().setMaximumSize(5000);
             properties.getLocal().setInitialCapacity(256);
             properties.getLocal().setExpireAfterWrite(Duration.ofMinutes(5));
@@ -104,7 +105,7 @@ class CachePropertiesTest {
         @Test
         @DisplayName("应该正确设置分布式缓存配置")
         void shouldSetDistributedConfig() {
-            CacheProperties properties = new CacheProperties();
+            AfgCoreProperties.CacheConfig properties = new AfgCoreProperties.CacheConfig();
             properties.getDistributed().setEnabled(true);
             properties.getDistributed().setKeyPrefix("my-cache:");
             properties.getDistributed().setDefaultTtl(3600000);
@@ -112,78 +113,6 @@ class CachePropertiesTest {
             assertThat(properties.getDistributed().isEnabled()).isTrue();
             assertThat(properties.getDistributed().getKeyPrefix()).isEqualTo("my-cache:");
             assertThat(properties.getDistributed().getDefaultTtl()).isEqualTo(3600000);
-        }
-    }
-
-    /**
-     * toCacheConfig 测试。
-     * <p>
-     * 测试属性转换为 CacheConfig。
-     * </p>
-     */
-    @Nested
-    @DisplayName("toCacheConfig 测试")
-    class ToCacheConfigTests {
-
-        /**
-         * 测试正确转换为 CacheConfig。
-         */
-        @Test
-        @DisplayName("应该正确转换为 CacheConfig")
-        void shouldConvertToCacheConfig() {
-            CacheProperties properties = new CacheProperties();
-            properties.setDefaultTtl(60000);
-            properties.setCacheNull(false);
-            properties.getLocal().setMaximumSize(5000);
-
-            CacheConfig config = properties.toCacheConfig();
-
-            assertThat(config.getDefaultTtl()).isEqualTo(60000);
-            assertThat(config.isCacheNull()).isFalse();
-            assertThat(config.getMaximumSize()).isEqualTo(5000);
-        }
-    }
-
-    /**
-     * 命名缓存配置测试。
-     * <p>
-     * 测试获取命名缓存配置的功能。
-     * </p>
-     */
-    @Nested
-    @DisplayName("命名缓存配置测试")
-    class NamedCacheConfigTests {
-
-        /**
-         * 测试正确获取命名缓存配置。
-         */
-        @Test
-        @DisplayName("应该正确获取命名缓存配置")
-        void shouldGetNamedCacheConfig() {
-            CacheProperties properties = new CacheProperties();
-            CacheConfig customConfig = CacheConfig.defaultConfig()
-                    .maximumSize(100)
-                    .defaultTtl(30000);
-            properties.getCaches().put("users", customConfig);
-
-            CacheConfig result = properties.getCacheConfig("users");
-
-            assertThat(result.getMaximumSize()).isEqualTo(100);
-            assertThat(result.getDefaultTtl()).isEqualTo(30000);
-        }
-
-        /**
-         * 测试未配置的缓存使用默认配置。
-         */
-        @Test
-        @DisplayName("未配置的缓存应该使用默认配置")
-        void shouldUseDefaultConfigForUnconfiguredCache() {
-            CacheProperties properties = new CacheProperties();
-            properties.setDefaultTtl(60000);
-
-            CacheConfig result = properties.getCacheConfig("unknown-cache");
-
-            assertThat(result.getDefaultTtl()).isEqualTo(60000);
         }
     }
 
@@ -203,12 +132,12 @@ class CachePropertiesTest {
         @Test
         @DisplayName("应该包含所有缓存类型")
         void shouldContainAllCacheTypes() {
-            CacheProperties.CacheType[] types = CacheProperties.CacheType.values();
+            AfgCoreProperties.CacheConfig.CacheType[] types = AfgCoreProperties.CacheConfig.CacheType.values();
 
             assertThat(types).containsExactly(
-                    CacheProperties.CacheType.LOCAL,
-                    CacheProperties.CacheType.DISTRIBUTED,
-                    CacheProperties.CacheType.MULTI_LEVEL
+                    AfgCoreProperties.CacheConfig.CacheType.LOCAL,
+                    AfgCoreProperties.CacheConfig.CacheType.DISTRIBUTED,
+                    AfgCoreProperties.CacheConfig.CacheType.MULTI_LEVEL
             );
         }
     }

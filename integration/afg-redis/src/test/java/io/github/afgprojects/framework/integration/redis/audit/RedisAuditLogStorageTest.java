@@ -18,7 +18,7 @@ import org.redisson.api.RList;
 import org.redisson.api.RedissonClient;
 
 import io.github.afgprojects.framework.core.audit.AuditLog;
-import io.github.afgprojects.framework.core.audit.AuditLogProperties;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 
 /**
  * RedisAuditLogStorage 单元测试
@@ -32,12 +32,12 @@ class RedisAuditLogStorageTest {
     @Mock
     private RList<String> rList;
 
-    private AuditLogProperties properties;
+    private AfgCoreProperties.AuditConfig properties;
     private RedisAuditLogStorage storage;
 
     @BeforeEach
     void setUp() {
-        properties = new AuditLogProperties();
+        properties = new AfgCoreProperties.AuditConfig();
         properties.setMaxSize(1000);
         properties.setTtl(Duration.ofDays(7));
         properties.setMultiTenant(true);

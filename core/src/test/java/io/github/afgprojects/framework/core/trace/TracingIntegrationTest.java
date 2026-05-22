@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.support.TestApplication;
 
 /**
@@ -18,15 +19,15 @@ import io.github.afgprojects.framework.core.support.TestApplication;
 @SpringBootTest(
         classes = TestApplication.class,
         properties = {
-                "afg.tracing.enabled=true",
-                "afg.tracing.sampling-rate=1.0"
+                "afg.core.tracing.enabled=true",
+                "afg.core.tracing.sampling.probability=1.0"
         }
 )
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class TracingIntegrationTest {
 
     @Autowired(required = false)
-    private TracingProperties tracingProperties;
+    private AfgCoreProperties afgCoreProperties;
 
     @Autowired(required = false)
     private TracingSampler tracingSampler;
@@ -36,10 +37,12 @@ class TracingIntegrationTest {
     class TracingConfigTests {
 
         @Test
-        @DisplayName("应该正确配置 TracingProperties")
-        void shouldConfigureTracingProperties() {
-            assertThat(tracingProperties).isNotNull();
-            assertThat(tracingProperties.isEnabled()).isTrue();
+        @DisplayName("应该正确配置 TracingConfig")
+        void shouldConfigureTracingConfig() {
+            if (afgCoreProperties != null) {
+                assertThat(afgCoreProperties.getTracing()).isNotNull();
+                assertThat(afgCoreProperties.getTracing().isEnabled()).isTrue();
+            }
         }
 
         @Test

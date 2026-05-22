@@ -9,17 +9,19 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
+
 /**
- * HealthCheckProperties 单元测试
+ * HealthConfig 单元测试
  */
-@DisplayName("HealthCheckProperties 测试")
+@DisplayName("HealthConfig 测试")
 class HealthCheckPropertiesTest {
 
-    private HealthCheckProperties properties;
+    private AfgCoreProperties.HealthConfig properties;
 
     @BeforeEach
     void setUp() {
-        properties = new HealthCheckProperties();
+        properties = new AfgCoreProperties.HealthConfig();
     }
 
     @Nested

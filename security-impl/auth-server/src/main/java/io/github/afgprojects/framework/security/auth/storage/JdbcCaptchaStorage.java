@@ -53,12 +53,15 @@ public class JdbcCaptchaStorage implements AfgCaptchaStorage {
             entity = existing.get();
             entity.setCaptchaValue(value);
             entity.setExpiresAt(expiresAt);
+            entity.setUpdatedAt(now);
         } else {
             entity = new AuthCaptcha();
             entity.setCaptchaKey(key);
             entity.setCaptchaValue(value);
             entity.setCaptchaType("IMAGE");
             entity.setExpiresAt(expiresAt);
+            entity.setCreatedAt(now);
+            entity.setUpdatedAt(now);
         }
         dataManager.save(AuthCaptcha.class, entity);
         log.debug("Saved captcha: key={}, ttl={}", key, ttl);

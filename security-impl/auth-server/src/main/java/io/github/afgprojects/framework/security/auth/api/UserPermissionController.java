@@ -1,22 +1,28 @@
 package io.github.afgprojects.framework.security.auth.api;
 
 import io.github.afgprojects.framework.security.core.permission.RbacService;
-import io.github.afgprojects.framework.security.permission.entity.SecRole;
-import io.github.afgprojects.framework.security.permission.service.JdbcRoleService;
-import lombok.RequiredArgsConstructor;
+import io.github.afgprojects.framework.security.auth.permission.entity.SecRole;
+import io.github.afgprojects.framework.security.auth.permission.service.JdbcRoleService;
 import org.jspecify.annotations.Nullable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Set;
 
-@RestController
+/**
+ * 用户权限管理 API。
+ */
+@ResponseBody
 @RequestMapping("/user-permissions")
-@RequiredArgsConstructor
 public class UserPermissionController {
 
     private final RbacService rbacService;
     private final JdbcRoleService roleService;
+
+    public UserPermissionController(RbacService rbacService, JdbcRoleService roleService) {
+        this.rbacService = rbacService;
+        this.roleService = roleService;
+    }
 
     @GetMapping("/{userId}/permissions")
     public Set<String> getPermissions(@PathVariable String userId, @RequestParam @Nullable String tenantId) {

@@ -21,6 +21,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.support.BaseUnitTest;
 
 /**
@@ -30,14 +31,14 @@ import io.github.afgprojects.framework.core.support.BaseUnitTest;
 @DisplayName("FeatureFlagManager 测试")
 class FeatureFlagManagerTest extends BaseUnitTest {
 
-    private FeatureFlagProperties properties;
+    private AfgCoreProperties properties;
 
     @Mock
     private FeatureFlagManager.DistributedStorageClient storageClient;
 
     @BeforeEach
     void setUp() {
-        properties = new FeatureFlagProperties();
+        properties = new AfgCoreProperties();
     }
 
     @Test
@@ -131,7 +132,7 @@ class FeatureFlagManagerTest extends BaseUnitTest {
     @Test
     @DisplayName("分布式模式 - 注册时同步到存储")
     void distributedMode_register_shouldSyncToStorage() {
-        properties.setStorageType(FeatureFlagProperties.StorageType.REDISSON);
+        properties.getFeature().setStorageType(AfgCoreProperties.FeatureFlagConfig.StorageType.REDISSON);
         FeatureFlagManager manager = new FeatureFlagManager(properties, storageClient);
 
         FeatureFlag flag = FeatureFlag.of("distributed-feature", true);
@@ -143,7 +144,7 @@ class FeatureFlagManagerTest extends BaseUnitTest {
     @Test
     @DisplayName("分布式模式 - 获取时先从存储读取")
     void distributedMode_get_shouldReadFromStorageFirst() {
-        properties.setStorageType(FeatureFlagProperties.StorageType.REDISSON);
+        properties.getFeature().setStorageType(AfgCoreProperties.FeatureFlagConfig.StorageType.REDISSON);
         FeatureFlagManager manager = new FeatureFlagManager(properties, storageClient);
 
         FeatureFlag storedFlag = FeatureFlag.builder()
@@ -162,7 +163,7 @@ class FeatureFlagManagerTest extends BaseUnitTest {
     @Test
     @DisplayName("分布式模式 - 删除时同步到存储")
     void distributedMode_remove_shouldSyncToStorage() {
-        properties.setStorageType(FeatureFlagProperties.StorageType.REDISSON);
+        properties.getFeature().setStorageType(AfgCoreProperties.FeatureFlagConfig.StorageType.REDISSON);
         FeatureFlagManager manager = new FeatureFlagManager(properties, storageClient);
 
         FeatureFlag flag = FeatureFlag.of("remove-distributed", true);
@@ -175,7 +176,7 @@ class FeatureFlagManagerTest extends BaseUnitTest {
     @Test
     @DisplayName("分布式模式 - 刷新从存储重新加载")
     void distributedMode_refresh_shouldReloadFromStorage() {
-        properties.setStorageType(FeatureFlagProperties.StorageType.REDISSON);
+        properties.getFeature().setStorageType(AfgCoreProperties.FeatureFlagConfig.StorageType.REDISSON);
         FeatureFlagManager manager = new FeatureFlagManager(properties, storageClient);
 
         Map<String, FeatureFlag> storedFlags = Map.of(

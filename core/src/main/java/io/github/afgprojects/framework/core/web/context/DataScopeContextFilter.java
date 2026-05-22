@@ -8,10 +8,10 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.security.datascope.DataScopeContext;
 import io.github.afgprojects.framework.core.security.datascope.DataScopeContextHolder;
 import io.github.afgprojects.framework.core.security.datascope.DataScopeContextProvider;
-import io.github.afgprojects.framework.core.security.datascope.DataScopeProperties;
 import io.github.afgprojects.framework.core.web.security.AfgSecurityContextBridge;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -30,19 +30,19 @@ import jakarta.servlet.http.HttpServletResponse;
 @Slf4j
 public class DataScopeContextFilter extends OncePerRequestFilter {
 
-    private final DataScopeProperties properties;
+    private final AfgCoreProperties properties;
     private final @Nullable DataScopeContextProvider contextProvider;
     private final @Nullable AfgSecurityContextBridge securityContextBridge;
 
     /**
      * 创建数据权限上下文过滤器
      *
-     * @param properties          数据权限配置属性
+     * @param properties          核心配置属性
      * @param contextProvider     数据权限上下文提供者（可选，用于自定义上下文构建）
      * @param securityContextBridge 安全上下文桥接器（可选，用于从安全上下文提取信息）
      */
     public DataScopeContextFilter(
-            DataScopeProperties properties,
+            AfgCoreProperties properties,
             @Nullable DataScopeContextProvider contextProvider,
             @Nullable AfgSecurityContextBridge securityContextBridge) {
         this.properties = properties;
@@ -115,6 +115,6 @@ public class DataScopeContextFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         // 如果未启用数据权限，跳过过滤
-        return !properties.isEnabled();
+        return !properties.getDataScope().isEnabled();
     }
 }

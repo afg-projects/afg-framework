@@ -59,26 +59,22 @@ import java.util.Set;
 @SupportedSourceVersion(SourceVersion.RELEASE_25)
 public class EntityMetadataProcessor extends AbstractProcessor {
 
-    private Types typeUtils;
     private CommonFieldRegistry commonFieldRegistry;
     private RelationMetadataGenerator relationMetadataGenerator;
     private FieldMetadataGenerator fieldMetadataGenerator;
-    private EntityFeatureDetector entityFeatureDetector;
     private MetadataCodeGenerator metadataCodeGenerator;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
-        this.typeUtils = processingEnv.getTypeUtils();
         this.commonFieldRegistry = new CommonFieldRegistry();
         this.commonFieldRegistry.initialize(processingEnv);
 
         // 初始化各个生成器
         this.relationMetadataGenerator = new RelationMetadataGenerator();
         this.fieldMetadataGenerator = new FieldMetadataGenerator(relationMetadataGenerator);
-        this.entityFeatureDetector = new EntityFeatureDetector();
         this.metadataCodeGenerator = new MetadataCodeGenerator(
-            processingEnv, commonFieldRegistry, relationMetadataGenerator);
+            processingEnv, commonFieldRegistry);
 
         processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE,
             "AFG Entity Metadata Processor initialized");

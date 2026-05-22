@@ -1,6 +1,7 @@
 package io.github.afgprojects.framework.ai.core.model;
 
 import io.github.afgprojects.framework.ai.core.tool.ToolCall;
+import io.github.afgprojects.framework.ai.core.tool.ToolResult;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -15,6 +16,7 @@ import java.util.List;
  * <ul>
  *   <li>content - the generated text content</li>
  *   <li>toolCalls - the tool calls requested by the LLM</li>
+ *   <li>toolResults - the accumulated tool execution results</li>
  *   <li>tokenUsage - the token usage statistics</li>
  *   <li>finishReason - the reason why the LLM stopped generating</li>
  * </ul>
@@ -23,6 +25,7 @@ import java.util.List;
  * <pre>{@code
  * LlmResponse response = new LlmResponse(
  *     "Hello! How can I help you?",
+ *     List.of(),
  *     List.of(),
  *     new TokenUsage(10, 8, 18),
  *     FinishReason.STOP
@@ -37,6 +40,7 @@ import java.util.List;
  *
  * @param content      the generated text content
  * @param toolCalls    the tool calls requested by the LLM
+ * @param toolResults  the accumulated tool execution results
  * @param tokenUsage   the token usage statistics
  * @param finishReason the reason why the LLM stopped generating
  * @author AFG Projects
@@ -45,6 +49,7 @@ import java.util.List;
 public record LlmResponse(
     @Nullable String content,
     @NonNull List<ToolCall> toolCalls,
+    @NonNull List<ToolResult> toolResults,
     @Nullable TokenUsage tokenUsage,
     @Nullable FinishReason finishReason
 ) {
@@ -56,12 +61,14 @@ public record LlmResponse(
      * <ul>
      *   <li>content can be null (for tool-only responses)</li>
      *   <li>toolCalls defaults to empty list if null</li>
+     *   <li>toolResults defaults to empty list if null</li>
      *   <li>tokenUsage can be null</li>
      *   <li>finishReason can be null</li>
      * </ul>
      *
      * @param content      the generated text content
      * @param toolCalls    the tool calls
+     * @param toolResults  the tool execution results
      * @param tokenUsage   the token usage
      * @param finishReason the finish reason
      */
@@ -70,6 +77,11 @@ public record LlmResponse(
             toolCalls = List.of();
         } else {
             toolCalls = Collections.unmodifiableList(new ArrayList<>(toolCalls));
+        }
+        if (toolResults == null) {
+            toolResults = List.of();
+        } else {
+            toolResults = Collections.unmodifiableList(new ArrayList<>(toolResults));
         }
     }
 
@@ -81,7 +93,7 @@ public record LlmResponse(
      */
     @NonNull
     public static LlmResponse of(@Nullable String content) {
-        return new LlmResponse(content, List.of(), null, null);
+        return new LlmResponse(content, List.of(), List.of(), null, null);
     }
 
     /**
@@ -93,7 +105,7 @@ public record LlmResponse(
      */
     @NonNull
     public static LlmResponse of(@Nullable String content, @NonNull FinishReason finishReason) {
-        return new LlmResponse(content, List.of(), null, finishReason);
+        return new LlmResponse(content, List.of(), List.of(), null, finishReason);
     }
 
     /**
@@ -105,7 +117,7 @@ public record LlmResponse(
      */
     @NonNull
     public static LlmResponse of(@Nullable String content, @NonNull TokenUsage tokenUsage) {
-        return new LlmResponse(content, List.of(), tokenUsage, null);
+        return new LlmResponse(content, List.of(), List.of(), tokenUsage, null);
     }
 
     /**
@@ -116,7 +128,7 @@ public record LlmResponse(
      */
     @NonNull
     public static LlmResponse ofToolCalls(@NonNull List<ToolCall> toolCalls) {
-        return new LlmResponse(null, toolCalls, null, FinishReason.TOOL_CALL);
+        return new LlmResponse(null, toolCalls, List.of(), null, FinishReason.TOOL_CALL);
     }
 
     /**
@@ -126,6 +138,15 @@ public record LlmResponse(
      */
     public boolean hasToolCalls() {
         return !toolCalls.isEmpty();
+    }
+
+    /**
+     * Checks if this response has tool results.
+     *
+     * @return true if tool results are present
+     */
+    public boolean hasToolResults() {
+        return !toolResults.isEmpty();
     }
 
     /**
@@ -154,7 +175,7 @@ public record LlmResponse(
      */
     @NonNull
     public LlmResponse withContent(@Nullable String content) {
-        return new LlmResponse(content, this.toolCalls, this.tokenUsage, this.finishReason);
+        return new LlmResponse(content, this.toolCalls, this.toolResults, this.tokenUsage, this.finishReason);
     }
 
     /**
@@ -165,7 +186,18 @@ public record LlmResponse(
      */
     @NonNull
     public LlmResponse withToolCalls(@NonNull List<ToolCall> toolCalls) {
-        return new LlmResponse(this.content, toolCalls, this.tokenUsage, this.finishReason);
+        return new LlmResponse(this.content, toolCalls, this.toolResults, this.tokenUsage, this.finishReason);
+    }
+
+    /**
+     * Creates a new LlmResponse with different tool results.
+     *
+     * @param toolResults the new tool results
+     * @return a new LlmResponse instance
+     */
+    @NonNull
+    public LlmResponse withToolResults(@NonNull List<ToolResult> toolResults) {
+        return new LlmResponse(this.content, this.toolCalls, toolResults, this.tokenUsage, this.finishReason);
     }
 
     /**
@@ -176,7 +208,7 @@ public record LlmResponse(
      */
     @NonNull
     public LlmResponse withTokenUsage(@Nullable TokenUsage tokenUsage) {
-        return new LlmResponse(this.content, this.toolCalls, tokenUsage, this.finishReason);
+        return new LlmResponse(this.content, this.toolCalls, this.toolResults, tokenUsage, this.finishReason);
     }
 
     /**
@@ -187,7 +219,7 @@ public record LlmResponse(
      */
     @NonNull
     public LlmResponse withFinishReason(@Nullable FinishReason finishReason) {
-        return new LlmResponse(this.content, this.toolCalls, this.tokenUsage, finishReason);
+        return new LlmResponse(this.content, this.toolCalls, this.toolResults, this.tokenUsage, finishReason);
     }
 
     /**

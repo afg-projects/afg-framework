@@ -10,9 +10,9 @@ import io.github.afgprojects.framework.security.core.login.model.LoginRequest;
  *
  * <p>内置策略：
  * <ul>
- *   <li>{@link UsernamePasswordLoginStrategy} - 用户名密码登录</li>
- *   <li>{@link MobileCaptchaLoginStrategy} - 手机号验证码登录</li>
- *   <li>{@link EmailCaptchaLoginStrategy} - 邮箱验证码登录</li>
+ *   <li>UsernamePasswordLoginStrategy - 用户名密码登录</li>
+ *   <li>MobileCaptchaLoginStrategy - 手机号验证码登录</li>
+ *   <li>EmailCaptchaLoginStrategy - 邮箱验证码登录</li>
  * </ul>
  *
  * <p>自定义策略示例：
@@ -49,7 +49,6 @@ public interface LoginStrategy {
      *
      * @param request 登录请求
      * @return 用户详情，认证成功时返回
-     * @throws io.github.afgprojects.framework.security.core.authentication.AuthenticationException 如果认证失败
      */
     AfgUserDetails authenticate(LoginRequest request);
 

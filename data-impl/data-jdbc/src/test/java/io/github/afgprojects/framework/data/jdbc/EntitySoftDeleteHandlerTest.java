@@ -9,7 +9,7 @@ import io.github.afgprojects.framework.data.jdbc.cache.EntityCache;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheManager;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheProperties;
 import io.github.afgprojects.framework.data.jdbc.metadata.ReflectiveEntityMetadata;
-import io.github.afgprojects.framework.core.cache.CacheProperties;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.cache.DefaultCacheManager;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -707,7 +707,7 @@ class EntitySoftDeleteHandlerTest {
 
             @BeforeEach
             void setUpCache() {
-                CacheProperties cacheProperties = new CacheProperties();
+                AfgCoreProperties cacheProperties = new AfgCoreProperties()();
                 DefaultCacheManager defaultCacheManager = new DefaultCacheManager(cacheProperties);
 
                 EntityCacheProperties properties = new EntityCacheProperties();

@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.lock.exception.LockAcquisitionException;
 
 /**
@@ -37,13 +38,13 @@ class LockAspectTest {
     @Mock
     private MethodSignature methodSignature;
 
-    private LockProperties properties;
+    private AfgCoreProperties properties;
     private LockAspect lockAspect;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        properties = new LockProperties();
+        properties = new AfgCoreProperties();
         lockAspect = new LockAspect(distributedLock, properties);
 
         when(joinPoint.getSignature()).thenReturn(methodSignature);
@@ -141,8 +142,8 @@ class LockAspectTest {
         @DisplayName("应该使用全局配置的默认时间")
         void shouldUseGlobalDefaultTimes() throws Throwable {
             // given
-            properties.setDefaultWaitTime(10000);
-            properties.setDefaultLeaseTime(120000);
+            properties.getLock().setDefaultWaitTime(10000);
+            properties.getLock().setDefaultLeaseTime(120000);
             Lock annotation = createLockAnnotation("test-key", -1, -1, LockType.REENTRANT, true);
             when(distributedLock.tryLock(any(), eq(10000L), eq(120000L), any())).thenReturn(true);
             when(joinPoint.proceed()).thenReturn("result");

@@ -2,6 +2,7 @@ package io.github.afgprojects.framework.security.resource.jwt;
 
 import io.github.afgprojects.framework.security.core.authentication.AfgAuthentication;
 import io.github.afgprojects.framework.security.core.authentication.AfgUserDetails;
+import io.github.afgprojects.framework.security.resource.autoconfigure.ResourceSecurityProperties;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -21,7 +22,7 @@ import java.util.stream.Collectors;
  *
  * <p>使用示例：
  * <pre>{@code
- * JwtAuthenticationConverter converter = new JwtAuthenticationConverter(properties);
+ * JwtAuthenticationConverter converter = new JwtAuthenticationConverter(jwtConfig);
  * AfgAuthentication afgAuth = converter.convert(jwtAuthenticationToken);
  * }</pre>
  *
@@ -29,15 +30,15 @@ import java.util.stream.Collectors;
  */
 public class JwtAuthenticationConverter {
 
-    private final JwtResourceProperties properties;
+    private final ResourceSecurityProperties.JwtConfig jwtConfig;
 
     /**
      * 构造转换器。
      *
-     * @param properties JWT 配置属性
+     * @param jwtConfig JWT 配置属性
      */
-    public JwtAuthenticationConverter(@NonNull JwtResourceProperties properties) {
-        this.properties = properties;
+    public JwtAuthenticationConverter(ResourceSecurityProperties.@NonNull JwtConfig jwtConfig) {
+        this.jwtConfig = jwtConfig;
     }
 
     /**
@@ -62,12 +63,12 @@ public class JwtAuthenticationConverter {
     public AfgUserDetails convertToUserDetails(@NonNull JwtAuthenticationToken jwtToken) {
         Map<String, Object> claims = jwtToken.getToken().getClaims();
 
-        String userId = getClaimAsString(claims, properties.getUserIdClaim());
-        String username = getClaimAsString(claims, properties.getUsernameClaim());
-        String tenantId = getClaimAsString(claims, properties.getTenantIdClaim());
+        String userId = getClaimAsString(claims, jwtConfig.getUserIdClaim());
+        String username = getClaimAsString(claims, jwtConfig.getUsernameClaim());
+        String tenantId = getClaimAsString(claims, jwtConfig.getTenantIdClaim());
 
-        Set<String> roles = getClaimAsStringSet(claims, properties.getRolesClaim());
-        Set<String> permissions = getClaimAsStringSet(claims, properties.getPermissionsClaim());
+        Set<String> roles = getClaimAsStringSet(claims, jwtConfig.getRolesClaim());
+        Set<String> permissions = getClaimAsStringSet(claims, jwtConfig.getPermissionsClaim());
 
         return new JwtUserDetails(
                 userId,

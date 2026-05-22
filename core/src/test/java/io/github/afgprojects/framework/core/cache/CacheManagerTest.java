@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.github.afgprojects.framework.core.cache.exception.CacheException;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -21,13 +22,13 @@ import org.junit.jupiter.api.Test;
 class CacheManagerTest {
 
     private DefaultCacheManager cacheManager;
-    private CacheProperties properties;
+    private AfgCoreProperties properties;
 
     @BeforeEach
     void setUp() {
-        properties = new CacheProperties();
-        properties.setEnabled(true);
-        properties.setType(CacheProperties.CacheType.LOCAL);
+        properties = new AfgCoreProperties();
+        properties.getCache().setEnabled(true);
+        properties.getCache().setType(AfgCoreProperties.CacheConfig.CacheType.LOCAL);
         cacheManager = new DefaultCacheManager(properties);
     }
 

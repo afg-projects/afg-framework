@@ -85,7 +85,12 @@ class ParameterExtractor<T> {
     private Object getFieldValue(T entity, String propertyName) {
         FieldAccessor accessor = getFieldAccessor(propertyName);
         if (accessor != null) {
-            return accessor.getValue(entity);
+            Object value = accessor.getValue(entity);
+            // 处理枚举类型：转换为字符串名称
+            if (value instanceof Enum<?> enumValue) {
+                return enumValue.name();
+            }
+            return value;
         }
         return null;
     }

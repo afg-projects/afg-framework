@@ -5,6 +5,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
@@ -25,15 +26,15 @@ import io.micrometer.core.instrument.Timer;
 public class MetricsAspect {
 
     private final MeterRegistry meterRegistry;
-    private final MetricsProperties properties;
+    private final AfgCoreProperties properties;
 
     /**
      * 构造函数
      *
      * @param meterRegistry Micrometer 注册表
-     * @param properties    指标配置属性
+     * @param properties    核心配置属性
      */
-    public MetricsAspect(MeterRegistry meterRegistry, MetricsProperties properties) {
+    public MetricsAspect(MeterRegistry meterRegistry, AfgCoreProperties properties) {
         this.meterRegistry = meterRegistry;
         this.properties = properties;
     }
@@ -113,7 +114,9 @@ public class MetricsAspect {
         Timer.Builder builder = Timer.builder(name).description(description).publishPercentiles(percentiles);
 
         // 添加全局标签
-        properties.getTags().forEach(builder::tag);
+        if (properties.getMetrics().getTags() != null) {
+            properties.getMetrics().getTags().forEach(builder::tag);
+        }
 
         // 添加异常标签
         if (exception != null) {
@@ -132,7 +135,9 @@ public class MetricsAspect {
         Counter.Builder builder = Counter.builder(name).description(description);
 
         // 添加全局标签
-        properties.getTags().forEach(builder::tag);
+        if (properties.getMetrics().getTags() != null) {
+            properties.getMetrics().getTags().forEach(builder::tag);
+        }
 
         // 添加异常标签
         if (exception != null) {

@@ -11,9 +11,9 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 
 import io.github.afgprojects.framework.core.api.scheduler.InMemoryTaskExecutionLogStorage;
-import io.github.afgprojects.framework.core.api.scheduler.SchedulerProperties;
 import io.github.afgprojects.framework.core.api.scheduler.TaskExecutionLogStorage;
 import io.github.afgprojects.framework.core.api.scheduler.TaskExecutionMetrics;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.lock.DistributedLock;
 import io.github.afgprojects.framework.core.scheduler.DistributedTaskAspect;
 import io.github.afgprojects.framework.core.scheduler.DynamicTaskManager;
@@ -56,8 +56,8 @@ import io.micrometer.core.instrument.MeterRegistry;
  * </pre>
  */
 @AutoConfiguration
-@ConditionalOnProperty(prefix = "afg.scheduler", name = "enabled", havingValue = "true", matchIfMissing = true)
-@EnableConfigurationProperties(SchedulerProperties.class)
+@ConditionalOnProperty(prefix = "afg.core.scheduler", name = "enabled", havingValue = "true", matchIfMissing = true)
+@EnableConfigurationProperties(AfgCoreProperties.class)
 public class SchedulerAutoConfiguration {
 
     /**
@@ -68,9 +68,9 @@ public class SchedulerAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(TaskExecutionLogStorage.class)
-    @ConditionalOnProperty(prefix = "afg.scheduler.log-storage", name = "type", havingValue = "memory", matchIfMissing = true)
-    public TaskExecutionLogStorage inMemoryTaskExecutionLogStorage(SchedulerProperties properties) {
-        return new InMemoryTaskExecutionLogStorage(properties.getLogStorage().getMaxSize());
+    @ConditionalOnProperty(prefix = "afg.core.scheduler.log-storage", name = "type", havingValue = "memory", matchIfMissing = true)
+    public TaskExecutionLogStorage inMemoryTaskExecutionLogStorage(AfgCoreProperties properties) {
+        return new InMemoryTaskExecutionLogStorage(properties.getScheduler().getLogStorage().getMaxSize());
     }
 
     /**
@@ -83,9 +83,9 @@ public class SchedulerAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(TaskExecutionMetrics.class)
     @ConditionalOnBean(MeterRegistry.class)
-    @ConditionalOnProperty(prefix = "afg.scheduler.metrics", name = "enabled", havingValue = "true", matchIfMissing = true)
-    public TaskExecutionMetrics taskExecutionMetrics(MeterRegistry meterRegistry, SchedulerProperties properties) {
-        return new TaskExecutionMetrics(meterRegistry, properties.getMetrics());
+    @ConditionalOnProperty(prefix = "afg.core.scheduler.metrics", name = "enabled", havingValue = "true", matchIfMissing = true)
+    public TaskExecutionMetrics taskExecutionMetrics(MeterRegistry meterRegistry, AfgCoreProperties properties) {
+        return new TaskExecutionMetrics(meterRegistry, properties.getScheduler().getMetrics());
     }
 
     /**
@@ -99,10 +99,10 @@ public class SchedulerAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public LocalTaskScheduler localTaskScheduler(
-            SchedulerProperties properties,
+            AfgCoreProperties properties,
             TaskExecutionMetrics metrics,
             TaskExecutionLogStorage logStorage) {
-        return new LocalTaskScheduler(properties, metrics, logStorage);
+        return new LocalTaskScheduler(properties.getScheduler(), metrics, logStorage);
     }
 
     /**
@@ -116,15 +116,15 @@ public class SchedulerAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(ScheduledTaskAspect.class)
     @ConditionalOnProperty(
-            prefix = "afg.scheduler.annotations",
+            prefix = "afg.core.scheduler.annotations",
             name = "enabled",
             havingValue = "true",
             matchIfMissing = true)
     public ScheduledTaskAspect scheduledTaskAspect(
             TaskExecutionMetrics metrics,
             TaskExecutionLogStorage logStorage,
-            SchedulerProperties properties) {
-        return new ScheduledTaskAspect(metrics, logStorage, properties);
+            AfgCoreProperties properties) {
+        return new ScheduledTaskAspect(metrics, logStorage, properties.getScheduler());
     }
 
     /**
@@ -142,7 +142,7 @@ public class SchedulerAutoConfiguration {
     @ConditionalOnMissingBean(DistributedTaskAspect.class)
     @ConditionalOnBean(DistributedLock.class)
     @ConditionalOnProperty(
-            prefix = "afg.scheduler.annotations",
+            prefix = "afg.core.scheduler.annotations",
             name = "enabled",
             havingValue = "true",
             matchIfMissing = true)
@@ -150,8 +150,8 @@ public class SchedulerAutoConfiguration {
             DistributedLock distributedLock,
             TaskExecutionMetrics metrics,
             TaskExecutionLogStorage logStorage,
-            SchedulerProperties properties) {
-        return new DistributedTaskAspect(distributedLock, metrics, logStorage, properties);
+            AfgCoreProperties properties) {
+        return new DistributedTaskAspect(distributedLock, metrics, logStorage, properties.getScheduler());
     }
 
     /**
@@ -167,7 +167,7 @@ public class SchedulerAutoConfiguration {
     @ConditionalOnMissingBean(SchedulerHealthIndicator.class)
     @ConditionalOnClass(HealthIndicator.class)
     @ConditionalOnProperty(
-            prefix = "afg.scheduler.health",
+            prefix = "afg.core.scheduler.health",
             name = "enabled",
             havingValue = "true",
             matchIfMissing = true)
@@ -186,7 +186,7 @@ public class SchedulerAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(DynamicTaskManager.class)
     @ConditionalOnProperty(
-            prefix = "afg.scheduler.dynamic-task",
+            prefix = "afg.core.scheduler.dynamic-task",
             name = "enabled",
             havingValue = "true",
             matchIfMissing = false)

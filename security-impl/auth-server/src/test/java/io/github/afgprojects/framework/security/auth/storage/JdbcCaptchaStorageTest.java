@@ -42,16 +42,16 @@ class JdbcCaptchaStorageTest {
             stmt.execute("""
                 CREATE TABLE auth_captcha (
                     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                    captcha_key VARCHAR(128) NOT NULL UNIQUE,
-                    captcha_value VARCHAR(64) NOT NULL,
-                    captcha_type VARCHAR(32),
-                    target VARCHAR(256),
+                    captcha_key VARCHAR(100) NOT NULL UNIQUE,
+                    captcha_value VARCHAR(50) NOT NULL,
+                    captcha_type VARCHAR(20) NOT NULL,
+                    target VARCHAR(200),
                     expires_at TIMESTAMP NOT NULL,
-                    created_at TIMESTAMP NOT NULL,
+                    created_at TIMESTAMP,
                     updated_at TIMESTAMP
                 )
                 """);
-            stmt.execute("CREATE INDEX idx_expires_at_captcha ON auth_captcha (expires_at)");
+            stmt.execute("CREATE INDEX idx_captcha_expires ON auth_captcha (expires_at)");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.data.core.query;
 
+import io.github.afgprojects.framework.data.core.condition.SFunction;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -739,6 +740,101 @@ class QueryTest {
             void shouldGetValueByName() {
                 assertThat(Sort.Direction.valueOf("ASC")).isEqualTo(Sort.Direction.ASC);
                 assertThat(Sort.Direction.valueOf("DESC")).isEqualTo(Sort.Direction.DESC);
+            }
+        }
+
+        // ==================== Lambda 排序测试 ====================
+
+        @Nested
+        @DisplayName("Lambda 排序测试")
+        class LambdaSortTest {
+
+            // 测试实体类
+            @lombok.Getter
+            @lombok.Setter
+            static class TestEntity {
+                private String name;
+                private Integer age;
+                private Boolean active;
+                private String createTime;
+            }
+
+            @Test
+            @DisplayName("asc(Lambda) 应创建升序排序")
+            void shouldCreateAscendingSortWithLambda() {
+                Sort sort = Sort.asc(TestEntity::getName);
+
+                assertThat(sort.isSorted()).isTrue();
+                assertThat(sort.getOrders()).hasSize(1);
+                assertThat(sort.getOrders().get(0).getProperty()).isEqualTo("name");
+                assertThat(sort.getOrders().get(0).isAscending()).isTrue();
+            }
+
+            @Test
+            @DisplayName("desc(Lambda) 应创建降序排序")
+            void shouldCreateDescendingSortWithLambda() {
+                Sort sort = Sort.desc(TestEntity::getCreateTime);
+
+                assertThat(sort.isSorted()).isTrue();
+                assertThat(sort.getOrders()).hasSize(1);
+                assertThat(sort.getOrders().get(0).getProperty()).isEqualTo("createTime");
+                assertThat(sort.getOrders().get(0).isDescending()).isTrue();
+            }
+
+            @Test
+            @DisplayName("by(Direction, Lambda...) 应创建多字段排序")
+            void shouldCreateMultiFieldSortWithLambda() {
+                Sort sort = Sort.by(Sort.Direction.ASC, TestEntity::getName, TestEntity::getAge);
+
+                assertThat(sort.getOrders()).hasSize(2);
+                assertThat(sort.getOrders().get(0).getProperty()).isEqualTo("name");
+                assertThat(sort.getOrders().get(0).isAscending()).isTrue();
+                assertThat(sort.getOrders().get(1).getProperty()).isEqualTo("age");
+                assertThat(sort.getOrders().get(1).isAscending()).isTrue();
+            }
+
+            @Test
+            @DisplayName("builder(Class) 应创建类型化排序构建器")
+            void shouldCreateTypedSortBuilder() {
+                Sort sort = Sort.builder(TestEntity.class)
+                    .asc(TestEntity::getName)
+                    .desc(TestEntity::getCreateTime)
+                    .build();
+
+                assertThat(sort.getOrders()).hasSize(2);
+                assertThat(sort.getOrders().get(0).getProperty()).isEqualTo("name");
+                assertThat(sort.getOrders().get(0).isAscending()).isTrue();
+                assertThat(sort.getOrders().get(1).getProperty()).isEqualTo("createTime");
+                assertThat(sort.getOrders().get(1).isDescending()).isTrue();
+            }
+
+            @Test
+            @DisplayName("空构建器应返回 UNSORTED")
+            void shouldReturnUnsortedFromEmptyBuilder() {
+                Sort sort = Sort.builder(TestEntity.class).build();
+
+                assertThat(sort.isUnsorted()).isTrue();
+            }
+
+            @Test
+            @DisplayName("Lambda 排序应正确解析 is 前缀的 getter")
+            void shouldResolveIsPrefixGetter() {
+                Sort sort = Sort.asc(TestEntity::getActive);
+
+                assertThat(sort.getOrders().get(0).getProperty()).isEqualTo("active");
+            }
+
+            @Test
+            @DisplayName("Lambda 排序应支持链式组合")
+            void shouldCombineLambdaSorts() {
+                Sort sort1 = Sort.asc(TestEntity::getName);
+                Sort sort2 = Sort.desc(TestEntity::getAge);
+
+                Sort combined = sort1.and(sort2);
+
+                assertThat(combined.getOrders()).hasSize(2);
+                assertThat(combined.getOrders().get(0).getProperty()).isEqualTo("name");
+                assertThat(combined.getOrders().get(1).getProperty()).isEqualTo("age");
             }
         }
     }

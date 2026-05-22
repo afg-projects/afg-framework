@@ -10,6 +10,8 @@ import java.util.Set;
 import org.jspecify.annotations.Nullable;
 import org.springframework.core.annotation.AnnotationUtils;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
+
 /**
  * 数据权限辅助工具类
  * <p>
@@ -66,13 +68,13 @@ public final class DataScopeHelper {
      *
      * @param dataScope      @DataScope 注解
      * @param context        数据权限上下文
-     * @param properties     配置属性
+     * @param properties     核心配置属性
      * @return SQL 条件字符串，如果不需要过滤则返回 null
      */
     public static @Nullable String buildDataScopeCondition(
             DataScope dataScope,
             DataScopeContext context,
-            DataScopeProperties properties) {
+            AfgCoreProperties properties) {
 
         // 如果忽略数据权限或拥有全部权限，不生成条件
         if (context.isIgnoreDataScope() || context.isAllDataPermission()) {
@@ -134,7 +136,7 @@ public final class DataScopeHelper {
     private static @Nullable String buildDeptAndChildCondition(
             DataScope dataScope,
             DataScopeContext context,
-            DataScopeProperties properties) {
+            AfgCoreProperties properties) {
 
         String table = resolveTableAlias(dataScope);
         String column = dataScope.column();
@@ -213,11 +215,11 @@ public final class DataScopeHelper {
      * 判断表是否在忽略列表中
      *
      * @param tableName  表名
-     * @param properties 配置属性
+     * @param properties 核心配置属性
      * @return 是否忽略
      */
-    public static boolean isIgnoredTable(String tableName, DataScopeProperties properties) {
-        String[] ignoreTables = properties.getIgnoreTables();
+    public static boolean isIgnoredTable(String tableName, AfgCoreProperties properties) {
+        String[] ignoreTables = properties.getDataScope().getIgnoreTables();
         if (ignoreTables == null || ignoreTables.length == 0) {
             return false;
         }
@@ -229,11 +231,11 @@ public final class DataScopeHelper {
      * 判断方法是否在忽略列表中
      *
      * @param methodName 方法名
-     * @param properties  配置属性
+     * @param properties  核心配置属性
      * @return 是否忽略
      */
-    public static boolean isIgnoredMethod(String methodName, DataScopeProperties properties) {
-        String[] ignoreMethods = properties.getIgnoreMethods();
+    public static boolean isIgnoredMethod(String methodName, AfgCoreProperties properties) {
+        String[] ignoreMethods = properties.getDataScope().getIgnoreMethods();
         if (ignoreMethods == null || ignoreMethods.length == 0) {
             return false;
         }

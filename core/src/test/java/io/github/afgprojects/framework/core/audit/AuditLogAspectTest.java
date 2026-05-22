@@ -19,6 +19,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
+
 /**
  * AuditLogAspect 单元测试。
  * <p>
@@ -40,12 +42,12 @@ class AuditLogAspectTest {
     @Mock
     private MethodSignature methodSignature;
 
-    private AuditLogProperties properties;
+    private AfgCoreProperties properties;
     private AuditLogAspect aspect;
 
     @BeforeEach
     void setUp() {
-        properties = new AuditLogProperties();
+        properties = new AfgCoreProperties();
         aspect = new AuditLogAspect(storage, properties);
     }
 

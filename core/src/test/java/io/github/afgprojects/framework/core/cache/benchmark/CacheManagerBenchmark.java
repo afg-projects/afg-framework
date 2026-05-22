@@ -2,7 +2,7 @@ package io.github.afgprojects.framework.core.cache.benchmark;
 
 import io.github.afgprojects.framework.core.cache.AfgCache;
 import io.github.afgprojects.framework.core.cache.CacheConfig;
-import io.github.afgprojects.framework.core.cache.CacheProperties;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.cache.DefaultCacheManager;
 import io.github.afgprojects.framework.core.cache.LocalCache;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -64,8 +64,8 @@ public class CacheManagerBenchmark {
 
         @Setup(Level.Trial)
         public void setup() {
-            CacheProperties properties = new CacheProperties();
-            properties.setType(CacheProperties.CacheType.LOCAL);
+            AfgCoreProperties properties = new AfgCoreProperties();
+            properties.getCache().setType(AfgCoreProperties.CacheConfig.CacheType.LOCAL);
             CacheConfig config = CacheConfig.defaultConfig()
                     .maximumSize(10000)
                     .recordStats(true);

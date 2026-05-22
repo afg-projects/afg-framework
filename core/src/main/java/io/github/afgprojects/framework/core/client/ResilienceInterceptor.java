@@ -11,6 +11,7 @@ import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.model.exception.CommonErrorCode;
 
 import lombok.extern.slf4j.Slf4j;
@@ -22,10 +23,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ResilienceInterceptor implements ClientHttpRequestInterceptor {
 
-    private final HttpClientProperties properties;
+    private final AfgCoreProperties properties;
     private final Map<String, CircuitBreaker> circuitBreakers = new ConcurrentHashMap<>();
 
-    public ResilienceInterceptor(@NonNull HttpClientProperties properties) {
+    public ResilienceInterceptor(@NonNull AfgCoreProperties properties) {
         this.properties = properties;
     }
 
@@ -76,7 +77,7 @@ public class ResilienceInterceptor implements ClientHttpRequestInterceptor {
     }
 
     private void checkCircuitBreakerOpen(String key, CircuitBreaker circuitBreaker) {
-        if (properties.getCircuitBreaker().isEnabled() && !circuitBreaker.allowRequest()) {
+        if (properties.getHttpClient().getCircuitBreaker().isEnabled() && !circuitBreaker.allowRequest()) {
             log.warn("Circuit breaker is OPEN for {}", key);
             throw new CircuitBreakerOpenException(
                     CommonErrorCode.CLIENT_CIRCUIT_OPEN.getCode(), "Circuit breaker is open for " + key);
@@ -119,7 +120,7 @@ public class ResilienceInterceptor implements ClientHttpRequestInterceptor {
 
     private CircuitBreaker getCircuitBreaker(String key) {
         return circuitBreakers.computeIfAbsent(key, k -> {
-            HttpClientProperties.CircuitBreakerConfig config = properties.getCircuitBreaker();
+            AfgCoreProperties.HttpClientConfig.HttpCircuitBreakerConfig config = properties.getHttpClient().getCircuitBreaker();
             return new CircuitBreaker(
                     k,
                     config.getFailureThreshold(),
@@ -130,7 +131,7 @@ public class ResilienceInterceptor implements ClientHttpRequestInterceptor {
     }
 
     private RetryPolicy createRetryPolicy() {
-        HttpClientProperties.RetryConfig config = properties.getRetry();
+        AfgCoreProperties.HttpClientConfig.HttpRetryConfig config = properties.getHttpClient().getRetry();
         return RetryPolicy.builder()
                 .maxAttempts(config.getMaxAttempts())
                 .initialInterval(config.getInitialInterval())

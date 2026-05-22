@@ -1,5 +1,7 @@
 package io.github.afgprojects.framework.security.auth.tenant.config;
 
+import io.github.afgprojects.framework.security.auth.autoconfigure.AuthSecurityProperties;
+
 import org.junit.jupiter.api.Test;
 import java.time.Duration;
 import java.util.List;
@@ -10,14 +12,14 @@ class TenantPropertiesTest {
 
     @Test
     void shouldHaveDefaultValues() {
-        TenantProperties properties = new TenantProperties();
+        AuthSecurityProperties.TenantConfig properties = new AuthSecurityProperties.TenantConfig();
 
         assertThat(properties.isEnabled()).isTrue();
         assertThat(properties.getStrategies()).containsExactly(
-            TenantProperties.TenantStrategy.TOKEN,
-            TenantProperties.TenantStrategy.HEADER,
-            TenantProperties.TenantStrategy.DOMAIN,
-            TenantProperties.TenantStrategy.DEFAULT
+            AuthSecurityProperties.TenantConfig.TenantStrategy.TOKEN,
+            AuthSecurityProperties.TenantConfig.TenantStrategy.HEADER,
+            AuthSecurityProperties.TenantConfig.TenantStrategy.DOMAIN,
+            AuthSecurityProperties.TenantConfig.TenantStrategy.DEFAULT
         );
         assertThat(properties.getDefaultTenant()).isEqualTo("default");
         assertThat(properties.isFailIfUnresolved()).isFalse();
@@ -29,16 +31,16 @@ class TenantPropertiesTest {
 
     @Test
     void shouldSetProperties() {
-        TenantProperties properties = new TenantProperties();
+        AuthSecurityProperties.TenantConfig properties = new AuthSecurityProperties.TenantConfig();
         properties.setEnabled(false);
-        properties.setStrategies(List.of(TenantProperties.TenantStrategy.HEADER));
+        properties.setStrategies(List.of(AuthSecurityProperties.TenantConfig.TenantStrategy.HEADER));
         properties.setDefaultTenant("custom-default");
         properties.setFailIfUnresolved(true);
         properties.setHeaderName("X-Custom-Tenant");
         properties.setDomainMappings(Map.of("tenant.example.com", "tenant-001"));
 
         assertThat(properties.isEnabled()).isFalse();
-        assertThat(properties.getStrategies()).containsExactly(TenantProperties.TenantStrategy.HEADER);
+        assertThat(properties.getStrategies()).containsExactly(AuthSecurityProperties.TenantConfig.TenantStrategy.HEADER);
         assertThat(properties.getDefaultTenant()).isEqualTo("custom-default");
         assertThat(properties.isFailIfUnresolved()).isTrue();
         assertThat(properties.getHeaderName()).isEqualTo("X-Custom-Tenant");
@@ -47,7 +49,7 @@ class TenantPropertiesTest {
 
     @Test
     void shouldSetValidationConfig() {
-        TenantProperties properties = new TenantProperties();
+        AuthSecurityProperties.TenantConfig properties = new AuthSecurityProperties.TenantConfig();
         properties.getValidation().setEnabled(false);
         properties.getValidation().setCacheTtl(Duration.ofMinutes(10));
 

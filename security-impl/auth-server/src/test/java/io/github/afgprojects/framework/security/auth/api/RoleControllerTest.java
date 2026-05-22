@@ -2,29 +2,25 @@ package io.github.afgprojects.framework.security.auth.api;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import io.github.afgprojects.framework.security.permission.entity.SecRole;
-import io.github.afgprojects.framework.security.permission.service.JdbcRoleService;
+import io.github.afgprojects.framework.security.auth.permission.entity.SecRole;
+import io.github.afgprojects.framework.security.auth.permission.service.JdbcRoleService;
+
+import static org.assertj.core.api.Assertions.*;
 
 /**
- * RoleController 集成测试
+ * RoleController 单元测试
  */
 @ExtendWith(MockitoExtension.class)
 class RoleControllerTest {
@@ -32,21 +28,15 @@ class RoleControllerTest {
     @Mock
     private JdbcRoleService roleService;
 
-    private MockMvc mockMvc;
-
-    @BeforeEach
-    void setUp() {
-        RoleController controller = new RoleController(roleService);
-        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
-    }
-
     @Nested
     @DisplayName("角色 CRUD 测试")
     class RoleCrudTests {
 
         @Test
         @DisplayName("创建角色")
-        void shouldCreateRole() throws Exception {
+        void shouldCreateRole() {
+            RoleController controller = new RoleController(roleService);
+
             SecRole role = new SecRole();
             role.setId(1L);
             role.setRoleName("管理员");
@@ -55,24 +45,18 @@ class RoleControllerTest {
 
             when(roleService.create(any())).thenReturn(role);
 
-            mockMvc.perform(post("/roles")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content("""
-                        {
-                            "roleName": "管理员",
-                            "roleCode": "ADMIN",
-                            "tenantId": "tenant-001"
-                        }
-                        """))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id").value(1))
-                    .andExpect(jsonPath("$.roleName").value("管理员"))
-                    .andExpect(jsonPath("$.roleCode").value("ADMIN"));
+            SecRole result = controller.create(role);
+
+            assertThat(result.getId()).isEqualTo(1L);
+            assertThat(result.getRoleName()).isEqualTo("管理员");
+            assertThat(result.getRoleCode()).isEqualTo("ADMIN");
         }
 
         @Test
         @DisplayName("获取角色详情")
-        void shouldGetRoleById() throws Exception {
+        void shouldGetRoleById() {
+            RoleController controller = new RoleController(roleService);
+
             SecRole role = new SecRole();
             role.setId(1L);
             role.setRoleName("管理员");
@@ -80,15 +64,18 @@ class RoleControllerTest {
 
             when(roleService.findById(1L)).thenReturn(Optional.of(role));
 
-            mockMvc.perform(get("/roles/1"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id").value(1))
-                    .andExpect(jsonPath("$.roleName").value("管理员"));
+            SecRole result = controller.getById(1L);
+
+            assertThat(result).isNotNull();
+            assertThat(result.getId()).isEqualTo(1L);
+            assertThat(result.getRoleName()).isEqualTo("管理员");
         }
 
         @Test
         @DisplayName("获取角色列表")
-        void shouldListRoles() throws Exception {
+        void shouldListRoles() {
+            RoleController controller = new RoleController(roleService);
+
             SecRole role1 = new SecRole();
             role1.setId(1L);
             role1.setRoleName("管理员");
@@ -99,41 +86,36 @@ class RoleControllerTest {
 
             when(roleService.findAll("tenant-001")).thenReturn(List.of(role1, role2));
 
-            mockMvc.perform(get("/roles")
-                    .param("tenantId", "tenant-001"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.length()").value(2))
-                    .andExpect(jsonPath("$[0].roleName").value("管理员"))
-                    .andExpect(jsonPath("$[1].roleName").value("普通用户"));
+            List<SecRole> result = controller.list("tenant-001");
+
+            assertThat(result).hasSize(2);
+            assertThat(result.get(0).getRoleName()).isEqualTo("管理员");
+            assertThat(result.get(1).getRoleName()).isEqualTo("普通用户");
         }
 
         @Test
         @DisplayName("更新角色")
-        void shouldUpdateRole() throws Exception {
+        void shouldUpdateRole() {
+            RoleController controller = new RoleController(roleService);
+
             SecRole role = new SecRole();
             role.setId(1L);
             role.setRoleName("超级管理员");
 
             when(roleService.update(any())).thenReturn(role);
 
-            mockMvc.perform(put("/roles/1")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content("""
-                        {
-                            "roleName": "超级管理员"
-                        }
-                        """))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.roleName").value("超级管理员"));
+            SecRole result = controller.update(1L, role);
+
+            assertThat(result.getRoleName()).isEqualTo("超级管理员");
+            verify(roleService).update(argThat(r -> r.getId().equals(1L)));
         }
 
         @Test
         @DisplayName("删除角色")
-        void shouldDeleteRole() throws Exception {
-            doNothing().when(roleService).delete(1L);
+        void shouldDeleteRole() {
+            RoleController controller = new RoleController(roleService);
 
-            mockMvc.perform(delete("/roles/1"))
-                    .andExpect(status().isOk());
+            controller.delete(1L);
 
             verify(roleService).delete(1L);
         }
@@ -145,26 +127,25 @@ class RoleControllerTest {
 
         @Test
         @DisplayName("设置角色权限")
-        void shouldSetRolePermissions() throws Exception {
-            doNothing().when(roleService).setRolePermissions(1L, Set.of(1L, 2L), "tenant-001");
+        void shouldSetRolePermissions() {
+            RoleController controller = new RoleController(roleService);
 
-            mockMvc.perform(post("/roles/1/permissions")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content("[1, 2]")
-                    .param("tenantId", "tenant-001"))
-                    .andExpect(status().isOk());
+            Set<Long> permissionIds = Set.of(1L, 2L);
+            controller.setPermissions(1L, permissionIds, "tenant-001");
 
-            verify(roleService).setRolePermissions(1L, Set.of(1L, 2L), "tenant-001");
+            verify(roleService).setRolePermissions(1L, permissionIds, "tenant-001");
         }
 
         @Test
         @DisplayName("获取角色权限")
-        void shouldGetRolePermissions() throws Exception {
+        void shouldGetRolePermissions() {
+            RoleController controller = new RoleController(roleService);
+
             when(roleService.getRolePermissions(1L)).thenReturn(Set.of(1L, 2L));
 
-            mockMvc.perform(get("/roles/1/permissions"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.length()").value(2));
+            Set<Long> result = controller.getPermissions(1L);
+
+            assertThat(result).hasSize(2);
         }
     }
 
@@ -174,12 +155,10 @@ class RoleControllerTest {
 
         @Test
         @DisplayName("设置父角色")
-        void shouldSetParentRole() throws Exception {
-            doNothing().when(roleService).setParentRole(2L, 1L, "tenant-001");
+        void shouldSetParentRole() {
+            RoleController controller = new RoleController(roleService);
 
-            mockMvc.perform(post("/roles/2/parent/1")
-                    .param("tenantId", "tenant-001"))
-                    .andExpect(status().isOk());
+            controller.setParent(2L, 1L, "tenant-001");
 
             verify(roleService).setParentRole(2L, 1L, "tenant-001");
         }

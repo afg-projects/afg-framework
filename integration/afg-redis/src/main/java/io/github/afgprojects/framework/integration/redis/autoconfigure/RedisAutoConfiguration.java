@@ -5,10 +5,9 @@ import io.github.afgprojects.framework.core.cache.CacheManager;
 import io.github.afgprojects.framework.core.cache.spi.CacheStorageProvider;
 import io.github.afgprojects.framework.core.api.scheduler.DelayQueue;
 import io.github.afgprojects.framework.core.api.scheduler.DistributedTaskScheduler;
-import io.github.afgprojects.framework.core.audit.AuditLogProperties;
 import io.github.afgprojects.framework.core.audit.AuditLogStorage;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.feature.FeatureFlagManager;
-import io.github.afgprojects.framework.core.feature.FeatureFlagProperties;
 import io.github.afgprojects.framework.core.lock.DistributedLock;
 import io.github.afgprojects.framework.core.web.health.spi.RedisHealthChecker;
 import io.github.afgprojects.framework.integration.redis.audit.RedisAuditLogStorage;
@@ -99,8 +98,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
         RedisCacheProperties.class,
         LockProperties.class,
         RedissonSchedulerProperties.class,
-        AuditLogProperties.class,
-        FeatureFlagProperties.class,
+        AfgCoreProperties.class,
         RedisHealthProperties.class,
         RedisRateLimitProperties.class
 })
@@ -239,10 +237,10 @@ public class RedisAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(AuditLogStorage.class)
-    @ConditionalOnProperty(prefix = "afg.audit", name = "storage-type", havingValue = "redis")
+    @ConditionalOnProperty(prefix = "afg.core.audit", name = "storage-type", havingValue = "redis")
     public AuditLogStorage redisAuditLogStorage(
-            @NonNull RedissonClient redissonClient, @NonNull AuditLogProperties properties) {
-        return new RedisAuditLogStorage(redissonClient, properties);
+            @NonNull RedissonClient redissonClient, @NonNull AfgCoreProperties properties) {
+        return new RedisAuditLogStorage(redissonClient, properties.getAudit());
     }
 
     // ==================== Feature Flag Configuration ====================
@@ -259,11 +257,11 @@ public class RedisAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(FeatureFlagManager.class)
-    @ConditionalOnProperty(prefix = "afg.feature", name = "storage-type", havingValue = "redisson")
+    @ConditionalOnProperty(prefix = "afg.core.feature", name = "storage-type", havingValue = "redisson")
     public FeatureFlagManager featureFlagManagerWithRedisson(
-            FeatureFlagProperties properties, RedissonClient redissonClient, ObjectMapper objectMapper) {
+            AfgCoreProperties properties, RedissonClient redissonClient, ObjectMapper objectMapper) {
         RedissonStorageClient storageClient =
-                new RedissonStorageClient(redissonClient, objectMapper, properties.getRedis().getKeyPrefix());
+                new RedissonStorageClient(redissonClient, objectMapper, properties.getFeature().getRedis().getKeyPrefix());
         return new FeatureFlagManager(properties, storageClient);
     }
 

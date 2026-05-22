@@ -18,6 +18,9 @@ dependencies {
     // Jackson（用于解析 JSON 配置文件，版本由 Spring Boot BOM 管理）
     implementation(libs.jackson.databind)
 
+    // JavaPoet（用于生成 Java 源代码）
+    implementation(libs.javapoet)
+
     // AutoService（自动生成 META-INF/services）
     implementation(libs.auto.service)
     annotationProcessor(libs.auto.service)

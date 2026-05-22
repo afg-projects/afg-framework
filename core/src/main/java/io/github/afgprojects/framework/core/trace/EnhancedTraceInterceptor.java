@@ -9,6 +9,7 @@ import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpResponse;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.client.TraceInterceptor;
 import io.github.afgprojects.framework.core.web.context.AfgRequestContextHolder;
 import io.github.afgprojects.framework.core.web.trace.TraceContext;
@@ -46,7 +47,7 @@ public class EnhancedTraceInterceptor extends TraceInterceptor {
     private static final String BAGGAGE_HEADER_PREFIX = "X-Baggage-";
 
     private final @Nullable Tracer tracer;
-    private final @Nullable TracingProperties properties;
+    private final @Nullable AfgCoreProperties properties;
     private final @Nullable TracingSampler sampler;
 
     /**
@@ -69,11 +70,11 @@ public class EnhancedTraceInterceptor extends TraceInterceptor {
      * 创建增强的 TraceInterceptor（完整配置）
      *
      * @param tracer     Micrometer Tracer（可为 null）
-     * @param properties 追踪配置属性（可为 null）
+     * @param properties 核心配置属性（可为 null）
      * @param sampler    追踪采样器（可为 null）
      */
     public EnhancedTraceInterceptor(
-            @Nullable Tracer tracer, @Nullable TracingProperties properties, @Nullable TracingSampler sampler) {
+            @Nullable Tracer tracer, @Nullable AfgCoreProperties properties, @Nullable TracingSampler sampler) {
         super(tracer);
         this.tracer = tracer;
         this.properties = properties;
@@ -92,7 +93,7 @@ public class EnhancedTraceInterceptor extends TraceInterceptor {
 
         // 创建 HTTP 客户端 Span
         Span span = null;
-        if (tracer != null && (properties == null || properties.isEnabled())) {
+        if (tracer != null && (properties == null || properties.getTracing().isEnabled())) {
             span = createHttpClientSpan(request);
         }
 
@@ -101,7 +102,7 @@ public class EnhancedTraceInterceptor extends TraceInterceptor {
             propagateStandardHeaders(request);
 
             // 传递 Baggage
-            if (properties != null && properties.getBaggage().isEnabled()) {
+            if (properties != null && properties.getTracing().getBaggage().isEnabled()) {
                 propagateBaggageHeaders(request);
             }
 
@@ -211,7 +212,7 @@ public class EnhancedTraceInterceptor extends TraceInterceptor {
             });
         } else {
             // 使用配置的远程传播字段
-            for (String field : properties.getBaggage().getRemoteFields()) {
+            for (String field : properties.getTracing().getBaggage().getRemoteFields()) {
                 String value = baggage.get(field);
                 if (value != null) {
                     String headerName = getBaggageHeaderName(field);
@@ -230,7 +231,7 @@ public class EnhancedTraceInterceptor extends TraceInterceptor {
         }
 
         // 检查是否有自定义映射
-        String mappedName = properties.getBaggage().getFieldMappings().get(field);
+        String mappedName = properties.getTracing().getBaggage().getFieldMappings().get(field);
         return mappedName != null ? mappedName : BAGGAGE_HEADER_PREFIX + field;
     }
 }

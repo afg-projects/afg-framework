@@ -9,19 +9,20 @@
  *   <li>{@link io.github.afgprojects.framework.core.web.security.signature.SignatureInterceptor} - 签名验证拦截器</li>
  *   <li>{@link io.github.afgprojects.framework.core.web.security.signature.SignatureGenerator} - 签名生成器</li>
  *   <li>{@link io.github.afgprojects.framework.core.web.security.signature.NonceCache} - Nonce 缓存，防重放</li>
- *   <li>{@link io.github.afgprojects.framework.core.web.security.signature.SignatureProperties} - 配置属性</li>
+ *   <li>{@link io.github.afgprojects.framework.core.config.AfgCoreProperties.SecurityConfig.SignatureConfig} - 配置属性（在 AfgCoreProperties 中）</li>
  * </ul>
  * <p>
  * 使用示例：
  * <pre>
  * // 1. 配置密钥
  * afg:
- *   security:
- *     signature:
- *       enabled: true
- *       keys:
- *         default:
- *           secret: "your-secret-key-at-least-32-chars"
+ *   core:
+ *     security:
+ *       signature:
+ *         enabled: true
+ *         keys:
+ *           default:
+ *             secret: "your-secret-key-at-least-32-chars"
  *
  * // 2. 在 Controller 方法上标记注解
  * &#64;PostMapping("/api/sensitive")

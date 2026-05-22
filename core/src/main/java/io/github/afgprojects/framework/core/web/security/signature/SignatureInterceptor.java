@@ -12,6 +12,7 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -61,7 +62,7 @@ public class SignatureInterceptor implements HandlerInterceptor {
      */
     public static final String ATTR_VERIFIED_KEY_ID = "afg.signature.verifiedKeyId";
 
-    private final SignatureProperties properties;
+    private final AfgCoreProperties properties;
     private final SignatureGenerator signatureGenerator;
     private final NonceCache nonceCache;
     private final AntPathMatcher pathMatcher;
@@ -69,12 +70,12 @@ public class SignatureInterceptor implements HandlerInterceptor {
     /**
      * 创建签名拦截器
      *
-     * @param properties         配置属性
+     * @param properties         核心配置属性
      * @param signatureGenerator 签名生成器
      * @param nonceCache         nonce 缓存
      */
     public SignatureInterceptor(
-            @NonNull SignatureProperties properties,
+            @NonNull AfgCoreProperties properties,
             @NonNull SignatureGenerator signatureGenerator,
             @NonNull NonceCache nonceCache) {
         this.properties = properties;
@@ -126,7 +127,7 @@ public class SignatureInterceptor implements HandlerInterceptor {
 
         // 4. 获取密钥
         String keyId = getKeyId(request, annotation);
-        SignatureProperties.KeyConfig keyConfig = getKeyConfig(keyId);
+        AfgCoreProperties.SecurityConfig.SignatureConfig.SignatureKeyConfig keyConfig = getKeyConfig(keyId);
 
         // 5. 验证密钥路径权限
         validatePathPermission(keyId, keyConfig, request.getRequestURI());
@@ -157,7 +158,7 @@ public class SignatureInterceptor implements HandlerInterceptor {
     /**
      * 验证密钥路径权限
      */
-    private void validatePathPermission(String keyId, SignatureProperties.KeyConfig keyConfig, String path) {
+    private void validatePathPermission(String keyId, AfgCoreProperties.SecurityConfig.SignatureConfig.SignatureKeyConfig keyConfig, String path) {
         if (!keyConfig.isPathAllowed(path, pathMatcher)) {
             log.warn("Key not authorized for path: keyId={}, path={}", keyId, path);
             throw new SignatureException(SignatureException.SignatureErrorType.ACCESS_DENIED);
@@ -236,14 +237,14 @@ public class SignatureInterceptor implements HandlerInterceptor {
         }
 
         // 最后使用默认 keyId
-        return properties.getDefaultKeyId();
+        return properties.getSecurity().getSignature().getDefaultKeyId();
     }
 
     /**
      * 获取密钥配置
      */
-    private SignatureProperties.KeyConfig getKeyConfig(String keyId) {
-        SignatureProperties.KeyConfig keyConfig = properties.getKeyConfig(keyId);
+    private AfgCoreProperties.SecurityConfig.SignatureConfig.SignatureKeyConfig getKeyConfig(String keyId) {
+        AfgCoreProperties.SecurityConfig.SignatureConfig.SignatureKeyConfig keyConfig = properties.getSecurity().getSignature().getKeys().get(keyId);
         if (keyConfig == null) {
             log.warn("Key not found: keyId={}", keyId);
             throw new SignatureException(SignatureException.SignatureErrorType.KEY_NOT_FOUND);

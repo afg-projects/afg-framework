@@ -242,13 +242,13 @@ class CommonFieldRegistry {
      * 其他来源的字段（配置文件、注解）应该生成内部类。
      *
      * @param field 字段信息
-     * @return 通用字段元数据引用代码，如 "CommonFieldMetadata.CREATED_AT"；
+     * @return 通用字段元数据字段名，如 "CREATED_AT"；
      *         如果不是框架内置字段则返回 null
      */
     String generateRef(CommonFieldInfo field) {
         // 只有框架内置字段才返回 CommonFieldMetadata 引用
         if (field.source() == FieldSource.FRAMEWORK) {
-            return "CommonFieldMetadata." + field.name();
+            return field.name();  // 只返回字段名，如 "CREATED_AT"
         }
         // 配置文件和注解定义的字段应该生成内部类
         return null;

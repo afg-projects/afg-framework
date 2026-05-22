@@ -4,6 +4,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.jspecify.annotations.NonNull;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
+
 /**
  * 存活探针端点
  *
@@ -13,10 +15,10 @@ import org.jspecify.annotations.NonNull;
  */
 public class LivenessProbeEndpoint {
 
-    private final KubernetesProbeProperties.ProbeConfig config;
+    private final AfgCoreProperties.CloudNativeConfig.ProbeDetailConfig config;
     private final AtomicBoolean healthy = new AtomicBoolean(true);
 
-    public LivenessProbeEndpoint(KubernetesProbeProperties.ProbeConfig config) {
+    public LivenessProbeEndpoint(AfgCoreProperties.CloudNativeConfig.ProbeDetailConfig config) {
         this.config = config;
     }
 
@@ -53,7 +55,7 @@ public class LivenessProbeEndpoint {
      *
      * @return 探针配置
      */
-    public KubernetesProbeProperties.@NonNull ProbeConfig getConfig() {
+    public AfgCoreProperties.CloudNativeConfig.@NonNull ProbeDetailConfig getConfig() {
         return config;
     }
 }

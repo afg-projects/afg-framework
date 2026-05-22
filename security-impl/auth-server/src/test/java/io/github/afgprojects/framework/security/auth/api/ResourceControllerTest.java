@@ -2,28 +2,24 @@ package io.github.afgprojects.framework.security.auth.api;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.util.List;
 import java.util.Optional;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import io.github.afgprojects.framework.security.permission.entity.SecResource;
-import io.github.afgprojects.framework.security.permission.service.JdbcResourceService;
+import io.github.afgprojects.framework.security.auth.permission.entity.SecResource;
+import io.github.afgprojects.framework.security.auth.permission.service.JdbcResourceService;
+
+import static org.assertj.core.api.Assertions.*;
 
 /**
- * ResourceController 集成测试
+ * ResourceController 单元测试
  */
 @ExtendWith(MockitoExtension.class)
 class ResourceControllerTest {
@@ -31,21 +27,15 @@ class ResourceControllerTest {
     @Mock
     private JdbcResourceService resourceService;
 
-    private MockMvc mockMvc;
-
-    @BeforeEach
-    void setUp() {
-        ResourceController controller = new ResourceController(resourceService);
-        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
-    }
-
     @Nested
     @DisplayName("资源 CRUD 测试")
     class ResourceCrudTests {
 
         @Test
         @DisplayName("创建资源")
-        void shouldCreateResource() throws Exception {
+        void shouldCreateResource() {
+            ResourceController controller = new ResourceController(resourceService);
+
             SecResource resource = new SecResource();
             resource.setId(1L);
             resource.setResourceName("用户管理");
@@ -54,37 +44,34 @@ class ResourceControllerTest {
 
             when(resourceService.create(any())).thenReturn(resource);
 
-            mockMvc.perform(post("/resources")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content("""
-                        {
-                            "resourceName": "用户管理",
-                            "resourceCode": "user:manage",
-                            "resourceType": "MENU"
-                        }
-                        """))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id").value(1))
-                    .andExpect(jsonPath("$.resourceName").value("用户管理"));
+            SecResource result = controller.create(resource);
+
+            assertThat(result.getId()).isEqualTo(1L);
+            assertThat(result.getResourceName()).isEqualTo("用户管理");
         }
 
         @Test
         @DisplayName("获取资源详情")
-        void shouldGetResourceById() throws Exception {
+        void shouldGetResourceById() {
+            ResourceController controller = new ResourceController(resourceService);
+
             SecResource resource = new SecResource();
             resource.setId(1L);
             resource.setResourceName("用户管理");
 
             when(resourceService.findById(1L)).thenReturn(Optional.of(resource));
 
-            mockMvc.perform(get("/resources/1"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.resourceName").value("用户管理"));
+            SecResource result = controller.getById(1L);
+
+            assertThat(result).isNotNull();
+            assertThat(result.getResourceName()).isEqualTo("用户管理");
         }
 
         @Test
         @DisplayName("获取资源列表")
-        void shouldListResources() throws Exception {
+        void shouldListResources() {
+            ResourceController controller = new ResourceController(resourceService);
+
             SecResource r1 = new SecResource();
             r1.setId(1L);
             r1.setResourceName("用户管理");
@@ -95,49 +82,49 @@ class ResourceControllerTest {
 
             when(resourceService.findAll("tenant-001")).thenReturn(List.of(r1, r2));
 
-            mockMvc.perform(get("/resources")
-                    .param("tenantId", "tenant-001"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.length()").value(2));
+            List<SecResource> result = controller.list("tenant-001");
+
+            assertThat(result).hasSize(2);
         }
 
         @Test
         @DisplayName("获取资源树")
-        void shouldGetResourceTree() throws Exception {
+        void shouldGetResourceTree() {
+            ResourceController controller = new ResourceController(resourceService);
+
             SecResource parent = new SecResource();
             parent.setId(1L);
             parent.setResourceName("系统管理");
 
             when(resourceService.getResourceTree("tenant-001")).thenReturn(List.of(parent));
 
-            mockMvc.perform(get("/resources/tree")
-                    .param("tenantId", "tenant-001"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.length()").value(1));
+            List<SecResource> result = controller.tree("tenant-001");
+
+            assertThat(result).hasSize(1);
         }
 
         @Test
         @DisplayName("按类型获取资源")
-        void shouldListByType() throws Exception {
+        void shouldListByType() {
+            ResourceController controller = new ResourceController(resourceService);
+
             SecResource r1 = new SecResource();
             r1.setId(1L);
             r1.setResourceType("MENU");
 
             when(resourceService.findByType("MENU", "tenant-001")).thenReturn(List.of(r1));
 
-            mockMvc.perform(get("/resources/type/MENU")
-                    .param("tenantId", "tenant-001"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.length()").value(1));
+            List<SecResource> result = controller.listByType("MENU", "tenant-001");
+
+            assertThat(result).hasSize(1);
         }
 
         @Test
         @DisplayName("删除资源")
-        void shouldDeleteResource() throws Exception {
-            doNothing().when(resourceService).delete(1L);
+        void shouldDeleteResource() {
+            ResourceController controller = new ResourceController(resourceService);
 
-            mockMvc.perform(delete("/resources/1"))
-                    .andExpect(status().isOk());
+            controller.delete(1L);
 
             verify(resourceService).delete(1L);
         }

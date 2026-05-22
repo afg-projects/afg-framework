@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.26.xsd">
+
+    <changeSet id="v1.0.0-001-sec-dept" author="afg">
+        <createTable tableName="sec_dept" remarks="部门表">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_sec_dept"/>
+            </column>
+            <column name="dept_code" type="VARCHAR(50)" remarks="部门编码">
+                <constraints nullable="false"/>
+            </column>
+            <column name="dept_name" type="VARCHAR(100)" remarks="部门名称">
+                <constraints nullable="false"/>
+            </column>
+            <column name="parent_id" type="BIGINT" remarks="父部门ID"/>
+            <column name="tenant_id" type="VARCHAR(50)" remarks="租户ID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="leader_user_id" type="VARCHAR(100)" remarks="部门负责人用户ID"/>
+            <column name="sort_order" type="INT" defaultValueNumeric="0" remarks="排序号"/>
+            <column name="status" type="INT" defaultValueNumeric="1" remarks="状态：1-启用，0-禁用"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueDate="CURRENT_TIMESTAMP" remarks="创建时间"/>
+            <column name="updated_at" type="TIMESTAMP" defaultValueDate="CURRENT_TIMESTAMP" remarks="更新时间"/>
+        </createTable>
+
+        <addUniqueConstraint tableName="sec_dept" columnNames="dept_code,tenant_id"
+                             constraintName="uk_sec_dept_code"/>
+        <createIndex tableName="sec_dept" indexName="idx_sec_dept_tenant">
+            <column name="tenant_id"/>
+        </createIndex>
+        <createIndex tableName="sec_dept" indexName="idx_sec_dept_parent">
+            <column name="parent_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

@@ -19,8 +19,8 @@ import io.github.afgprojects.framework.core.support.TestApplication;
 @SpringBootTest(
         classes = TestApplication.class,
         properties = {
-                "afg.scheduler.enabled=true",
-                "afg.scheduler.thread-pool-size=2"
+                "afg.core.scheduler.enabled=true",
+                "afg.core.scheduler.thread-pool-size=2"
         }
 )
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)

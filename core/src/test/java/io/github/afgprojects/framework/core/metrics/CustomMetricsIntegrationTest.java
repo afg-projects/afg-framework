@@ -2,7 +2,7 @@ package io.github.afgprojects.framework.core.metrics;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.support.TestApplication;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
@@ -24,10 +25,10 @@ import io.micrometer.core.instrument.Timer;
 @SpringBootTest(
         classes = TestApplication.class,
         properties = {
-                "afg.metrics.enabled=true",
-                "afg.metrics.tags.application=test-app",
-                "afg.metrics.tags.env=test",
-                "afg.metrics.histogram.enabled=true",
+                "afg.core.metrics.enabled=true",
+                "afg.core.metrics.tags.application=test-app",
+                "afg.core.metrics.tags.env=test",
+                "afg.core.metrics.histogram.enabled=true",
                 "management.endpoints.web.exposure.include=metrics,prometheus"
         }
 )
@@ -39,6 +40,9 @@ class CustomMetricsIntegrationTest {
 
     @Autowired(required = false)
     private CustomMetrics customMetrics;
+
+    @Autowired(required = false)
+    private AfgCoreProperties afgCoreProperties;
 
     @Nested
     @DisplayName("指标配置测试")
@@ -53,10 +57,19 @@ class CustomMetricsIntegrationTest {
         @Test
         @DisplayName("应该自动配置 CustomMetrics")
         void shouldAutoConfigureCustomMetrics() {
-            // CustomMetrics 需要 MeterRegistry bean 和 MetricsProperties
+            // CustomMetrics 需要 MeterRegistry bean 和 MetricsConfig
             // 如果 MeterRegistry 存在，CustomMetrics 应该被创建
             if (meterRegistry != null && customMetrics != null) {
                 assertThat(customMetrics).isNotNull();
+            }
+        }
+
+        @Test
+        @DisplayName("应该自动配置 AfgCoreProperties")
+        void shouldAutoConfigureAfgCoreProperties() {
+            if (afgCoreProperties != null) {
+                assertThat(afgCoreProperties.getMetrics()).isNotNull();
+                assertThat(afgCoreProperties.getMetrics().isEnabled()).isTrue();
             }
         }
     }

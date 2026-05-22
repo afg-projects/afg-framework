@@ -1,5 +1,7 @@
 package io.github.afgprojects.framework.security.auth.permission;
 
+import io.github.afgprojects.framework.security.auth.autoconfigure.AuthSecurityProperties;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -9,7 +11,7 @@ import io.github.afgprojects.framework.core.security.datascope.DataScopeContext;
 import io.github.afgprojects.framework.core.security.datascope.DataScopeContextHolder;
 import io.github.afgprojects.framework.data.core.scope.DataScope;
 import io.github.afgprojects.framework.data.core.scope.DataScopeType;
-import io.github.afgprojects.framework.security.auth.permission.config.PermissionProperties;
+import io.github.afgprojects.framework.security.auth.autoconfigure.AuthSecurityProperties.PermissionConfig;
 import io.github.afgprojects.framework.security.core.permission.DataScopeService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
@@ -43,14 +45,14 @@ class DataScopeInterceptorTest {
     @Mock
     private FilterChain filterChain;
 
-    private PermissionProperties properties;
+    private AuthSecurityProperties.PermissionConfig properties;
     private DataScopeInterceptor interceptor;
     private AutoCloseable mocks;
 
     @BeforeEach
     void setUp() {
         mocks = MockitoAnnotations.openMocks(this);
-        properties = new PermissionProperties();
+        properties = new AuthSecurityProperties.PermissionConfig();
         properties.setEnabled(true);
         properties.setDataScopeInterceptorEnabled(true);
         properties.setDefaultDataScope("ALL");

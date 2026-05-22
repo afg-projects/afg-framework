@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.Status;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.module.ModuleDefinition;
 import io.github.afgprojects.framework.core.module.ModuleRegistry;
 import io.github.afgprojects.framework.core.support.BaseUnitTest;
@@ -32,7 +33,7 @@ import io.github.afgprojects.framework.core.web.health.spi.RedisHealthResult;
 @DisplayName("ReadinessHealthIndicator 测试")
 class ReadinessHealthIndicatorTest extends BaseUnitTest {
 
-    private HealthCheckProperties properties;
+    private AfgCoreProperties properties;
     private DataSource dataSource;
     private RedisHealthChecker redisHealthChecker;
     private ModuleRegistry moduleRegistry;
@@ -40,7 +41,7 @@ class ReadinessHealthIndicatorTest extends BaseUnitTest {
 
     @BeforeEach
     void setUp() {
-        properties = new HealthCheckProperties();
+        properties = new AfgCoreProperties();
         dataSource = mock(DataSource.class);
         redisHealthChecker = mock(RedisHealthChecker.class);
         moduleRegistry = new ModuleRegistry();
@@ -137,7 +138,7 @@ class ReadinessHealthIndicatorTest extends BaseUnitTest {
         @DisplayName("禁用数据库检查时应该不检查")
         void shouldNotCheckWhenDisabled() {
             // given
-            properties.getReadiness().setDatabaseCheckEnabled(false);
+            properties.getHealth().getReadiness().setDatabaseCheckEnabled(false);
             healthIndicator = new ReadinessHealthIndicator(properties, dataSource, new NoOpRedisHealthChecker(), null);
 
             // when
@@ -201,7 +202,7 @@ class ReadinessHealthIndicatorTest extends BaseUnitTest {
         @DisplayName("禁用 Redis 检查时应该不检查")
         void shouldNotCheckWhenDisabled() {
             // given
-            properties.getReadiness().setRedisCheckEnabled(false);
+            properties.getHealth().getReadiness().setRedisCheckEnabled(false);
             healthIndicator = new ReadinessHealthIndicator(properties, null, redisHealthChecker, null);
 
             // when
@@ -254,7 +255,7 @@ class ReadinessHealthIndicatorTest extends BaseUnitTest {
         @DisplayName("禁用模块检查时应该不检查")
         void shouldNotCheckWhenDisabled() {
             // given
-            properties.getReadiness().setModuleCheckEnabled(false);
+            properties.getHealth().getReadiness().setModuleCheckEnabled(false);
             healthIndicator = new ReadinessHealthIndicator(properties, null, new NoOpRedisHealthChecker(), moduleRegistry);
 
             // when

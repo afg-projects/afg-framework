@@ -7,7 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import io.github.afgprojects.framework.core.cloud.KubernetesProbeProperties.ProbeConfig;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties.CloudNativeConfig.ProbeDetailConfig;
 
 /**
  * {@link ReadinessProbeEndpoint} 的单元测试。
@@ -15,17 +15,17 @@ import io.github.afgprojects.framework.core.cloud.KubernetesProbeProperties.Prob
  * 测试 Kubernetes 就绪探针端点的初始化、路径获取和就绪状态管理功能。
  *
  * @see ReadinessProbeEndpoint
- * @see ProbeConfig
+ * @see ProbeDetailConfig
  */
 @DisplayName("ReadinessProbeEndpoint 测试")
 class ReadinessProbeEndpointTest {
 
     private ReadinessProbeEndpoint endpoint;
-    private ProbeConfig config;
+    private ProbeDetailConfig config;
 
     @BeforeEach
     void setUp() {
-        config = new ProbeConfig();
+        config = new ProbeDetailConfig();
         config.setPath("/health/readiness");
         endpoint = new ReadinessProbeEndpoint(config);
     }

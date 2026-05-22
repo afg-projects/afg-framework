@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.data.jdbc.cache;
 
-import io.github.afgprojects.framework.core.cache.CacheProperties;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.cache.DefaultCacheManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 class EntityCacheManagerTest {
 
     private DefaultCacheManager createCacheManager() {
-        CacheProperties cacheProperties = new CacheProperties();
+        AfgCoreProperties cacheProperties = new AfgCoreProperties()();
         return new DefaultCacheManager(cacheProperties);
     }
 

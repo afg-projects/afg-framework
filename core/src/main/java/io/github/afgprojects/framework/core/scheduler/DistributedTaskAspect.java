@@ -15,7 +15,7 @@ import org.jspecify.annotations.NonNull;
 
 import io.github.afgprojects.framework.core.annotation.DistributedTask;
 import io.github.afgprojects.framework.core.annotation.ScheduledTask;
-import io.github.afgprojects.framework.core.api.scheduler.SchedulerProperties;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.api.scheduler.TaskExecutionLog;
 import io.github.afgprojects.framework.core.api.scheduler.TaskExecutionLogStorage;
 import io.github.afgprojects.framework.core.api.scheduler.TaskExecutionMetrics;
@@ -45,7 +45,7 @@ public class DistributedTaskAspect {
     private final DistributedLock distributedLock;
     private final TaskExecutionMetrics metrics;
     private final TaskExecutionLogStorage logStorage;
-    private final SchedulerProperties properties;
+    private final AfgCoreProperties.SchedulerConfig properties;
 
     /**
      * 创建分布式任务切面
@@ -55,10 +55,10 @@ public class DistributedTaskAspect {
      * @param logStorage      日志存储
      * @param properties      调度器配置
      */
-    public DistributedTaskAspect(@NonNull DistributedLock distributedLock,
-                                  @NonNull TaskExecutionMetrics metrics,
-                                  @NonNull TaskExecutionLogStorage logStorage,
-                                  @NonNull SchedulerProperties properties) {
+    public DistributedTaskAspect(DistributedLock distributedLock,
+                                  TaskExecutionMetrics metrics,
+                                  TaskExecutionLogStorage logStorage,
+                                  AfgCoreProperties.SchedulerConfig properties) {
         this.distributedLock = distributedLock;
         this.metrics = metrics;
         this.logStorage = logStorage;

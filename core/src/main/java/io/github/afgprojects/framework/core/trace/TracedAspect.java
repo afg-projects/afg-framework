@@ -8,6 +8,8 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
+
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 
@@ -37,7 +39,7 @@ import io.micrometer.tracing.Tracer;
 public class TracedAspect {
 
     private final @Nullable Tracer tracer;
-    private final TracingProperties properties;
+    private final AfgCoreProperties properties;
     private final @Nullable TracingSampler sampler;
     private final @Nullable SpanCreator spanCreator;
     private final TracingLogRecorder logRecorder;
@@ -46,13 +48,13 @@ public class TracedAspect {
      * 构造函数
      *
      * @param tracer     Micrometer Tracer（可为 null）
-     * @param properties 追踪配置属性
+     * @param properties 核心配置属性
      */
-    public TracedAspect(@Nullable Tracer tracer, @NonNull TracingProperties properties) {
+    public TracedAspect(@Nullable Tracer tracer, @NonNull AfgCoreProperties properties) {
         this.tracer = tracer;
         this.properties = properties;
-        this.sampler = properties.isEnabled() && properties.getSampling().getStrategy() != SamplingStrategy.ALWAYS
-                ? new TracingSampler(properties.getSampling())
+        this.sampler = properties.getTracing().isEnabled() && properties.getTracing().getSampling().getStrategy() != AfgCoreProperties.TracingConfig.SamplingStrategy.ALWAYS
+                ? new TracingSampler(properties.getTracing().getSampling())
                 : null;
         this.spanCreator = tracer != null ? new SpanCreator(tracer) : null;
         this.logRecorder = new TracingLogRecorder();
@@ -69,7 +71,7 @@ public class TracedAspect {
     @Around("@annotation(annotation)")
     public Object traceAround(ProceedingJoinPoint joinPoint, Traced annotation) throws Throwable {
         // 检查是否启用
-        if (!properties.isEnabled() || !properties.getAnnotations().isEnabled()) {
+        if (!properties.getTracing().isEnabled() || !properties.getTracing().getAnnotations().isEnabled()) {
             return joinPoint.proceed();
         }
 

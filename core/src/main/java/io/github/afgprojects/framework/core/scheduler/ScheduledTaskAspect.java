@@ -11,7 +11,7 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import io.github.afgprojects.framework.core.annotation.ScheduledTask;
-import io.github.afgprojects.framework.core.api.scheduler.SchedulerProperties;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.api.scheduler.TaskExecutionLog;
 import io.github.afgprojects.framework.core.api.scheduler.TaskExecutionLogStorage;
 import io.github.afgprojects.framework.core.api.scheduler.TaskExecutionMetrics;
@@ -39,7 +39,7 @@ public class ScheduledTaskAspect {
 
     private final TaskExecutionMetrics metrics;
     private final TaskExecutionLogStorage logStorage;
-    private final SchedulerProperties properties;
+    private final AfgCoreProperties.SchedulerConfig properties;
 
     /**
      * 创建本地任务切面
@@ -48,9 +48,9 @@ public class ScheduledTaskAspect {
      * @param logStorage 日志存储
      * @param properties 调度器配置
      */
-    public ScheduledTaskAspect(@NonNull TaskExecutionMetrics metrics,
-                               @NonNull TaskExecutionLogStorage logStorage,
-                               @NonNull SchedulerProperties properties) {
+    public ScheduledTaskAspect(TaskExecutionMetrics metrics,
+                               TaskExecutionLogStorage logStorage,
+                               AfgCoreProperties.SchedulerConfig properties) {
         this.metrics = metrics;
         this.logStorage = logStorage;
         this.properties = properties;

@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
 public @interface ShutdownOrder {
     /**
      * 关闭回调的阶段名称。
-     * 阶段按照 ShutdownProperties 中定义的顺序执行。
+     * 阶段按照 AfgCoreProperties.ShutdownConfig 中定义的顺序执行。
      * 默认为 "cleanup"。
      */
     String phase() default "cleanup";

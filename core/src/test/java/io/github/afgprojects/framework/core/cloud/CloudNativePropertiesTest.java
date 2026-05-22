@@ -8,8 +8,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
+
 /**
- * {@link CloudNativeProperties} 的单元测试。
+ * {@link AfgCoreProperties.CloudNativeConfig} 的单元测试。
  * <p>
  * 测试云原生配置属性类的默认值设置和属性读写功能，包括：
  * <ul>
@@ -18,10 +20,10 @@ import org.junit.jupiter.api.Test;
  *   <li>配置外部化（ConfigMap、Secret 等）</li>
  * </ul>
  *
- * @see CloudNativeProperties
- * @see CloudNativeProperties.KubernetesConfig
- * @see CloudNativeProperties.GracefulShutdownConfig
- * @see CloudNativeProperties.ConfigExternalizationConfig
+ * @see AfgCoreProperties.CloudNativeConfig
+ * @see AfgCoreProperties.CloudNativeConfig.KubernetesConfig
+ * @see AfgCoreProperties.CloudNativeConfig.GracefulShutdownConfig
+ * @see AfgCoreProperties.CloudNativeConfig.ConfigExternalizationConfig
  */
 @DisplayName("CloudNativeProperties 测试")
 class CloudNativePropertiesTest {
@@ -29,19 +31,19 @@ class CloudNativePropertiesTest {
     /**
      * 默认值测试分组。
      * <p>
-     * 验证 CloudNativeProperties 实例化后各嵌套配置对象的默认初始化状态。
+     * 验证 CloudNativeConfig 实例化后各嵌套配置对象的默认初始化状态。
      */
     @Nested
     @DisplayName("默认值测试")
     class DefaultValueTests {
 
         /**
-         * 测试 CloudNativeProperties 实例化后应包含非空的嵌套配置对象。
+         * 测试 CloudNativeConfig 实例化后应包含非空的嵌套配置对象。
          */
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
-            CloudNativeProperties props = new CloudNativeProperties();
+            AfgCoreProperties.CloudNativeConfig props = new AfgCoreProperties.CloudNativeConfig();
 
             assertThat(props.getKubernetes()).isNotNull();
             assertThat(props.getGracefulShutdown()).isNotNull();
@@ -64,7 +66,7 @@ class CloudNativePropertiesTest {
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
-            CloudNativeProperties.KubernetesConfig config = new CloudNativeProperties.KubernetesConfig();
+            AfgCoreProperties.CloudNativeConfig.KubernetesConfig config = new AfgCoreProperties.CloudNativeConfig.KubernetesConfig();
 
             assertThat(config.isEnabled()).isTrue();
             assertThat(config.getNamespace()).isNull();
@@ -80,7 +82,7 @@ class CloudNativePropertiesTest {
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
-            CloudNativeProperties.KubernetesConfig config = new CloudNativeProperties.KubernetesConfig();
+            AfgCoreProperties.CloudNativeConfig.KubernetesConfig config = new AfgCoreProperties.CloudNativeConfig.KubernetesConfig();
             config.setEnabled(true);
             config.setNamespace("default");
             config.setServiceAccount("default-service");
@@ -112,7 +114,7 @@ class CloudNativePropertiesTest {
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
-            CloudNativeProperties.GracefulShutdownConfig config = new CloudNativeProperties.GracefulShutdownConfig();
+            AfgCoreProperties.CloudNativeConfig.GracefulShutdownConfig config = new AfgCoreProperties.CloudNativeConfig.GracefulShutdownConfig();
 
             assertThat(config.isEnabled()).isTrue();
             assertThat(config.getTimeout()).isEqualTo(Duration.ofSeconds(30));
@@ -126,7 +128,7 @@ class CloudNativePropertiesTest {
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
-            CloudNativeProperties.GracefulShutdownConfig config = new CloudNativeProperties.GracefulShutdownConfig();
+            AfgCoreProperties.CloudNativeConfig.GracefulShutdownConfig config = new AfgCoreProperties.CloudNativeConfig.GracefulShutdownConfig();
             config.setEnabled(false);
             config.setTimeout(Duration.ofSeconds(60));
             config.setWaitForRequests(false);
@@ -154,7 +156,7 @@ class CloudNativePropertiesTest {
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
-            CloudNativeProperties.ConfigExternalizationConfig config = new CloudNativeProperties.ConfigExternalizationConfig();
+            AfgCoreProperties.CloudNativeConfig.ConfigExternalizationConfig config = new AfgCoreProperties.CloudNativeConfig.ConfigExternalizationConfig();
 
             assertThat(config.isEnabled()).isTrue();
             assertThat(config.getConfigMap()).isNull();
@@ -169,7 +171,7 @@ class CloudNativePropertiesTest {
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
-            CloudNativeProperties.ConfigExternalizationConfig config = new CloudNativeProperties.ConfigExternalizationConfig();
+            AfgCoreProperties.CloudNativeConfig.ConfigExternalizationConfig config = new AfgCoreProperties.CloudNativeConfig.ConfigExternalizationConfig();
             config.setEnabled(false);
             config.setConfigMap("my-configmap");
             config.setSecret("my-secret");

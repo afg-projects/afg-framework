@@ -1,6 +1,7 @@
 package io.github.afgprojects.framework.core.web.ratelimit;
 
 import io.github.afgprojects.framework.core.api.ratelimit.RateLimitResult;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 
 import java.io.IOException;
 
@@ -24,7 +25,7 @@ import jakarta.servlet.http.HttpServletResponse;
  */
 public class RateLimitResponseHeaderFilter extends OncePerRequestFilter {
 
-    private final RateLimitProperties properties;
+    private final AfgCoreProperties properties;
 
     /**
      * 请求属性 key，用于存储限流结果
@@ -34,9 +35,9 @@ public class RateLimitResponseHeaderFilter extends OncePerRequestFilter {
     /**
      * 构造函数
      *
-     * @param properties 限流配置属性
+     * @param properties 核心配置属性
      */
-    public RateLimitResponseHeaderFilter(RateLimitProperties properties) {
+    public RateLimitResponseHeaderFilter(AfgCoreProperties properties) {
         this.properties = properties;
     }
 
@@ -47,7 +48,7 @@ public class RateLimitResponseHeaderFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
 
         // 检查是否启用响应头
-        if (!properties.getResponseHeaders().isEnabled()) {
+        if (!properties.getRateLimit().getResponseHeaders().isEnabled()) {
             return;
         }
 
@@ -58,7 +59,7 @@ public class RateLimitResponseHeaderFilter extends OncePerRequestFilter {
         }
 
         // 设置响应头
-        var headers = properties.getResponseHeaders();
+        var headers = properties.getRateLimit().getResponseHeaders();
         response.setHeader(headers.getLimitHeader(), result.getLimitHeader());
         response.setHeader(headers.getRemainingHeader(), result.getRemainingHeader());
         response.setHeader(headers.getResetHeader(), result.getResetHeader());

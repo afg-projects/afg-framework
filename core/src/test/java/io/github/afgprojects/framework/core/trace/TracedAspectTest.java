@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Method;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,23 +47,23 @@ class TracedAspectTest {
     @Mock
     private MethodSignature signature;
 
-    private TracingProperties properties;
+    private AfgCoreProperties properties;
     private TracedAspect aspect;
 
     @BeforeEach
     void setUp() {
         TraceContext.setTracer(null);
 
-        properties = new TracingProperties();
-        properties.setEnabled(true);
-        properties.getAnnotations().setEnabled(true);
-        properties.getSampling().setStrategy(SamplingStrategy.ALWAYS);
+        properties = new AfgCoreProperties();
+        properties.getTracing().setEnabled(true);
+        properties.getTracing().getAnnotations().setEnabled(true);
+        properties.getTracing().getSampling().setStrategy(AfgCoreProperties.TracingConfig.SamplingStrategy.ALWAYS);
     }
 
     @Test
     @DisplayName("禁用时不创建 Span")
     void testDisabled() throws Throwable {
-        properties.setEnabled(false);
+        properties.getTracing().setEnabled(false);
         aspect = new TracedAspect(null, properties);
 
         Traced annotation = createAnnotation("testOp", SpanKind.INTERNAL, false, false, ExceptionLogLevel.MESSAGE);

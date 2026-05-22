@@ -1,19 +1,24 @@
 package io.github.afgprojects.framework.security.auth.api;
 
-import io.github.afgprojects.framework.security.permission.entity.SecResource;
-import io.github.afgprojects.framework.security.permission.service.JdbcResourceService;
-import lombok.RequiredArgsConstructor;
+import io.github.afgprojects.framework.security.auth.permission.entity.SecResource;
+import io.github.afgprojects.framework.security.auth.permission.service.JdbcResourceService;
 import org.jspecify.annotations.Nullable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController
+/**
+ * 资源管理 API。
+ */
+@ResponseBody
 @RequestMapping("/resources")
-@RequiredArgsConstructor
 public class ResourceController {
 
     private final JdbcResourceService resourceService;
+
+    public ResourceController(JdbcResourceService resourceService) {
+        this.resourceService = resourceService;
+    }
 
     @PostMapping
     public SecResource create(@RequestBody SecResource resource) {

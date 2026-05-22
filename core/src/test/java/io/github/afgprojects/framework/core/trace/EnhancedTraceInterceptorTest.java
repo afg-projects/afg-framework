@@ -31,6 +31,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpResponse;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.support.BaseUnitTest;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
@@ -47,7 +48,10 @@ class EnhancedTraceInterceptorTest extends BaseUnitTest {
     private Tracer tracer;
 
     @Mock
-    private TracingProperties properties;
+    private AfgCoreProperties properties;
+
+    @Mock
+    private AfgCoreProperties.TracingConfig tracingConfig;
 
     @Mock
     private TracingSampler sampler;
@@ -65,7 +69,7 @@ class EnhancedTraceInterceptorTest extends BaseUnitTest {
     private Span span;
 
     @Mock
-    private TracingProperties.Baggage baggageConfig;
+    private AfgCoreProperties.TracingConfig.BaggageConfig baggageConfig;
 
     private EnhancedTraceInterceptor interceptor;
 
@@ -75,8 +79,9 @@ class EnhancedTraceInterceptorTest extends BaseUnitTest {
         when(request.getMethod()).thenReturn(HttpMethod.GET);
         when(request.getHeaders()).thenReturn(new HttpHeaders());
         lenient().when(response.getStatusCode()).thenReturn(HttpStatus.OK);
-        lenient().when(properties.isEnabled()).thenReturn(true);
-        lenient().when(properties.getBaggage()).thenReturn(baggageConfig);
+        lenient().when(properties.getTracing()).thenReturn(tracingConfig);
+        lenient().when(tracingConfig.isEnabled()).thenReturn(true);
+        lenient().when(tracingConfig.getBaggage()).thenReturn(baggageConfig);
         lenient().when(baggageConfig.isEnabled()).thenReturn(false);
         lenient().when(baggageConfig.getRemoteFields()).thenReturn(Collections.emptyList());
         lenient().when(baggageConfig.getFieldMappings()).thenReturn(Collections.emptyMap());

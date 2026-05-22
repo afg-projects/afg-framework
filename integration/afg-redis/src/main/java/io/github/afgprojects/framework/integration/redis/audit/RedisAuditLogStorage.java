@@ -7,8 +7,8 @@ import org.redisson.api.RList;
 import org.redisson.api.RedissonClient;
 
 import io.github.afgprojects.framework.core.audit.AuditLog;
-import io.github.afgprojects.framework.core.audit.AuditLogProperties;
 import io.github.afgprojects.framework.core.audit.AuditLogStorage;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.util.JacksonUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +35,7 @@ public class RedisAuditLogStorage implements AuditLogStorage {
     private static final String GLOBAL_KEY = "global";
 
     private final RedissonClient redissonClient;
-    private final AuditLogProperties properties;
+    private final AfgCoreProperties.AuditConfig properties;
 
     /**
      * 构造函数
@@ -43,7 +43,7 @@ public class RedisAuditLogStorage implements AuditLogStorage {
      * @param redissonClient Redisson 客户端
      * @param properties     审计日志配置
      */
-    public RedisAuditLogStorage(@NonNull RedissonClient redissonClient, @NonNull AuditLogProperties properties) {
+    public RedisAuditLogStorage(@NonNull RedissonClient redissonClient, AfgCoreProperties.AuditConfig properties) {
         this.redissonClient = redissonClient;
         this.properties = properties;
     }

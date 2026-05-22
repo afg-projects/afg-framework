@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.web.context.AfgRequestContextHolder;
 
 /**
@@ -37,7 +38,7 @@ public class FeatureFlagManager {
     /**
      * 配置属性
      */
-    private final FeatureFlagProperties properties;
+    private final AfgCoreProperties properties;
 
     /**
      * 分布式存储客户端（可选）
@@ -49,7 +50,7 @@ public class FeatureFlagManager {
      *
      * @param properties 配置属性
      */
-    public FeatureFlagManager(@NonNull FeatureFlagProperties properties) {
+    public FeatureFlagManager(@NonNull AfgCoreProperties properties) {
         this(properties, null);
     }
 
@@ -60,7 +61,7 @@ public class FeatureFlagManager {
      * @param storageClient  分布式存储客户端
      */
     public FeatureFlagManager(
-            @NonNull FeatureFlagProperties properties, @Nullable DistributedStorageClient storageClient) {
+            @NonNull AfgCoreProperties properties, @Nullable DistributedStorageClient storageClient) {
         this.properties = properties;
         this.storageClient = storageClient;
     }
@@ -127,7 +128,7 @@ public class FeatureFlagManager {
      */
     public @Nullable FeatureFlag getFeatureFlag(@NonNull String featureName) {
         // 先尝试从分布式存储获取
-        if (storageClient != null && properties.getStorageType() != FeatureFlagProperties.StorageType.MEMORY) {
+        if (storageClient != null && properties.getFeature().getStorageType() != AfgCoreProperties.FeatureFlagConfig.StorageType.MEMORY) {
             FeatureFlag flag = storageClient.get(featureName);
             if (flag != null) {
                 return flag;
@@ -155,7 +156,7 @@ public class FeatureFlagManager {
             log.info("功能开关已注册: {} -> {}", flag.name(), flag.enabled());
 
             // 同步到分布式存储
-            if (storageClient != null && properties.getStorageType() != FeatureFlagProperties.StorageType.MEMORY) {
+            if (storageClient != null && properties.getFeature().getStorageType() != AfgCoreProperties.FeatureFlagConfig.StorageType.MEMORY) {
                 storageClient.put(flag.name(), flag);
             }
         } finally {
@@ -177,7 +178,7 @@ public class FeatureFlagManager {
             log.info("批量注册功能开关: {} 个", flags.size());
 
             // 同步到分布式存储
-            if (storageClient != null && properties.getStorageType() != FeatureFlagProperties.StorageType.MEMORY) {
+            if (storageClient != null && properties.getFeature().getStorageType() != AfgCoreProperties.FeatureFlagConfig.StorageType.MEMORY) {
                 Map<String, FeatureFlag> flagMap = new HashMap<>();
                 for (FeatureFlag flag : flags) {
                     flagMap.put(flag.name(), flag);
@@ -243,7 +244,7 @@ public class FeatureFlagManager {
             log.info("功能开关状态已更新: {} -> {}", featureName, enabled);
 
             // 同步到分布式存储
-            if (storageClient != null && properties.getStorageType() != FeatureFlagProperties.StorageType.MEMORY) {
+            if (storageClient != null && properties.getFeature().getStorageType() != AfgCoreProperties.FeatureFlagConfig.StorageType.MEMORY) {
                 storageClient.put(featureName, flag);
             }
         } finally {
@@ -278,7 +279,7 @@ public class FeatureFlagManager {
             log.info("功能开关灰度规则已更新: {} -> {}", featureName, rule);
 
             // 同步到分布式存储
-            if (storageClient != null && properties.getStorageType() != FeatureFlagProperties.StorageType.MEMORY) {
+            if (storageClient != null && properties.getFeature().getStorageType() != AfgCoreProperties.FeatureFlagConfig.StorageType.MEMORY) {
                 storageClient.put(featureName, flag);
             }
         } finally {
@@ -300,7 +301,7 @@ public class FeatureFlagManager {
                 log.info("功能开关已删除: {}", featureName);
 
                 // 从分布式存储删除
-                if (storageClient != null && properties.getStorageType() != FeatureFlagProperties.StorageType.MEMORY) {
+                if (storageClient != null && properties.getFeature().getStorageType() != AfgCoreProperties.FeatureFlagConfig.StorageType.MEMORY) {
                     storageClient.remove(featureName);
                 }
             }
@@ -329,7 +330,7 @@ public class FeatureFlagManager {
      * 刷新功能开关（从分布式存储重新加载）
      */
     public void refresh() {
-        if (storageClient == null || properties.getStorageType() == FeatureFlagProperties.StorageType.MEMORY) {
+        if (storageClient == null || properties.getFeature().getStorageType() == AfgCoreProperties.FeatureFlagConfig.StorageType.MEMORY) {
             return;
         }
 

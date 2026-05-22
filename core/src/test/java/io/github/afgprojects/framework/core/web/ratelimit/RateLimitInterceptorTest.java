@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import io.github.afgprojects.framework.core.api.ratelimit.RateLimitAlgorithm;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.api.ratelimit.RateLimitDimension;
 import io.github.afgprojects.framework.core.api.ratelimit.RateLimitResult;
 import io.github.afgprojects.framework.core.api.ratelimit.RateLimiter;
@@ -43,13 +43,13 @@ class RateLimitInterceptorTest extends BaseUnitTest {
     @Mock
     private MethodSignature methodSignature;
 
-    private RateLimitProperties properties;
+    private AfgCoreProperties properties;
     private RateLimitInterceptor interceptor;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        properties = new RateLimitProperties();
+        properties = new AfgCoreProperties();
         interceptor = new RateLimitInterceptor(rateLimiter, properties, null);
 
         // Setup builder mock chain
@@ -67,7 +67,7 @@ class RateLimitInterceptorTest extends BaseUnitTest {
      */
     @Test
     void should_proceed_when_rateLimitDisabled() throws Throwable {
-        properties.setEnabled(false);
+        properties.getRateLimit().setEnabled(false);
         RateLimit annotation = createAnnotation("test", 10, RateLimitDimension.IP);
 
         when(joinPoint.proceed()).thenReturn("result");
@@ -138,7 +138,7 @@ class RateLimitInterceptorTest extends BaseUnitTest {
 
     @Test
     void should_throwException_when_fallbackDisabled() throws Throwable {
-        properties.getFallback().setEnabled(false);
+        properties.getRateLimit().getFallback().setEnabled(false);
         RateLimit annotation = createAnnotationWithFallback("test", 10, RateLimitDimension.IP, "fallback");
 
         when(rateLimiterBuilder.tryAcquire()).thenReturn(RateLimitResult.rejected(20, System.currentTimeMillis() + 1000, 100));
@@ -173,8 +173,8 @@ class RateLimitInterceptorTest extends BaseUnitTest {
             }
 
             @Override
-            public RateLimitAlgorithm algorithm() {
-                return RateLimitAlgorithm.TOKEN_BUCKET;
+            public AfgCoreProperties.RateLimitConfig.RateLimitAlgorithm algorithm() {
+                return AfgCoreProperties.RateLimitConfig.RateLimitAlgorithm.TOKEN_BUCKET;
             }
 
             @Override
@@ -227,8 +227,8 @@ class RateLimitInterceptorTest extends BaseUnitTest {
             }
 
             @Override
-            public RateLimitAlgorithm algorithm() {
-                return RateLimitAlgorithm.TOKEN_BUCKET;
+            public AfgCoreProperties.RateLimitConfig.RateLimitAlgorithm algorithm() {
+                return AfgCoreProperties.RateLimitConfig.RateLimitAlgorithm.TOKEN_BUCKET;
             }
 
             @Override

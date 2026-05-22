@@ -1,1 +1,1 @@
-io.github.afgprojects.framework.data.liquibase.config.LiquibaseAutoConfiguration
+io.github.afgprojects.framework.data.liquibase.autoconfigure.LiquibaseAutoConfiguration

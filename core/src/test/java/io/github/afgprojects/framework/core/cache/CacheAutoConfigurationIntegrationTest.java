@@ -2,6 +2,7 @@ package io.github.afgprojects.framework.core.cache;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -26,10 +27,10 @@ import org.springframework.test.annotation.DirtiesContext;
 @SpringBootTest(
         classes = TestApplication.class,
         properties = {
-                "afg.cache.enabled=true",
-                "afg.cache.type=local",
-                "afg.cache.default-ttl=60000",
-                "afg.cache.local.maximum-size=1000"
+                "afg.core.cache.enabled=true",
+                "afg.core.cache.type=local",
+                "afg.core.cache.default-ttl=60000",
+                "afg.core.cache.local.maximum-size=1000"
         }
 )
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -49,7 +50,7 @@ class CacheAutoConfigurationIntegrationTest {
     private CacheAspect cacheAspect;
 
     @Autowired(required = false)
-    private CacheProperties cacheProperties;
+    private AfgCoreProperties coreProperties;
 
     /**
      * 自动配置测试。
@@ -85,10 +86,10 @@ class CacheAutoConfigurationIntegrationTest {
         @Test
         @DisplayName("应该自动配置 CacheProperties")
         void shouldAutoConfigureCacheProperties() {
-            assertThat(cacheProperties).isNotNull();
-            assertThat(cacheProperties.isEnabled()).isTrue();
-            assertThat(cacheProperties.getType()).isEqualTo(CacheProperties.CacheType.LOCAL);
-            assertThat(cacheProperties.getDefaultTtl()).isEqualTo(60000);
+            assertThat(coreProperties).isNotNull();
+            assertThat(coreProperties.getCache().isEnabled()).isTrue();
+            assertThat(coreProperties.getCache().getType()).isEqualTo(AfgCoreProperties.CacheConfig.CacheType.LOCAL);
+            assertThat(coreProperties.getCache().getDefaultTtl()).isEqualTo(60000);
         }
     }
 
@@ -123,7 +124,7 @@ class CacheAutoConfigurationIntegrationTest {
         @DisplayName("应该使用配置的默认 TTL")
         void shouldUseConfiguredDefaultTtl() {
             // when
-            CacheConfig config = cacheProperties.toCacheConfig();
+            AfgCoreProperties.CacheConfig config = coreProperties.getCache();
 
             // then
             assertThat(config.getDefaultTtl()).isEqualTo(60000);

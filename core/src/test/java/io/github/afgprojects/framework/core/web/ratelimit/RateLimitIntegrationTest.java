@@ -7,6 +7,11 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
+import io.github.afgprojects.framework.core.api.ratelimit.RateLimitDimension;
+import io.github.afgprojects.framework.core.api.ratelimit.RateLimitResult;
+import io.github.afgprojects.framework.core.api.ratelimit.RateLimiter;
+import io.github.afgprojects.framework.core.support.TestApplication;
 import io.github.afgprojects.framework.core.support.BaseIntegrationTest;
 
 /**
@@ -17,7 +22,7 @@ import io.github.afgprojects.framework.core.support.BaseIntegrationTest;
 class RateLimitIntegrationTest extends BaseIntegrationTest {
 
     @Autowired(required = false)
-    private RateLimitProperties rateLimitProperties;
+    private AfgCoreProperties afgCoreProperties;
 
     @Nested
     @DisplayName("RateLimit 配置测试")
@@ -26,9 +31,9 @@ class RateLimitIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("应该正确配置 RateLimitProperties")
         void shouldConfigureRateLimitProperties() {
-            assertThat(rateLimitProperties).isNotNull();
-            assertThat(rateLimitProperties.isEnabled()).isTrue();
-            assertThat(rateLimitProperties.getDefaultRate()).isEqualTo(10);
+            assertThat(afgCoreProperties).isNotNull();
+            assertThat(afgCoreProperties.getRateLimit().isEnabled()).isTrue();
+            assertThat(afgCoreProperties.getRateLimit().getDefaultRate()).isEqualTo(10);
         }
     }
 }

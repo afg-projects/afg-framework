@@ -16,6 +16,7 @@ import org.jspecify.annotations.NonNull;
 import org.slf4j.MDC;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.web.context.AfgRequestContextHolder;
 import io.github.afgprojects.framework.core.web.context.RequestContext;
 import io.github.afgprojects.framework.core.web.trace.TraceContext;
@@ -75,8 +76,8 @@ public class MdcFilter extends OncePerRequestFilter {
 
     private final Set<String> enabledFields;
 
-    public MdcFilter(@NonNull LoggingProperties properties) {
-        this.enabledFields = new HashSet<>(Arrays.asList(properties.getMdc().getFields()));
+    public MdcFilter(@NonNull AfgCoreProperties properties) {
+        this.enabledFields = new HashSet<>(Arrays.asList(properties.getLogging().getMdc().getFields()));
         // 验证配置的字段是否支持
         for (String field : enabledFields) {
             if (!ALL_SUPPORTED_FIELDS.contains(field)) {

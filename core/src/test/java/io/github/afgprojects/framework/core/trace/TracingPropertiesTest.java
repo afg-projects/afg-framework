@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -23,7 +24,7 @@ class TracingPropertiesTest {
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
-            TracingProperties props = new TracingProperties();
+            AfgCoreProperties.TracingConfig props = new AfgCoreProperties.TracingConfig();
 
             assertThat(props.isEnabled()).isTrue();
             assertThat(props.getAnnotations()).isNotNull();
@@ -42,7 +43,7 @@ class TracingPropertiesTest {
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
-            TracingProperties.Annotations annotations = new TracingProperties.Annotations();
+            AfgCoreProperties.TracingConfig.TracingAnnotationConfig annotations = new AfgCoreProperties.TracingConfig.TracingAnnotationConfig();
 
             assertThat(annotations.isEnabled()).isTrue();
         }
@@ -50,7 +51,7 @@ class TracingPropertiesTest {
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
-            TracingProperties.Annotations annotations = new TracingProperties.Annotations();
+            AfgCoreProperties.TracingConfig.TracingAnnotationConfig annotations = new AfgCoreProperties.TracingConfig.TracingAnnotationConfig();
             annotations.setEnabled(false);
 
             assertThat(annotations.isEnabled()).isFalse();
@@ -64,9 +65,9 @@ class TracingPropertiesTest {
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
-            TracingProperties.Sampling sampling = new TracingProperties.Sampling();
+            AfgCoreProperties.TracingConfig.SamplingConfig sampling = new AfgCoreProperties.TracingConfig.SamplingConfig();
 
-            assertThat(sampling.getStrategy()).isEqualTo(SamplingStrategy.PROBABILITY);
+            assertThat(sampling.getStrategy()).isEqualTo(AfgCoreProperties.TracingConfig.SamplingStrategy.PROBABILITY);
             assertThat(sampling.getProbability()).isEqualTo(1.0);
             assertThat(sampling.getRate()).isEqualTo(100);
         }
@@ -74,12 +75,12 @@ class TracingPropertiesTest {
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
-            TracingProperties.Sampling sampling = new TracingProperties.Sampling();
-            sampling.setStrategy(SamplingStrategy.RATE_LIMITING);
+            AfgCoreProperties.TracingConfig.SamplingConfig sampling = new AfgCoreProperties.TracingConfig.SamplingConfig();
+            sampling.setStrategy(AfgCoreProperties.TracingConfig.SamplingStrategy.RATE_LIMITING);
             sampling.setProbability(0.5);
             sampling.setRate(50);
 
-            assertThat(sampling.getStrategy()).isEqualTo(SamplingStrategy.RATE_LIMITING);
+            assertThat(sampling.getStrategy()).isEqualTo(AfgCoreProperties.TracingConfig.SamplingStrategy.RATE_LIMITING);
             assertThat(sampling.getProbability()).isEqualTo(0.5);
             assertThat(sampling.getRate()).isEqualTo(50);
         }
@@ -92,7 +93,7 @@ class TracingPropertiesTest {
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
-            TracingProperties.Baggage baggage = new TracingProperties.Baggage();
+            AfgCoreProperties.TracingConfig.BaggageConfig baggage = new AfgCoreProperties.TracingConfig.BaggageConfig();
 
             assertThat(baggage.isEnabled()).isTrue();
             assertThat(baggage.getRemoteFields()).contains("tenantId", "userId", "traceId");
@@ -103,7 +104,7 @@ class TracingPropertiesTest {
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
-            TracingProperties.Baggage baggage = new TracingProperties.Baggage();
+            AfgCoreProperties.TracingConfig.BaggageConfig baggage = new AfgCoreProperties.TracingConfig.BaggageConfig();
             baggage.setEnabled(false);
             baggage.setRemoteFields(List.of("customField"));
             baggage.setLocalFields(List.of("localField"));
@@ -126,7 +127,7 @@ class TracingPropertiesTest {
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
-            TracingProperties.Propagation propagation = new TracingProperties.Propagation();
+            AfgCoreProperties.TracingConfig.PropagationConfig propagation = new AfgCoreProperties.TracingConfig.PropagationConfig();
 
             assertThat(propagation.isEnabled()).isTrue();
             assertThat(propagation.isThreadPoolEnabled()).isTrue();
@@ -135,7 +136,7 @@ class TracingPropertiesTest {
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
-            TracingProperties.Propagation propagation = new TracingProperties.Propagation();
+            AfgCoreProperties.TracingConfig.PropagationConfig propagation = new AfgCoreProperties.TracingConfig.PropagationConfig();
             propagation.setEnabled(false);
             propagation.setThreadPoolEnabled(false);
 
@@ -151,7 +152,7 @@ class TracingPropertiesTest {
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
-            TracingProperties.Zipkin zipkin = new TracingProperties.Zipkin();
+            AfgCoreProperties.TracingConfig.ZipkinConfig zipkin = new AfgCoreProperties.TracingConfig.ZipkinConfig();
 
             assertThat(zipkin.isEnabled()).isFalse();
             assertThat(zipkin.getEndpoint()).isEqualTo("http://localhost:9411/api/v2/spans");
@@ -164,7 +165,7 @@ class TracingPropertiesTest {
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
-            TracingProperties.Zipkin zipkin = new TracingProperties.Zipkin();
+            AfgCoreProperties.TracingConfig.ZipkinConfig zipkin = new AfgCoreProperties.TracingConfig.ZipkinConfig();
             zipkin.setEnabled(true);
             zipkin.setEndpoint("http://custom:9411/api/v2/spans");
             zipkin.setConnectTimeout(10000);
@@ -188,7 +189,7 @@ class TracingPropertiesTest {
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
-            TracingProperties.Jaeger jaeger = new TracingProperties.Jaeger();
+            AfgCoreProperties.TracingConfig.JaegerConfig jaeger = new AfgCoreProperties.TracingConfig.JaegerConfig();
 
             assertThat(jaeger.isEnabled()).isFalse();
             assertThat(jaeger.getEndpoint()).isEqualTo("http://localhost:14268/api/traces");
@@ -201,7 +202,7 @@ class TracingPropertiesTest {
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
-            TracingProperties.Jaeger jaeger = new TracingProperties.Jaeger();
+            AfgCoreProperties.TracingConfig.JaegerConfig jaeger = new AfgCoreProperties.TracingConfig.JaegerConfig();
             jaeger.setEnabled(true);
             jaeger.setEndpoint("http://custom:14268/api/traces");
             jaeger.setOtlpEndpoint("http://custom:4317");

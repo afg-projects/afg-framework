@@ -18,6 +18,7 @@ import org.springframework.boot.health.contributor.Status;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.support.BaseUnitTest;
 
 /**
@@ -26,19 +27,19 @@ import io.github.afgprojects.framework.core.support.BaseUnitTest;
 @DisplayName("DataSourceHealthIndicator 测试")
 class DataSourceHealthIndicatorTest extends BaseUnitTest {
 
-    private DataSourceHealthProperties properties;
+    private AfgCoreProperties properties;
     private DataSource mockDataSource;
     private Connection mockConnection;
 
     @BeforeEach
     void setUp() throws SQLException {
-        properties = new DataSourceHealthProperties();
-        properties.setValidationQuery("SELECT 1");
-        properties.setPoolUsageWarningThreshold(70);
-        properties.setPoolUsageCriticalThreshold(90);
-        properties.setThreadsAwaitingWarningThreshold(5);
-        properties.setThreadsAwaitingCriticalThreshold(10);
-        properties.setConnectionTimeout(3000);
+        properties = new AfgCoreProperties();
+        properties.getHealth().getDatasource().setValidationQuery("SELECT 1");
+        properties.getHealth().getDatasource().setPoolUsageWarningThreshold(70);
+        properties.getHealth().getDatasource().setPoolUsageCriticalThreshold(90);
+        properties.getHealth().getDatasource().setThreadsAwaitingWarningThreshold(5);
+        properties.getHealth().getDatasource().setThreadsAwaitingCriticalThreshold(10);
+        properties.getHealth().getDatasource().setConnectionTimeout(3000);
 
         mockDataSource = mock(DataSource.class);
         mockConnection = mock(Connection.class);
@@ -187,7 +188,7 @@ class DataSourceHealthIndicatorTest extends BaseUnitTest {
         @DisplayName("应该使用配置的验证查询")
         void shouldUseConfiguredValidationQuery() throws SQLException {
             // given
-            properties.setValidationQuery("SELECT 1 FROM DUAL");
+            properties.getHealth().getDatasource().setValidationQuery("SELECT 1 FROM DUAL");
             when(mockConnection.isValid(anyInt())).thenReturn(true);
             DataSourceHealthIndicator indicator = new DataSourceHealthIndicator(mockDataSource, properties);
 
@@ -202,16 +203,16 @@ class DataSourceHealthIndicatorTest extends BaseUnitTest {
         @DisplayName("默认阈值配置应该正确")
         void defaultThresholdsShouldBeCorrect() {
             // given - 使用默认配置
-            DataSourceHealthProperties defaultProps = new DataSourceHealthProperties();
+            AfgCoreProperties defaultProps = new AfgCoreProperties();
 
             // then
-            assertTrue(defaultProps.isEnabled());
-            assertEquals("SELECT 1", defaultProps.getValidationQuery());
-            assertEquals(70, defaultProps.getPoolUsageWarningThreshold());
-            assertEquals(90, defaultProps.getPoolUsageCriticalThreshold());
-            assertEquals(5, defaultProps.getThreadsAwaitingWarningThreshold());
-            assertEquals(10, defaultProps.getThreadsAwaitingCriticalThreshold());
-            assertEquals(3000, defaultProps.getConnectionTimeout());
+            assertTrue(defaultProps.getHealth().getDatasource().isEnabled());
+            assertEquals("SELECT 1", defaultProps.getHealth().getDatasource().getValidationQuery());
+            assertEquals(70, defaultProps.getHealth().getDatasource().getPoolUsageWarningThreshold());
+            assertEquals(90, defaultProps.getHealth().getDatasource().getPoolUsageCriticalThreshold());
+            assertEquals(5, defaultProps.getHealth().getDatasource().getThreadsAwaitingWarningThreshold());
+            assertEquals(10, defaultProps.getHealth().getDatasource().getThreadsAwaitingCriticalThreshold());
+            assertEquals(3000, defaultProps.getHealth().getDatasource().getConnectionTimeout());
         }
     }
 }

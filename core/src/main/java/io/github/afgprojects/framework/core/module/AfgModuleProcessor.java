@@ -26,7 +26,7 @@ import io.github.afgprojects.framework.apt.module.AfgModuleAnnotation;
  * 同时加载模块的配置文件到 Spring Environment
  *
  * <p>实现 {@link PriorityOrdered} 接口，确保在 WebMvc 初始化之前处理模块配置类，
- * 这样 {@link io.github.afgprojects.framework.core.web.module.ModuleWebAutoConfiguration}
+ * 这样 {@link io.github.afgprojects.framework.core.autoconfigure.ModuleWebAutoConfiguration}
  * 可以在配置路径前缀时获取到已注册的模块列表。
  */
 @Slf4j

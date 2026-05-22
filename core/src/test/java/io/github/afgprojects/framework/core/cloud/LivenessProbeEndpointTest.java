@@ -7,7 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import io.github.afgprojects.framework.core.cloud.KubernetesProbeProperties.ProbeConfig;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties.CloudNativeConfig.ProbeDetailConfig;
 
 /**
  * {@link LivenessProbeEndpoint} 的单元测试。
@@ -15,17 +15,17 @@ import io.github.afgprojects.framework.core.cloud.KubernetesProbeProperties.Prob
  * 测试 Kubernetes 存活探针端点的初始化、路径获取和健康状态管理功能。
  *
  * @see LivenessProbeEndpoint
- * @see ProbeConfig
+ * @see ProbeDetailConfig
  */
 @DisplayName("LivenessProbeEndpoint 测试")
 class LivenessProbeEndpointTest {
 
     private LivenessProbeEndpoint endpoint;
-    private ProbeConfig config;
+    private ProbeDetailConfig config;
 
     @BeforeEach
     void setUp() {
-        config = new ProbeConfig();
+        config = new ProbeDetailConfig();
         config.setPath("/health/liveness");
         endpoint = new LivenessProbeEndpoint(config);
     }

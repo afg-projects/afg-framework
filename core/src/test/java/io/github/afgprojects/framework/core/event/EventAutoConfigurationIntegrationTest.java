@@ -4,11 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.Executor;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+
+import io.github.afgprojects.framework.core.autoconfigure.EventAutoConfiguration;
 
 /**
  * EventAutoConfiguration 集成测试
@@ -27,7 +30,7 @@ class EventAutoConfigurationIntegrationTest {
         @DisplayName("应该配置 LocalEventPublisher")
         void shouldConfigureLocalEventPublisher() {
             contextRunner
-                    .withPropertyValues("afg.event.type=LOCAL")
+                    .withPropertyValues("afg.core.event.type=LOCAL")
                     .run(context -> {
                         assertThat(context).hasSingleBean(DomainEventPublisher.class);
                         assertThat(context).hasSingleBean(EventRetryHandler.class);
@@ -67,12 +70,12 @@ class EventAutoConfigurationIntegrationTest {
         void shouldUseCustomConfiguration() {
             contextRunner
                     .withPropertyValues(
-                            "afg.event.retry.max-attempts=5",
-                            "afg.event.retry.initial-interval=2000")
+                            "afg.core.event.retry.max-attempts=5",
+                            "afg.core.event.retry.initial-interval=2000")
                     .run(context -> {
-                        EventProperties properties = context.getBean(EventProperties.class);
-                        assertThat(properties.getRetry().getMaxAttempts()).isEqualTo(5);
-                        assertThat(properties.getRetry().getInitialInterval()).isEqualTo(2000);
+                        AfgCoreProperties properties = context.getBean(AfgCoreProperties.class);
+                        assertThat(properties.getEvent().getRetry().getMaxAttempts()).isEqualTo(5);
+                        assertThat(properties.getEvent().getRetry().getInitialInterval()).isEqualTo(2000);
                     });
         }
     }
@@ -85,7 +88,7 @@ class EventAutoConfigurationIntegrationTest {
         @DisplayName("禁用事件时不应该配置任何 Bean")
         void shouldNotConfigureWhenDisabled() {
             contextRunner
-                    .withPropertyValues("afg.event.enabled=false")
+                    .withPropertyValues("afg.core.event.enabled=false")
                     .run(context -> {
                         assertThat(context).doesNotHaveBean(DomainEventPublisher.class);
                         assertThat(context).doesNotHaveBean(EventRetryHandler.class);
@@ -102,14 +105,14 @@ class EventAutoConfigurationIntegrationTest {
         void shouldBindEventProperties() {
             contextRunner
                     .withPropertyValues(
-                            "afg.event.enabled=true",
-                            "afg.event.type=LOCAL",
-                            "afg.event.default-topic=test.events")
+                            "afg.core.event.enabled=true",
+                            "afg.core.event.type=LOCAL",
+                            "afg.core.event.default-topic=test.events")
                     .run(context -> {
-                        EventProperties properties = context.getBean(EventProperties.class);
-                        assertThat(properties.isEnabled()).isTrue();
-                        assertThat(properties.getType()).isEqualTo(EventProperties.EventType.LOCAL);
-                        assertThat(properties.getDefaultTopic()).isEqualTo("test.events");
+                        AfgCoreProperties properties = context.getBean(AfgCoreProperties.class);
+                        assertThat(properties.getEvent().isEnabled()).isTrue();
+                        assertThat(properties.getEvent().getType()).isEqualTo(AfgCoreProperties.EventConfig.EventType.LOCAL);
+                        assertThat(properties.getEvent().getDefaultTopic()).isEqualTo("test.events");
                     });
         }
 
@@ -118,12 +121,12 @@ class EventAutoConfigurationIntegrationTest {
         void shouldBindLocalConfig() {
             contextRunner
                     .withPropertyValues(
-                            "afg.event.local.async=true",
-                            "afg.event.local.thread-pool-size=8")
+                            "afg.core.event.local.async=true",
+                            "afg.core.event.local.thread-pool-size=8")
                     .run(context -> {
-                        EventProperties properties = context.getBean(EventProperties.class);
-                        assertThat(properties.getLocal().isAsync()).isTrue();
-                        assertThat(properties.getLocal().getThreadPoolSize()).isEqualTo(8);
+                        AfgCoreProperties properties = context.getBean(AfgCoreProperties.class);
+                        assertThat(properties.getEvent().getLocal().isAsync()).isTrue();
+                        assertThat(properties.getEvent().getLocal().getThreadPoolSize()).isEqualTo(8);
                     });
         }
 
@@ -132,12 +135,12 @@ class EventAutoConfigurationIntegrationTest {
         void shouldBindDeadLetterConfig() {
             contextRunner
                     .withPropertyValues(
-                            "afg.event.dead-letter.enabled=false",
-                            "afg.event.dead-letter.topic-prefix=dead.")
+                            "afg.core.event.dead-letter.enabled=false",
+                            "afg.core.event.dead-letter.topic-prefix=dead.")
                     .run(context -> {
-                        EventProperties properties = context.getBean(EventProperties.class);
-                        assertThat(properties.getDeadLetter().isEnabled()).isFalse();
-                        assertThat(properties.getDeadLetter().getTopicPrefix()).isEqualTo("dead.");
+                        AfgCoreProperties properties = context.getBean(AfgCoreProperties.class);
+                        assertThat(properties.getEvent().getDeadLetter().isEnabled()).isFalse();
+                        assertThat(properties.getEvent().getDeadLetter().getTopicPrefix()).isEqualTo("dead.");
                     });
         }
     }

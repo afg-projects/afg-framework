@@ -5,7 +5,6 @@
  *
  * <p>主要类：
  * <ul>
- *   <li>{@link io.github.afgprojects.framework.security.resource.jwt.JwtResourceProperties} - JWT 配置属性</li>
  *   <li>{@link io.github.afgprojects.framework.security.resource.jwt.JwtAuthenticationConverter} - JWT 认证转换器</li>
  * </ul>
  *

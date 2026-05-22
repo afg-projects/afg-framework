@@ -5,17 +5,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
+
 /**
- * LockProperties 测试
+ * LockConfig 测试
  */
-@DisplayName("LockProperties 测试")
+@DisplayName("LockConfig 测试")
 class LockPropertiesTest {
 
     @Test
     @DisplayName("应该使用默认值")
     void shouldUseDefaultValues() {
         // given
-        LockProperties properties = new LockProperties();
+        AfgCoreProperties.LockConfig properties = new AfgCoreProperties.LockConfig();
 
         // then
         assertThat(properties.isEnabled()).isTrue();
@@ -29,7 +31,7 @@ class LockPropertiesTest {
     @DisplayName("应该正确设置和获取属性")
     void shouldSetAndGetProperties() {
         // given
-        LockProperties properties = new LockProperties();
+        AfgCoreProperties.LockConfig properties = new AfgCoreProperties.LockConfig();
 
         // when
         properties.setEnabled(false);
@@ -50,7 +52,7 @@ class LockPropertiesTest {
     @DisplayName("AnnotationConfig 应该正确初始化")
     void shouldInitializeAnnotationConfig() {
         // given
-        LockProperties properties = new LockProperties();
+        AfgCoreProperties.LockConfig properties = new AfgCoreProperties.LockConfig();
 
         // then
         assertThat(properties.getAnnotations()).isNotNull();

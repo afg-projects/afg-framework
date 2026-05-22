@@ -30,7 +30,6 @@ public interface LoginService {
      *
      * @param request 登录请求，永不为 null
      * @return 登录响应，包含访问令牌和用户信息，永不为 null
-     * @throws io.github.afgprojects.framework.security.core.authentication.AuthenticationException 如果认证失败
      */
     @NonNull
     LoginResponse login(@NonNull LoginRequest request);

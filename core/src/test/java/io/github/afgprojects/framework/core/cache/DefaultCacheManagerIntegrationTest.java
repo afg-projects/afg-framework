@@ -3,6 +3,7 @@ package io.github.afgprojects.framework.core.cache;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -25,9 +26,9 @@ import io.github.afgprojects.framework.core.support.TestApplication;
 @SpringBootTest(
         classes = TestApplication.class,
         properties = {
-                "afg.cache.enabled=true",
-                "afg.cache.type=LOCAL",
-                "afg.cache.default-ttl=60000"
+                "afg.core.cache.enabled=true",
+                "afg.core.cache.type=LOCAL",
+                "afg.core.cache.default-ttl=60000"
         }
 )
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -37,7 +38,7 @@ class DefaultCacheManagerIntegrationTest {
     private DefaultCacheManager cacheManager;
 
     @Autowired(required = false)
-    private CacheProperties cacheProperties;
+    private AfgCoreProperties coreProperties;
 
     /**
      * 缓存管理器配置测试。
@@ -64,9 +65,9 @@ class DefaultCacheManagerIntegrationTest {
         @Test
         @DisplayName("应该自动配置缓存属性")
         void shouldAutoConfigureCacheProperties() {
-            assertThat(cacheProperties).isNotNull();
-            assertThat(cacheProperties.isEnabled()).isTrue();
-            assertThat(cacheProperties.getType()).isEqualTo(CacheProperties.CacheType.LOCAL);
+            assertThat(coreProperties).isNotNull();
+            assertThat(coreProperties.getCache().isEnabled()).isTrue();
+            assertThat(coreProperties.getCache().getType()).isEqualTo(AfgCoreProperties.CacheConfig.CacheType.LOCAL);
         }
     }
 

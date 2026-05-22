@@ -6,7 +6,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import io.github.afgprojects.framework.core.api.ratelimit.RateLimitAlgorithm;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.api.ratelimit.RateLimitDimension;
 
 /**
@@ -99,7 +99,7 @@ public @interface RateLimit {
      *
      * @return 限流算法
      */
-    RateLimitAlgorithm algorithm() default RateLimitAlgorithm.TOKEN_BUCKET;
+    AfgCoreProperties.RateLimitConfig.RateLimitAlgorithm algorithm() default AfgCoreProperties.RateLimitConfig.RateLimitAlgorithm.TOKEN_BUCKET;
 
     /**
      * 时间窗口大小（秒）

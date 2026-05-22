@@ -17,7 +17,7 @@ import javax.crypto.SecretKey;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import io.github.afgprojects.framework.security.auth.login.config.TokenProperties;
+import io.github.afgprojects.framework.security.auth.autoconfigure.AuthSecurityProperties;
 import io.github.afgprojects.framework.security.core.login.TokenService;
 import io.github.afgprojects.framework.security.core.storage.AfgRefreshTokenStorage;
 import io.github.afgprojects.framework.security.core.storage.AfgTokenBlacklist;
@@ -50,12 +50,12 @@ import lombok.extern.slf4j.Slf4j;
  *
  * <h3>使用示例</h3>
  * <pre>{@code
- * TokenProperties properties = new TokenProperties();
- * properties.setSigningKey("signing-key-at-least-256-bits-long");
- * properties.setIssuer("https://auth.example.com");
+ * AuthSecurityProperties.TokenConfig tokenConfig = new AuthSecurityProperties.TokenConfig();
+ * tokenConfig.setSigningKey("signing-key-at-least-256-bits-long");
+ * tokenConfig.setIssuer("https://auth.example.com");
  *
  * JwtTokenService tokenService = new JwtTokenService(
- *     properties,
+ *     tokenConfig,
  *     refreshTokenStorage,
  *     tokenBlacklist
  * );
@@ -102,27 +102,27 @@ public class JwtTokenService implements TokenService {
     /**
      * 构造函数。
      *
-     * @param properties           Token 配置属性
+     * @param tokenConfig          Token 配置属性
      * @param refreshTokenStorage  Refresh Token 存储
      * @param tokenBlacklist       Token 黑名单
      * @throws IllegalArgumentException 如果签名密钥无效
      */
     public JwtTokenService(
-            @NonNull TokenProperties properties,
+            AuthSecurityProperties.@NonNull TokenConfig tokenConfig,
             @NonNull AfgRefreshTokenStorage refreshTokenStorage,
             @NonNull AfgTokenBlacklist tokenBlacklist) {
 
-        String signingKey = properties.getSigningKey();
+        String signingKey = tokenConfig.getSigningKey();
         if (signingKey == null || signingKey.length() < 32) {
             throw new IllegalArgumentException("Signing key must be at least 256 bits (32 characters)");
         }
 
         this.secretKey = Keys.hmacShaKeyFor(signingKey.getBytes(StandardCharsets.UTF_8));
-        this.issuer = properties.getIssuer();
-        this.accessTokenTtl = properties.getAccessTokenTtl();
-        this.refreshTokenTtl = properties.getRefreshTokenTtl();
-        this.includeRoles = properties.isIncludeRoles();
-        this.includePermissions = properties.isIncludePermissions();
+        this.issuer = tokenConfig.getIssuer();
+        this.accessTokenTtl = tokenConfig.getAccessTokenTtl();
+        this.refreshTokenTtl = tokenConfig.getRefreshTokenTtl();
+        this.includeRoles = tokenConfig.isIncludeUserRoles();
+        this.includePermissions = tokenConfig.isIncludeUserPermissions();
         this.refreshTokenStorage = refreshTokenStorage;
         this.tokenBlacklist = tokenBlacklist;
     }

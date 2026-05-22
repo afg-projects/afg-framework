@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.26.xsd">
+
+    <changeSet id="v1.0.0-003-sec-user-dept" author="afg">
+        <createTable tableName="sec_user_dept" remarks="用户部门关联表">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_sec_user_dept"/>
+            </column>
+            <column name="user_id" type="VARCHAR(100)" remarks="用户ID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="dept_id" type="BIGINT" remarks="部门ID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tenant_id" type="VARCHAR(50)" remarks="租户ID"/>
+            <column name="is_primary" type="BOOLEAN" defaultValueBoolean="false" remarks="是否主部门"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueDate="CURRENT_TIMESTAMP" remarks="创建时间"/>
+        </createTable>
+
+        <addUniqueConstraint tableName="sec_user_dept" columnNames="user_id,dept_id,tenant_id"
+                             constraintName="uk_sec_user_dept"/>
+        <createIndex tableName="sec_user_dept" indexName="idx_sec_user_dept_user">
+            <column name="user_id"/>
+        </createIndex>
+        <createIndex tableName="sec_user_dept" indexName="idx_sec_user_dept_dept">
+            <column name="dept_id"/>
+        </createIndex>
+        <createIndex tableName="sec_user_dept" indexName="idx_sec_user_dept_tenant">
+            <column name="tenant_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

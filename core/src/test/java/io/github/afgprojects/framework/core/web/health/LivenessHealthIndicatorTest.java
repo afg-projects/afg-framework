@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.Status;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.support.BaseUnitTest;
 
 /**
@@ -19,12 +20,12 @@ import io.github.afgprojects.framework.core.support.BaseUnitTest;
 @DisplayName("LivenessHealthIndicator 测试")
 class LivenessHealthIndicatorTest extends BaseUnitTest {
 
-    private HealthCheckProperties properties;
+    private AfgCoreProperties properties;
     private LivenessHealthIndicator healthIndicator;
 
     @BeforeEach
     void setUp() {
-        properties = new HealthCheckProperties();
+        properties = new AfgCoreProperties();
         healthIndicator = new LivenessHealthIndicator(properties);
     }
 
@@ -97,7 +98,7 @@ class LivenessHealthIndicatorTest extends BaseUnitTest {
         @DisplayName("禁用内存检查时不应该包含内存详情")
         void shouldNotContainMemoryDetailsWhenDisabled() {
             // given
-            properties.getLiveness().setMemoryCheckEnabled(false);
+            properties.getHealth().getLiveness().setMemoryCheckEnabled(false);
 
             // when
             Health health = healthIndicator.health();
@@ -127,7 +128,7 @@ class LivenessHealthIndicatorTest extends BaseUnitTest {
         @DisplayName("禁用死锁检查时不应该包含死锁详情")
         void shouldNotContainDeadlockDetailsWhenDisabled() {
             // given
-            properties.getLiveness().setDeadlockDetectionEnabled(false);
+            properties.getHealth().getLiveness().setDeadlockDetectionEnabled(false);
 
             // when
             Health health = healthIndicator.health();
@@ -146,8 +147,8 @@ class LivenessHealthIndicatorTest extends BaseUnitTest {
         @DisplayName("应该接受自定义阈值配置")
         void shouldAcceptCustomThresholds() {
             // given - 设置较高的阈值以适应当前测试环境
-            properties.getLiveness().setMemoryWarningThreshold(90);
-            properties.getLiveness().setMemoryCriticalThreshold(95);
+            properties.getHealth().getLiveness().setMemoryWarningThreshold(90);
+            properties.getHealth().getLiveness().setMemoryCriticalThreshold(95);
 
             // when
             Health health = healthIndicator.health();

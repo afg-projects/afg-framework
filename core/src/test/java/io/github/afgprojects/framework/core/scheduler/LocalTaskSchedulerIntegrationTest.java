@@ -22,12 +22,12 @@ import io.github.afgprojects.framework.core.support.TestApplication;
 @SpringBootTest(
         classes = TestApplication.class,
         properties = {
-                "afg.scheduler.enabled=true",
-                "afg.scheduler.thread-pool-size=4",
-                "afg.scheduler.default-timeout=30s",
-                "afg.scheduler.metrics.enabled=true",
-                "afg.scheduler.log-storage.type=memory",
-                "afg.scheduler.log-storage.max-size=1000"
+                "afg.core.scheduler.enabled=true",
+                "afg.core.scheduler.thread-pool-size=4",
+                "afg.core.scheduler.default-timeout=30s",
+                "afg.core.scheduler.metrics.enabled=true",
+                "afg.core.scheduler.log-storage.type=memory",
+                "afg.core.scheduler.log-storage.max-size=1000"
         }
 )
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)

@@ -14,10 +14,10 @@ import org.springframework.core.env.Environment;
 import org.springframework.web.client.RestClient;
 
 import io.github.afgprojects.framework.core.client.AsyncResilienceInterceptor;
-import io.github.afgprojects.framework.core.client.HttpClientProperties;
 import io.github.afgprojects.framework.core.client.HttpClientRegistry;
 import io.github.afgprojects.framework.core.client.ResilienceInterceptor;
 import io.github.afgprojects.framework.core.client.TraceInterceptor;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.micrometer.tracing.Tracer;
 
 /**
@@ -29,7 +29,7 @@ import io.micrometer.tracing.Tracer;
  */
 @AutoConfiguration
 @ConditionalOnClass(RestClient.class)
-@EnableConfigurationProperties(HttpClientProperties.class)
+@EnableConfigurationProperties(AfgCoreProperties.class)
 public class HttpClientAutoConfiguration {
 
     @Nullable @Autowired(required = false)
@@ -40,14 +40,15 @@ public class HttpClientAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public RestClient.Builder restClientBuilder(HttpClientProperties properties) {
+    public RestClient.Builder restClientBuilder(AfgCoreProperties properties) {
         RestClient.Builder builder = RestClient.builder();
 
         // 添加 TraceInterceptor 用于传播链路追踪信息
         builder.requestInterceptor(new TraceInterceptor(tracer));
 
         // 添加 ResilienceInterceptor 用于重试和熔断
-        if (properties.getRetry().isEnabled() || properties.getCircuitBreaker().isEnabled()) {
+        AfgCoreProperties.HttpClientConfig httpClient = properties.getHttpClient();
+        if (httpClient.getRetry().isEnabled() || httpClient.getCircuitBreaker().isEnabled()) {
             builder.requestInterceptor(new ResilienceInterceptor(properties));
         }
 
@@ -75,7 +76,7 @@ public class HttpClientAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public AsyncResilienceInterceptor asyncResilienceInterceptor(
-            HttpClientProperties properties,
+            AfgCoreProperties properties,
             ScheduledExecutorService resilienceScheduler) {
         return new AsyncResilienceInterceptor(properties, resilienceScheduler);
     }
@@ -83,7 +84,7 @@ public class HttpClientAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public HttpClientRegistry httpClientRegistry(
-            Environment environment, RestClient.Builder builder, HttpClientProperties properties) {
+            Environment environment, RestClient.Builder builder, AfgCoreProperties properties) {
         return new HttpClientRegistry(environment, builder, tracer, properties);
     }
 }

@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.security.auth.tenant.resolver;
 
-import io.github.afgprojects.framework.security.auth.tenant.config.TenantProperties;
+import io.github.afgprojects.framework.security.auth.autoconfigure.AuthSecurityProperties;
 import io.github.afgprojects.framework.security.core.tenant.TenantContext;
 import io.github.afgprojects.framework.security.core.tenant.TenantResolver;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,12 +26,12 @@ public class DefaultTenantResolver implements TenantResolver {
     private int order = DEFAULT_ORDER;
 
     /**
-     * 使用 TenantProperties 构造默认租户解析器。
+     * 使用 TenantConfig 构造默认租户解析器。
      *
-     * @param properties 租户配置属性
+     * @param tenantConfig 租户配置属性
      */
-    public DefaultTenantResolver(@NonNull TenantProperties properties) {
-        this.defaultTenantId = properties.getDefaultTenant();
+    public DefaultTenantResolver(AuthSecurityProperties.@NonNull TenantConfig tenantConfig) {
+        this.defaultTenantId = tenantConfig.getDefaultTenant();
     }
 
     /**

@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.web.feature.FeatureFlagController;
 
 /**
@@ -23,7 +24,7 @@ class FeatureFlagControllerTest {
 
     @BeforeEach
     void setUp() {
-        FeatureFlagProperties properties = new FeatureFlagProperties();
+        AfgCoreProperties properties = new AfgCoreProperties();
         featureFlagManager = new FeatureFlagManager(properties);
         controller = new FeatureFlagController(featureFlagManager);
     }

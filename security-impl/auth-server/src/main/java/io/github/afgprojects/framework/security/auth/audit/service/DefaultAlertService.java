@@ -1,7 +1,7 @@
 package io.github.afgprojects.framework.security.auth.audit.service;
 
 import io.github.afgprojects.framework.security.auth.audit.alert.AlertChannel;
-import io.github.afgprojects.framework.security.auth.audit.config.AuditProperties;
+import io.github.afgprojects.framework.security.auth.autoconfigure.AuthSecurityProperties;
 import io.github.afgprojects.framework.security.core.audit.AlertService;
 import io.github.afgprojects.framework.security.core.audit.SecurityEventService;
 import lombok.extern.slf4j.Slf4j;
@@ -23,15 +23,15 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DefaultAlertService implements AlertService {
 
-    private final AuditProperties auditProperties;
+    private final AuthSecurityProperties properties;
     private final SecurityEventService securityEventService;
     private final Map<String, AlertChannel> alertChannelMap;
 
     public DefaultAlertService(
-            AuditProperties auditProperties,
+            AuthSecurityProperties properties,
             SecurityEventService securityEventService,
             List<AlertChannel> alertChannels) {
-        this.auditProperties = auditProperties;
+        this.properties = properties;
         this.securityEventService = securityEventService;
         this.alertChannelMap = alertChannels.stream()
             .collect(Collectors.toMap(AlertChannel::getType, Function.identity()));
@@ -41,11 +41,12 @@ public class DefaultAlertService implements AlertService {
 
     @Override
     public void checkAndAlert(SecurityEventService.@NonNull SecurityEventInfo event) {
-        if (!auditProperties.isEnabled()) {
+        AuthSecurityProperties.AuditConfig auditConfig = properties.getAudit();
+        if (!auditConfig.isEnabled()) {
             return;
         }
 
-        AuditProperties.AlertConfig alertConfig = auditProperties.getAlert();
+        AuthSecurityProperties.AuditConfig.AlertConfig alertConfig = auditConfig.getAlert();
         String eventType = event.getEventType();
 
         // 检查登录失败告警
@@ -89,7 +90,7 @@ public class DefaultAlertService implements AlertService {
     /**
      * 检查登录失败告警。
      */
-    private void checkLoginFailureAlert(SecurityEventService.SecurityEventInfo event, AuditProperties.AlertConfig alertConfig) {
+    private void checkLoginFailureAlert(SecurityEventService.SecurityEventInfo event, AuthSecurityProperties.AuditConfig.AlertConfig alertConfig) {
         String userId = event.getUserId();
         if (userId == null || userId.isEmpty()) {
             return;
@@ -114,8 +115,8 @@ public class DefaultAlertService implements AlertService {
      * 发送告警到配置的通道。
      */
     private void sendAlertToChannels(SecurityEventService.SecurityEventInfo event,
-                                     List<AuditProperties.AlertChannelConfig> channelConfigs) {
-        for (AuditProperties.AlertChannelConfig channelConfig : channelConfigs) {
+                                     List<AuthSecurityProperties.AuditConfig.AlertChannelConfig> channelConfigs) {
+        for (AuthSecurityProperties.AuditConfig.AlertChannelConfig channelConfig : channelConfigs) {
             AlertChannel channel = alertChannelMap.get(channelConfig.getType());
             if (channel != null) {
                 try {

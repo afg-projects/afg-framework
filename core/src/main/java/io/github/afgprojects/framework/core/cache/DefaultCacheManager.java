@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.cache.exception.CacheException;
 import io.github.afgprojects.framework.core.cache.spi.CacheStorageProvider;
 import io.github.afgprojects.framework.core.cache.spi.DistributedCacheStorage;
@@ -31,7 +32,7 @@ public class DefaultCacheManager implements CacheManager {
     /**
      * 缓存配置属性
      */
-    private final CacheProperties properties;
+    private final AfgCoreProperties properties;
 
     /**
      * Redisson 客户端（可选，用于分布式缓存）
@@ -49,9 +50,9 @@ public class DefaultCacheManager implements CacheManager {
     /**
      * 构造缓存管理器（仅本地缓存）
      *
-     * @param properties 缓存配置属性
+     * @param properties 核心配置属性
      */
-    public DefaultCacheManager(@NonNull CacheProperties properties) {
+    public DefaultCacheManager(@NonNull AfgCoreProperties properties) {
         this.properties = properties;
     }
 
@@ -143,7 +144,7 @@ public class DefaultCacheManager implements CacheManager {
      */
     @SuppressWarnings("unchecked")
     @NonNull
-    public <V> AfgCache<V> getCache(@NonNull String cacheName, CacheProperties.CacheType type) {
+    public <V> AfgCache<V> getCache(@NonNull String cacheName, AfgCoreProperties.CacheConfig.CacheType type) {
         String key = cacheName + ":" + type.name();
         return (AfgCache<V>) cacheMap.computeIfAbsent(key, k -> createCache(cacheName, type));
     }
@@ -157,7 +158,7 @@ public class DefaultCacheManager implements CacheManager {
      */
     @NonNull
     public <V> LocalCache<V> getLocalCache(@NonNull String cacheName) {
-        AfgCache<V> cache = getCache(cacheName, CacheProperties.CacheType.LOCAL);
+        AfgCache<V> cache = getCache(cacheName, AfgCoreProperties.CacheConfig.CacheType.LOCAL);
         if (cache instanceof LocalCache) {
             return (LocalCache<V>) cache;
         }
@@ -179,7 +180,7 @@ public class DefaultCacheManager implements CacheManager {
         if (storageProvider == null && redissonClient == null) {
             throw new CacheException("CacheStorageProvider is not configured. Please add afg-redis module dependency.");
         }
-        return getCache(cacheName, CacheProperties.CacheType.DISTRIBUTED);
+        return getCache(cacheName, AfgCoreProperties.CacheConfig.CacheType.DISTRIBUTED);
     }
 
     /**
@@ -197,7 +198,7 @@ public class DefaultCacheManager implements CacheManager {
         if (storageProvider == null && redissonClient == null) {
             throw new CacheException("CacheStorageProvider is not configured. Please add afg-redis module dependency.");
         }
-        return getCache(cacheName, CacheProperties.CacheType.MULTI_LEVEL);
+        return getCache(cacheName, AfgCoreProperties.CacheConfig.CacheType.MULTI_LEVEL);
     }
 
     /**
@@ -208,7 +209,7 @@ public class DefaultCacheManager implements CacheManager {
      */
     @NonNull
     private AfgCache<?> createCache(@NonNull String cacheName) {
-        return createCache(cacheName, properties.getType());
+        return createCache(cacheName, properties.getCache().getType());
     }
 
     /**
@@ -219,8 +220,8 @@ public class DefaultCacheManager implements CacheManager {
      * @return 缓存实例
      */
     @NonNull
-    private AfgCache<?> createCache(@NonNull String cacheName, CacheProperties.CacheType type) {
-        CacheConfig config = properties.getCacheConfig(cacheName);
+    private AfgCache<?> createCache(@NonNull String cacheName, AfgCoreProperties.CacheConfig.CacheType type) {
+        CacheConfig config = getCacheConfig(cacheName);
 
         switch (type) {
             case LOCAL:
@@ -243,16 +244,31 @@ public class DefaultCacheManager implements CacheManager {
      */
     @NonNull
     private AfgCache<?> createDistributedCache(
-            @NonNull String cacheName, CacheConfig config, CacheProperties.CacheType type) {
+            @NonNull String cacheName, CacheConfig config, AfgCoreProperties.CacheConfig.CacheType type) {
         DistributedCacheStorage storage = getOrCreateStorage(cacheName, cacheName + ":");
 
-        if (type == CacheProperties.CacheType.MULTI_LEVEL) {
+        if (type == AfgCoreProperties.CacheConfig.CacheType.MULTI_LEVEL) {
             // 多级缓存：本地 + 分布式
             return MultiLevelCache.create(cacheName, config, storage);
         } else {
             // 纯分布式缓存
             return new DistributedCache<>(cacheName, config, storage);
         }
+    }
+
+    /**
+     * 获取缓存配置
+     *
+     * @param cacheName 缓存名称
+     * @return 缓存配置
+     */
+    private CacheConfig getCacheConfig(String cacheName) {
+        // 使用 AfgCoreProperties 中的缓存配置创建 CacheConfig
+        AfgCoreProperties.CacheConfig cacheProps = properties.getCache();
+        return CacheConfig.defaultConfig()
+                .defaultTtl(cacheProps.getDefaultTtl())
+                .cacheNull(cacheProps.isCacheNull())
+                .nullValueTtl(cacheProps.getNullValueTtl());
     }
 
     /**
@@ -331,10 +347,10 @@ public class DefaultCacheManager implements CacheManager {
     /**
      * 获取缓存配置属性
      *
-     * @return 缓存配置属性
+     * @return 核心配置属性
      */
     @NonNull
-    public CacheProperties getProperties() {
+    public AfgCoreProperties getProperties() {
         return properties;
     }
 }

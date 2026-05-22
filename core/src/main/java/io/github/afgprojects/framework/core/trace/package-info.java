@@ -7,7 +7,7 @@
  * <ul>
  *   <li>{@link Traced} - 标记需要追踪的方法注解</li>
  *   <li>{@link TracedAspect} - 追踪切面，自动创建 Span</li>
- *   <li>{@link TracingProperties} - 追踪配置属性</li>
+ *   <li>{@link io.github.afgprojects.framework.core.config.AfgCoreProperties.TracingConfig} - 追踪配置属性（在 AfgCoreProperties 中）</li>
  *   <li>{@link TraceContextPropagator} - 跨线程追踪上下文传播器</li>
  *   <li>{@link BaggageContext} - Baggage 上下文管理</li>
  * </ul>

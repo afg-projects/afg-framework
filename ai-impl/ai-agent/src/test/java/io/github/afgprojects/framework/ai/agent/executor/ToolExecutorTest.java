@@ -69,6 +69,7 @@ class ToolExecutorTest {
         LlmResponse toolCallResponse = new LlmResponse(
                 null,
                 List.of(toolCall),
+                List.of(),
                 null,
                 LlmResponse.FinishReason.TOOL_CALL
         );
@@ -96,6 +97,7 @@ class ToolExecutorTest {
         LlmResponse toolCallResponse = new LlmResponse(
                 null,
                 List.of(toolCall),
+                List.of(),
                 null,
                 LlmResponse.FinishReason.TOOL_CALL
         );
@@ -124,6 +126,7 @@ class ToolExecutorTest {
         LlmResponse toolCallResponse = new LlmResponse(
                 null,
                 List.of(toolCall),
+                List.of(),
                 null,
                 LlmResponse.FinishReason.TOOL_CALL
         );
@@ -175,6 +178,7 @@ class ToolExecutorTest {
         LlmResponse toolCallResponse = new LlmResponse(
                 null,
                 List.of(call1, call2),
+                List.of(),
                 null,
                 LlmResponse.FinishReason.TOOL_CALL
         );

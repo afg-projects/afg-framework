@@ -2,9 +2,9 @@ package io.github.afgprojects.framework.core.api.ratelimit;
 
 import java.util.List;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.web.context.AfgRequestContextHolder;
 import io.github.afgprojects.framework.core.web.context.RequestContext;
-import io.github.afgprojects.framework.core.web.ratelimit.RateLimitProperties;
 
 /**
  * 默认白名单策略实现
@@ -14,20 +14,20 @@ import io.github.afgprojects.framework.core.web.ratelimit.RateLimitProperties;
  */
 public class DefaultWhitelistStrategy implements WhitelistStrategy {
 
-    private final RateLimitProperties properties;
+    private final AfgCoreProperties properties;
 
     /**
      * 构造函数
      *
-     * @param properties 限流配置属性
+     * @param properties 核心配置属性
      */
-    public DefaultWhitelistStrategy(RateLimitProperties properties) {
+    public DefaultWhitelistStrategy(AfgCoreProperties properties) {
         this.properties = properties;
     }
 
     @Override
     public boolean isInWhitelist(RateLimitDimension dimension) {
-        if (!properties.getWhitelist().isEnabled()) {
+        if (!properties.getRateLimit().getWhitelist().isEnabled()) {
             return false;
         }
 
@@ -43,7 +43,7 @@ public class DefaultWhitelistStrategy implements WhitelistStrategy {
      * 检查 IP 是否在白名单中
      */
     private boolean isIpInWhitelist() {
-        List<String> ipWhitelist = properties.getWhitelist().getIps();
+        List<String> ipWhitelist = properties.getRateLimit().getWhitelist().getIps();
         if (ipWhitelist.isEmpty()) {
             return false;
         }
@@ -88,7 +88,7 @@ public class DefaultWhitelistStrategy implements WhitelistStrategy {
      * 检查用户是否在白名单中
      */
     private boolean isUserInWhitelist() {
-        RateLimitProperties.Whitelist whitelist = properties.getWhitelist();
+        AfgCoreProperties.RateLimitConfig.RateLimitWhitelistConfig whitelist = properties.getRateLimit().getWhitelist();
 
         RequestContext context = AfgRequestContextHolder.getContext();
         if (context == null) {
@@ -114,7 +114,7 @@ public class DefaultWhitelistStrategy implements WhitelistStrategy {
      * 检查租户是否在白名单中
      */
     private boolean isTenantInWhitelist() {
-        RateLimitProperties.Whitelist whitelist = properties.getWhitelist();
+        AfgCoreProperties.RateLimitConfig.RateLimitWhitelistConfig whitelist = properties.getRateLimit().getWhitelist();
 
         RequestContext context = AfgRequestContextHolder.getContext();
         if (context == null) {

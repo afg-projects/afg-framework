@@ -14,10 +14,9 @@ import org.springframework.context.annotation.Bean;
 
 import com.zaxxer.hikari.HikariDataSource;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.module.ModuleRegistry;
 import io.github.afgprojects.framework.core.web.health.DataSourceHealthIndicator;
-import io.github.afgprojects.framework.core.web.health.DataSourceHealthProperties;
-import io.github.afgprojects.framework.core.web.health.HealthCheckProperties;
 import io.github.afgprojects.framework.core.web.health.LivenessHealthIndicator;
 import io.github.afgprojects.framework.core.web.health.ModuleHealthIndicator;
 import io.github.afgprojects.framework.core.web.health.ReadinessHealthIndicator;
@@ -46,7 +45,7 @@ import io.github.afgprojects.framework.core.web.health.spi.RedisHealthChecker;
  */
 @AutoConfiguration
 @ConditionalOnClass(HealthIndicator.class)
-@EnableConfigurationProperties({HealthCheckProperties.class, DataSourceHealthProperties.class})
+@EnableConfigurationProperties(AfgCoreProperties.class)
 public class HealthAutoConfiguration {
 
     /**
@@ -66,8 +65,8 @@ public class HealthAutoConfiguration {
     @Bean
     @ConditionalOnBean(DataSource.class)
     @ConditionalOnMissingBean
-    @ConditionalOnProperty(prefix = "afg.health.datasource", name = "enabled", havingValue = "true", matchIfMissing = true)
-    public DataSourceHealthIndicator dataSourceHealthIndicator(DataSource dataSource, DataSourceHealthProperties properties) {
+    @ConditionalOnProperty(prefix = "afg.core.health.datasource", name = "enabled", havingValue = "true", matchIfMissing = true)
+    public DataSourceHealthIndicator dataSourceHealthIndicator(DataSource dataSource, AfgCoreProperties properties) {
         return new DataSourceHealthIndicator(dataSource, properties);
     }
 
@@ -78,8 +77,8 @@ public class HealthAutoConfiguration {
      */
     @Bean("afgLiveness")
     @ConditionalOnMissingBean
-    @ConditionalOnProperty(prefix = "afg.health", name = "livenessEnabled", havingValue = "true", matchIfMissing = true)
-    public LivenessHealthIndicator livenessHealthIndicator(HealthCheckProperties properties) {
+    @ConditionalOnProperty(prefix = "afg.core.health", name = "livenessEnabled", havingValue = "true", matchIfMissing = true)
+    public LivenessHealthIndicator livenessHealthIndicator(AfgCoreProperties properties) {
         return new LivenessHealthIndicator(properties);
     }
 
@@ -99,9 +98,9 @@ public class HealthAutoConfiguration {
      */
     @Bean("afgReadiness")
     @ConditionalOnMissingBean
-    @ConditionalOnProperty(prefix = "afg.health", name = "readinessEnabled", havingValue = "true", matchIfMissing = true)
+    @ConditionalOnProperty(prefix = "afg.core.health", name = "readinessEnabled", havingValue = "true", matchIfMissing = true)
     public ReadinessHealthIndicator readinessHealthIndicator(
-            HealthCheckProperties properties,
+            AfgCoreProperties properties,
             @Nullable DataSource dataSource,
             RedisHealthChecker redisHealthChecker,
             @Nullable ModuleRegistry moduleRegistry) {

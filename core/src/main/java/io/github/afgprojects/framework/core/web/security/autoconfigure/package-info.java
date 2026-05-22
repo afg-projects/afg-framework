@@ -6,7 +6,7 @@
  * <p>核心类：
  * <ul>
  *   <li>{@link io.github.afgprojects.framework.core.web.security.autoconfigure.AfgSecurityAutoConfiguration} - 安全自动配置</li>
- *   <li>{@link io.github.afgprojects.framework.core.web.security.autoconfigure.AfgSecurityProperties} - 安全配置属性</li>
+ *   <li>{@link io.github.afgprojects.framework.core.config.AfgCoreProperties.SecurityConfig} - 安全配置属性（在 AfgCoreProperties 中）</li>
  * </ul>
  *
  * @since 1.0.0

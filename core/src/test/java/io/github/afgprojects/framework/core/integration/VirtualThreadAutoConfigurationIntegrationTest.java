@@ -9,7 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.github.afgprojects.framework.core.autoconfigure.VirtualThreadAutoConfiguration;
-import io.github.afgprojects.framework.core.autoconfigure.VirtualThreadProperties;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.support.BaseIntegrationTest;
 
 /**
@@ -21,10 +21,10 @@ import io.github.afgprojects.framework.core.support.BaseIntegrationTest;
 class VirtualThreadAutoConfigurationIntegrationTest extends BaseIntegrationTest {
 
     @Test
-    @DisplayName("应该成功注入 VirtualThreadProperties Bean")
+    @DisplayName("应该成功注入 VirtualThreadConfig Bean")
     void shouldInjectVirtualThreadProperties() {
         // when
-        VirtualThreadProperties properties = getBean(VirtualThreadProperties.class);
+        AfgCoreProperties.VirtualThreadConfig properties = getBean(AfgCoreProperties.class).getVirtualThread();
 
         // then
         assertThat(properties).isNotNull();

@@ -126,6 +126,7 @@ public class ResilientLlmClient implements LlmClient {
             return new LlmResponse(
                     "抱歉，服务暂时不可用，请稍后重试。",
                     List.of(),
+                    List.of(),
                     null,
                     LlmResponse.FinishReason.UNKNOWN
             );

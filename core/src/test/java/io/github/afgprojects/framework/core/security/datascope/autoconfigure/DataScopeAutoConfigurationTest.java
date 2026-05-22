@@ -9,7 +9,8 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
 
-import io.github.afgprojects.framework.core.security.datascope.DataScopeProperties;
+import io.github.afgprojects.framework.core.autoconfigure.DataScopeAutoConfiguration;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.web.context.DataScopeContextFilter;
 
 /**
@@ -29,11 +30,10 @@ class DataScopeAutoConfigurationTest {
         @DisplayName("启用数据权限时应该创建 DataScopeContextFilter")
         void shouldCreateDataScopeContextFilterWhenEnabled() {
             contextRunner
-                    .withPropertyValues("afg.data-scope.enabled=true")
+                    .withPropertyValues("afg.core.data-scope.enabled=true")
                     .run(context -> {
-                        // DataScopeContextFilter 可能因为 @ConditionalOnBean(DataScopeProperties.class) 而不创建
-                        // 验证 DataScopeProperties 被创建
-                        assertThat(context).hasSingleBean(DataScopeProperties.class);
+                        // 验证 AfgCoreProperties 被创建
+                        assertThat(context).hasSingleBean(AfgCoreProperties.class);
                     });
         }
 
@@ -41,18 +41,19 @@ class DataScopeAutoConfigurationTest {
         @DisplayName("禁用数据权限时不应该创建 DataScopeContextFilter")
         void shouldNotCreateDataScopeContextFilterWhenDisabled() {
             contextRunner
-                    .withPropertyValues("afg.data-scope.enabled=false")
+                    .withPropertyValues("afg.core.data-scope.enabled=false")
                     .run(context -> {
                         assertThat(context).doesNotHaveBean(DataScopeContextFilter.class);
                     });
         }
 
         @Test
-        @DisplayName("应该创建 DataScopeProperties")
-        void shouldCreateDataScopeProperties() {
+        @DisplayName("应该创建 DataScopeConfig")
+        void shouldCreateDataScopeConfig() {
             contextRunner
                     .run(context -> {
-                        assertThat(context).hasSingleBean(DataScopeProperties.class);
+                        // 验证 AfgCoreProperties 被创建，DataScopeConfig 是其嵌套属性
+                        assertThat(context).hasSingleBean(AfgCoreProperties.class);
                     });
         }
     }

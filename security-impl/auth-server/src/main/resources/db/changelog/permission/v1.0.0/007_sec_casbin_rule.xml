@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.26.xsd">
+
+    <changeSet id="v1.0.0-007-sec-casbin-rule" author="afg">
+        <createTable tableName="sec_casbin_rule" remarks="Casbin策略规则表">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_sec_casbin_rule"/>
+            </column>
+            <column name="ptype" type="VARCHAR(10)" remarks="策略类型：p-策略，g-角色">
+                <constraints nullable="false"/>
+            </column>
+            <column name="v0" type="VARCHAR(100)" remarks="参数0：sub/用户"/>
+            <column name="v1" type="VARCHAR(100)" remarks="参数1：dom/域/租户"/>
+            <column name="v2" type="VARCHAR(100)" remarks="参数2：obj/对象 或 role/角色"/>
+            <column name="v3" type="VARCHAR(100)" remarks="参数3：act/动作"/>
+            <column name="tenant_id" type="VARCHAR(50)" remarks="租户ID"/>
+        </createTable>
+
+        <createIndex tableName="sec_casbin_rule" indexName="idx_sec_casbin_rule_ptype">
+            <column name="ptype"/>
+        </createIndex>
+        <createIndex tableName="sec_casbin_rule" indexName="idx_sec_casbin_rule_v0">
+            <column name="v0"/>
+        </createIndex>
+        <createIndex tableName="sec_casbin_rule" indexName="idx_sec_casbin_rule_tenant">
+            <column name="tenant_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

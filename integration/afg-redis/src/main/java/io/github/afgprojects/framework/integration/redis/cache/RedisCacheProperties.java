@@ -2,6 +2,8 @@ package io.github.afgprojects.framework.integration.redis.cache;
 
 import lombok.Data;
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,6 +28,7 @@ import java.util.Map;
  * </pre>
  */
 @Data
+@ConfigurationProperties(prefix = "afg.redis.cache")
 public class RedisCacheProperties {
 
     /**

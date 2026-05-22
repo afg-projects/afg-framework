@@ -1,20 +1,25 @@
 package io.github.afgprojects.framework.security.auth.api;
 
-import io.github.afgprojects.framework.security.datascope.entity.SecDataScope;
-import io.github.afgprojects.framework.security.datascope.service.JdbcDataScopeService;
-import lombok.RequiredArgsConstructor;
+import io.github.afgprojects.framework.security.auth.datascope.entity.SecDataScope;
+import io.github.afgprojects.framework.security.auth.datascope.service.JdbcDataScopeService;
 import org.jspecify.annotations.Nullable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Set;
 
-@RestController
+/**
+ * 数据范围管理 API。
+ */
+@ResponseBody
 @RequestMapping("/data-scopes")
-@RequiredArgsConstructor
 public class DataScopeController {
 
     private final JdbcDataScopeService dataScopeService;
+
+    public DataScopeController(JdbcDataScopeService dataScopeService) {
+        this.dataScopeService = dataScopeService;
+    }
 
     @PostMapping
     public SecDataScope create(@RequestBody SecDataScope dataScope) {

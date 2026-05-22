@@ -4,7 +4,7 @@ import io.github.afgprojects.framework.core.security.datascope.DataScopeContext;
 import io.github.afgprojects.framework.core.security.datascope.DataScopeContextHolder;
 import io.github.afgprojects.framework.data.core.scope.DataScope;
 import io.github.afgprojects.framework.data.core.scope.DataScopeType;
-import io.github.afgprojects.framework.security.auth.permission.config.PermissionProperties;
+import io.github.afgprojects.framework.security.auth.autoconfigure.AuthSecurityProperties;
 import io.github.afgprojects.framework.security.core.permission.DataScopeService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -36,8 +36,8 @@ import java.io.IOException;
  * <pre>{@code
  * // 配置拦截器
  * @Bean
- * public DataScopeInterceptor dataScopeInterceptor(DataScopeService service) {
- *     return new DataScopeInterceptor(service, properties);
+ * public DataScopeInterceptor dataScopeInterceptor(DataScopeService service, AuthSecurityProperties properties) {
+ *     return new DataScopeInterceptor(service, properties.getPermission());
  * }
  *
  * // 在业务代码中使用
@@ -54,17 +54,17 @@ import java.io.IOException;
 public class DataScopeInterceptor extends OncePerRequestFilter {
 
     private final DataScopeService dataScopeService;
-    private final PermissionProperties properties;
+    private final AuthSecurityProperties.PermissionConfig permissionConfig;
 
     /**
      * 构造函数。
      *
      * @param dataScopeService 数据权限服务
-     * @param properties       权限配置属性
+     * @param permissionConfig 权限配置属性
      */
-    public DataScopeInterceptor(DataScopeService dataScopeService, PermissionProperties properties) {
+    public DataScopeInterceptor(DataScopeService dataScopeService, AuthSecurityProperties.PermissionConfig permissionConfig) {
         this.dataScopeService = dataScopeService;
-        this.properties = properties;
+        this.permissionConfig = permissionConfig;
     }
 
     @Override
@@ -164,7 +164,7 @@ public class DataScopeInterceptor extends OncePerRequestFilter {
                 break;
             default:
                 // 默认使用配置的默认数据范围
-                builder.allDataPermission("ALL".equals(properties.getDefaultDataScope()));
+                builder.allDataPermission("ALL".equals(permissionConfig.getDefaultDataScope()));
         }
 
         return builder.build();
@@ -173,6 +173,6 @@ public class DataScopeInterceptor extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         // 如果未启用数据权限拦截器，跳过过滤
-        return !properties.isEnabled() || !properties.isDataScopeInterceptorEnabled();
+        return !permissionConfig.isEnabled() || !permissionConfig.isDataScopeInterceptorEnabled();
     }
 }

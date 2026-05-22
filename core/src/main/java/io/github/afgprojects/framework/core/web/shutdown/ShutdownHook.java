@@ -21,13 +21,15 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
+
 /**
  * 优雅关闭钩子，管理分阶段关闭流程。
  * 实现 BeanPostProcessor 扫描并注册 @ShutdownOrder 注解的方法。
  * 实现 DisposableBean 在销毁时执行关闭回调。
  */
 @Slf4j
-@EnableConfigurationProperties(ShutdownProperties.class)
+@EnableConfigurationProperties(AfgCoreProperties.class)
 @SuppressWarnings({
     "PMD.AvoidAccessibilityAlteration",
     "PMD.CommentDefaultAccessModifier",
@@ -36,13 +38,13 @@ import org.springframework.context.ApplicationContextAware;
 })
 public class ShutdownHook implements DisposableBean, ApplicationContextAware, BeanPostProcessor {
 
-    private final ShutdownProperties properties;
+    private final AfgCoreProperties properties;
 
     private final Map<String, List<ShutdownCallback>> callbacks = new ConcurrentHashMap<>();
 
     private ApplicationContext applicationContext;
 
-    public ShutdownHook(ShutdownProperties properties) {
+    public ShutdownHook(AfgCoreProperties properties) {
         this.properties = properties;
     }
 
@@ -101,8 +103,8 @@ public class ShutdownHook implements DisposableBean, ApplicationContextAware, Be
     public void destroy() {
         log.info(
                 "Starting graceful shutdown with {} phases",
-                properties.getPhases().size());
-        for (ShutdownProperties.Phase phase : properties.getPhases()) {
+                properties.getShutdown().getPhases().size());
+        for (AfgCoreProperties.ShutdownConfig.ShutdownPhase phase : properties.getShutdown().getPhases()) {
             executePhaseWithTimeout(phase.getName(), phase.getTimeout());
         }
         log.info("Graceful shutdown completed");
@@ -144,7 +146,7 @@ public class ShutdownHook implements DisposableBean, ApplicationContextAware, Be
         List<ShutdownCallback> sortedCallbacks = new ArrayList<>(phaseCallbacks);
         Collections.sort(sortedCallbacks);
 
-        if (properties.isParallelExecutionEnabled()) {
+        if (properties.getShutdown().isParallelExecutionEnabled()) {
             executePhaseInParallel(phaseName, sortedCallbacks);
         } else {
             executePhaseSequentially(phaseName, sortedCallbacks);

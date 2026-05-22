@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 
 import java.time.Instant;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -19,13 +20,13 @@ import org.junit.jupiter.api.Test;
 @DisplayName("EventRetryHandler 测试")
 class EventRetryHandlerTest {
 
-    private EventProperties properties;
+    private AfgCoreProperties properties;
     private DomainEventPublisher deadLetterPublisher;
     private EventRetryHandler retryHandler;
 
     @BeforeEach
     void setUp() {
-        properties = new EventProperties();
+        properties = new AfgCoreProperties();
         deadLetterPublisher = mock(DomainEventPublisher.class);
         retryHandler = new EventRetryHandler(properties, deadLetterPublisher);
     }
@@ -110,7 +111,7 @@ class EventRetryHandlerTest {
         void shouldThrowExceptionWhenRetriesExhausted() {
             // given
             TestEvent event = new TestEvent("event-001", "user.created", Instant.now(), "user-123", "payload");
-            properties.getRetry().setMaxAttempts(2);
+            properties.getEvent().getRetry().setMaxAttempts(2);
 
             // then
             assertThatThrownBy(() -> retryHandler.executeWithRetry(event, e -> {
@@ -125,8 +126,8 @@ class EventRetryHandlerTest {
         void shouldSendToDeadLetterQueueWhenRetriesExhausted() {
             // given
             TestEvent event = new TestEvent("event-001", "user.created", Instant.now(), "user-123", "payload");
-            properties.getRetry().setMaxAttempts(2);
-            properties.getDeadLetter().setEnabled(true);
+            properties.getEvent().getRetry().setMaxAttempts(2);
+            properties.getEvent().getDeadLetter().setEnabled(true);
 
             // when
             try {
@@ -148,7 +149,7 @@ class EventRetryHandlerTest {
         void shouldExecuteDirectlyWhenRetryDisabled() {
             // given
             TestEvent event = new TestEvent("event-001", "user.created", Instant.now(), "user-123", "payload");
-            properties.getRetry().setEnabled(false);
+            properties.getEvent().getRetry().setEnabled(false);
             boolean[] executed = {false};
 
             // when
@@ -183,11 +184,11 @@ class EventRetryHandlerTest {
         @DisplayName("应该使用指数退避计算间隔")
         void shouldUseExponentialBackoff() {
             // given
-            properties.getRetry().setInitialInterval(100);
-            properties.getRetry().setMultiplier(2.0);
+            properties.getEvent().getRetry().setInitialInterval(100);
+            properties.getEvent().getRetry().setMultiplier(2.0);
             // 验证配置正确
-            assertThat(properties.getRetry().getInitialInterval()).isEqualTo(100);
-            assertThat(properties.getRetry().getMultiplier()).isEqualTo(2.0);
+            assertThat(properties.getEvent().getRetry().getInitialInterval()).isEqualTo(100);
+            assertThat(properties.getEvent().getRetry().getMultiplier()).isEqualTo(2.0);
         }
     }
 
@@ -201,7 +202,7 @@ class EventRetryHandlerTest {
             // given
             retryHandler = new EventRetryHandler(properties, null);
             TestEvent event = new TestEvent("event-001", "user.created", Instant.now(), "user-123", "payload");
-            properties.getRetry().setMaxAttempts(2);
+            properties.getEvent().getRetry().setMaxAttempts(2);
 
             // when & then
             assertThatThrownBy(() -> retryHandler.executeWithRetry(event, e -> {

@@ -11,6 +11,7 @@ import java.util.Set;
 
 import io.github.afgprojects.framework.security.core.authentication.AfgAuthentication;
 import io.github.afgprojects.framework.security.core.authentication.AfgUserDetails;
+import io.github.afgprojects.framework.security.resource.autoconfigure.ResourceSecurityProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -27,13 +28,14 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
  */
 class JwtAuthenticationConverterTest {
 
-    private JwtResourceProperties properties;
+    private ResourceSecurityProperties.JwtConfig jwtConfig;
     private JwtAuthenticationConverter converter;
 
     @BeforeEach
     void setUp() {
-        properties = new JwtResourceProperties();
-        converter = new JwtAuthenticationConverter(properties);
+        ResourceSecurityProperties properties = new ResourceSecurityProperties();
+        jwtConfig = properties.getJwt();
+        converter = new JwtAuthenticationConverter(jwtConfig);
     }
 
     @Nested
@@ -201,7 +203,7 @@ class JwtAuthenticationConverterTest {
         @Test
         @DisplayName("使用自定义 userId claim")
         void shouldUseCustomUserIdClaim() {
-            properties.setUserIdClaim("user_id");
+            jwtConfig.setUserIdClaim("user_id");
 
             Jwt jwt = Jwt.withTokenValue("token-value")
                     .header("alg", "RS256")
@@ -221,7 +223,7 @@ class JwtAuthenticationConverterTest {
         @Test
         @DisplayName("使用自定义 tenantId claim")
         void shouldUseCustomTenantIdClaim() {
-            properties.setTenantIdClaim("custom_tenant");
+            jwtConfig.setTenantIdClaim("custom_tenant");
 
             Jwt jwt = Jwt.withTokenValue("token-value")
                     .header("alg", "RS256")
@@ -241,7 +243,7 @@ class JwtAuthenticationConverterTest {
         @Test
         @DisplayName("使用自定义 roles claim")
         void shouldUseCustomRolesClaim() {
-            properties.setRolesClaim("authorities");
+            jwtConfig.setRolesClaim("authorities");
 
             Jwt jwt = Jwt.withTokenValue("token-value")
                     .header("alg", "RS256")

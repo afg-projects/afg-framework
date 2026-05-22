@@ -1,5 +1,8 @@
 package io.github.afgprojects.framework.data.core.query;
 
+import io.github.afgprojects.framework.data.core.condition.Conditions;
+import io.github.afgprojects.framework.data.core.condition.SFunction;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -140,6 +143,73 @@ public final class Sort {
         List<Order> orderList = new ArrayList<>();
         Collections.addAll(orderList, orders);
         return new Sort(orderList);
+    }
+
+    // ========== Lambda 风格工厂方法 ==========
+
+    /**
+     * 创建类型化排序构建器
+     * <p>
+     * 使用 Lambda 方式构建排序，类型安全，避免字段名拼写错误。
+     * <p>
+     * 使用示例：
+     * <pre>
+     * Sort sort = Sort.builder(User.class)
+     *     .asc(User::getCreateTime)
+     *     .desc(User::getStatus)
+     *     .build();
+     * </pre>
+     *
+     * @param entityClass 实体类
+     * @param <T>         实体类型
+     * @return 类型化排序构建器
+     */
+    public static <T> @NonNull TypedSortBuilder<T> builder(@NonNull Class<T> entityClass) {
+        return new DefaultTypedSortBuilder<>(entityClass);
+    }
+
+    /**
+     * 创建升序排序（Lambda 方式）
+     *
+     * @param getter 字段 getter 方法引用
+     * @param <T>    实体类型
+     * @param <R>    字段类型
+     * @return 排序对象
+     */
+    public static <T, R> @NonNull Sort asc(@NonNull SFunction<T, R> getter) {
+        return by(Order.asc(Conditions.getFieldName(getter)));
+    }
+
+    /**
+     * 创建降序排序（Lambda 方式）
+     *
+     * @param getter 字段 getter 方法引用
+     * @param <T>    实体类型
+     * @param <R>    字段类型
+     * @return 排序对象
+     */
+    public static <T, R> @NonNull Sort desc(@NonNull SFunction<T, R> getter) {
+        return by(Order.desc(Conditions.getFieldName(getter)));
+    }
+
+    /**
+     * 创建排序（Lambda 方式，支持多个字段）
+     *
+     * @param direction 排序方向
+     * @param getters   字段 getter 方法引用
+     * @param <T>       实体类型
+     * @return 排序对象
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> @NonNull Sort by(@NonNull Direction direction, @NonNull SFunction<T, ?>... getters) {
+        Objects.requireNonNull(direction, "direction must not be null");
+        Objects.requireNonNull(getters, "getters must not be null");
+
+        List<Order> orders = new ArrayList<>();
+        for (SFunction<T, ?> getter : getters) {
+            orders.add(new Order(Conditions.getFieldName(getter), direction));
+        }
+        return new Sort(orders);
     }
 
     /**
@@ -307,6 +377,38 @@ public final class Sort {
         public String toString() {
             String suffix = ignoreCase ? " IGNORE CASE" : "";
             return property + " " + direction.getSymbol() + suffix;
+        }
+    }
+
+    /**
+     * 默认类型化排序构建器实现
+     */
+    private static final class DefaultTypedSortBuilder<T> implements TypedSortBuilder<T> {
+        private final Class<T> entityClass;
+        private final List<Order> orders = new ArrayList<>();
+
+        DefaultTypedSortBuilder(Class<T> entityClass) {
+            this.entityClass = entityClass;
+        }
+
+        @Override
+        public <R> TypedSortBuilder<T> asc(SFunction<T, R> getter) {
+            orders.add(new Order(Conditions.getFieldName(getter), Direction.ASC));
+            return this;
+        }
+
+        @Override
+        public <R> TypedSortBuilder<T> desc(SFunction<T, R> getter) {
+            orders.add(new Order(Conditions.getFieldName(getter), Direction.DESC));
+            return this;
+        }
+
+        @Override
+        public Sort build() {
+            if (orders.isEmpty()) {
+                return UNSORTED;
+            }
+            return new Sort(orders);
         }
     }
 }

@@ -9,6 +9,9 @@ dependencies {
     // JSpecify 空安全注解
     api(libs.jspecify)
 
+    // Micrometer for metrics
+    api(libs.micrometer.core)
+
     // Lombok
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)

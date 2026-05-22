@@ -8,7 +8,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import io.github.afgprojects.framework.core.web.shutdown.ShutdownProperties;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 
 /**
  * ShutdownAutoConfiguration 单元测试。
@@ -40,7 +40,7 @@ class ShutdownAutoConfigurationTest {
         @Test
         @DisplayName("应该创建关闭钩子")
         void shouldCreateShutdownHook() {
-            ShutdownProperties properties = new ShutdownProperties();
+            AfgCoreProperties properties = new AfgCoreProperties();
 
             var hook = configuration.shutdownHook(properties);
 

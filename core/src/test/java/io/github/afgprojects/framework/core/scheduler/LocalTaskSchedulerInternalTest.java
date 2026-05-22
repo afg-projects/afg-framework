@@ -20,7 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import io.github.afgprojects.framework.core.api.scheduler.SchedulerProperties;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties.SchedulerConfig;
 import io.github.afgprojects.framework.core.api.scheduler.TaskDefinition;
 import io.github.afgprojects.framework.core.api.scheduler.TaskExecutionLogStorage;
 import io.github.afgprojects.framework.core.api.scheduler.TaskExecutionMetrics;
@@ -34,7 +34,7 @@ import io.github.afgprojects.framework.core.api.scheduler.TaskExecutionMetrics;
 class LocalTaskSchedulerInternalTest {
 
     @Mock
-    private SchedulerProperties properties;
+    private SchedulerConfig properties;
 
     @Mock
     private TaskExecutionMetrics metrics;
@@ -43,7 +43,7 @@ class LocalTaskSchedulerInternalTest {
     private TaskExecutionLogStorage logStorage;
 
     @Mock
-    private SchedulerProperties.LogStorageConfig logStorageConfig;
+    private SchedulerConfig.LogStorageConfig logStorageConfig;
 
     private LocalTaskScheduler scheduler;
 

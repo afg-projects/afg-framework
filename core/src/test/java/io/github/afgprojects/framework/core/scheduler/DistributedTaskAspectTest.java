@@ -25,7 +25,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import io.github.afgprojects.framework.core.annotation.DistributedTask;
-import io.github.afgprojects.framework.core.api.scheduler.SchedulerProperties;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties.SchedulerConfig;
 import io.github.afgprojects.framework.core.api.scheduler.TaskExecutionLogStorage;
 import io.github.afgprojects.framework.core.api.scheduler.TaskExecutionMetrics;
 import io.github.afgprojects.framework.core.lock.DistributedLock;
@@ -49,10 +49,10 @@ class DistributedTaskAspectTest extends BaseUnitTest {
     private TaskExecutionLogStorage logStorage;
 
     @Mock
-    private SchedulerProperties properties;
+    private SchedulerConfig properties;
 
     @Mock
-    private SchedulerProperties.LogStorageConfig logStorageConfig;
+    private SchedulerConfig.LogStorageConfig logStorageConfig;
 
     @Mock
     private ProceedingJoinPoint joinPoint;

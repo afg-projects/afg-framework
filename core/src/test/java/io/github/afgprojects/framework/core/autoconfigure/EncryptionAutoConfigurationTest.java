@@ -8,6 +8,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.config.ConfigEncryptor;
 
 /**
@@ -40,8 +41,8 @@ class EncryptionAutoConfigurationTest {
         @Test
         @DisplayName("应该使用有效密钥创建加密器")
         void shouldCreateEncryptorWithValidKey() {
-            EncryptionProperties properties = new EncryptionProperties();
-            properties.setSecretKey("1234567890123456"); // 16 字节密钥
+            AfgCoreProperties properties = new AfgCoreProperties();
+            properties.getEncryption().setSecretKey("1234567890123456"); // 16 字节密钥
 
             ConfigEncryptor encryptor = configuration.configEncryptor(properties);
 
@@ -54,8 +55,8 @@ class EncryptionAutoConfigurationTest {
         @Test
         @DisplayName("密钥为空时应该抛出异常")
         void shouldThrowExceptionWhenSecretKeyIsNull() {
-            EncryptionProperties properties = new EncryptionProperties();
-            properties.setSecretKey(null);
+            AfgCoreProperties properties = new AfgCoreProperties();
+            properties.getEncryption().setSecretKey(null);
 
             assertThatThrownBy(() -> configuration.configEncryptor(properties))
                     .isInstanceOf(IllegalStateException.class)
@@ -68,8 +69,8 @@ class EncryptionAutoConfigurationTest {
         @Test
         @DisplayName("密钥为空白时应该抛出异常")
         void shouldThrowExceptionWhenSecretKeyIsBlank() {
-            EncryptionProperties properties = new EncryptionProperties();
-            properties.setSecretKey("   ");
+            AfgCoreProperties properties = new AfgCoreProperties();
+            properties.getEncryption().setSecretKey("   ");
 
             assertThatThrownBy(() -> configuration.configEncryptor(properties))
                     .isInstanceOf(IllegalStateException.class)
@@ -82,8 +83,8 @@ class EncryptionAutoConfigurationTest {
         @Test
         @DisplayName("应该能够加密和解密")
         void shouldEncryptAndDecrypt() {
-            EncryptionProperties properties = new EncryptionProperties();
-            properties.setSecretKey("1234567890123456");
+            AfgCoreProperties properties = new AfgCoreProperties();
+            properties.getEncryption().setSecretKey("1234567890123456");
 
             ConfigEncryptor encryptor = configuration.configEncryptor(properties);
 

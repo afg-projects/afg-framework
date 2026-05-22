@@ -18,6 +18,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
+
 /**
  * FeatureToggleAspect 测试
  */
@@ -37,7 +39,7 @@ class FeatureToggleAspectTest {
 
     @BeforeEach
     void setUp() {
-        FeatureFlagProperties properties = new FeatureFlagProperties();
+        AfgCoreProperties properties = new AfgCoreProperties();
         featureFlagManager = new FeatureFlagManager(properties);
         aspect = new FeatureToggleAspect(featureFlagManager);
     }

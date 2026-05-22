@@ -2,8 +2,8 @@ package io.github.afgprojects.framework.integration.jdbc.autoconfigure;
 
 import javax.sql.DataSource;
 
-import io.github.afgprojects.framework.core.audit.AuditLogProperties;
 import io.github.afgprojects.framework.core.audit.AuditLogStorage;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.integration.jdbc.audit.DatabaseAuditLogProperties;
 import io.github.afgprojects.framework.integration.jdbc.audit.DatabaseAuditLogStorage;
 
@@ -82,7 +82,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @AutoConfiguration
 @ConditionalOnBean(DataSource.class)
 @EnableConfigurationProperties({
-        AuditLogProperties.class,
+        AfgCoreProperties.class,
         DatabaseAuditLogProperties.class
 })
 public class JdbcAutoConfiguration {
@@ -112,10 +112,10 @@ public class JdbcAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(AuditLogStorage.class)
-    @ConditionalOnProperty(prefix = "afg.audit", name = "storage-type", havingValue = "database")
+    @ConditionalOnProperty(prefix = "afg.core.audit", name = "storage-type", havingValue = "database")
     public AuditLogStorage databaseAuditLogStorage(
             @NonNull JdbcTemplate jdbcTemplate,
-            @NonNull AuditLogProperties properties,
+            @NonNull AfgCoreProperties properties,
             @NonNull DatabaseAuditLogProperties dbProperties) {
         return new DatabaseAuditLogStorage(jdbcTemplate, dbProperties);
     }

@@ -184,6 +184,7 @@ public class DynamicApiPermissionManager implements ConfigChangeListener {
     @Nullable
     private ApiPermissionConfig findMatchingConfig(String path, String method) {
         synchronized (configs) {
+            ApiPermissionConfig result = null;
             for (ApiPermissionConfig config : configs) {
                 if (!config.isEnabled()) {
                     continue;
@@ -199,9 +200,11 @@ public class DynamicApiPermissionManager implements ConfigChangeListener {
                     continue;
                 }
 
-                return config;
+                // 找到匹配的配置
+                result = config;
+                break;
             }
+            return result;
         }
-        return null;
     }
 }

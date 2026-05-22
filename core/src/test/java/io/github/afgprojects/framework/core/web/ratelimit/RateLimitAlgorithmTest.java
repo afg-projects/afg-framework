@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-import io.github.afgprojects.framework.core.api.ratelimit.RateLimitAlgorithm;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.support.BaseUnitTest;
 
 /**
@@ -12,7 +12,7 @@ import io.github.afgprojects.framework.core.support.BaseUnitTest;
  * <p>
  * 测试限流算法枚举的功能，验证令牌桶和滑动窗口算法的存在。
  *
- * @see io.github.afgprojects.framework.core.api.ratelimit.RateLimitAlgorithm
+ * @see AfgCoreProperties.RateLimitConfig.RateLimitAlgorithm
  */
 class RateLimitAlgorithmTest extends BaseUnitTest {
 
@@ -21,18 +21,18 @@ class RateLimitAlgorithmTest extends BaseUnitTest {
      */
     @Test
     void should_haveTokenBucketAlgorithm() {
-        assertThat(RateLimitAlgorithm.TOKEN_BUCKET).isNotNull();
-        assertThat(RateLimitAlgorithm.TOKEN_BUCKET.name()).isEqualTo("TOKEN_BUCKET");
+        assertThat(AfgCoreProperties.RateLimitConfig.RateLimitAlgorithm.TOKEN_BUCKET).isNotNull();
+        assertThat(AfgCoreProperties.RateLimitConfig.RateLimitAlgorithm.TOKEN_BUCKET.name()).isEqualTo("TOKEN_BUCKET");
     }
 
     @Test
     void should_haveSlidingWindowAlgorithm() {
-        assertThat(RateLimitAlgorithm.SLIDING_WINDOW).isNotNull();
-        assertThat(RateLimitAlgorithm.SLIDING_WINDOW.name()).isEqualTo("SLIDING_WINDOW");
+        assertThat(AfgCoreProperties.RateLimitConfig.RateLimitAlgorithm.SLIDING_WINDOW).isNotNull();
+        assertThat(AfgCoreProperties.RateLimitConfig.RateLimitAlgorithm.SLIDING_WINDOW.name()).isEqualTo("SLIDING_WINDOW");
     }
 
     @Test
-    void should_haveTwoAlgorithms() {
-        assertThat(RateLimitAlgorithm.values()).hasSize(2);
+    void should_haveFourAlgorithms() {
+        assertThat(AfgCoreProperties.RateLimitConfig.RateLimitAlgorithm.values()).hasSize(4);
     }
 }

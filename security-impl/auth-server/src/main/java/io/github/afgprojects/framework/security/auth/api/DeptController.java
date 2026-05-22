@@ -1,20 +1,25 @@
 package io.github.afgprojects.framework.security.auth.api;
 
-import io.github.afgprojects.framework.security.datascope.entity.SecDept;
-import io.github.afgprojects.framework.security.datascope.service.JdbcDeptService;
-import lombok.RequiredArgsConstructor;
+import io.github.afgprojects.framework.security.auth.datascope.entity.SecDept;
+import io.github.afgprojects.framework.security.auth.datascope.service.JdbcDeptService;
 import org.jspecify.annotations.Nullable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Set;
 
-@RestController
+/**
+ * 部门管理 API。
+ */
+@ResponseBody
 @RequestMapping("/depts")
-@RequiredArgsConstructor
 public class DeptController {
 
     private final JdbcDeptService deptService;
+
+    public DeptController(JdbcDeptService deptService) {
+        this.deptService = deptService;
+    }
 
     @PostMapping
     public SecDept create(@RequestBody SecDept dept) {

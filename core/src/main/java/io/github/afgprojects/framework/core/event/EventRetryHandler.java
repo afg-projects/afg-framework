@@ -11,6 +11,7 @@ import org.jspecify.annotations.Nullable;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.util.JacksonUtils;
 
 /**
@@ -42,18 +43,18 @@ import io.github.afgprojects.framework.core.util.JacksonUtils;
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
 public class EventRetryHandler {
 
-    private final EventProperties properties;
+    private final AfgCoreProperties properties;
     private final @Nullable DomainEventPublisher deadLetterPublisher;
     private final ObjectMapper objectMapper;
 
     /**
      * 创建事件重试处理器
      *
-     * @param properties 事件配置属性
+     * @param properties 核心配置属性
      * @param deadLetterPublisher 死信队列发布器（可选）
      */
     public EventRetryHandler(
-            @NonNull EventProperties properties,
+            @NonNull AfgCoreProperties properties,
             @Nullable DomainEventPublisher deadLetterPublisher) {
         this.properties = properties;
         this.deadLetterPublisher = deadLetterPublisher;
@@ -69,7 +70,7 @@ public class EventRetryHandler {
      * @throws EventProcessingException 重试次数耗尽后仍失败时抛出
      */
     public <T> void executeWithRetry(@NonNull DomainEvent<T> event, @NonNull EventHandler<T> handler) {
-        executeWithRetry(event, handler, properties.getRetry().getMaxAttempts());
+        executeWithRetry(event, handler, properties.getEvent().getRetry().getMaxAttempts());
     }
 
     /**
@@ -85,7 +86,7 @@ public class EventRetryHandler {
             @NonNull DomainEvent<T> event,
             @NonNull EventHandler<T> handler,
             int maxAttempts) {
-        if (!properties.getRetry().isEnabled() || maxAttempts <= 1) {
+        if (!properties.getEvent().getRetry().isEnabled() || maxAttempts <= 1) {
             // 不启用重试或重试次数为 1，直接执行
             try {
                 handler.handle(event);
@@ -131,7 +132,7 @@ public class EventRetryHandler {
         }
 
         // 发送到死信队列
-        if (properties.getDeadLetter().isEnabled() && deadLetterPublisher != null) {
+        if (properties.getEvent().getDeadLetter().isEnabled() && deadLetterPublisher != null) {
             sendToDeadLetterQueue(event, lastException, maxAttempts);
         }
 
@@ -149,7 +150,7 @@ public class EventRetryHandler {
      * @return 重试间隔（毫秒）
      */
     private long calculateRetryInterval(int retryCount) {
-        EventProperties.RetryConfig retryConfig = properties.getRetry();
+        AfgCoreProperties.EventConfig.EventRetryConfig retryConfig = properties.getEvent().getRetry();
 
         if (retryConfig.getMultiplier() <= 1) {
             // 不启用指数退避，使用固定间隔
@@ -192,7 +193,7 @@ public class EventRetryHandler {
                     .failedAt(Instant.now())
                     .build();
 
-            String deadLetterTopic = properties.getDeadLetter().getTopicPrefix() + event.getEventType();
+            String deadLetterTopic = properties.getEvent().getDeadLetter().getTopicPrefix() + event.getEventType();
             deadLetterPublisher.publish(deadLetterTopic, deadLetterEvent);
 
             log.info("Event sent to dead letter queue: eventId={}, topic={}",

@@ -23,6 +23,7 @@ import com.baomidou.dynamic.datasource.provider.AbstractDataSourceProvider;
 import com.baomidou.dynamic.datasource.provider.DynamicDataSourceProvider;
 import com.baomidou.dynamic.datasource.spring.boot.autoconfigure.DynamicDataSourceAutoConfiguration;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.datasource.lb.LeastConnectionsStrategy;
 import io.github.afgprojects.framework.core.datasource.lb.LoadBalanceStrategy;
 import io.github.afgprojects.framework.core.datasource.lb.ReadDataSourceLoadBalancer;
@@ -149,8 +150,8 @@ import io.github.afgprojects.framework.core.datasource.lb.WeightedStrategy;
  */
 @AutoConfiguration(before = DynamicDataSourceAutoConfiguration.class)
 @ConditionalOnClass(name = "com.baomidou.dynamic.datasource.DynamicRoutingDataSource")
-@ConditionalOnProperty(prefix = "afg.datasource.dynamic", name = "enabled", havingValue = "true")
-@EnableConfigurationProperties(MultiDataSourceProperties.class)
+@ConditionalOnProperty(prefix = "afg.core.datasource", name = "enabled", havingValue = "true")
+@EnableConfigurationProperties(AfgCoreProperties.class)
 public class MultiDataSourceAutoConfiguration {
 
     /**
@@ -174,13 +175,13 @@ public class MultiDataSourceAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public DynamicDataSourceProvider dynamicDataSourceProvider(
-            MultiDataSourceProperties properties, DefaultDataSourceCreator creator) {
+            AfgCoreProperties properties, DefaultDataSourceCreator creator) {
         return new AbstractDataSourceProvider(creator) {
             @Override
             public @NonNull Map<String, DataSource> loadDataSources() {
                 Map<String, DataSourceProperty> dataSourceProperties = new HashMap<>();
-                for (Map.Entry<String, MultiDataSourceProperties.DataSourceConfig> entry
-                        : properties.getDatasources().entrySet()) {
+                for (Map.Entry<String, AfgCoreProperties.DataSourceConfig.DataSourceInstanceConfig> entry
+                        : properties.getDatasource().getDatasources().entrySet()) {
                     DataSourceProperty prop = new DataSourceProperty();
                     prop.setUrl(entry.getValue().getUrl());
                     prop.setUsername(entry.getValue().getUsername());
@@ -203,10 +204,10 @@ public class MultiDataSourceAutoConfiguration {
     @Primary
     @ConditionalOnMissingBean(name = "dynamicDataSource")
     public DataSource dynamicDataSource(
-            DynamicDataSourceProvider provider, MultiDataSourceProperties properties) {
+            DynamicDataSourceProvider provider, AfgCoreProperties properties) {
         DynamicRoutingDataSource dataSource = new DynamicRoutingDataSource(List.of(provider));
-        dataSource.setPrimary(properties.getPrimary());
-        dataSource.setStrict(properties.isStrict());
+        dataSource.setPrimary(properties.getDatasource().getPrimary());
+        dataSource.setStrict(properties.getDatasource().isStrict());
         return dataSource;
     }
 
@@ -216,7 +217,7 @@ public class MultiDataSourceAutoConfiguration {
      * <p>可选配置，用于自动路由读操作到从库
      */
     @Configuration
-    @ConditionalOnProperty(prefix = "afg.datasource.dynamic.read-write-separation", name = "enabled", havingValue = "true")
+    @ConditionalOnProperty(prefix = "afg.core.datasource.read-write-separation", name = "enabled", havingValue = "true")
     static class ReadWriteSeparationConfiguration {
 
         /**
@@ -226,9 +227,9 @@ public class MultiDataSourceAutoConfiguration {
          */
         @Bean
         @ConditionalOnMissingBean
-        public LoadBalanceStrategy loadBalanceStrategy(MultiDataSourceProperties properties) {
-            MultiDataSourceProperties.LoadBalanceConfig loadBalanceConfig =
-                    properties.getReadWriteSeparation().getLoadBalance();
+        public LoadBalanceStrategy loadBalanceStrategy(AfgCoreProperties properties) {
+            AfgCoreProperties.DataSourceConfig.LoadBalanceConfig loadBalanceConfig =
+                    properties.getDatasource().getReadWriteSeparation().getLoadBalance();
 
             return switch (loadBalanceConfig.getStrategy()) {
                 case ROUND_ROBIN -> new RoundRobinStrategy();
@@ -246,19 +247,19 @@ public class MultiDataSourceAutoConfiguration {
         @ConditionalOnMissingBean
         public ReadDataSourceLoadBalancer readDataSourceLoadBalancer(
                 DataSource dynamicDataSource,
-                MultiDataSourceProperties properties,
+                AfgCoreProperties properties,
                 LoadBalanceStrategy loadBalanceStrategy) {
 
             DynamicRoutingDataSource routingDataSource = (DynamicRoutingDataSource) dynamicDataSource;
             Map<String, DataSource> dataSourceMap = routingDataSource.getDataSources();
 
-            String writeDatasource = properties.getReadWriteSeparation().getWriteDatasource();
+            String writeDatasource = properties.getDatasource().getReadWriteSeparation().getWriteDatasource();
             if (writeDatasource == null || writeDatasource.isEmpty()) {
-                writeDatasource = properties.getPrimary();
+                writeDatasource = properties.getDatasource().getPrimary();
             }
 
-            List<String> readDatasources = properties.getReadWriteSeparation().getReadDatasources();
-            long healthCheckInterval = properties.getReadWriteSeparation().getLoadBalance().getHealthCheckInterval();
+            List<String> readDatasources = properties.getDatasource().getReadWriteSeparation().getReadDatasources();
+            long healthCheckInterval = properties.getDatasource().getReadWriteSeparation().getLoadBalance().getHealthCheckInterval();
 
             ReadDataSourceLoadBalancer loadBalancer = new ReadDataSourceLoadBalancer(
                     dataSourceMap,
@@ -268,7 +269,7 @@ public class MultiDataSourceAutoConfiguration {
                     healthCheckInterval);
 
             // 如果启用健康检查，启动健康检查
-            if (properties.getReadWriteSeparation().getLoadBalance().isHealthCheckEnabled()) {
+            if (properties.getDatasource().getReadWriteSeparation().getLoadBalance().isHealthCheckEnabled()) {
                 loadBalancer.startHealthCheck();
             }
 

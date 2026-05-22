@@ -9,7 +9,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.jspecify.annotations.Nullable;
 
-import io.github.afgprojects.framework.core.api.ratelimit.RateLimitAlgorithm;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.api.ratelimit.RateLimitDimension;
 import io.github.afgprojects.framework.core.api.ratelimit.RateLimitResult;
 import io.github.afgprojects.framework.core.api.ratelimit.RateLimiter;
@@ -36,7 +36,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 public class RateLimitInterceptor {
 
     private final RateLimiter rateLimiter;
-    private final RateLimitProperties properties;
+    private final AfgCoreProperties properties;
     private final @Nullable MeterRegistry meterRegistry;
 
     /**
@@ -46,7 +46,7 @@ public class RateLimitInterceptor {
      * @param properties    限流配置属性
      * @param meterRegistry 指标注册器（可选）
      */
-    public RateLimitInterceptor(RateLimiter rateLimiter, RateLimitProperties properties,
+    public RateLimitInterceptor(RateLimiter rateLimiter, AfgCoreProperties properties,
             @Nullable MeterRegistry meterRegistry) {
         this.rateLimiter = rateLimiter;
         this.properties = properties;
@@ -89,7 +89,7 @@ public class RateLimitInterceptor {
      */
     private Object processRateLimit(ProceedingJoinPoint joinPoint, RateLimit[] annotations) throws Throwable {
         // 检查是否启用限流
-        if (!properties.isEnabled()) {
+        if (!properties.getRateLimit().isEnabled()) {
             return joinPoint.proceed();
         }
 
@@ -131,7 +131,7 @@ public class RateLimitInterceptor {
         if (triggeredAnnotation != null) {
             // 尝试执行回退方法
             String fallbackMethod = triggeredAnnotation.fallbackMethod();
-            if (fallbackMethod != null && !fallbackMethod.isEmpty() && properties.getFallback().isEnabled()) {
+            if (fallbackMethod != null && !fallbackMethod.isEmpty() && properties.getRateLimit().getFallback().isEnabled()) {
                 Object fallbackResult = executeFallback(joinPoint, fallbackMethod);
                 if (fallbackResult != null) {
                     return fallbackResult;
@@ -141,7 +141,7 @@ public class RateLimitInterceptor {
             // 无回退方法或回退执行失败，抛出限流异常
             String message = triggeredAnnotation.message();
             if (message == null || message.isEmpty()) {
-                message = properties.getFallback().getDefaultMessage();
+                message = properties.getRateLimit().getFallback().getDefaultMessage();
             }
             throw new BusinessException(CommonErrorCode.RATE_LIMIT_EXCEEDED, message);
         }
@@ -156,11 +156,11 @@ public class RateLimitInterceptor {
      * @param result     限流结果
      */
     private void recordMetrics(RateLimit annotation, RateLimitResult result) {
-        if (meterRegistry == null || !properties.getMetrics().isEnabled()) {
+        if (meterRegistry == null || !properties.getRateLimit().getLocal().isEnabled()) {
             return;
         }
 
-        String prefix = properties.getMetrics().getPrefix();
+        String prefix = "afg.rate.limit";
         String name = prefix + ".requests";
 
         Counter counter = Counter.builder(name)

@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import io.github.afgprojects.framework.core.cloud.CloudNativeProperties.GracefulShutdownConfig;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 
 /**
  * 优雅停机管理器
@@ -33,7 +33,7 @@ import io.github.afgprojects.framework.core.cloud.CloudNativeProperties.Graceful
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
 public class GracefulShutdownManager {
 
-    private final GracefulShutdownConfig config;
+    private final AfgCoreProperties.CloudNativeConfig.GracefulShutdownConfig config;
     private final List<ShutdownHook> shutdownHooks = new CopyOnWriteArrayList<>();
     private final Map<String, ShutdownStatus> shutdownStatus = new ConcurrentHashMap<>();
     private final AtomicInteger activeRequests = new AtomicInteger(0);
@@ -44,7 +44,7 @@ public class GracefulShutdownManager {
      *
      * @param config 配置
      */
-    public GracefulShutdownManager(@NonNull GracefulShutdownConfig config) {
+    public GracefulShutdownManager(AfgCoreProperties.CloudNativeConfig.GracefulShutdownConfig config) {
         this.config = config;
     }
 

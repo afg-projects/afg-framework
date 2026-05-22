@@ -9,10 +9,10 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 import io.github.afgprojects.framework.core.support.BaseIntegrationTest;
+import io.github.afgprojects.framework.core.autoconfigure.AfgSecurityAutoConfiguration;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.web.security.AfgEnforcer;
 import io.github.afgprojects.framework.core.web.security.AfgSecurityContextBridge;
-import io.github.afgprojects.framework.core.web.security.autoconfigure.AfgSecurityAutoConfiguration;
-import io.github.afgprojects.framework.core.web.security.autoconfigure.AfgSecurityProperties;
 import io.github.afgprojects.framework.core.web.security.filter.SecurityHeaderFilter;
 import io.github.afgprojects.framework.core.web.security.filter.SqlInjectionFilter;
 import io.github.afgprojects.framework.core.web.security.filter.XssFilter;
@@ -84,13 +84,14 @@ class AfgSecurityAutoConfigurationIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("应该成功注入 AfgSecurityProperties Bean")
-    void shouldInjectAfgSecurityProperties() {
+    @DisplayName("应该成功注入 SecurityConfig Bean")
+    void shouldInjectSecurityConfig() {
         // when
-        AfgSecurityProperties properties = getBean(AfgSecurityProperties.class);
+        AfgCoreProperties properties = getBean(AfgCoreProperties.class);
 
         // then
         assertThat(properties).isNotNull();
+        assertThat(properties.getSecurity()).isNotNull();
     }
 
     @Test

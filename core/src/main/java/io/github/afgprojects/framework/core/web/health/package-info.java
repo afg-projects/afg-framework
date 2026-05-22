@@ -16,8 +16,7 @@
  *   <li>{@link io.github.afgprojects.framework.core.web.health.ReadinessHealthIndicator} - 就绪探针健康指示器</li>
  *   <li>{@link io.github.afgprojects.framework.core.web.health.ModuleHealthIndicator} - 模块健康指示器</li>
  *   <li>{@link io.github.afgprojects.framework.core.web.health.DataSourceHealthIndicator} - 数据源健康指示器</li>
- *   <li>{@link io.github.afgprojects.framework.core.web.health.HealthCheckProperties} - 健康检查配置属性</li>
- *   <li>{@link io.github.afgprojects.framework.core.web.health.DataSourceHealthProperties} - 数据源健康检查配置属性</li>
+ *   <li>{@link io.github.afgprojects.framework.core.config.AfgCoreProperties.HealthConfig} - 健康检查配置属性（在 AfgCoreProperties 中）</li>
  *   <li>{@link io.github.afgprojects.framework.core.web.health.HealthCheckLevel} - 健康检查级别枚举</li>
  * </ul>
  *

@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 
-import io.github.afgprojects.framework.core.security.datascope.DataScopeProperties;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.support.TestApplication;
 
 /**
@@ -19,25 +19,25 @@ import io.github.afgprojects.framework.core.support.TestApplication;
 @SpringBootTest(
         classes = TestApplication.class,
         properties = {
-                "afg.data-scope.enabled=true",
-                "afg.data-scope.default-scope-type=DEPT"
+                "afg.core.data-scope.enabled=true",
+                "afg.core.data-scope.default-scope-type=DEPT"
         }
 )
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class DataScopeIntegrationTest {
 
     @Autowired(required = false)
-    private DataScopeProperties dataScopeProperties;
+    private AfgCoreProperties afgCoreProperties;
 
     @Nested
     @DisplayName("DataScope 配置测试")
     class DataScopeConfigTests {
 
         @Test
-        @DisplayName("应该正确配置 DataScopeProperties")
-        void shouldConfigureDataScopeProperties() {
-            assertThat(dataScopeProperties).isNotNull();
-            assertThat(dataScopeProperties.isEnabled()).isTrue();
+        @DisplayName("应该正确配置 DataScopeConfig")
+        void shouldConfigureDataScopeConfig() {
+            assertThat(afgCoreProperties).isNotNull();
+            assertThat(afgCoreProperties.getDataScope().isEnabled()).isTrue();
         }
     }
 }

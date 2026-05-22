@@ -6,7 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import io.github.afgprojects.framework.core.api.ratelimit.RateLimitAlgorithm;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.api.ratelimit.RateLimitDimension;
 
 /**
@@ -22,12 +22,14 @@ class RateLimitEnumsTest {
         @Test
         @DisplayName("应该包含所有算法类型")
         void shouldContainAllAlgorithms() {
-            RateLimitAlgorithm[] algorithms = RateLimitAlgorithm.values();
+            AfgCoreProperties.RateLimitConfig.RateLimitAlgorithm[] algorithms = AfgCoreProperties.RateLimitConfig.RateLimitAlgorithm.values();
 
-            assertThat(algorithms).hasSize(2);
+            assertThat(algorithms).hasSize(4);
             assertThat(algorithms).contains(
-                    RateLimitAlgorithm.TOKEN_BUCKET,
-                    RateLimitAlgorithm.SLIDING_WINDOW
+                    AfgCoreProperties.RateLimitConfig.RateLimitAlgorithm.TOKEN_BUCKET,
+                    AfgCoreProperties.RateLimitConfig.RateLimitAlgorithm.SLIDING_WINDOW,
+                    AfgCoreProperties.RateLimitConfig.RateLimitAlgorithm.FIXED_WINDOW,
+                    AfgCoreProperties.RateLimitConfig.RateLimitAlgorithm.LEAKY_BUCKET
             );
         }
     }

@@ -1,7 +1,8 @@
 package io.github.afgprojects.framework.core.api.ratelimit;
 
-import io.github.afgprojects.framework.core.web.ratelimit.RateLimitProperties;
-import io.github.afgprojects.framework.core.web.ratelimit.RateLimitProperties.DimensionConfig;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties.RateLimitConfig.RateLimitAlgorithm;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties.RateLimitConfig.DimensionConfig;
 
 /**
  * 限流构建器
@@ -135,8 +136,8 @@ public class RateLimiterBuilder {
      * 构建完整的限流 key
      */
     private String buildKey() {
-        RateLimitProperties properties = rateLimiter.getProperties();
-        return properties.getKeyPrefix() + ":" + key + ":" +
+        AfgCoreProperties properties = rateLimiter.getProperties();
+        return properties.getRateLimit().getKeyPrefix() + ":" + key + ":" +
             dimension.name().toLowerCase() + ":" +
             rateLimiter.resolveDimensionValue(dimension);
     }
@@ -151,12 +152,12 @@ public class RateLimiterBuilder {
 
         // 从维度配置中获取默认值
         String dimensionKey = dimension.name().toLowerCase();
-        DimensionConfig config = rateLimiter.getProperties().getDimensions().get(dimensionKey);
+        DimensionConfig config = rateLimiter.getProperties().getRateLimit().getDimensions().get(dimensionKey);
         if (config != null && config.getRate() > 0) {
             return config.getRate();
         }
 
-        return rateLimiter.getProperties().getDefaultRate();
+        return rateLimiter.getProperties().getRateLimit().getDefaultRate();
     }
 
     /**
@@ -169,14 +170,14 @@ public class RateLimiterBuilder {
 
         // 从维度配置中获取默认值
         String dimensionKey = dimension.name().toLowerCase();
-        DimensionConfig config = rateLimiter.getProperties().getDimensions().get(dimensionKey);
+        DimensionConfig config = rateLimiter.getProperties().getRateLimit().getDimensions().get(dimensionKey);
         if (config != null && config.getBurst() > 0) {
             return config.getBurst();
         }
 
         // 默认突发容量为 rate * 2
-        if (rateLimiter.getProperties().getDefaultBurst() > 0) {
-            return rateLimiter.getProperties().getDefaultBurst();
+        if (rateLimiter.getProperties().getRateLimit().getDefaultBurst() > 0) {
+            return rateLimiter.getProperties().getRateLimit().getDefaultBurst();
         }
 
         return effectiveRate * 2;
@@ -192,7 +193,7 @@ public class RateLimiterBuilder {
 
         // 从维度配置中获取默认值
         String dimensionKey = dimension.name().toLowerCase();
-        DimensionConfig config = rateLimiter.getProperties().getDimensions().get(dimensionKey);
+        DimensionConfig config = rateLimiter.getProperties().getRateLimit().getDimensions().get(dimensionKey);
         if (config != null && config.getWindowSize() > 0) {
             return config.getWindowSize();
         }
@@ -210,11 +211,11 @@ public class RateLimiterBuilder {
 
         // 从维度配置中获取默认值
         String dimensionKey = dimension.name().toLowerCase();
-        DimensionConfig config = rateLimiter.getProperties().getDimensions().get(dimensionKey);
+        DimensionConfig config = rateLimiter.getProperties().getRateLimit().getDimensions().get(dimensionKey);
         if (config != null && config.getAlgorithm() != null) {
             return config.getAlgorithm();
         }
 
-        return rateLimiter.getProperties().getDefaultAlgorithm();
+        return rateLimiter.getProperties().getRateLimit().getDefaultAlgorithm();
     }
 }

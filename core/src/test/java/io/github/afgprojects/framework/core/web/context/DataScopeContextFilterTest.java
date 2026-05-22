@@ -18,10 +18,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.security.datascope.DataScopeContext;
 import io.github.afgprojects.framework.core.security.datascope.DataScopeContextProvider;
 import io.github.afgprojects.framework.core.security.datascope.DataScopeContextHolder;
-import io.github.afgprojects.framework.core.security.datascope.DataScopeProperties;
 import io.github.afgprojects.framework.core.web.security.AfgSecurityContextBridge;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -37,7 +37,10 @@ import jakarta.servlet.http.HttpServletResponse;
 class DataScopeContextFilterTest {
 
     @Mock
-    private DataScopeProperties properties;
+    private AfgCoreProperties properties;
+
+    @Mock
+    private AfgCoreProperties.DataScopeConfig dataScopeConfig;
 
     @Mock
     private DataScopeContextProvider contextProvider;
@@ -59,7 +62,8 @@ class DataScopeContextFilterTest {
     @BeforeEach
     void setUp() {
         DataScopeContextHolder.clear();
-        when(properties.isEnabled()).thenReturn(true);
+        when(properties.getDataScope()).thenReturn(dataScopeConfig);
+        when(dataScopeConfig.isEnabled()).thenReturn(true);
     }
 
     @Nested
@@ -122,7 +126,7 @@ class DataScopeContextFilterTest {
         @DisplayName("禁用时应该跳过过滤")
         void shouldSkipWhenDisabled() throws ServletException, IOException {
             // given
-            when(properties.isEnabled()).thenReturn(false);
+            when(dataScopeConfig.isEnabled()).thenReturn(false);
             filter = new DataScopeContextFilter(properties, null, null);
 
             // when
@@ -136,7 +140,7 @@ class DataScopeContextFilterTest {
         @DisplayName("启用时不应该跳过过滤")
         void shouldNotSkipWhenEnabled() throws ServletException, IOException {
             // given
-            when(properties.isEnabled()).thenReturn(true);
+            when(dataScopeConfig.isEnabled()).thenReturn(true);
             filter = new DataScopeContextFilter(properties, null, null);
 
             // when

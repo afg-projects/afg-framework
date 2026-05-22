@@ -29,10 +29,10 @@ import io.github.afgprojects.framework.core.support.TestApplication;
 @SpringBootTest(
         classes = TestApplication.class,
         properties = {
-                "afg.cloud.enabled=true",
-                "afg.cloud.graceful-shutdown.enabled=true",
-                "afg.cloud.graceful-shutdown.timeout=60s",
-                "afg.cloud.graceful-shutdown.request-wait-timeout=30s"
+                "afg.core.cloud.enabled=true",
+                "afg.core.cloud.graceful-shutdown.enabled=true",
+                "afg.core.cloud.graceful-shutdown.timeout=60s",
+                "afg.core.cloud.graceful-shutdown.request-wait-timeout=30s"
         }
 )
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)

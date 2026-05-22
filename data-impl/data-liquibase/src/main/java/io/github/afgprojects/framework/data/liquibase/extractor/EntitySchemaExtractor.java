@@ -31,13 +31,10 @@ public class EntitySchemaExtractor implements SchemaConverter<EntityMetadata<?>,
         SchemaMetadataImpl.Builder builder = SchemaMetadataImpl.builder()
                 .tableName(tableName);
 
-        // 提取列
-        List<ColumnMetadata> columns = new ArrayList<>();
         FieldMetadata idField = entityMetadata.getIdField();
 
         for (FieldMetadata field : entityMetadata.getFields()) {
             ColumnMetadata column = toColumnMetadata(field, field == idField);
-            columns.add(column);
             builder.addColumn(column);
         }
 

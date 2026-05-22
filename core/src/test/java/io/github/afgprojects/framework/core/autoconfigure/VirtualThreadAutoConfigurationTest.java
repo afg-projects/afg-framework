@@ -10,6 +10,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
+
 /**
  * VirtualThreadAutoConfiguration 单元测试。
  * 测试虚拟线程自动配置类的 Bean 创建功能。
@@ -41,8 +43,8 @@ class VirtualThreadAutoConfigurationTest {
         @Test
         @DisplayName("应该创建虚拟线程工厂")
         void shouldCreateVirtualThreadFactory() {
-            VirtualThreadProperties properties = new VirtualThreadProperties();
-            properties.setNamePrefix("test-vt-");
+            AfgCoreProperties properties = new AfgCoreProperties();
+            properties.getVirtualThread().setNamePrefix("test-vt-");
 
             ThreadFactory factory = configuration.virtualThreadFactory(properties);
 
@@ -113,7 +115,7 @@ class VirtualThreadAutoConfigurationTest {
         @Test
         @DisplayName("应该创建异步任务执行器")
         void shouldCreateAsyncTaskExecutor() {
-            VirtualThreadProperties properties = new VirtualThreadProperties();
+            AfgCoreProperties properties = new AfgCoreProperties();
             ThreadFactory factory = configuration.virtualThreadFactory(properties);
 
             var asyncExecutor = new VirtualThreadAutoConfiguration.VirtualThreadAsyncTaskExecutor(factory);

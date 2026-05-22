@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.data.jdbc.autoconfigure;
 
-import io.github.afgprojects.framework.core.cache.CacheProperties;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.cache.DefaultCacheManager;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheManager;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheProperties;
@@ -129,7 +129,8 @@ class AutoconfigureTest {
         @Test
         @DisplayName("启用缓存且存在 DefaultCacheManager 时应配置 EntityCacheManager")
         void shouldConfigureEntityCacheManagerWhenEnabled() {
-            DefaultCacheManager cacheManager = new DefaultCacheManager(new CacheProperties());
+            AfgCoreProperties props = new AfgCoreProperties();
+            DefaultCacheManager cacheManager = new DefaultCacheManager(props);
 
             contextRunner
                     .withBean(DefaultCacheManager.class, () -> cacheManager)
@@ -143,7 +144,8 @@ class AutoconfigureTest {
         @Test
         @DisplayName("缓存禁用后不应配置")
         void shouldNotConfigureWhenCacheDisabled() {
-            DefaultCacheManager cacheManager = new DefaultCacheManager(new CacheProperties());
+            AfgCoreProperties props = new AfgCoreProperties();
+            DefaultCacheManager cacheManager = new DefaultCacheManager(props);
 
             contextRunner
                     .withBean(DefaultCacheManager.class, () -> cacheManager)
@@ -166,7 +168,8 @@ class AutoconfigureTest {
         @Test
         @DisplayName("默认不启用缓存")
         void shouldNotEnableCacheByDefault() {
-            DefaultCacheManager cacheManager = new DefaultCacheManager(new CacheProperties());
+            AfgCoreProperties props = new AfgCoreProperties();
+            DefaultCacheManager cacheManager = new DefaultCacheManager(props);
 
             contextRunner
                     .withBean(DefaultCacheManager.class, () -> cacheManager)
@@ -179,7 +182,8 @@ class AutoconfigureTest {
         @Test
         @DisplayName("应正确绑定缓存配置属性")
         void shouldBindCacheConfigurationProperties() {
-            DefaultCacheManager cacheManager = new DefaultCacheManager(new CacheProperties());
+            AfgCoreProperties props = new AfgCoreProperties();
+            DefaultCacheManager cacheManager = new DefaultCacheManager(props);
 
             contextRunner
                     .withBean(DefaultCacheManager.class, () -> cacheManager)
@@ -190,15 +194,16 @@ class AutoconfigureTest {
                     )
                     .run(context -> {
                         assertThat(context).hasSingleBean(EntityCacheProperties.class);
-                        EntityCacheProperties props = context.getBean(EntityCacheProperties.class);
-                        assertThat(props).isNotNull();
+                        EntityCacheProperties cacheProps = context.getBean(EntityCacheProperties.class);
+                        assertThat(cacheProps).isNotNull();
                     });
         }
 
         @Test
         @DisplayName("用户自定义 EntityCacheManager 应覆盖自动配置")
         void customEntityCacheManagerShouldOverrideAutoConfiguration() {
-            DefaultCacheManager cacheManager = new DefaultCacheManager(new CacheProperties());
+            AfgCoreProperties props = new AfgCoreProperties();
+            DefaultCacheManager cacheManager = new DefaultCacheManager(props);
             EntityCacheProperties properties = new EntityCacheProperties();
             EntityCacheManager customEntityCacheManager = new EntityCacheManager(cacheManager, properties);
 

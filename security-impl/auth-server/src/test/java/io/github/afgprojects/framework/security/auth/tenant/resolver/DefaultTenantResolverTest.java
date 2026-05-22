@@ -1,9 +1,11 @@
 package io.github.afgprojects.framework.security.auth.tenant.resolver;
 
+import io.github.afgprojects.framework.security.auth.autoconfigure.AuthSecurityProperties;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-import io.github.afgprojects.framework.security.auth.tenant.config.TenantProperties;
+import io.github.afgprojects.framework.security.auth.autoconfigure.AuthSecurityProperties.TenantConfig;
 import io.github.afgprojects.framework.security.core.tenant.TenantContext;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.DisplayName;
@@ -22,9 +24,9 @@ class DefaultTenantResolverTest {
     class ConstructorTests {
 
         @Test
-        @DisplayName("使用 TenantProperties 构造")
+        @DisplayName("使用 AuthSecurityProperties.TenantConfig 构造")
         void shouldCreateWithTenantProperties() {
-            TenantProperties properties = new TenantProperties();
+            AuthSecurityProperties.TenantConfig properties = new AuthSecurityProperties.TenantConfig();
             DefaultTenantResolver resolver = new DefaultTenantResolver(properties);
             assertThat(resolver.getOrder()).isEqualTo(1000);
         }
@@ -32,7 +34,7 @@ class DefaultTenantResolverTest {
         @Test
         @DisplayName("使用自定义默认租户 ID 构造")
         void shouldCreateWithCustomDefaultTenant() {
-            TenantProperties properties = new TenantProperties();
+            AuthSecurityProperties.TenantConfig properties = new AuthSecurityProperties.TenantConfig();
             properties.setDefaultTenant("custom-default");
             DefaultTenantResolver resolver = new DefaultTenantResolver(properties);
             assertThat(resolver.getOrder()).isEqualTo(1000);
@@ -46,7 +48,7 @@ class DefaultTenantResolverTest {
         @Test
         @DisplayName("返回默认租户 ID")
         void shouldReturnDefaultTenantId() {
-            TenantProperties properties = new TenantProperties();
+            AuthSecurityProperties.TenantConfig properties = new AuthSecurityProperties.TenantConfig();
             HttpServletRequest request = mock(HttpServletRequest.class);
 
             DefaultTenantResolver resolver = new DefaultTenantResolver(properties);
@@ -60,7 +62,7 @@ class DefaultTenantResolverTest {
         @Test
         @DisplayName("返回自定义默认租户 ID")
         void shouldReturnCustomDefaultTenantId() {
-            TenantProperties properties = new TenantProperties();
+            AuthSecurityProperties.TenantConfig properties = new AuthSecurityProperties.TenantConfig();
             properties.setDefaultTenant("custom-default");
             HttpServletRequest request = mock(HttpServletRequest.class);
 
@@ -75,7 +77,7 @@ class DefaultTenantResolverTest {
         @Test
         @DisplayName("无论请求内容如何都返回默认租户")
         void shouldAlwaysReturnDefaultTenant() {
-            TenantProperties properties = new TenantProperties();
+            AuthSecurityProperties.TenantConfig properties = new AuthSecurityProperties.TenantConfig();
             HttpServletRequest request = mock(HttpServletRequest.class);
 
             DefaultTenantResolver resolver = new DefaultTenantResolver(properties);
@@ -93,7 +95,7 @@ class DefaultTenantResolverTest {
         @Test
         @DisplayName("默认 order 为 1000")
         void shouldDefaultOrderTo1000() {
-            TenantProperties properties = new TenantProperties();
+            AuthSecurityProperties.TenantConfig properties = new AuthSecurityProperties.TenantConfig();
             DefaultTenantResolver resolver = new DefaultTenantResolver(properties);
             assertThat(resolver.getOrder()).isEqualTo(1000);
         }
@@ -101,7 +103,7 @@ class DefaultTenantResolverTest {
         @Test
         @DisplayName("设置 order")
         void shouldSetOrder() {
-            TenantProperties properties = new TenantProperties();
+            AuthSecurityProperties.TenantConfig properties = new AuthSecurityProperties.TenantConfig();
             DefaultTenantResolver resolver = new DefaultTenantResolver(properties);
             resolver.setOrder(999);
             assertThat(resolver.getOrder()).isEqualTo(999);

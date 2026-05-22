@@ -1,20 +1,25 @@
 package io.github.afgprojects.framework.security.auth.api;
 
-import io.github.afgprojects.framework.security.permission.entity.SecRole;
-import io.github.afgprojects.framework.security.permission.service.JdbcRoleService;
-import lombok.RequiredArgsConstructor;
+import io.github.afgprojects.framework.security.auth.permission.entity.SecRole;
+import io.github.afgprojects.framework.security.auth.permission.service.JdbcRoleService;
 import org.jspecify.annotations.Nullable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Set;
 
-@RestController
+/**
+ * 角色管理 API。
+ */
+@ResponseBody
 @RequestMapping("/roles")
-@RequiredArgsConstructor
 public class RoleController {
 
     private final JdbcRoleService roleService;
+
+    public RoleController(JdbcRoleService roleService) {
+        this.roleService = roleService;
+    }
 
     @PostMapping
     public SecRole create(@RequestBody SecRole role) {

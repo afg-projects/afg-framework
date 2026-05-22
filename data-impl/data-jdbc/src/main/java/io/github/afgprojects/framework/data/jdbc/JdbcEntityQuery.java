@@ -72,7 +72,11 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
 
     @Override
     public @NonNull EntityQuery<T> orderBy(@NonNull Sort sort) {
-        this.sort = sort;
+        if (this.sort == null || this.sort.isUnsorted()) {
+            this.sort = sort;
+        } else {
+            this.sort = this.sort.and(sort);
+        }
         return this;
     }
 
@@ -378,7 +382,11 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
             if (!sb.isEmpty()) {
                 sb.append(", ");
             }
-            sb.append(dialect.quoteIdentifier(order.getProperty()));
+            // 将字段名转换为数据库列名
+            String fieldName = order.getProperty();
+            var fieldMetadata = metadata.getField(fieldName);
+            String columnName = fieldMetadata != null ? fieldMetadata.getColumnName() : fieldName;
+            sb.append(dialect.quoteIdentifier(columnName));
             if (order.isDescending()) {
                 sb.append(" DESC");
             }
@@ -395,7 +403,11 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
             if (!sb.isEmpty()) {
                 sb.append(", ");
             }
-            sb.append(dialect.quoteIdentifier(order.getProperty()));
+            // 将字段名转换为数据库列名
+            String fieldName = order.getProperty();
+            var fieldMetadata = metadata.getField(fieldName);
+            String columnName = fieldMetadata != null ? fieldMetadata.getColumnName() : fieldName;
+            sb.append(dialect.quoteIdentifier(columnName));
             if (order.isDescending()) {
                 sb.append(" DESC");
             }

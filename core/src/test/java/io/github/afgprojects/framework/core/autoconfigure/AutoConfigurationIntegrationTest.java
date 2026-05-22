@@ -9,96 +9,91 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.support.TestApplication;
 
 /**
  * 自动配置集成测试。
  * 测试多个自动配置属性类在 Spring Boot 环境中的实际装配效果。
  *
- * @see MetricsProperties
- * @see VirtualThreadProperties
- * @see EncryptionProperties
+ * @see AfgCoreProperties.MetricsConfig
+ * @see AfgCoreProperties.VirtualThreadConfig
+ * @see AfgCoreProperties.EncryptionConfig
  */
 @DisplayName("自动配置集成测试")
 @SpringBootTest(
         classes = TestApplication.class,
         properties = {
-                "afg.metrics.enabled=true",
-                "afg.virtual-threads.enabled=true",
-                "afg.encryption.enabled=false"
+                "afg.core.metrics.enabled=true",
+                "afg.core.virtual-thread.enabled=true",
+                "afg.core.encryption.enabled=false"
         }
 )
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class AutoConfigurationIntegrationTest {
 
     @Autowired(required = false)
-    private MetricsProperties metricsProperties;
-
-    @Autowired(required = false)
-    private VirtualThreadProperties virtualThreadProperties;
-
-    @Autowired(required = false)
-    private EncryptionProperties encryptionProperties;
+    private AfgCoreProperties afgCoreProperties;
 
     /**
-     * MetricsProperties 自动配置测试。
+     * MetricsConfig 自动配置测试。
      * 验证指标配置属性的自动装配。
      */
     @Nested
-    @DisplayName("MetricsProperties 测试")
-    class MetricsPropertiesTests {
+    @DisplayName("MetricsConfig 测试")
+    class MetricsConfigTests {
 
         /**
-         * 测试自动配置 MetricsProperties。
+         * 测试自动配置 MetricsConfig。
          */
         @Test
-        @DisplayName("应该自动配置 MetricsProperties")
-        void shouldAutoConfigureMetricsProperties() {
-            if (metricsProperties != null) {
-                assertThat(metricsProperties).isNotNull();
-                assertThat(metricsProperties.isEnabled()).isTrue();
+        @DisplayName("应该自动配置 MetricsConfig")
+        void shouldAutoConfigureMetricsConfig() {
+            if (afgCoreProperties != null) {
+                assertThat(afgCoreProperties.getMetrics()).isNotNull();
+                assertThat(afgCoreProperties.getMetrics().isEnabled()).isTrue();
             }
         }
     }
 
     /**
-     * VirtualThreadProperties 自动配置测试。
+     * VirtualThreadConfig 自动配置测试。
      * 验证虚拟线程配置属性的自动装配。
      */
     @Nested
-    @DisplayName("VirtualThreadProperties 测试")
-    class VirtualThreadPropertiesTests {
+    @DisplayName("VirtualThreadConfig 测试")
+    class VirtualThreadConfigTests {
 
         /**
-         * 测试自动配置 VirtualThreadProperties。
+         * 测试自动配置 VirtualThreadConfig。
          */
         @Test
-        @DisplayName("应该自动配置 VirtualThreadProperties")
-        void shouldAutoConfigureVirtualThreadProperties() {
-            if (virtualThreadProperties != null) {
-                assertThat(virtualThreadProperties).isNotNull();
-                assertThat(virtualThreadProperties.isEnabled()).isTrue();
+        @DisplayName("应该自动配置 VirtualThreadConfig")
+        void shouldAutoConfigureVirtualThreadConfig() {
+            if (afgCoreProperties != null) {
+                assertThat(afgCoreProperties.getVirtualThread()).isNotNull();
+                assertThat(afgCoreProperties.getVirtualThread().isEnabled()).isTrue();
             }
         }
     }
 
     /**
-     * EncryptionProperties 自动配置测试。
+     * EncryptionConfig 自动配置测试。
      * 验证加密配置属性的自动装配。
      */
     @Nested
-    @DisplayName("EncryptionProperties 测试")
-    class EncryptionPropertiesTests {
+    @DisplayName("EncryptionConfig 测试")
+    class EncryptionConfigTests {
 
         /**
-         * 测试自动配置 EncryptionProperties。
+         * 测试自动配置 EncryptionConfig。
          */
         @Test
-        @DisplayName("应该自动配置 EncryptionProperties")
-        void shouldAutoConfigureEncryptionProperties() {
-            if (encryptionProperties != null) {
-                assertThat(encryptionProperties).isNotNull();
-                assertThat(encryptionProperties.isEnabled()).isFalse();
+        @DisplayName("应该自动配置 EncryptionConfig")
+        void shouldAutoConfigureEncryptionConfig() {
+            if (afgCoreProperties != null) {
+                assertThat(afgCoreProperties.getEncryption()).isNotNull();
+                assertThat(afgCoreProperties.getEncryption().isEnabled()).isFalse();
             }
         }
     }

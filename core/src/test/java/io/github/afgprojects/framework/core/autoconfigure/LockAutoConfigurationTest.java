@@ -8,8 +8,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.lock.DistributedLock;
-import io.github.afgprojects.framework.core.lock.LockProperties;
 
 /**
  * LockAutoConfiguration 单元测试。
@@ -42,7 +42,7 @@ class LockAutoConfigurationTest {
         @DisplayName("应该创建锁切面")
         void shouldCreateLockAspect() {
             DistributedLock distributedLock = mock(DistributedLock.class);
-            LockProperties properties = new LockProperties();
+            AfgCoreProperties properties = new AfgCoreProperties();
 
             var aspect = configuration.lockAspect(distributedLock, properties);
 

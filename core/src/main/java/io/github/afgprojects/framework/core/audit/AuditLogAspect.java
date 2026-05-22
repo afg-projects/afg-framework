@@ -12,6 +12,7 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.web.context.AfgRequestContextHolder;
 
 /**
@@ -46,9 +47,9 @@ public class AuditLogAspect {
      * 构造函数
      *
      * @param storage    审计日志存储
-     * @param properties 审计日志配置
+     * @param properties 核心配置属性
      */
-    public AuditLogAspect(@NonNull AuditLogStorage storage, @NonNull AuditLogProperties properties) {
+    public AuditLogAspect(@NonNull AuditLogStorage storage, @NonNull AfgCoreProperties properties) {
         this.storage = storage;
         this.sensitiveFieldProcessor = new SensitiveFieldProcessor(properties);
         this.serializer = new AuditLogSerializer(sensitiveFieldProcessor);

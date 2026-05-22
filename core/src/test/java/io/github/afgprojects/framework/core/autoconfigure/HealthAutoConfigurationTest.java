@@ -10,9 +10,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.module.ModuleRegistry;
-import io.github.afgprojects.framework.core.web.health.DataSourceHealthProperties;
-import io.github.afgprojects.framework.core.web.health.HealthCheckProperties;
+import io.github.afgprojects.framework.core.web.health.DataSourceHealthIndicator;
 import io.github.afgprojects.framework.core.web.health.LivenessHealthIndicator;
 import io.github.afgprojects.framework.core.web.health.ModuleHealthIndicator;
 import io.github.afgprojects.framework.core.web.health.ReadinessHealthIndicator;
@@ -71,9 +71,9 @@ class HealthAutoConfigurationTest {
         @DisplayName("应该创建数据源健康指示器")
         void shouldCreateDataSourceHealthIndicator() {
             DataSource dataSource = mock(DataSource.class);
-            DataSourceHealthProperties properties = new DataSourceHealthProperties();
+            AfgCoreProperties properties = new AfgCoreProperties();
 
-            var indicator = configuration.dataSourceHealthIndicator(dataSource, properties);
+            DataSourceHealthIndicator indicator = configuration.dataSourceHealthIndicator(dataSource, properties);
 
             assertThat(indicator).isNotNull();
         }
@@ -93,7 +93,7 @@ class HealthAutoConfigurationTest {
         @Test
         @DisplayName("应该创建存活探针健康指示器")
         void shouldCreateLivenessHealthIndicator() {
-            HealthCheckProperties properties = new HealthCheckProperties();
+            AfgCoreProperties properties = new AfgCoreProperties();
 
             LivenessHealthIndicator indicator = configuration.livenessHealthIndicator(properties);
 
@@ -115,7 +115,7 @@ class HealthAutoConfigurationTest {
         @Test
         @DisplayName("应该创建就绪探针健康指示器")
         void shouldCreateReadinessHealthIndicator() {
-            HealthCheckProperties properties = new HealthCheckProperties();
+            AfgCoreProperties properties = new AfgCoreProperties();
 
             ReadinessHealthIndicator indicator = configuration.readinessHealthIndicator(
                     properties, null, null, null);
@@ -129,7 +129,7 @@ class HealthAutoConfigurationTest {
         @Test
         @DisplayName("应该使用数据源创建就绪探针健康指示器")
         void shouldCreateReadinessHealthIndicatorWithDataSource() {
-            HealthCheckProperties properties = new HealthCheckProperties();
+            AfgCoreProperties properties = new AfgCoreProperties();
             DataSource dataSource = mock(DataSource.class);
 
             ReadinessHealthIndicator indicator = configuration.readinessHealthIndicator(
@@ -144,7 +144,7 @@ class HealthAutoConfigurationTest {
         @Test
         @DisplayName("应该使用 RedisHealthChecker 创建就绪探针健康指示器")
         void shouldCreateReadinessHealthIndicatorWithRedisHealthChecker() {
-            HealthCheckProperties properties = new HealthCheckProperties();
+            AfgCoreProperties properties = new AfgCoreProperties();
             RedisHealthChecker redisHealthChecker = mock(RedisHealthChecker.class);
 
             ReadinessHealthIndicator indicator = configuration.readinessHealthIndicator(
@@ -159,7 +159,7 @@ class HealthAutoConfigurationTest {
         @Test
         @DisplayName("应该使用所有组件创建就绪探针健康指示器")
         void shouldCreateReadinessHealthIndicatorWithAllComponents() {
-            HealthCheckProperties properties = new HealthCheckProperties();
+            AfgCoreProperties properties = new AfgCoreProperties();
             DataSource dataSource = mock(DataSource.class);
             RedisHealthChecker redisHealthChecker = mock(RedisHealthChecker.class);
             ModuleRegistry moduleRegistry = new ModuleRegistry();

@@ -1,9 +1,9 @@
 package io.github.afgprojects.framework.security.core.audit;
 
+import io.github.afgprojects.framework.core.model.result.PageData;
+import io.github.afgprojects.framework.data.core.page.PageRequest;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
 
@@ -18,7 +18,7 @@ public interface LoginLogService {
 
     void recordLogout(@NonNull String userId, @Nullable String tenantId, @NonNull String ip);
 
-    Page<LoginLogInfo> queryLogs(@NonNull LoginLogQuery query, @NonNull Pageable pageable);
+    PageData<LoginLogInfo> queryLogs(@NonNull LoginLogQuery query, @NonNull PageRequest pageRequest);
 
     interface LoginLogInfo {
         String getUserId();

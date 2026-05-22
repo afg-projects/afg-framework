@@ -11,17 +11,25 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
+
 /**
  * Tests for ShutdownHook.
  */
 class ShutdownHookTest {
 
-    private ShutdownProperties properties;
+    private AfgCoreProperties properties;
     private ShutdownHook shutdownHook;
 
     @BeforeEach
     void setUp() {
-        properties = new ShutdownProperties();
+        properties = new AfgCoreProperties();
+        // 设置默认的关闭阶段
+        properties.getShutdown().setPhases(java.util.List.of(
+                new AfgCoreProperties.ShutdownConfig.ShutdownPhase("drain", java.time.Duration.ofSeconds(10)),
+                new AfgCoreProperties.ShutdownConfig.ShutdownPhase("cleanup", java.time.Duration.ofSeconds(10)),
+                new AfgCoreProperties.ShutdownConfig.ShutdownPhase("force", java.time.Duration.ofSeconds(5))
+        ));
         shutdownHook = new ShutdownHook(properties);
     }
 
@@ -47,7 +55,7 @@ class ShutdownHookTest {
         shutdownHook.addCallback("force", 0, () -> executedPhases.add("force"));
 
         // 按顺序执行阶段
-        for (ShutdownProperties.Phase phase : properties.getPhases()) {
+        for (AfgCoreProperties.ShutdownConfig.ShutdownPhase phase : properties.getShutdown().getPhases()) {
             shutdownHook.executePhaseWithTimeout(phase.getName(), phase.getTimeout());
         }
 
@@ -126,7 +134,7 @@ class ShutdownHookTest {
     @Test
     void shouldExecuteSameOrderCallbacksInParallelWhenEnabled() throws InterruptedException {
         // 开启并行执行
-        properties.setParallelExecutionEnabled(true);
+        properties.getShutdown().setParallelExecutionEnabled(true);
 
         List<String> executionOrder = new ArrayList<>();
         CountDownLatch latch = new CountDownLatch(3);
@@ -188,7 +196,7 @@ class ShutdownHookTest {
     @Test
     void shouldExecuteDifferentOrderCallbacksSequentiallyWhenParallelEnabled() {
         // 开启并行执行
-        properties.setParallelExecutionEnabled(true);
+        properties.getShutdown().setParallelExecutionEnabled(true);
 
         List<String> executionOrder = new ArrayList<>();
 
@@ -205,7 +213,7 @@ class ShutdownHookTest {
     @Test
     void shouldMaintainOrderGroupsExecutionSequence() {
         // 开启并行执行
-        properties.setParallelExecutionEnabled(true);
+        properties.getShutdown().setParallelExecutionEnabled(true);
 
         List<Long> timestamps = new ArrayList<>();
 
@@ -241,7 +249,7 @@ class ShutdownHookTest {
     @Test
     void shouldExecuteSequentiallyWhenParallelDisabled() {
         // 确保并行执行是关闭的（默认）
-        assertFalse(properties.isParallelExecutionEnabled());
+        assertFalse(properties.getShutdown().isParallelExecutionEnabled());
 
         List<String> executionOrder = new ArrayList<>();
 
@@ -258,7 +266,7 @@ class ShutdownHookTest {
     @Test
     void shouldHandleExceptionInParallelExecution() {
         // 开启并行执行
-        properties.setParallelExecutionEnabled(true);
+        properties.getShutdown().setParallelExecutionEnabled(true);
 
         AtomicInteger counter = new AtomicInteger(0);
 

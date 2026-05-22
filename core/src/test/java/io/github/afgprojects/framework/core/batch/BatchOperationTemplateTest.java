@@ -11,6 +11,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
+
 /**
  * {@link BatchOperationTemplate} 单元测试。
  * <p>
@@ -19,7 +21,7 @@ import org.junit.jupiter.api.Test;
  * @see BatchOperationTemplate
  * @see BatchResult
  * @see BatchError
- * @see BatchProperties
+ * @see AfgCoreProperties.BatchConfig
  */
 @DisplayName("BatchOperationTemplate 测试")
 class BatchOperationTemplateTest {
@@ -354,8 +356,8 @@ class BatchOperationTemplateTest {
         @DisplayName("超过错误容忍率应该停止处理")
         void shouldStopWhenExceedErrorTolerance() {
             // given
-            BatchProperties props = new BatchProperties();
-            props.setErrorTolerance(0.3); // 30% 容忍率
+            AfgCoreProperties props = new AfgCoreProperties();
+            props.getBatch().setErrorTolerance(0.3); // 30% 容忍率
             BatchOperationTemplate tolerantTemplate = new BatchOperationTemplate(props);
 
             List<Integer> items = List.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
@@ -382,8 +384,8 @@ class BatchOperationTemplateTest {
         @DisplayName("遇到错误立即停止")
         void shouldStopImmediatelyOnError() {
             // given
-            BatchProperties props = new BatchProperties();
-            props.setStopOnError(true);
+            AfgCoreProperties props = new AfgCoreProperties();
+            props.getBatch().setStopOnError(true);
             BatchOperationTemplate stopOnErrorTemplate = new BatchOperationTemplate(props);
 
             List<Integer> items = List.of(1, 2, 3, 4, 5);
@@ -560,7 +562,7 @@ class BatchOperationTemplateTest {
         @DisplayName("应该返回默认配置")
         void shouldReturnDefaultConfig() {
             // when
-            BatchProperties props = new BatchProperties();
+            AfgCoreProperties.BatchConfig props = new AfgCoreProperties.BatchConfig();
 
             // then
             assertThat(props.getDefaultBatchSize()).isEqualTo(100);
@@ -576,7 +578,7 @@ class BatchOperationTemplateTest {
         @DisplayName("应该计算实际并行度")
         void shouldCalculateActualParallelism() {
             // given
-            BatchProperties props = new BatchProperties();
+            AfgCoreProperties.BatchConfig props = new AfgCoreProperties.BatchConfig();
 
             // when
             int parallelism = props.getActualParallelism();

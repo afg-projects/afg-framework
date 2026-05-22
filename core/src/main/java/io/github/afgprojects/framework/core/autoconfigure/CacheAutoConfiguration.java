@@ -9,14 +9,14 @@ import org.springframework.context.annotation.Bean;
 
 import io.github.afgprojects.framework.core.cache.CacheAspect;
 import io.github.afgprojects.framework.core.cache.DefaultCacheManager;
-import io.github.afgprojects.framework.core.cache.CacheProperties;
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 
 /**
  * 缓存自动配置
  * <p>
  * 自动配置条件：
  * <ul>
- *   <li>afg.cache.enabled=true（默认为 true）</li>
+ *   <li>afg.core.cache.enabled=true（默认为 true）</li>
  * </ul>
  * </p>
  * <p>
@@ -30,8 +30,8 @@ import io.github.afgprojects.framework.core.cache.CacheProperties;
  * </p>
  */
 @AutoConfiguration
-@ConditionalOnProperty(prefix = "afg.cache", name = "enabled", havingValue = "true", matchIfMissing = true)
-@EnableConfigurationProperties(CacheProperties.class)
+@ConditionalOnProperty(prefix = "afg.core.cache", name = "enabled", havingValue = "true", matchIfMissing = true)
+@EnableConfigurationProperties(AfgCoreProperties.class)
 public class CacheAutoConfiguration {
 
     /**
@@ -39,10 +39,8 @@ public class CacheAutoConfiguration {
      */
     @Bean("cacheManager")
     @ConditionalOnMissingBean(DefaultCacheManager.class)
-    public DefaultCacheManager cacheManager(CacheProperties properties) {
-        // 强制使用本地缓存（不依赖 Redisson）
-        CacheProperties localProperties = toLocalProperties(properties);
-        return new DefaultCacheManager(localProperties);
+    public DefaultCacheManager cacheManager(AfgCoreProperties properties) {
+        return new DefaultCacheManager(properties);
     }
 
     /**
@@ -52,26 +50,11 @@ public class CacheAutoConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnBean(DefaultCacheManager.class)
     @ConditionalOnProperty(
-            prefix = "afg.cache.annotations",
+            prefix = "afg.core.cache.annotations",
             name = "enabled",
             havingValue = "true",
             matchIfMissing = true)
     public CacheAspect cacheAspect(DefaultCacheManager cacheManager) {
         return new CacheAspect(cacheManager);
-    }
-
-    /**
-     * 转换为本地缓存配置
-     */
-    private CacheProperties toLocalProperties(CacheProperties properties) {
-        CacheProperties localProperties = new CacheProperties();
-        localProperties.setEnabled(properties.isEnabled());
-        localProperties.setType(CacheProperties.CacheType.LOCAL);
-        localProperties.setDefaultTtl(properties.getDefaultTtl());
-        localProperties.setCacheNull(properties.isCacheNull());
-        localProperties.setNullValueTtl(properties.getNullValueTtl());
-        localProperties.setLocal(properties.getLocal());
-        localProperties.setCaches(properties.getCaches());
-        return localProperties;
     }
 }

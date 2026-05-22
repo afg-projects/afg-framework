@@ -16,6 +16,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.method.HandlerMethod;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
+
 /**
  * SignatureInterceptor 测试
  */
@@ -23,7 +25,7 @@ import org.springframework.web.method.HandlerMethod;
 class SignatureInterceptorTest {
 
     private SignatureInterceptor interceptor;
-    private SignatureProperties properties;
+    private AfgCoreProperties properties;
     private SignatureGenerator generator;
     private NonceCache nonceCache;
 
@@ -32,11 +34,11 @@ class SignatureInterceptorTest {
 
     @BeforeEach
     void setUp() {
-        properties = new SignatureProperties();
-        SignatureProperties.KeyConfig keyConfig = new SignatureProperties.KeyConfig();
+        properties = new AfgCoreProperties();
+        AfgCoreProperties.SecurityConfig.SignatureConfig.SignatureKeyConfig keyConfig = new AfgCoreProperties.SecurityConfig.SignatureConfig.SignatureKeyConfig();
         keyConfig.setSecret(SECRET);
         keyConfig.setEnabled(true);
-        properties.getKeys().put(KEY_ID, keyConfig);
+        properties.getSecurity().getSignature().getKeys().put(KEY_ID, keyConfig);
 
         generator = new SignatureGenerator();
         nonceCache = new NonceCache(1000);
@@ -213,10 +215,10 @@ class SignatureInterceptorTest {
         void shouldThrowOnKeyDisabled() throws Exception {
             // given
             String disabledKeyId = "disabled";
-            SignatureProperties.KeyConfig disabledConfig = new SignatureProperties.KeyConfig();
+            AfgCoreProperties.SecurityConfig.SignatureConfig.SignatureKeyConfig disabledConfig = new AfgCoreProperties.SecurityConfig.SignatureConfig.SignatureKeyConfig();
             disabledConfig.setSecret(SECRET);
             disabledConfig.setEnabled(false);
-            properties.getKeys().put(disabledKeyId, disabledConfig);
+            properties.getSecurity().getSignature().getKeys().put(disabledKeyId, disabledConfig);
 
             HttpServletRequest request = createMockRequest("signature", String.valueOf(System.currentTimeMillis()), "nonce", disabledKeyId, null);
 

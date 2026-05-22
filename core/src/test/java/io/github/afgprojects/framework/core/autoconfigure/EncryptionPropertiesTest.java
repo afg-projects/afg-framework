@@ -6,11 +6,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import io.github.afgprojects.framework.core.config.AfgCoreProperties;
+
 /**
  * EncryptionProperties 单元测试。
  * 测试加密配置属性类的默认值和属性设置。
  *
- * @see EncryptionProperties
+ * @see AfgCoreProperties.EncryptionConfig
  */
 @DisplayName("EncryptionProperties 测试")
 class EncryptionPropertiesTest {
@@ -29,7 +31,7 @@ class EncryptionPropertiesTest {
         @Test
         @DisplayName("应该有正确的默认值")
         void shouldHaveCorrectDefaultValues() {
-            EncryptionProperties props = new EncryptionProperties();
+            AfgCoreProperties.EncryptionConfig props = new AfgCoreProperties.EncryptionConfig();
 
             assertThat(props.isEnabled()).isFalse();
             assertThat(props.getAlgorithm()).isEqualTo("AES-256-GCM");
@@ -53,7 +55,7 @@ class EncryptionPropertiesTest {
         @Test
         @DisplayName("应该正确设置属性")
         void shouldSetProperties() {
-            EncryptionProperties props = new EncryptionProperties();
+            AfgCoreProperties.EncryptionConfig props = new AfgCoreProperties.EncryptionConfig();
             props.setEnabled(true);
             props.setAlgorithm("AES-128-GCM");
             props.setSecretKey("my-secret-key");
