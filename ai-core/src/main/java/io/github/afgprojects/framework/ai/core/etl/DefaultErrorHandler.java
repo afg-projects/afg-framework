@@ -46,7 +46,7 @@ public class DefaultErrorHandler implements ErrorHandler {
         int retries = context.getRetryCount(document);
         if (retries >= maxRetries) {
             context.recordFailure(document, "max_retries_exceeded", error);
-            return true; // 跳过继续
+            return true; // 跳过继续下一个文档
         }
         context.incrementRetryCount(document);
         try {
@@ -54,6 +54,37 @@ public class DefaultErrorHandler implements ErrorHandler {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
-        return true;
+        // 返回 false 表示需要重试当前操作
+        // Pipeline 会检查 shouldRetry() 来判断
+        return false;
+    }
+
+    /**
+     * 检查是否应该重试当前操作。
+     *
+     * @param document 文档
+     * @param context  上下文
+     * @return true 表示应该重试
+     */
+    public boolean shouldRetry(@NonNull Document document, @NonNull EtlContext context) {
+        if (strategy != ErrorHandlingStrategy.RETRY) {
+            return false;
+        }
+        return context.getRetryCount(document) <= maxRetries;
+    }
+
+    /**
+     * 获取最大重试次数。
+     */
+    public int getMaxRetries() {
+        return maxRetries;
+    }
+
+    /**
+     * 获取重试延迟。
+     */
+    @NonNull
+    public Duration getRetryDelay() {
+        return retryDelay;
     }
 }

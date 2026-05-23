@@ -57,36 +57,127 @@ public class DefaultEtlPipeline implements EtlPipeline {
             return buildResult(documents, context, start);
         }
 
-        // 2. Transform
+        // 2. Transform（带重试支持）
         List<Document> transformed = documents;
         for (DocumentTransformer transformer : transformers) {
-            try {
-                transformed = transformer.transform(transformed);
-                log.debug("Transformer {} produced {} documents", transformer.getName(), transformed.size());
-            } catch (Exception e) {
-                log.error("Transformer {} failed", transformer.getName(), e);
-                for (Document doc : transformed) {
-                    if (!errorHandler.handle(doc, e, context)) {
-                        return buildResult(transformed, context, start);
-                    }
-                }
+            transformed = executeTransformerWithRetry(transformer, transformed, context);
+            if (transformed.isEmpty() && !context.getFailures().isEmpty()) {
+                // 如果全部失败且使用 FAIL_FAST 策略，提前返回
+                break;
             }
         }
 
-        // 3. Write
-        try {
-            writer.write(transformed);
-            log.debug("Wrote {} documents", transformed.size());
-        } catch (Exception e) {
-            log.error("Failed to write documents", e);
-            for (Document doc : transformed) {
-                if (!errorHandler.handle(doc, e, context)) {
-                    break;
-                }
-            }
-        }
+        // 3. Write（带重试支持）
+        executeWriteWithRetry(transformed, context);
 
         return buildResult(transformed, context, start);
+    }
+
+    /**
+     * 执行转换器，支持重试。
+     */
+    private List<Document> executeTransformerWithRetry(
+            DocumentTransformer transformer,
+            List<Document> documents,
+            EtlContext context) {
+
+        int maxAttempts = getMaxRetryAttempts();
+        List<Document> result = documents;
+
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+                result = transformer.transform(result);
+                log.debug("Transformer {} produced {} documents (attempt {}/{})",
+                    transformer.getName(), result.size(), attempt, maxAttempts);
+                return result;
+            } catch (Exception e) {
+                log.warn("Transformer {} failed (attempt {}/{}): {}",
+                    transformer.getName(), attempt, maxAttempts, e.getMessage());
+
+                if (attempt < maxAttempts && shouldRetryOnError(e, context)) {
+                    // 等待后重试
+                    sleepBeforeRetry();
+                    result = documents; // 重置输入
+                    continue;
+                }
+
+                // 记录失败
+                log.error("Transformer {} failed after {} attempts", transformer.getName(), attempt);
+                for (Document doc : documents) {
+                    if (!errorHandler.handle(doc, e, context)) {
+                        return result; // FAIL_FAST，提前返回
+                    }
+                }
+                return result;
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * 执行写入，支持重试。
+     */
+    private void executeWriteWithRetry(List<Document> documents, EtlContext context) {
+        int maxAttempts = getMaxRetryAttempts();
+
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+                writer.write(documents);
+                log.debug("Wrote {} documents (attempt {}/{})",
+                    documents.size(), attempt, maxAttempts);
+                return;
+            } catch (Exception e) {
+                log.warn("Write failed (attempt {}/{}): {}",
+                    attempt, maxAttempts, e.getMessage());
+
+                if (attempt < maxAttempts && shouldRetryOnError(e, context)) {
+                    sleepBeforeRetry();
+                    continue;
+                }
+
+                // 记录失败
+                log.error("Write failed after {} attempts", attempt);
+                for (Document doc : documents) {
+                    if (!errorHandler.handle(doc, e, context)) {
+                        break;
+                    }
+                }
+                return;
+            }
+        }
+    }
+
+    /**
+     * 获取最大重试次数。
+     */
+    private int getMaxRetryAttempts() {
+        if (errorHandler instanceof DefaultErrorHandler defaultHandler) {
+            return defaultHandler.getMaxRetries() + 1; // +1 表示首次尝试
+        }
+        return 4; // 默认 3 次重试 + 1 次首次尝试
+    }
+
+    /**
+     * 判断是否应该重试。
+     */
+    private boolean shouldRetryOnError(Exception error, EtlContext context) {
+        return errorHandler instanceof DefaultErrorHandler;
+    }
+
+    /**
+     * 重试前等待。
+     */
+    private void sleepBeforeRetry() {
+        Duration delay = Duration.ofSeconds(1);
+        if (errorHandler instanceof DefaultErrorHandler defaultHandler) {
+            delay = defaultHandler.getRetryDelay();
+        }
+        try {
+            Thread.sleep(delay.toMillis());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     private EtlResult buildResult(List<Document> documents, EtlContext context, Instant start) {
