@@ -15,8 +15,10 @@ dependencies {
     testCompileOnly(libs.lombok)
     testAnnotationProcessor(libs.lombok)
 
-    // Spring AI（可选，用于 SpringAiLlmExecutor）
+    // Spring AI（可选，用于 SpringAiLlmExecutor 和 VectorStoreWriter）
     compileOnly(libs.spring.ai.openai)
+    compileOnly(libs.spring.ai.client.chat)
+    compileOnly(libs.spring.ai.vector.store)
 
     // Spring Batch（可选，用于批处理）
     compileOnly("org.springframework.batch:spring-batch-core:6.0.0")

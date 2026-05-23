@@ -127,6 +127,7 @@ spring-ai-openai = { module = "org.springframework.ai:spring-ai-openai", version
 spring-ai-anthropic = { module = "org.springframework.ai:spring-ai-anthropic", version.ref = "spring-ai" }
 spring-ai-ollama = { module = "org.springframework.ai:spring-ai-ollama", version.ref = "spring-ai" }
 spring-ai-client-chat = { module = "org.springframework.ai:spring-ai-client-chat", version.ref = "spring-ai" }
+spring-ai-vector-store = { module = "org.springframework.ai:spring-ai-vector-store", version.ref = "spring-ai" }
 jsqlparser = { module = "com.github.jsqlparser:jsqlparser", version.ref = "jsqlparser" }
 spring-jdbc = { module = "org.springframework.boot:spring-boot-starter-data-jdbc" }
 
