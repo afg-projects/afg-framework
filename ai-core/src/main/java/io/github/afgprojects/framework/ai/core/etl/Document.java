@@ -40,7 +40,7 @@ public record Document(
     }
 
     /**
-     * 紧凑构造器，进行参数校验。
+     * 紧凑构造器，进行参数校验和防御性复制。
      */
     public Document {
         if (id == null || id.isBlank()) {
@@ -49,9 +49,8 @@ public record Document(
         if (content == null || content.isBlank()) {
             throw new IllegalArgumentException("content cannot be null or blank");
         }
-        if (metadata == null) {
-            metadata = new HashMap<>();
-        }
+        // 防御性复制：确保 metadata 不可被外部修改
+        metadata = new HashMap<>(metadata);
     }
 
     /**

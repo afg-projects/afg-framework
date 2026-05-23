@@ -182,6 +182,22 @@ public interface Source {
      */
     record BytesSource(byte[] bytes, @NonNull String contentType) implements Source {
 
+        /**
+         * 紧凑构造器，进行防御性复制。
+         */
+        public BytesSource {
+            bytes = bytes.clone(); // 防御性复制
+        }
+
+        /**
+         * 获取字节数据的副本。
+         *
+         * @return 字节数组副本
+         */
+        public byte[] getBytes() {
+            return bytes.clone(); // 返回副本，保护内部数据
+        }
+
         @Override
         public @NonNull String getPath() {
             return "bytes://" + Integer.toHexString(Arrays.hashCode(bytes));
