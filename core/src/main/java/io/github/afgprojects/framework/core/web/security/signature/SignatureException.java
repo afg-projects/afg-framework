@@ -3,7 +3,7 @@ package io.github.afgprojects.framework.core.web.security.signature;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import io.github.afgprojects.framework.core.model.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.BusinessException;
 import io.github.afgprojects.framework.core.model.exception.CommonErrorCode;
 
 /**

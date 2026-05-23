@@ -1,9 +1,27 @@
 package io.github.afgprojects.framework.security.auth.token;
 
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.JWSVerifier;
+import com.nimbusds.jose.crypto.RSASSASigner;
+import com.nimbusds.jose.crypto.RSASSAVerifier;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
+import io.github.afgprojects.framework.security.auth.key.RsaKeyPairManager;
+import io.github.afgprojects.framework.security.core.login.TokenService;
+import io.github.afgprojects.framework.security.core.storage.AfgRefreshTokenStorage;
+import io.github.afgprojects.framework.security.core.storage.AfgTokenBlacklist;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -13,27 +31,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
-
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.JWSSigner;
-import com.nimbusds.jose.JWSVerifier;
-import com.nimbusds.jose.crypto.MACSigner;
-import com.nimbusds.jose.crypto.MACVerifier;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
-
-import io.github.afgprojects.framework.security.core.login.TokenService;
-import io.github.afgprojects.framework.security.core.storage.AfgRefreshTokenStorage;
-import io.github.afgprojects.framework.security.core.storage.AfgTokenBlacklist;
-
 /**
  * 默认令牌服务实现。
  *
- * <p>基于 Nimbus JOSE JWT 库实现 TokenService 接口，使用 HS256 算法签名。
+ * <p>基于 Nimbus JOSE JWT 库实现 TokenService 接口，使用 RS256 算法签名。
  *
  * <h3>功能特性</h3>
  * <ul>
@@ -46,38 +47,19 @@ import io.github.afgprojects.framework.security.core.storage.AfgTokenBlacklist;
  *   <li>使用户所有 Token 失效</li>
  * </ul>
  *
- * <h3>使用示例</h3>
- * <pre>{@code
- * DefaultTokenService tokenService = new DefaultTokenService(
- *     "signing-key-at-least-256-bits-long",
- *     "https://auth.example.com",
- *     Duration.ofHours(2),
- *     Duration.ofDays(7),
- *     refreshTokenStorage,
- *     tokenBlacklist
- * );
- *
- * // 生成 Access Token
- * String accessToken = tokenService.generateAccessToken(
- *     "user-123",
- *     "johndoe",
- *     Set.of("ADMIN", "USER"),
- *     Set.of("read:user", "write:user"),
- *     "tenant-001"
- * );
- *
- * // 验证 Token
- * boolean valid = tokenService.validateAccessToken(accessToken);
- *
- * // 提取用户信息
- * String userId = tokenService.extractUserId(accessToken);
- * }</pre>
+ * <h3>安全特性</h3>
+ * <ul>
+ *   <li>使用 RS256 非对称加密签名</li>
+ *   <li>私钥仅存储在认证服务器</li>
+ *   <li>公钥通过 /.well-known/jwks.json 端点公开</li>
+ *   <li>自动生成和管理 RSA 密钥对</li>
+ * </ul>
  *
  * @since 1.0.0
  */
 @Slf4j
 public class DefaultTokenService implements TokenService {
-    private static final String CLAIM_USERNAME = "username";
+    private static final String CLAIM_USERNAME = "preferred_username";
     private static final String CLAIM_ROLES = "roles";
     private static final String CLAIM_PERMISSIONS = "permissions";
     private static final String CLAIM_TENANT_ID = "tenant_id";
@@ -88,6 +70,7 @@ public class DefaultTokenService implements TokenService {
 
     private final JWSSigner signer;
     private final JWSVerifier verifier;
+    private final String keyId;
     private final String issuer;
     private final Duration accessTokenTtl;
     private final Duration refreshTokenTtl;
@@ -97,38 +80,35 @@ public class DefaultTokenService implements TokenService {
     /**
      * 构造函数。
      *
-     * @param signingKey          签名密钥（至少 256 位）
+     * @param keyPairManager      RSA 密钥对管理器
      * @param issuer              Token issuer
      * @param accessTokenTtl      Access Token 有效期
      * @param refreshTokenTtl     Refresh Token 有效期
      * @param refreshTokenStorage Refresh Token 存储
      * @param tokenBlacklist      Token 黑名单
-     * @throws IllegalArgumentException 如果签名密钥初始化失败
      */
     public DefaultTokenService(
-            @NonNull String signingKey,
+            @NonNull RsaKeyPairManager keyPairManager,
             @NonNull String issuer,
             @NonNull Duration accessTokenTtl,
             @NonNull Duration refreshTokenTtl,
             @NonNull AfgRefreshTokenStorage refreshTokenStorage,
             @NonNull AfgTokenBlacklist tokenBlacklist) {
 
-        if (signingKey.length() < 32) {
-            throw new IllegalArgumentException("Signing key must be at least 256 bits (32 characters)");
-        }
+        RSAPrivateKey privateKey = keyPairManager.getPrivateKey();
+        RSAPublicKey publicKey = keyPairManager.getPublicKey();
 
-        try {
-            this.signer = new MACSigner(signingKey);
-            this.verifier = new MACVerifier(signingKey);
-        } catch (JOSEException e) {
-            throw new IllegalArgumentException("Failed to initialize JWT signer", e);
-        }
+        this.signer = new RSASSASigner(privateKey);
+        this.verifier = new RSASSAVerifier(publicKey);
 
+        this.keyId = keyPairManager.getKeyId();
         this.issuer = issuer;
         this.accessTokenTtl = accessTokenTtl;
         this.refreshTokenTtl = refreshTokenTtl;
         this.refreshTokenStorage = refreshTokenStorage;
         this.tokenBlacklist = tokenBlacklist;
+
+        log.info("Initialized DefaultTokenService with RS256 signing, keyId: {}", keyId);
     }
 
     @Override
@@ -386,11 +366,14 @@ public class DefaultTokenService implements TokenService {
     }
 
     /**
-     * 签名 Token。
+     * 签名 Token（使用 RS256）。
      */
     private String signToken(JWTClaimsSet claims) {
         try {
-            JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.HS256).build();
+            JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.RS256)
+                    .keyID(keyId)
+                    .build();
+
             SignedJWT signedJWT = new SignedJWT(header, claims);
             signedJWT.sign(signer);
             return signedJWT.serialize();

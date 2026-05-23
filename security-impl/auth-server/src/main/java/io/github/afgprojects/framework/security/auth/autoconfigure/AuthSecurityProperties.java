@@ -24,7 +24,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  *       enabled: true
  *       token:
  *         issuer: https://auth.example.com
- *         signing-key: my-secret-signing-key-at-least-256-bits
+ *         key-store-path: file:/var/afg/keys
  *         access-token-ttl: 2h
  *         refresh-token-ttl: 7d
  *       oauth2:
@@ -136,10 +136,11 @@ public class AuthSecurityProperties {
         private String issuer = "afg-framework";
 
         /**
-         * JWT 签名密钥。
-         * 必填，至少 256 位。
+         * RSA 密钥存储路径。
+         * 默认为用户目录下的 .afg/keys。
+         * 支持 file: 和 classpath: 协议。
          */
-        private String signingKey;
+        private String keyStorePath = "file:${user.home}/.afg/keys";
 
         /**
          * Access Token 有效期。

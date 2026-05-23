@@ -3,6 +3,9 @@ plugins {
 }
 
 dependencies {
+    // Commons 模块（异常、结果模型）
+    api(project(":commons"))
+
     // APT 注解 API（模块注解、实体注解）
     api(project(":apt-api"))
 

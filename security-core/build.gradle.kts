@@ -6,7 +6,7 @@ dependencies {
     // 依赖 core 模块
     api(project(":core"))
 
-    // 依赖 data-core 模块（用于 DataScope）
+    // 依赖 data-core 模块（用于 PageRequest 等）
     api(project(":data-core"))
 
     // Spring Security Core（版本由 Spring Boot BOM 管理）

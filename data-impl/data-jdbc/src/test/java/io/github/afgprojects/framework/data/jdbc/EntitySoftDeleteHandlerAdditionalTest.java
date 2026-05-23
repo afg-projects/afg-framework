@@ -588,7 +588,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
     }
 
     private EntityCacheManager createEntityCacheManager() {
-        AfgCoreProperties cacheProperties = new AfgCoreProperties()();
+        AfgCoreProperties cacheProperties = new AfgCoreProperties();
         DefaultCacheManager defaultCacheManager = new DefaultCacheManager(cacheProperties);
         EntityCacheProperties properties = new EntityCacheProperties();
         properties.setEnabled(true);

@@ -18,7 +18,7 @@ import io.github.afgprojects.framework.core.api.ratelimit.RateLimitDimension;
 import io.github.afgprojects.framework.core.api.ratelimit.RateLimitResult;
 import io.github.afgprojects.framework.core.api.ratelimit.RateLimiter;
 import io.github.afgprojects.framework.core.api.ratelimit.RateLimiterBuilder;
-import io.github.afgprojects.framework.core.model.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.BusinessException;
 import io.github.afgprojects.framework.core.model.exception.CommonErrorCode;
 import io.github.afgprojects.framework.core.support.BaseUnitTest;
 

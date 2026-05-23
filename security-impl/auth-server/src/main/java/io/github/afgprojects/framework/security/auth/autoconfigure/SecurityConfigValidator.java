@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import io.github.afgprojects.framework.security.core.authentication.AfgUserDetailsService;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -12,7 +11,7 @@ import org.springframework.stereotype.Component;
 /**
  * 认证服务器配置验证器。
  *
- * <p>在应用启动时验证必填配置项，提供清晰的错误提示。
+ * <p>在应用启动时验证配置项，提供清晰的错误提示。
  *
  * @since 1.1.0
  */
@@ -35,20 +34,16 @@ public class SecurityConfigValidator implements ApplicationRunner {
 
         // 验证 Token 配置
         AuthSecurityProperties.TokenConfig tokenConfig = properties.getToken();
-        if (tokenConfig.getSigningKey() == null || tokenConfig.getSigningKey().isBlank()) {
+        if (tokenConfig.getIssuer() == null || tokenConfig.getIssuer().isBlank()) {
             throw new IllegalStateException(
-                "认证服务器需要配置 afg.security.auth-server.token.signing-key\n" +
+                "认证服务器需要配置 afg.security.auth-server.token.issuer\n" +
                 "示例配置:\n" +
                 "afg:\n" +
                 "  security:\n" +
                 "    auth-server:\n" +
                 "      token:\n" +
-                "        signing-key: your-secret-key-at-least-256-bits-long"
+                "        issuer: https://auth.example.com"
             );
-        }
-
-        if (tokenConfig.getSigningKey().length() < 256 / 8) {
-            log.warn("签名密钥长度不足 256 位（32 字节），建议使用更长的密钥以提高安全性");
         }
 
         // 检查 AfgUserDetailsService 实现
@@ -71,6 +66,6 @@ public class SecurityConfigValidator implements ApplicationRunner {
             log.debug("Could not check for AfgUserDetailsService bean", e);
         }
 
-        log.info("Auth-server configuration validated successfully");
+        log.info("Auth-server configuration validated successfully. JWT signing uses RS256 with auto-generated RSA key pair.");
     }
 }

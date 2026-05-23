@@ -20,11 +20,15 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import io.github.afgprojects.framework.security.auth.key.RsaKeyPairManager;
 import io.github.afgprojects.framework.security.core.storage.AfgRefreshTokenStorage;
 import io.github.afgprojects.framework.security.core.storage.AfgTokenBlacklist;
+
+import java.nio.file.Path;
 
 /**
  * DefaultTokenService 测试
@@ -33,10 +37,12 @@ import io.github.afgprojects.framework.security.core.storage.AfgTokenBlacklist;
 @ExtendWith(MockitoExtension.class)
 class DefaultTokenServiceTest {
 
-    private static final String SIGNING_KEY = "test-signing-key-must-be-at-least-256-bits-long-for-hs256";
     private static final String ISSUER = "https://auth.example.com";
     private static final Duration ACCESS_TOKEN_TTL = Duration.ofHours(2);
     private static final Duration REFRESH_TOKEN_TTL = Duration.ofDays(7);
+
+    @TempDir
+    Path tempDir;
 
     @Mock
     private AfgRefreshTokenStorage refreshTokenStorage;
@@ -44,12 +50,15 @@ class DefaultTokenServiceTest {
     @Mock
     private AfgTokenBlacklist tokenBlacklist;
 
+    private RsaKeyPairManager keyPairManager;
     private DefaultTokenService tokenService;
 
     @BeforeEach
     void setUp() {
+        // 使用临时目录存储测试密钥
+        keyPairManager = new RsaKeyPairManager("file:" + tempDir.toString());
         tokenService = new DefaultTokenService(
-                SIGNING_KEY,
+                keyPairManager,
                 ISSUER,
                 ACCESS_TOKEN_TTL,
                 REFRESH_TOKEN_TTL,
@@ -155,7 +164,7 @@ class DefaultTokenServiceTest {
         void shouldRejectExpiredAccessToken() {
             // given - 创建一个使用已过期 TTL 的 token service
             DefaultTokenService expiredService = new DefaultTokenService(
-                    SIGNING_KEY, ISSUER, Duration.ofMillis(-1), REFRESH_TOKEN_TTL,
+                    keyPairManager, ISSUER, Duration.ofMillis(-1), REFRESH_TOKEN_TTL,
                     refreshTokenStorage, tokenBlacklist);
 
             String token = expiredService.generateAccessToken(
@@ -316,7 +325,7 @@ class DefaultTokenServiceTest {
         void shouldRejectExpiredRefreshToken() {
             // given - 创建一个使用已过期 TTL 的 token service
             DefaultTokenService expiredService = new DefaultTokenService(
-                    SIGNING_KEY, ISSUER, ACCESS_TOKEN_TTL, Duration.ofMillis(-1),
+                    keyPairManager, ISSUER, ACCESS_TOKEN_TTL, Duration.ofMillis(-1),
                     refreshTokenStorage, tokenBlacklist);
 
             String refreshToken = expiredService.generateRefreshToken("user-123", null);
@@ -530,6 +539,70 @@ class DefaultTokenServiceTest {
 
             // then
             assertThat(permissions).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("RS256 签名测试")
+    class Rs256SignatureTests {
+
+        @Test
+        @DisplayName("JWKS 应该返回有效的 JSON")
+        void shouldReturnValidJwksJson() {
+            // when
+            String jwks = keyPairManager.getJwkSetJson();
+
+            // then
+            assertThat(jwks).isNotBlank();
+            assertThat(jwks).contains("keys");
+            assertThat(jwks).contains("RS256");
+            assertThat(jwks).contains(keyPairManager.getKeyId());
+        }
+
+        @Test
+        @DisplayName("应该使用相同的密钥验证不同 Token")
+        void shouldValidateTokensWithSameKey() {
+            // given
+            String token1 = tokenService.generateAccessToken(
+                    "user-1", "user1", Set.of("USER"), Set.of("read"), null);
+            String token2 = tokenService.generateAccessToken(
+                    "user-2", "user2", Set.of("ADMIN"), Set.of("write"), null);
+
+            // when
+            boolean valid1 = tokenService.validateAccessToken(token1);
+            boolean valid2 = tokenService.validateAccessToken(token2);
+
+            // then
+            assertThat(valid1).isTrue();
+            assertThat(valid2).isTrue();
+        }
+
+        @Test
+        @DisplayName("密钥应该持久化到文件")
+        void shouldPersistKeyToFiles() {
+            // then
+            assertThat(tempDir.resolve("private_key.pem")).exists();
+            assertThat(tempDir.resolve("public_key.pem")).exists();
+        }
+
+        @Test
+        @DisplayName("重新加载密钥应该能验证之前的 Token")
+        void shouldValidateTokenAfterKeyReload() {
+            // given
+            String token = tokenService.generateAccessToken(
+                    "user-123", "testuser", Set.of("USER"), Set.of("read:user"), null);
+
+            // 创建新的 KeyPairManager（从同一目录加载）
+            RsaKeyPairManager reloadedManager = new RsaKeyPairManager("file:" + tempDir.toString());
+            DefaultTokenService reloadedService = new DefaultTokenService(
+                    reloadedManager, ISSUER, ACCESS_TOKEN_TTL, REFRESH_TOKEN_TTL,
+                    refreshTokenStorage, tokenBlacklist);
+
+            // when
+            boolean isValid = reloadedService.validateAccessToken(token);
+
+            // then
+            assertThat(isValid).isTrue();
         }
     }
 

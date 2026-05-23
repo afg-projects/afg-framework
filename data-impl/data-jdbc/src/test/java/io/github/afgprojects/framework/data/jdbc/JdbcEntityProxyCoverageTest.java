@@ -539,7 +539,7 @@ class JdbcEntityProxyCoverageTest {
             createTestUserTable();
 
             // Given - 配置缓存但不缓存 null
-            AfgCoreProperties cacheProperties = new AfgCoreProperties()();
+            AfgCoreProperties cacheProperties = new AfgCoreProperties();
             cacheProperties.setEnabled(true);
             DefaultCacheManager defaultCacheManager = new DefaultCacheManager(cacheProperties);
             EntityCacheProperties properties = new EntityCacheProperties();
@@ -565,7 +565,7 @@ class JdbcEntityProxyCoverageTest {
             createTestUserTable();
 
             // Given - 带缓存的数据管理器
-            AfgCoreProperties cacheProperties = new AfgCoreProperties()();
+            AfgCoreProperties cacheProperties = new AfgCoreProperties();
             cacheProperties.setEnabled(true);
             DefaultCacheManager defaultCacheManager = new DefaultCacheManager(cacheProperties);
             EntityCacheProperties properties = new EntityCacheProperties();
@@ -596,7 +596,7 @@ class JdbcEntityProxyCoverageTest {
             createTestUserTable();
 
             // Given - 禁用缓存
-            AfgCoreProperties cacheProperties = new AfgCoreProperties()();
+            AfgCoreProperties cacheProperties = new AfgCoreProperties();
             cacheProperties.setEnabled(true);
             DefaultCacheManager defaultCacheManager = new DefaultCacheManager(cacheProperties);
             EntityCacheProperties properties = new EntityCacheProperties();
@@ -626,7 +626,7 @@ class JdbcEntityProxyCoverageTest {
             createTestUserTable();
 
             // Given - 配置缓存
-            AfgCoreProperties cacheProperties = new AfgCoreProperties()();
+            AfgCoreProperties cacheProperties = new AfgCoreProperties();
             cacheProperties.setEnabled(true);
             DefaultCacheManager defaultCacheManager = new DefaultCacheManager(cacheProperties);
             EntityCacheProperties properties = new EntityCacheProperties();
@@ -662,7 +662,7 @@ class JdbcEntityProxyCoverageTest {
             createTestUserTable();
 
             // Given - 配置缓存
-            AfgCoreProperties cacheProperties = new AfgCoreProperties()();
+            AfgCoreProperties cacheProperties = new AfgCoreProperties();
             cacheProperties.setEnabled(true);
             DefaultCacheManager defaultCacheManager = new DefaultCacheManager(cacheProperties);
             EntityCacheProperties properties = new EntityCacheProperties();
@@ -851,7 +851,7 @@ class JdbcEntityProxyCoverageTest {
             createTestUserTable();
 
             // Given - 配置缓存
-            AfgCoreProperties cacheProperties = new AfgCoreProperties()();
+            AfgCoreProperties cacheProperties = new AfgCoreProperties();
             cacheProperties.setEnabled(true);
             DefaultCacheManager defaultCacheManager = new DefaultCacheManager(cacheProperties);
             EntityCacheProperties properties = new EntityCacheProperties();
@@ -887,7 +887,7 @@ class JdbcEntityProxyCoverageTest {
             createTestUserTable();
 
             // Given - 配置缓存
-            AfgCoreProperties cacheProperties = new AfgCoreProperties()();
+            AfgCoreProperties cacheProperties = new AfgCoreProperties();
             cacheProperties.setEnabled(true);
             DefaultCacheManager defaultCacheManager = new DefaultCacheManager(cacheProperties);
             EntityCacheProperties properties = new EntityCacheProperties();
@@ -1049,7 +1049,7 @@ class JdbcEntityProxyCoverageTest {
 
             try {
                 // Given - 配置缓存
-                AfgCoreProperties cacheProperties = new AfgCoreProperties()();
+                AfgCoreProperties cacheProperties = new AfgCoreProperties();
                 cacheProperties.setEnabled(true);
                 DefaultCacheManager defaultCacheManager = new DefaultCacheManager(cacheProperties);
                 EntityCacheProperties properties = new EntityCacheProperties();

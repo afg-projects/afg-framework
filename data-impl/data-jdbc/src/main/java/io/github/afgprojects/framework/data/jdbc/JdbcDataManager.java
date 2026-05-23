@@ -4,6 +4,7 @@ import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.EntityProxy;
 import io.github.afgprojects.framework.data.core.context.TenantContextHolder;
 import io.github.afgprojects.framework.data.core.dialect.*;
+import io.github.afgprojects.framework.data.core.exception.EntityMappingException;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadataCache;
 import io.github.afgprojects.framework.data.core.scope.TenantScope;
@@ -25,7 +26,11 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -37,6 +42,8 @@ import java.util.function.Supplier;
 
 /**
  * 基于 Spring JdbcClient 的 DataManager 实现
+ *
+ * <p>事务管理完全依赖 Spring，与 @Transactional 注解兼容。
  */
 @Slf4j
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
@@ -58,6 +65,11 @@ public class JdbcDataManager implements DataManager {
     private final Dialect dialect;
     private final DatabaseType databaseType;
     private final TenantContextHolder tenantContextHolder = new TenantContextHolder();
+
+    /**
+     * 事务管理器（可选，用于 executeInTransaction 方法）
+     */
+    private @Nullable PlatformTransactionManager transactionManager;
 
     /**
      * 实体缓存管理器（可选）
@@ -88,6 +100,15 @@ public class JdbcDataManager implements DataManager {
         this.jdbcClient = JdbcClient.create(jdbcTemplate);
         this.databaseType = databaseType;
         this.dialect = createDialect(databaseType);
+    }
+
+    /**
+     * 设置事务管理器
+     *
+     * @param transactionManager Spring 事务管理器
+     */
+    public void setTransactionManager(@Nullable PlatformTransactionManager transactionManager) {
+        this.transactionManager = transactionManager;
     }
 
     /**
@@ -140,68 +161,31 @@ public class JdbcDataManager implements DataManager {
 
     @Override
     public void executeInTransaction(@NonNull Runnable action) {
-        doInTransaction(() -> {
-            action.run();
-            return null;
-        });
+        if (transactionManager == null) {
+            throw new TransactionException("TransactionManager not configured. " +
+                "Please call setTransactionManager() first.");
+        }
+        new TransactionTemplate(transactionManager).executeWithoutResult(status -> action.run());
     }
 
     @Override
     public <T> T executeInTransaction(@NonNull Supplier<T> action) {
-        return doInTransaction(action);
-    }
-
-    /**
-     * 执行事务的公共逻辑
-     */
-    private <T> T doInTransaction(Supplier<T> action) {
-        return jdbcTemplate.execute((Connection con) -> {
-            boolean originalAutoCommit = con.getAutoCommit();
-            try {
-                con.setAutoCommit(false);
-                TransactionContextHolderImpl.setConnection(con);
-                T result = action.get();
-                con.commit();
-                return result;
-            } catch (Exception e) {
-                // 尝试回滚，忽略回滚失败（因为连接可能已失效）
-                try {
-                    con.rollback();
-                } catch (SQLException rollbackEx) {
-                    log.warn("Failed to rollback transaction: {}", rollbackEx.getMessage());
-                }
-                throw new TransactionException("Transaction failed", e);
-            } finally {
-                TransactionContextHolderImpl.clear();
-                // 确保 autoCommit 被恢复，即使 rollback 失败
-                try {
-                    con.setAutoCommit(originalAutoCommit);
-                } catch (SQLException e) {
-                    log.warn("Failed to restore autoCommit state: {}", e.getMessage());
-                }
-            }
-        });
+        if (transactionManager == null) {
+            throw new TransactionException("TransactionManager not configured. " +
+                "Please call setTransactionManager() first.");
+        }
+        return new TransactionTemplate(transactionManager).execute(status -> action.get());
     }
 
     @Override
     public <T> T executeInReadOnly(@NonNull Supplier<T> action) {
-        return jdbcTemplate.execute((Connection con) -> {
-            boolean originalReadOnly = con.isReadOnly();
-            try {
-                con.setReadOnly(true);
-                TransactionContextHolderImpl.setConnection(con);
-                return action.get();
-            } catch (Exception e) {
-                throw new TransactionException("Read-only transaction failed", e);
-            } finally {
-                TransactionContextHolderImpl.clear();
-                try {
-                    con.setReadOnly(originalReadOnly);
-                } catch (SQLException e) {
-                    log.warn("Failed to restore read-only state: {}", e.getMessage());
-                }
-            }
-        });
+        if (transactionManager == null) {
+            throw new TransactionException("TransactionManager not configured. " +
+                "Please call setTransactionManager() first.");
+        }
+        TransactionTemplate template = new TransactionTemplate(transactionManager);
+        template.setReadOnly(true);
+        return template.execute(status -> action.get());
     }
 
     @Override
@@ -221,7 +205,7 @@ public class JdbcDataManager implements DataManager {
 
     @Override
     public @NonNull Object getTransactionManager() {
-        return dataSource;
+        return transactionManager != null ? transactionManager : dataSource;
     }
 
     @Override
@@ -232,6 +216,48 @@ public class JdbcDataManager implements DataManager {
     @Override
     public void setTransactionAdapter(@NonNull TransactionAdapter adapter) {
         this.transactionAdapter = adapter;
+    }
+
+    // ==================== 连接管理（集成 Spring 事务） ====================
+
+    /**
+     * 获取数据库连接
+     * <p>
+     * 优先使用 Spring 事务中的连接，确保与 @Transactional 兼容
+     */
+    Connection getConnection() throws SQLException {
+        if (TransactionSynchronizationManager.isActualTransactionActive()) {
+            // Spring 事务中，使用 DataSourceUtils 获取连接（自动绑定到事务）
+            return DataSourceUtils.getConnection(dataSource);
+        }
+        // 无事务，获取新连接
+        return dataSource.getConnection();
+    }
+
+    /**
+     * 释放数据库连接
+     */
+    void releaseConnection(Connection conn) {
+        if (conn == null) {
+            return;
+        }
+        if (TransactionSynchronizationManager.isActualTransactionActive()) {
+            // Spring 事务中，由 Spring 管理
+            DataSourceUtils.releaseConnection(conn, dataSource);
+        } else {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                log.warn("Failed to close connection: {}", e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * 检查是否在事务中
+     */
+    boolean isInTransaction() {
+        return TransactionSynchronizationManager.isActualTransactionActive();
     }
 
     // ==================== JdbcClient 便捷方法 ====================
@@ -288,33 +314,33 @@ public class JdbcDataManager implements DataManager {
      * 执行插入并返回生成的主键
      */
     public long executeInsertAndReturnKey(String sql, List<Object> params) {
-        // 检查是否在事务中
-        Connection txConn = TransactionContextHolderImpl.getConnection();
-        if (txConn != null) {
-            // 使用事务连接
-            try (var pstmt = txConn.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
-                for (int i = 0; i < params.size(); i++) {
-                    pstmt.setObject(i + 1, params.get(i));
-                }
-                pstmt.executeUpdate();
-                try (var rs = pstmt.getGeneratedKeys()) {
-                    if (rs.next()) {
-                        return rs.getLong(1);
-                    }
-                }
-                throw new RuntimeException("Failed to get generated key");
-            } catch (SQLException e) {
-                throw new RuntimeException("Failed to execute insert and return key", e);
-            }
+        return isInTransaction()
+                ? executeInsertInTransaction(sql, params)
+                : executeInsertWithoutTransaction(sql, params);
+    }
+
+    /**
+     * 在事务中执行插入并返回生成的主键
+     */
+    private long executeInsertInTransaction(String sql, List<Object> params) {
+        try (var pstmt = getConnection().prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
+            setParameters(pstmt, params);
+            pstmt.executeUpdate();
+            return extractGeneratedKey(pstmt);
+        } catch (SQLException e) {
+            throw new EntityMappingException("Failed to execute insert and return key", null, e);
         }
+        // 连接由 Spring 事务管理，无需关闭
+    }
 
-        // 非事务模式
+    /**
+     * 非事务模式下执行插入并返回生成的主键
+     */
+    private long executeInsertWithoutTransaction(String sql, List<Object> params) {
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbcClient.sql(sql)
-            .params(params)
-            .update(keyHolder);
+        jdbcClient.sql(sql).params(params).update(keyHolder);
 
-        // 从 keys 列表中获取 id（兼容 H2 返回 Integer 的情况）
+        // 优先从 keys 列表中获取 id（兼容 H2 返回 Integer 的情况）
         var keys = keyHolder.getKeys();
         if (keys != null && keys.containsKey("id")) {
             Object idValue = keys.get("id");
@@ -329,72 +355,84 @@ public class JdbcDataManager implements DataManager {
             return key.longValue();
         }
 
-        throw new RuntimeException("Failed to get generated key");
+        throw new EntityMappingException("Failed to get generated key");
     }
 
     /**
      * 执行批量插入并返回所有生成的主键
-     * <p>
-     * 使用多值 INSERT 语法（INSERT INTO ... VALUES (...), (...), ...）一次性插入多行数据，
-     * 并获取所有生成的主键。此方法适用于支持多值 INSERT 和 RETURNING 的数据库（如 H2、PostgreSQL）。
      *
-     * @param sql       多值 INSERT SQL（格式：INSERT INTO table (cols) VALUES (?,?), (?,?), ...）
-     * @param params    参数列表（按顺序排列，每条记录的参数连续存放）
-     * @param batchSize 批次大小（插入的记录数）
+     * @param sql       多值 INSERT SQL
+     * @param params    参数列表
+     * @param batchSize 批次大小
      * @return 生成的主键数组
      */
     public long[] executeBatchInsertAndReturnKeys(String sql, List<Object> params, int batchSize) {
-        // 检查是否在事务中
-        Connection txConn = TransactionContextHolderImpl.getConnection();
-        if (txConn != null) {
-            // 使用事务连接，不关闭连接
-            try (var pstmt = txConn.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
-                for (int i = 0; i < params.size(); i++) {
-                    pstmt.setObject(i + 1, params.get(i));
-                }
-                pstmt.executeUpdate();
+        return isInTransaction()
+                ? executeBatchInsertInTransaction(sql, params, batchSize)
+                : executeBatchInsertWithoutTransaction(sql, params, batchSize);
+    }
 
-                // 获取生成的主键
-                long[] keys = new long[batchSize];
-                try (var rs = pstmt.getGeneratedKeys()) {
-                    int i = 0;
-                    while (rs.next() && i < batchSize) {
-                        keys[i++] = rs.getLong(1);
-                    }
-                }
-                return keys;
-            } catch (SQLException e) {
-                throw new RuntimeException("Failed to execute batch insert and return keys", e);
-            }
+    /**
+     * 在事务中执行批量插入并返回主键
+     */
+    private long[] executeBatchInsertInTransaction(String sql, List<Object> params, int batchSize) {
+        try (var pstmt = getConnection().prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
+            setParameters(pstmt, params);
+            pstmt.executeUpdate();
+            return extractGeneratedKeys(pstmt, batchSize);
+        } catch (SQLException e) {
+            throw new EntityMappingException("Failed to execute batch insert and return keys", null, e);
         }
+        // 连接由 Spring 事务管理，无需关闭
+    }
 
-        // 非事务模式：获取新连接并确保关闭
+    /**
+     * 非事务模式下执行批量插入并返回主键
+     */
+    private long[] executeBatchInsertWithoutTransaction(String sql, List<Object> params, int batchSize) {
         try (Connection conn = dataSource.getConnection();
              var pstmt = conn.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
-
-            // 多值 INSERT：一次性设置所有参数，然后执行 executeUpdate
-            // SQL 格式：INSERT INTO table (col1, col2) VALUES (?, ?), (?, ?), (?, ?)
-            // 参数按顺序设置：p1, p2, p3, p4, p5, p6
-            for (int i = 0; i < params.size(); i++) {
-                pstmt.setObject(i + 1, params.get(i));
-            }
-
-            // 执行多值 INSERT（不是 executeBatch，因为 SQL 已经包含多行 VALUES）
+            setParameters(pstmt, params);
             pstmt.executeUpdate();
-
-            // 获取生成的主键
-            long[] keys = new long[batchSize];
-            try (var rs = pstmt.getGeneratedKeys()) {
-                int i = 0;
-                while (rs.next() && i < batchSize) {
-                    keys[i++] = rs.getLong(1);
-                }
-            }
-
-            return keys;
+            return extractGeneratedKeys(pstmt, batchSize);
         } catch (SQLException e) {
-            throw new RuntimeException("Failed to execute batch insert and return keys", e);
+            throw new EntityMappingException("Failed to execute batch insert and return keys", null, e);
         }
+    }
+
+    /**
+     * 设置 PreparedStatement 参数
+     */
+    private void setParameters(java.sql.PreparedStatement pstmt, List<Object> params) throws SQLException {
+        for (int i = 0; i < params.size(); i++) {
+            pstmt.setObject(i + 1, params.get(i));
+        }
+    }
+
+    /**
+     * 提取单个生成的主键
+     */
+    private long extractGeneratedKey(java.sql.PreparedStatement pstmt) throws SQLException {
+        try (var rs = pstmt.getGeneratedKeys()) {
+            if (rs.next()) {
+                return rs.getLong(1);
+            }
+        }
+        throw new EntityMappingException("Failed to get generated key");
+    }
+
+    /**
+     * 提取批量生成的主键
+     */
+    private long[] extractGeneratedKeys(java.sql.PreparedStatement pstmt, int batchSize) throws SQLException {
+        long[] keys = new long[batchSize];
+        try (var rs = pstmt.getGeneratedKeys()) {
+            int i = 0;
+            while (rs.next() && i < batchSize) {
+                keys[i++] = rs.getLong(1);
+            }
+        }
+        return keys;
     }
 
     /**
@@ -457,40 +495,6 @@ public class JdbcDataManager implements DataManager {
             case H2 -> new H2Dialect();
             default -> new MySQLDialect();
         };
-    }
-
-    /**
-     * 事务上下文持有者实现
-     * <p>
-     * <strong>重要说明：</strong>此类使用 ThreadLocal 存储数据库连接，不支持跨线程事务传播。
-     * 在以下场景中需要特别注意：
-     * <ul>
-     *   <li>线程池：异步任务、@Async 注解等方法在新线程执行时，事务上下文不会传播</li>
-     *   <li>并行流：parallelStream() 操作在 ForkJoinPool 中执行，事务上下文不可用</li>
-     *   <li>CompletableFuture：异步计算在新线程执行，事务上下文不会传播</li>
-     * </ul>
-     * <p>
-     * 如需在异步任务中执行数据库操作，请确保在事务外部调用，或使用 Spring 的
-     * {@code @Transactional(propagation = Propagation.REQUIRES_NEW)} 创建新事务。
-     */
-    static final class TransactionContextHolderImpl {
-        private static final ThreadLocal<Connection> CONNECTION_HOLDER = new ThreadLocal<>();
-
-        static void setConnection(Connection connection) {
-            CONNECTION_HOLDER.set(connection);
-        }
-
-        static Connection getConnection() {
-            return CONNECTION_HOLDER.get();
-        }
-
-        static void clear() {
-            CONNECTION_HOLDER.remove();
-        }
-
-        static boolean isInTransaction() {
-            return CONNECTION_HOLDER.get() != null;
-        }
     }
 
     /**

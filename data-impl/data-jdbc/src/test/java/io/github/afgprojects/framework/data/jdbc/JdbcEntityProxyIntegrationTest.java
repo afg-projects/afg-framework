@@ -1628,9 +1628,9 @@ class JdbcEntityProxyIntegrationTest {
             cacheDataSource = createCacheDataSource();
 
             // 创建带缓存的 DataManager
-            AfgCoreProperties cacheProperties = new AfgCoreProperties()();
+            AfgCoreProperties cacheProperties = new AfgCoreProperties();
             cacheProperties.setEnabled(true);
-            cacheProperties.setCacheNull(true);
+            cacheProperties.getCache().setCacheNull(true);
             DefaultCacheManager defaultCacheManager = new DefaultCacheManager(cacheProperties);
             EntityCacheProperties properties = new EntityCacheProperties();
             properties.setEnabled(true);

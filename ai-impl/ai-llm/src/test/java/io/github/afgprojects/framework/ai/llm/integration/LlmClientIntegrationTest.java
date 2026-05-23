@@ -176,11 +176,10 @@ class LlmClientIntegrationTest {
         LlmRequest request = LlmRequest.builder()
             .systemPrompt("你是一个智能助手，可以使用工具来帮助用户。")
             .addMessage(Message.user("北京今天天气怎么样？"))
-            .addTools(testTools)
             .build();
 
-        // 使用 chatWithTools
-        LlmResponse response = llmClient.chatWithTools(request);
+        // 使用 chatWithTools 并传递工具定义
+        LlmResponse response = llmClient.chatWithTools(request, testTools);
 
         System.out.println("=== 工具定义传递测试 ===");
         System.out.println("用户: 北京今天天气怎么样？");
@@ -219,10 +218,9 @@ class LlmClientIntegrationTest {
         LlmRequest request = LlmRequest.builder()
             .systemPrompt("你是一个智能助手，可以使用 calculate 工具进行数学计算。")
             .addMessage(Message.user("帮我计算 123 * 456"))
-            .addTools(List.of(calculateTool))
             .build();
 
-        LlmResponse response = llmClient.chatWithTools(request);
+        LlmResponse response = llmClient.chatWithTools(request, List.of(calculateTool));
 
         System.out.println("=== 数学计算工具调用测试 ===");
         System.out.println("用户: 帮我计算 123 * 456");
@@ -261,10 +259,9 @@ class LlmClientIntegrationTest {
         LlmRequest request = LlmRequest.builder()
             .systemPrompt("你是一个智能助手，可以使用 search 工具搜索信息。")
             .addMessage(Message.user("帮我搜索一下 Spring Boot 的最新版本"))
-            .addTools(List.of(searchTool))
             .build();
 
-        LlmResponse response = llmClient.chatWithTools(request);
+        LlmResponse response = llmClient.chatWithTools(request, List.of(searchTool));
 
         System.out.println("=== 搜索工具调用测试 ===");
         System.out.println("用户: 帮我搜索一下 Spring Boot 的最新版本");
@@ -314,11 +311,8 @@ class LlmClientIntegrationTest {
         };
         registry.register(weatherTool);
 
-        // 创建带工具注册表的客户端
-        OllamaLlmClient clientWithTools = new OllamaLlmClient(
-            LlmConfig.of(MODEL_NAME).withBaseUrl(OLLAMA_BASE_URL),
-            registry
-        );
+        // 创建客户端
+        OllamaLlmClient clientWithTools = new OllamaLlmClient(OLLAMA_BASE_URL, MODEL_NAME);
 
         LlmRequest request = LlmRequest.builder()
             .systemPrompt("""
@@ -334,10 +328,9 @@ class LlmClientIntegrationTest {
                 然后等待工具返回结果后，再给出最终回答。
                 """)
             .addMessage(Message.user("北京今天天气怎么样？"))
-            .addTools(List.of(weatherToolDef))
             .build();
 
-        LlmResponse response = clientWithTools.chatWithTools(request);
+        LlmResponse response = clientWithTools.chatWithTools(request, List.of(weatherToolDef));
 
         System.out.println("=== 带实际工具执行的天气查询测试 ===");
         System.out.println("用户: 北京今天天气怎么样？");
@@ -435,11 +428,8 @@ class LlmClientIntegrationTest {
         };
         registry.register(calcTool);
 
-        // 创建带工具注册表的客户端
-        OllamaLlmClient clientWithTools = new OllamaLlmClient(
-            LlmConfig.of(MODEL_NAME).withBaseUrl(OLLAMA_BASE_URL),
-            registry
-        );
+        // 创建客户端
+        OllamaLlmClient clientWithTools = new OllamaLlmClient(OLLAMA_BASE_URL, MODEL_NAME);
 
         LlmRequest request = LlmRequest.builder()
             .systemPrompt("""
@@ -455,10 +445,9 @@ class LlmClientIntegrationTest {
                 然后等待工具返回结果后，再给出最终回答。
                 """)
             .addMessage(Message.user("帮我计算 123 * 456"))
-            .addTools(List.of(calcToolDef))
             .build();
 
-        LlmResponse response = clientWithTools.chatWithTools(request);
+        LlmResponse response = clientWithTools.chatWithTools(request, List.of(calcToolDef));
 
         System.out.println("=== 带实际工具执行的数学计算测试 ===");
         System.out.println("用户: 帮我计算 123 * 456");

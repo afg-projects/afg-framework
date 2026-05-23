@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 class DefaultEntityCacheTest {
 
     private DefaultCacheManager createCacheManager() {
-        AfgCoreProperties cacheProperties = new AfgCoreProperties()();
+        AfgCoreProperties cacheProperties = new AfgCoreProperties();
         return new DefaultCacheManager(cacheProperties);
     }
 

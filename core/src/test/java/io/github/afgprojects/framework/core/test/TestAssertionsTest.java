@@ -9,7 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.github.afgprojects.framework.core.model.exception.CommonErrorCode;
-import io.github.afgprojects.framework.core.model.exception.ErrorCategory;
+import io.github.afgprojects.framework.commons.exception.ErrorCategory;
 import io.github.afgprojects.framework.core.model.result.PageData;
 import io.github.afgprojects.framework.core.model.result.Result;
 import io.github.afgprojects.framework.core.support.BaseUnitTest;

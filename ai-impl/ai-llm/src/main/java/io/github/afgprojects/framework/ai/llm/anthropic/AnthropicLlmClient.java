@@ -2,7 +2,6 @@ package io.github.afgprojects.framework.ai.llm.anthropic;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.afgprojects.framework.ai.core.memory.Message;
 import io.github.afgprojects.framework.ai.core.model.LlmClient;
 import io.github.afgprojects.framework.ai.core.model.LlmConfig;
 import io.github.afgprojects.framework.ai.core.model.LlmRequest;
@@ -10,16 +9,19 @@ import io.github.afgprojects.framework.ai.core.model.LlmResponse;
 import io.github.afgprojects.framework.ai.core.model.TokenUsage;
 import io.github.afgprojects.framework.ai.core.tool.ToolCall;
 import io.github.afgprojects.framework.ai.core.tool.ToolDefinition;
+import io.github.afgprojects.framework.ai.core.tool.ToolRegistry;
+import io.github.afgprojects.framework.ai.llm.ollama.AfgToolCallback;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+import org.springframework.ai.anthropic.AnthropicChatModel;
+import org.springframework.ai.anthropic.AnthropicChatOptions;
+import org.springframework.ai.anthropic.api.AnthropicApi;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.anthropic.AnthropicChatModel;
-import org.springframework.ai.anthropic.AnthropicChatOptions;
-import org.springframework.ai.anthropic.api.AnthropicApi;
+import org.springframework.ai.tool.ToolCallback;
 import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
@@ -29,7 +31,15 @@ import java.util.Map;
 /**
  * Anthropic Claude LLM 客户端实现
  *
- * <p>基于 Spring AI Anthropic 实现的 LLM 客户端，支持同步和流式调用。
+ * <p>基于 Spring AI Anthropic 实现的 LLM 客户端，支持同步、流式和工具调用。
+ *
+ * <h3>工具调用机制</h3>
+ * <p>利用 Spring AI ChatModel 内置的工具调用循环：
+ * <ol>
+ *   <li>设置 {@code AnthropicChatOptions.toolCallbacks}</li>
+ *   <li>ChatModel 自动检测工具调用并执行</li>
+ *   <li>递归调用直到获得最终响应</li>
+ * </ol>
  *
  * @author afg-projects
  * @since 1.0.0
@@ -41,6 +51,7 @@ public class AnthropicLlmClient implements LlmClient {
     private final AnthropicChatModel chatModel;
     private final LlmConfig config;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final @Nullable ToolRegistry toolRegistry;
 
     /**
      * 创建 Anthropic LLM 客户端
@@ -48,7 +59,18 @@ public class AnthropicLlmClient implements LlmClient {
      * @param config 配置
      */
     public AnthropicLlmClient(@NonNull LlmConfig config) {
+        this(config, null);
+    }
+
+    /**
+     * 创建 Anthropic LLM 客户端（带工具注册表）
+     *
+     * @param config       配置
+     * @param toolRegistry 工具注册表（可选）
+     */
+    public AnthropicLlmClient(@NonNull LlmConfig config, @Nullable ToolRegistry toolRegistry) {
         this.config = config;
+        this.toolRegistry = toolRegistry;
 
         // 创建 Anthropic API
         AnthropicApi anthropicApi = AnthropicApi.builder()
@@ -73,27 +95,34 @@ public class AnthropicLlmClient implements LlmClient {
      * @param model  模型名称
      */
     public AnthropicLlmClient(@NonNull String apiKey, @NonNull String model) {
-        this(LlmConfig.of(apiKey, model));
+        this(LlmConfig.of(apiKey, model), null);
     }
 
     @Override
     public @NonNull LlmResponse chat(@NonNull LlmRequest request) {
-        Prompt prompt = buildPrompt(request);
+        Prompt prompt = buildPrompt(request, null);
         ChatResponse response = chatModel.call(prompt);
         return convertResponse(response);
     }
 
     @Override
     public @NonNull Flux<LlmResponse> chatStream(@NonNull LlmRequest request) {
-        Prompt prompt = buildPrompt(request);
+        Prompt prompt = buildPrompt(request, null);
         return chatModel.stream(prompt)
                 .map(this::convertResponse);
     }
 
     @Override
     public @NonNull LlmResponse chatWithTools(@NonNull LlmRequest request, @NonNull List<ToolDefinition> tools) {
-        // 简化实现：直接调用 chat
-        return chat(request);
+        // 构建 ToolCallbacks
+        List<ToolCallback> toolCallbacks = convertToToolCallbacks(tools);
+
+        // 构建带工具配置的 Prompt
+        Prompt prompt = buildPrompt(request, toolCallbacks);
+
+        // ChatModel 自动处理工具调用循环
+        ChatResponse response = chatModel.call(prompt);
+        return convertResponse(response);
     }
 
     @Override
@@ -104,7 +133,7 @@ public class AnthropicLlmClient implements LlmClient {
     /**
      * 构建 Spring AI Prompt
      */
-    private @NonNull Prompt buildPrompt(@NonNull LlmRequest request) {
+    private @NonNull Prompt buildPrompt(@NonNull LlmRequest request, @Nullable List<ToolCallback> toolCallbacks) {
         List<org.springframework.ai.chat.messages.Message> messages = new ArrayList<>();
 
         // 添加系统消息
@@ -116,19 +145,23 @@ public class AnthropicLlmClient implements LlmClient {
         if (request.messages() != null) {
             for (var msg : request.messages()) {
                 switch (msg.role()) {
-                    case SYSTEM -> messages.add(new SystemMessage(msg.content()));
+                    case SYSTEM -> {
+                        if (request.systemPrompt() == null) {
+                            messages.add(new SystemMessage(msg.content()));
+                        }
+                    }
                     case USER -> messages.add(new UserMessage(msg.content()));
                     case ASSISTANT -> messages.add(new AssistantMessage(msg.content()));
                     case TOOL -> {
-                        // Tool 消息处理需要 Spring AI 特定 API
-                        // 暂时跳过，后续版本完善
+                        // Tool 消息处理由 Spring AI 内部完成
                     }
                 }
             }
         }
 
-        // 构建选项
-        AnthropicChatOptions.Builder optionsBuilder = AnthropicChatOptions.builder();
+        // 构建 ChatOptions
+        AnthropicChatOptions.Builder optionsBuilder = AnthropicChatOptions.builder()
+                .model(config.model());
 
         // 从 options Map 中获取参数
         Double temperature = request.getOption("temperature", (Double) null);
@@ -141,7 +174,24 @@ public class AnthropicLlmClient implements LlmClient {
             optionsBuilder.maxTokens(maxTokens);
         }
 
+        // 设置工具回调
+        if (toolCallbacks != null && !toolCallbacks.isEmpty()) {
+            optionsBuilder.toolCallbacks(toolCallbacks);
+        }
+
         return new Prompt(messages, optionsBuilder.build());
+    }
+
+    /**
+     * 将工具定义列表转换为 Spring AI ToolCallback 列表
+     */
+    private @NonNull List<ToolCallback> convertToToolCallbacks(@NonNull List<ToolDefinition> tools) {
+        List<ToolCallback> callbacks = new ArrayList<>();
+        for (ToolDefinition toolDef : tools) {
+            AfgToolCallback callback = new AfgToolCallback(toolDef, toolRegistry, objectMapper);
+            callbacks.add(callback);
+        }
+        return callbacks;
     }
 
     /**

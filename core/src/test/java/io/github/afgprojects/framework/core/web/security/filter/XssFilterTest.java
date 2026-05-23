@@ -12,7 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import org.junit.jupiter.api.Test;
 
-import io.github.afgprojects.framework.core.model.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.BusinessException;
 
 /**
  * XssFilter 单元测试。

@@ -531,7 +531,7 @@ class JdbcDataManagerIntegrationTest {
     class CacheTests {
 
         private EntityCacheManager createCacheManager() {
-            AfgCoreProperties cacheProperties = new AfgCoreProperties()();
+            AfgCoreProperties cacheProperties = new AfgCoreProperties();
             DefaultCacheManager defaultCacheManager = new DefaultCacheManager(cacheProperties);
 
             EntityCacheProperties properties = new EntityCacheProperties();

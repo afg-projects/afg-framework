@@ -8,6 +8,10 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 /**
  * JDBC 数据权限服务实现。
  *
@@ -24,6 +28,14 @@ import org.springframework.jdbc.core.JdbcTemplate;
  *     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
  *     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
  *     UNIQUE(user_id, tenant_id)
+ * );
+ *
+ * CREATE TABLE auth_user_dept (
+ *     id BIGINT PRIMARY KEY,
+ *     user_id VARCHAR(64) NOT NULL,
+ *     dept_id BIGINT NOT NULL,
+ *     tenant_id VARCHAR(64),
+ *     UNIQUE(user_id, dept_id)
  * );
  * }</pre>
  *
@@ -65,6 +77,24 @@ public class JdbcDataScopeService implements DataScopeService {
                 .scopeType(DataScopeType.ALL)
                 .build();
         }, args);
+    }
+
+    @Override
+    @NonNull
+    public Set<Long> getAccessibleDeptIds(@NonNull String userId, @Nullable String tenantId) {
+        String sql;
+        Object[] args;
+
+        if (tenantId != null) {
+            sql = "SELECT dept_id FROM auth_user_dept WHERE user_id = ? AND tenant_id = ?";
+            args = new Object[]{userId, tenantId};
+        } else {
+            sql = "SELECT dept_id FROM auth_user_dept WHERE user_id = ? AND tenant_id IS NULL";
+            args = new Object[]{userId};
+        }
+
+        List<Long> deptIds = jdbcTemplate.queryForList(sql, Long.class, args);
+        return new HashSet<>(deptIds);
     }
 
     @Override

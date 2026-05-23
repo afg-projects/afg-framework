@@ -3,10 +3,13 @@ plugins {
 }
 
 dependencies {
+    // 只暴露抽象层
     api(project(":security-core"))
     api(project(":data-core"))
-    api(project(":data-impl:data-jdbc"))
     api(project(":apt-api"))
+
+    // 实现层使用 implementation（不传递）
+    implementation(project(":data-impl:data-jdbc"))
 
     api(libs.spring.boot.starter.web)
     api(libs.jspecify)

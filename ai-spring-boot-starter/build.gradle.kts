@@ -16,6 +16,7 @@ dependencies {
     compileOnly(project(":ai-impl:ai-persistence"))
     compileOnly(project(":ai-impl:ai-performance"))
     compileOnly(project(":ai-impl:ai-rag"))
+    compileOnly(project(":ai-impl:ai-etl"))
 
     // Spring AI VectorStore (可选，用于 RAG)
     compileOnly("org.springframework.ai:spring-ai-vector-store:1.1.6")
@@ -53,4 +54,5 @@ dependencies {
     testImplementation(project(":ai-impl:ai-persistence"))
     testImplementation(project(":ai-impl:ai-performance"))
     testImplementation(project(":ai-impl:ai-rag"))
+    testImplementation(project(":ai-impl:ai-etl"))
 }

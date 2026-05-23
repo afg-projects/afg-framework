@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -77,6 +78,11 @@ class DataScopeServiceTest {
                 throw new IllegalStateException("DataScope not found for user: " + userId);
             }
             return scope;
+        }
+
+        @Override
+        public Set<Long> getAccessibleDeptIds(String userId, String tenantId) {
+            return Set.of(1L, 2L, 3L);
         }
 
         @Override

@@ -147,115 +147,132 @@ public class DefaultLoginService implements LoginService {
     public LoginResponse login(@NonNull LoginRequest request) {
         log.debug("Processing login request: type={}", request.loginType());
 
-        // 获取登录 IP（用于安全检查和日志记录）
-        String ip = extractIp(request);
-        String username = extractUsername(request);
-        String deviceId = request.deviceId();
-        String deviceName = request.deviceName();
-        String tenantId = request.tenantId();
+        LoginContext ctx = createLoginContext(request);
 
         // 1. IP 限制检查
-        if (ipRestrictionChecker != null && !ipRestrictionChecker.isAllowed(ip, null, tenantId)) {
-            log.warn("Login rejected: IP {} is restricted", ip);
-            recordLoginLog(LoginLog.failure(
-                    username != null ? username : "unknown",
-                    tenantId,
-                    ip,
-                    deviceId,
-                    deviceName,
-                    null, // browser
-                    null, // os
-                    null, // location
-                    "IP 已被限制"));
-            throw new IllegalArgumentException("IP 已被限制");
-        }
-
-        // 查找登录策略
-        LoginStrategy strategy = strategyFactory.getStrategy(request)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "不支持的登录类型: " + request.loginType()));
+        checkIpRestriction(ctx);
 
         // 2. 执行认证
-        AfgUserDetails userDetails;
-        try {
-            userDetails = strategy.authenticate(request);
-        } catch (Exception e) {
-            log.warn("Authentication failed for user: {}", username, e);
-            // 记录失败日志
-            recordLoginLog(LoginLog.failure(
-                    username != null ? username : "unknown",
-                    tenantId,
-                    ip,
-                    deviceId,
-                    deviceName,
-                    null,
-                    null,
-                    null,
-                    e.getMessage()));
-            throw e;
-        }
+        AfgUserDetails userDetails = authenticate(request, ctx);
 
-        String userId = userDetails.getUserId();
-
-        // 3. 检查账户是否被锁定（登录失败追踪器）
-        if (loginFailureTracker != null && loginFailureTracker.isLocked(userId, tenantId)) {
-            log.warn("Login rejected: account {} is locked", userId);
-            recordLoginLog(LoginLog.failure(
-                    userDetails.getUsername(),
-                    tenantId,
-                    ip,
-                    deviceId,
-                    deviceName,
-                    null,
-                    null,
-                    null,
-                    "账户已被锁定"));
-            throw new IllegalArgumentException("账户已被锁定");
-        }
+        // 3. 检查账户锁定状态
+        checkAccountLock(userDetails, ctx);
 
         // 4. 检查账号状态
         validateAccountStatus(userDetails);
 
-        // 5. 注册设备（如果提供了 deviceId）
-        if (deviceLimiter != null && deviceId != null && !deviceId.isEmpty()) {
-            boolean registered = deviceLimiter.registerDevice(
-                    userId,
-                    tenantId,
-                    deviceId,
-                    deviceName,
-                    null, // deviceType
-                    ip);
-            if (!registered) {
-                log.warn("Failed to register device {} for user {}", deviceId, userId);
-            }
-        }
+        // 5. 注册设备
+        registerDevice(userDetails, ctx);
 
         // 6. 清除登录失败记录
-        if (loginFailureTracker != null) {
-            loginFailureTracker.reset(userId, tenantId);
-        }
+        resetLoginFailure(userDetails, ctx);
 
-        // 7. 生成登录响应
+        // 7. 生成并返回登录响应
+        return buildSuccessResponse(userDetails, ctx);
+    }
+
+    /**
+     * 创建登录上下文
+     */
+    private LoginContext createLoginContext(LoginRequest request) {
+        return new LoginContext(
+                extractIp(request),
+                extractUsername(request),
+                request.deviceId(),
+                request.deviceName(),
+                request.tenantId()
+        );
+    }
+
+    /**
+     * 检查 IP 限制
+     */
+    private void checkIpRestriction(LoginContext ctx) {
+        if (ipRestrictionChecker != null && !ipRestrictionChecker.isAllowed(ctx.ip, null, ctx.tenantId)) {
+            log.warn("Login rejected: IP {} is restricted", ctx.ip);
+            recordFailureLog(ctx.username, ctx, "IP 已被限制");
+            throw new IllegalArgumentException("IP 已被限制");
+        }
+    }
+
+    /**
+     * 执行认证
+     */
+    private AfgUserDetails authenticate(LoginRequest request, LoginContext ctx) {
+        LoginStrategy strategy = strategyFactory.getStrategy(request)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "不支持的登录类型: " + request.loginType()));
+
+        try {
+            return strategy.authenticate(request);
+        } catch (Exception e) {
+            log.warn("Authentication failed for user: {}", ctx.username, e);
+            recordFailureLog(ctx.username != null ? ctx.username : "unknown", ctx, e.getMessage());
+            throw e;
+        }
+    }
+
+    /**
+     * 检查账户锁定状态
+     */
+    private void checkAccountLock(AfgUserDetails userDetails, LoginContext ctx) {
+        if (loginFailureTracker != null && loginFailureTracker.isLocked(userDetails.getUserId(), ctx.tenantId)) {
+            log.warn("Login rejected: account {} is locked", userDetails.getUserId());
+            recordFailureLog(userDetails.getUsername(), ctx, "账户已被锁定");
+            throw new IllegalArgumentException("账户已被锁定");
+        }
+    }
+
+    /**
+     * 注册设备
+     */
+    private void registerDevice(AfgUserDetails userDetails, LoginContext ctx) {
+        if (deviceLimiter != null && ctx.deviceId != null && !ctx.deviceId.isEmpty()) {
+            boolean registered = deviceLimiter.registerDevice(
+                    userDetails.getUserId(), ctx.tenantId, ctx.deviceId, ctx.deviceName, null, ctx.ip);
+            if (!registered) {
+                log.warn("Failed to register device {} for user {}", ctx.deviceId, userDetails.getUserId());
+            }
+        }
+    }
+
+    /**
+     * 清除登录失败记录
+     */
+    private void resetLoginFailure(AfgUserDetails userDetails, LoginContext ctx) {
+        if (loginFailureTracker != null) {
+            loginFailureTracker.reset(userDetails.getUserId(), ctx.tenantId);
+        }
+    }
+
+    /**
+     * 构建成功响应
+     */
+    private LoginResponse buildSuccessResponse(AfgUserDetails userDetails, LoginContext ctx) {
         LoginResponse response = generateLoginResponse(userDetails);
 
-        // 8. 记录成功日志
         recordLoginLog(LoginLog.success(
-                userId,
-                userDetails.getUsername(),
-                tenantId,
-                ip,
-                deviceId,
-                deviceName,
-                null, // browser
-                null, // os
-                null  // location
-        ));
+                userDetails.getUserId(), userDetails.getUsername(), ctx.tenantId,
+                ctx.ip, ctx.deviceId, ctx.deviceName, null, null, null));
 
         log.info("User logged in successfully: userId={}, username={}",
                 userDetails.getUserId(), userDetails.getUsername());
 
         return response;
     }
+
+    /**
+     * 记录失败日志
+     */
+    private void recordFailureLog(String username, LoginContext ctx, String message) {
+        recordLoginLog(LoginLog.failure(username, ctx.tenantId, ctx.ip, ctx.deviceId, ctx.deviceName,
+                null, null, null, message));
+    }
+
+    /**
+     * 登录上下文（内部使用）
+     */
+    private record LoginContext(String ip, String username, String deviceId, String deviceName, String tenantId) {}
 
     @Override
     public void logout(@NonNull String token) {

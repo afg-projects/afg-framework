@@ -1,7 +1,7 @@
 package io.github.afgprojects.framework.core.security.datascope;
 
-import io.github.afgprojects.framework.core.model.exception.BusinessException;
-import io.github.afgprojects.framework.core.model.exception.ErrorCode;
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.ErrorCode;
 
 /**
  * 数据权限异常

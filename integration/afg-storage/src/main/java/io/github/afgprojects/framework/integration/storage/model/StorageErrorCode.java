@@ -1,7 +1,7 @@
 package io.github.afgprojects.framework.integration.storage.model;
 
-import io.github.afgprojects.framework.core.model.exception.ErrorCategory;
-import io.github.afgprojects.framework.core.model.exception.ErrorCode;
+import io.github.afgprojects.framework.commons.exception.ErrorCategory;
+import io.github.afgprojects.framework.commons.exception.ErrorCode;
 
 /**
  * 存储模块错误码

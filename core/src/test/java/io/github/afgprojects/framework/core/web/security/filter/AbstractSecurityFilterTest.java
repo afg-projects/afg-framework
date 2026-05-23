@@ -20,7 +20,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import io.github.afgprojects.framework.core.model.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.BusinessException;
 
 /**
  * AbstractSecurityFilter 单元测试。

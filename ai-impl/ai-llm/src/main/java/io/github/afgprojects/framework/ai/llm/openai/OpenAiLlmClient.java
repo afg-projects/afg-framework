@@ -10,6 +10,8 @@ import io.github.afgprojects.framework.ai.core.model.LlmResponse;
 import io.github.afgprojects.framework.ai.core.model.TokenUsage;
 import io.github.afgprojects.framework.ai.core.tool.ToolCall;
 import io.github.afgprojects.framework.ai.core.tool.ToolDefinition;
+import io.github.afgprojects.framework.ai.core.tool.ToolRegistry;
+import io.github.afgprojects.framework.ai.llm.ollama.AfgToolCallback;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.ai.chat.messages.AssistantMessage;
@@ -20,17 +22,26 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.api.OpenAiApi;
+import org.springframework.ai.tool.ToolCallback;
 import reactor.core.publisher.Flux;
 
-import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
  * OpenAI LLM 客户端实现
  *
- * <p>基于 Spring AI OpenAI 实现的 LLM 客户端，支持同步和流式调用。
+ * <p>基于 Spring AI OpenAI 实现的 LLM 客户端，支持同步、流式和工具调用。
+ *
+ * <h3>工具调用机制</h3>
+ * <p>利用 Spring AI ChatModel 内置的工具调用循环：
+ * <ol>
+ *   <li>设置 {@code OpenAiChatOptions.toolCallbacks}</li>
+ *   <li>ChatModel 自动检测工具调用并执行</li>
+ *   <li>递归调用直到获得最终响应</li>
+ * </ol>
  *
  * @author afg-projects
  * @since 1.0.0
@@ -38,11 +49,11 @@ import java.util.Map;
 public class OpenAiLlmClient implements LlmClient {
 
     private static final String PROVIDER_NAME = "openai";
-    private static final int MAX_TOOL_ITERATIONS = 10;
 
     private final OpenAiChatModel chatModel;
     private final LlmConfig config;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final @Nullable ToolRegistry toolRegistry;
 
     /**
      * 创建 OpenAI LLM 客户端
@@ -50,7 +61,18 @@ public class OpenAiLlmClient implements LlmClient {
      * @param config 配置
      */
     public OpenAiLlmClient(@NonNull LlmConfig config) {
+        this(config, null);
+    }
+
+    /**
+     * 创建 OpenAI LLM 客户端（带工具注册表）
+     *
+     * @param config       配置
+     * @param toolRegistry 工具注册表（可选）
+     */
+    public OpenAiLlmClient(@NonNull LlmConfig config, @Nullable ToolRegistry toolRegistry) {
         this.config = config;
+        this.toolRegistry = toolRegistry;
 
         // 创建 OpenAI API
         OpenAiApi.Builder apiBuilder = OpenAiApi.builder()
@@ -66,9 +88,6 @@ public class OpenAiLlmClient implements LlmClient {
         OpenAiChatOptions.Builder optionsBuilder = OpenAiChatOptions.builder()
                 .model(config.model());
 
-        // 从 options 中获取额外参数（如果 config 是通过 builder 创建的）
-        // 这里使用默认值，实际参数从 request 中获取
-
         // 创建 ChatModel
         this.chatModel = OpenAiChatModel.builder()
                 .openAiApi(openAiApi)
@@ -83,28 +102,34 @@ public class OpenAiLlmClient implements LlmClient {
      * @param model  模型名称
      */
     public OpenAiLlmClient(@NonNull String apiKey, @NonNull String model) {
-        this(LlmConfig.of(apiKey, model));
+        this(LlmConfig.of(apiKey, model), null);
     }
 
     @Override
     public @NonNull LlmResponse chat(@NonNull LlmRequest request) {
-        Prompt prompt = buildPrompt(request);
+        Prompt prompt = buildPrompt(request, null);
         ChatResponse response = chatModel.call(prompt);
         return convertResponse(response);
     }
 
     @Override
     public @NonNull Flux<LlmResponse> chatStream(@NonNull LlmRequest request) {
-        Prompt prompt = buildPrompt(request);
+        Prompt prompt = buildPrompt(request, null);
         return chatModel.stream(prompt)
                 .map(this::convertResponse);
     }
 
     @Override
     public @NonNull LlmResponse chatWithTools(@NonNull LlmRequest request, @NonNull List<ToolDefinition> tools) {
-        // 简化实现：直接调用 chat，工具定义在 request 中
-        // 完整实现需要处理工具调用循环
-        return chat(request);
+        // 构建 ToolCallbacks
+        List<ToolCallback> toolCallbacks = convertToToolCallbacks(tools);
+
+        // 构建带工具配置的 Prompt
+        Prompt prompt = buildPrompt(request, toolCallbacks);
+
+        // ChatModel 自动处理工具调用循环（internalToolExecutionEnabled 默认为 true）
+        ChatResponse response = chatModel.call(prompt);
+        return convertResponse(response);
     }
 
     @Override
@@ -115,7 +140,7 @@ public class OpenAiLlmClient implements LlmClient {
     /**
      * 构建 Spring AI Prompt
      */
-    private @NonNull Prompt buildPrompt(@NonNull LlmRequest request) {
+    private @NonNull Prompt buildPrompt(@NonNull LlmRequest request, @Nullable List<ToolCallback> toolCallbacks) {
         List<org.springframework.ai.chat.messages.Message> messages = new ArrayList<>();
 
         // 添加系统消息
@@ -127,19 +152,24 @@ public class OpenAiLlmClient implements LlmClient {
         if (request.messages() != null) {
             for (var msg : request.messages()) {
                 switch (msg.role()) {
-                    case SYSTEM -> messages.add(new SystemMessage(msg.content()));
+                    case SYSTEM -> {
+                        // 如果已有显式 systemPrompt，跳过
+                        if (request.systemPrompt() == null) {
+                            messages.add(new SystemMessage(msg.content()));
+                        }
+                    }
                     case USER -> messages.add(new UserMessage(msg.content()));
                     case ASSISTANT -> messages.add(new AssistantMessage(msg.content()));
                     case TOOL -> {
-                        // Tool 消息处理需要 Spring AI 特定 API
-                        // 暂时跳过，后续版本完善
+                        // Tool 消息处理由 Spring AI 内部完成
                     }
                 }
             }
         }
 
-        // 构建选项
-        OpenAiChatOptions.Builder optionsBuilder = OpenAiChatOptions.builder();
+        // 构建 ChatOptions
+        OpenAiChatOptions.Builder optionsBuilder = OpenAiChatOptions.builder()
+                .model(config.model());
 
         // 从 options Map 中获取参数
         Double temperature = request.getOption("temperature", (Double) null);
@@ -152,7 +182,24 @@ public class OpenAiLlmClient implements LlmClient {
             optionsBuilder.maxTokens(maxTokens);
         }
 
+        // 设置工具回调（关键：让 ChatModel 知道可用的工具）
+        if (toolCallbacks != null && !toolCallbacks.isEmpty()) {
+            optionsBuilder.toolCallbacks(toolCallbacks);
+        }
+
         return new Prompt(messages, optionsBuilder.build());
+    }
+
+    /**
+     * 将工具定义列表转换为 Spring AI ToolCallback 列表
+     */
+    private @NonNull List<ToolCallback> convertToToolCallbacks(@NonNull List<ToolDefinition> tools) {
+        List<ToolCallback> callbacks = new ArrayList<>();
+        for (ToolDefinition toolDef : tools) {
+            AfgToolCallback callback = new AfgToolCallback(toolDef, toolRegistry, objectMapper);
+            callbacks.add(callback);
+        }
+        return callbacks;
     }
 
     /**

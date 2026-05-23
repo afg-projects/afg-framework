@@ -2,7 +2,7 @@ package io.github.afgprojects.framework.core.security.datascope;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.github.afgprojects.framework.core.model.exception.ErrorCategory;
+import io.github.afgprojects.framework.commons.exception.ErrorCategory;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

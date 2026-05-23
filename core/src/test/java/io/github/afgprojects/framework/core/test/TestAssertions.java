@@ -7,8 +7,8 @@ import java.util.List;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import io.github.afgprojects.framework.core.model.exception.ErrorCode;
-import io.github.afgprojects.framework.core.model.exception.ErrorCategory;
+import io.github.afgprojects.framework.commons.exception.ErrorCode;
+import io.github.afgprojects.framework.commons.exception.ErrorCategory;
 import io.github.afgprojects.framework.core.model.result.PageData;
 import io.github.afgprojects.framework.core.model.result.Result;
 

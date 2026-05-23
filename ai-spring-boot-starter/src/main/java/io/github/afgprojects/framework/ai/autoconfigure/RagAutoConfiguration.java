@@ -1,12 +1,14 @@
 package io.github.afgprojects.framework.ai.autoconfigure;
 
+import io.github.afgprojects.framework.ai.core.etl.DocumentReader;
 import io.github.afgprojects.framework.ai.core.rag.*;
+import io.github.afgprojects.framework.ai.etl.reader.CompositeReader;
+import io.github.afgprojects.framework.ai.etl.reader.DefaultEncodingDetector;
+import io.github.afgprojects.framework.ai.etl.reader.EncodingDetector;
+import io.github.afgprojects.framework.ai.etl.transformer.RecursiveCharacterTextSplitter;
+import io.github.afgprojects.framework.ai.etl.transformer.TextSplitter;
 import io.github.afgprojects.framework.ai.rag.embedding.SpringAiEmbeddingModelAdapter;
-import io.github.afgprojects.framework.ai.rag.loader.CompositeDocumentLoader;
-import io.github.afgprojects.framework.ai.rag.loader.DefaultEncodingDetector;
-import io.github.afgprojects.framework.ai.rag.loader.EncodingDetector;
 import io.github.afgprojects.framework.ai.rag.retriever.SimpleRetriever;
-import io.github.afgprojects.framework.ai.rag.splitter.RecursiveCharacterTextSplitter;
 import io.github.afgprojects.framework.ai.rag.store.SimpleVectorStore;
 import io.github.afgprojects.framework.ai.rag.store.SpringAiVectorStoreAdapter;
 import org.jspecify.annotations.NonNull;
@@ -24,7 +26,7 @@ import org.springframework.context.annotation.Bean;
  *
  * <p>自动配置 RAG 模块的核心组件：
  * <ul>
- *   <li>DocumentLoader - 文档加载器</li>
+ *   <li>DocumentReader - 文档读取器</li>
  *   <li>TextSplitter - 文本切片器</li>
  *   <li>EmbeddingModel - 嵌入模型</li>
  *   <li>VectorStore - 向量存储</li>
@@ -73,13 +75,13 @@ public class RagAutoConfiguration {
     }
 
     /**
-     * 配置文档加载器
+     * 配置文档读取器
      */
     @Bean
-    @ConditionalOnMissingBean(DocumentLoader.class)
-    public DocumentLoader documentLoader(@NonNull RagProperties properties) {
-        log.info("Creating composite document loader");
-        return new CompositeDocumentLoader();
+    @ConditionalOnMissingBean(DocumentReader.class)
+    public DocumentReader documentReader(@NonNull RagProperties properties) {
+        log.info("Creating composite document reader");
+        return new CompositeReader();
     }
 
     /**
@@ -98,9 +100,7 @@ public class RagAutoConfiguration {
         return switch (config.getType()) {
             case RECURSIVE -> new RecursiveCharacterTextSplitter(chunkSize, chunkOverlap);
             case MARKDOWN -> new RecursiveCharacterTextSplitter(chunkSize, chunkOverlap);
-            case TOKEN -> RecursiveCharacterTextSplitter.forTokenCount(
-                chunkSize, chunkOverlap, text -> text.length() / 4
-            );
+            case TOKEN -> new RecursiveCharacterTextSplitter(chunkSize, chunkOverlap);
         };
     }
 

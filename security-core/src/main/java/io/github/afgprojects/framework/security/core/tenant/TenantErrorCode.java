@@ -1,7 +1,7 @@
 package io.github.afgprojects.framework.security.core.tenant;
 
-import io.github.afgprojects.framework.core.model.exception.ErrorCategory;
-import io.github.afgprojects.framework.core.model.exception.ErrorCode;
+import io.github.afgprojects.framework.commons.exception.ErrorCategory;
+import io.github.afgprojects.framework.commons.exception.ErrorCode;
 
 /**
  * 租户错误码枚举。

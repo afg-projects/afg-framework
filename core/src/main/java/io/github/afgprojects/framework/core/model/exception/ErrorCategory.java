@@ -1,28 +1,13 @@
 package io.github.afgprojects.framework.core.model.exception;
 
 /**
- * 错误分类
+ * @deprecated 使用 {@link io.github.afgprojects.framework.commons.exception.ErrorCategory} 代替
  */
+@Deprecated(since = "1.1.0", forRemoval = true)
 public enum ErrorCategory {
-
-    /**
-     * 业务错误 - 业务逻辑校验失败
-     */
     BUSINESS("B"),
-
-    /**
-     * 系统错误 - 系统内部异常
-     */
     SYSTEM("S"),
-
-    /**
-     * 网络错误 - 网络通信异常
-     */
     NETWORK("N"),
-
-    /**
-     * 安全错误 - 认证授权异常
-     */
     SECURITY("A");
 
     private final String prefix;

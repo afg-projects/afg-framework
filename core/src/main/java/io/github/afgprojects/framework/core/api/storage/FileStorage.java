@@ -2,7 +2,7 @@ package io.github.afgprojects.framework.core.api.storage;
 
 import java.io.InputStream;
 
-import io.github.afgprojects.framework.core.model.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.BusinessException;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 

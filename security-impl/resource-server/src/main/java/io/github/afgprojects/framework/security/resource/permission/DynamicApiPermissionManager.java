@@ -184,27 +184,12 @@ public class DynamicApiPermissionManager implements ConfigChangeListener {
     @Nullable
     private ApiPermissionConfig findMatchingConfig(String path, String method) {
         synchronized (configs) {
-            ApiPermissionConfig result = null;
-            for (ApiPermissionConfig config : configs) {
-                if (!config.isEnabled()) {
-                    continue;
-                }
-
-                // 匹配路径
-                if (!pathMatcher.match(config.getPattern(), path)) {
-                    continue;
-                }
-
-                // 匹配方法（如果配置了方法）
-                if (config.getMethod() != null && !config.getMethod().equalsIgnoreCase(method)) {
-                    continue;
-                }
-
-                // 找到匹配的配置
-                result = config;
-                break;
-            }
-            return result;
+            return configs.stream()
+                .filter(ApiPermissionConfig::isEnabled)
+                .filter(config -> pathMatcher.match(config.getPattern(), path))
+                .filter(config -> config.getMethod() == null || config.getMethod().equalsIgnoreCase(method))
+                .findFirst()
+                .orElse(null);
         }
     }
 }

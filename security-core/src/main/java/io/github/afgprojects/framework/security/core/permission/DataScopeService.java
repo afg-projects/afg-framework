@@ -4,6 +4,8 @@ import io.github.afgprojects.framework.data.core.scope.DataScope;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Set;
+
 /**
  * 数据权限服务接口。
  *
@@ -14,6 +16,9 @@ import org.jspecify.annotations.Nullable;
  * <pre>{@code
  * // 获取用户的数据范围
  * DataScope scope = dataScopeService.getDataScope(userId, tenantId);
+ *
+ * // 获取用户可访问的部门 ID
+ * Set<Long> deptIds = dataScopeService.getAccessibleDeptIds(userId, tenantId);
  *
  * // 设置用户的数据范围
  * DataScope scope = DataScope.of("sys_user", "dept_id", DataScopeType.DEPT);
@@ -36,6 +41,18 @@ public interface DataScopeService {
      */
     @NonNull
     DataScope getDataScope(@NonNull String userId, @Nullable String tenantId);
+
+    /**
+     * 获取用户可访问的部门 ID 集合。
+     *
+     * <p>用于 DEPT_AND_CHILD 类型的权限判断。
+     *
+     * @param userId 用户 ID，永不为 null
+     * @param tenantId 租户 ID，可为 null（非多租户场景）
+     * @return 可访问的部门 ID 集合，永不为 null（可能为空集合）
+     */
+    @NonNull
+    Set<Long> getAccessibleDeptIds(@NonNull String userId, @Nullable String tenantId);
 
     /**
      * 设置用户的数据范围配置。

@@ -87,13 +87,13 @@ class AuthSecurityPropertiesTest {
 
             // when
             tokenConfig.setIssuer("https://auth.example.com");
-            tokenConfig.setSigningKey("my-secret-signing-key-at-least-256-bits");
+            tokenConfig.setKeyStorePath("file:/var/afg/keys");
             tokenConfig.setAccessTokenTtl(Duration.ofHours(1));
             tokenConfig.setRefreshTokenTtl(Duration.ofDays(14));
 
             // then
             assertThat(tokenConfig.getIssuer()).isEqualTo("https://auth.example.com");
-            assertThat(tokenConfig.getSigningKey()).isEqualTo("my-secret-signing-key-at-least-256-bits");
+            assertThat(tokenConfig.getKeyStorePath()).isEqualTo("file:/var/afg/keys");
             assertThat(tokenConfig.getAccessTokenTtl()).isEqualTo(Duration.ofHours(1));
             assertThat(tokenConfig.getRefreshTokenTtl()).isEqualTo(Duration.ofDays(14));
         }

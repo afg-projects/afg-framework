@@ -2,8 +2,8 @@ package io.github.afgprojects.framework.integration.storage.model;
 
 import java.io.Serial;
 
-import io.github.afgprojects.framework.core.model.exception.BusinessException;
-import io.github.afgprojects.framework.core.model.exception.ErrorCode;
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.ErrorCode;
 
 /**
  * 存储异常

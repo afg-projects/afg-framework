@@ -4,6 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.jdbc.autoconfigure.DataManagerAutoConfiguration;
 import io.github.afgprojects.framework.security.auth.captcha.DefaultCaptchaService;
+import io.github.afgprojects.framework.security.auth.key.JwksController;
+import io.github.afgprojects.framework.security.auth.key.RsaKeyPairManager;
 import io.github.afgprojects.framework.security.auth.login.DefaultLoginService;
 import io.github.afgprojects.framework.security.auth.login.strategy.EmailCaptchaLoginStrategy;
 import io.github.afgprojects.framework.security.auth.login.strategy.MobileCaptchaLoginStrategy;
@@ -83,20 +85,36 @@ public class LoginAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean(RsaKeyPairManager.class)
+    public RsaKeyPairManager rsaKeyPairManager(AuthSecurityProperties properties) {
+        String keyStorePath = properties.getToken().getKeyStorePath();
+        log.info("Initializing RsaKeyPairManager with keyStorePath: {}", keyStorePath);
+        return new RsaKeyPairManager(keyStorePath);
+    }
+
+    @Bean
     @ConditionalOnMissingBean(TokenService.class)
     public TokenService tokenService(
+            RsaKeyPairManager keyPairManager,
             AuthSecurityProperties properties,
             AfgRefreshTokenStorage refreshTokenStorage,
             AfgTokenBlacklist tokenBlacklist) {
-        log.info("Initializing DefaultTokenService");
+        log.info("Initializing DefaultTokenService with RS256");
         AuthSecurityProperties.TokenConfig tokenConfig = properties.getToken();
         return new DefaultTokenService(
-                tokenConfig.getSigningKey(),
+                keyPairManager,
                 tokenConfig.getIssuer(),
                 tokenConfig.getAccessTokenTtl(),
                 tokenConfig.getRefreshTokenTtl(),
                 refreshTokenStorage,
                 tokenBlacklist);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(JwksController.class)
+    public JwksController jwksController(RsaKeyPairManager keyPairManager) {
+        log.info("Initializing JwksController");
+        return new JwksController(keyPairManager);
     }
 
     @Bean

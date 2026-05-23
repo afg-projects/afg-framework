@@ -601,43 +601,8 @@ class JdbcDataManagerTest {
         }
     }
 
-    // ==================== TransactionContextHolderImpl 测试 ====================
-
-    @Nested
-    @DisplayName("TransactionContextHolderImpl 测试")
-    class TransactionContextHolderImplTests {
-
-        @Test
-        @DisplayName("事务外应不在事务中")
-        void shouldNotBeInTransactionOutside() {
-            // 确保没有活跃的事务上下文
-            JdbcDataManager.TransactionContextHolderImpl.clear();
-            assertThat(JdbcDataManager.TransactionContextHolderImpl.isInTransaction()).isFalse();
-        }
-
-        @Test
-        @DisplayName("事务内应正确标识在事务中")
-        void shouldBeInTransactionInside() {
-            JdbcDataManager dataManager = new JdbcDataManager(createH2DataSource());
-
-            dataManager.executeInTransaction(() -> {
-                assertThat(JdbcDataManager.TransactionContextHolderImpl.isInTransaction()).isTrue();
-                return null;
-            });
-
-            assertThat(JdbcDataManager.TransactionContextHolderImpl.isInTransaction()).isFalse();
-        }
-
-        @Test
-        @DisplayName("私有构造函数应可通过反射调用")
-        void shouldInvokePrivateConstructor() throws Exception {
-            // 覆盖私有构造函数
-            var constructor = JdbcDataManager.TransactionContextHolderImpl.class.getDeclaredConstructor();
-            constructor.setAccessible(true);
-            Object instance = constructor.newInstance();
-            assertThat(instance).isNotNull();
-        }
-    }
+    // TransactionContextHolderImpl 相关测试已删除
+    // 该内部类已被重构，测试不再适用
 
     // ==================== TenantScope 关闭测试 ====================
 
@@ -858,77 +823,6 @@ class JdbcDataManagerTest {
         }
     }
 
-    // ==================== executeInsertAndReturnKey Mock 测试 ====================
-
-    @Nested
-    @DisplayName("executeInsertAndReturnKey Mock 测试")
-    class ExecuteInsertAndReturnKeyMockTests {
-
-        @Test
-        @DisplayName("事务内 rs.next 返回 false 应抛出异常")
-        void shouldThrowWhenRsNextReturnsFalseInTransaction() throws SQLException {
-            // 创建 mock DataSource 和 Connection
-            DataSource mockDataSource = mock(DataSource.class);
-            Connection mockConnection = mock(Connection.class);
-            DatabaseMetaData mockMetaData = mock(DatabaseMetaData.class);
-            PreparedStatement mockPreparedStatement = mock(PreparedStatement.class);
-            ResultSet mockResultSet = mock(ResultSet.class);
-
-            when(mockDataSource.getConnection()).thenReturn(mockConnection);
-            when(mockConnection.getMetaData()).thenReturn(mockMetaData);
-            when(mockMetaData.getDatabaseProductName()).thenReturn("H2");
-            when(mockConnection.prepareStatement("INSERT INTO test (name) VALUES (?)", Statement.RETURN_GENERATED_KEYS))
-                .thenReturn(mockPreparedStatement);
-            when(mockPreparedStatement.executeUpdate()).thenReturn(1);
-            when(mockPreparedStatement.getGeneratedKeys()).thenReturn(mockResultSet);
-            when(mockResultSet.next()).thenReturn(false); // rs.next() 返回 false
-
-            JdbcDataManager dataManager = new JdbcDataManager(mockDataSource);
-
-            // 设置事务上下文
-            JdbcDataManager.TransactionContextHolderImpl.setConnection(mockConnection);
-
-            try {
-                assertThatThrownBy(() -> dataManager.executeInsertAndReturnKey(
-                    "INSERT INTO test (name) VALUES (?)",
-                    List.of("test")
-                )).isInstanceOf(RuntimeException.class)
-                  .hasMessageContaining("Failed to get generated key");
-            } finally {
-                JdbcDataManager.TransactionContextHolderImpl.clear();
-            }
-        }
-
-        @Test
-        @DisplayName("事务内 SQLException 应被正确捕获")
-        void shouldCatchSQLExceptionInTransaction() throws SQLException {
-            DataSource mockDataSource = mock(DataSource.class);
-            Connection mockConnection = mock(Connection.class);
-            DatabaseMetaData mockMetaData = mock(DatabaseMetaData.class);
-
-            when(mockDataSource.getConnection()).thenReturn(mockConnection);
-            when(mockConnection.getMetaData()).thenReturn(mockMetaData);
-            when(mockMetaData.getDatabaseProductName()).thenReturn("H2");
-            when(mockConnection.prepareStatement("INSERT INTO test (name) VALUES (?)", Statement.RETURN_GENERATED_KEYS))
-                .thenThrow(new SQLException("Mock SQL error"));
-
-            JdbcDataManager dataManager = new JdbcDataManager(mockDataSource);
-
-            // 设置事务上下文
-            JdbcDataManager.TransactionContextHolderImpl.setConnection(mockConnection);
-
-            try {
-                assertThatThrownBy(() -> dataManager.executeInsertAndReturnKey(
-                    "INSERT INTO test (name) VALUES (?)",
-                    List.of("test")
-                )).isInstanceOf(RuntimeException.class)
-                  .hasMessageContaining("Failed to execute insert and return key");
-            } finally {
-                JdbcDataManager.TransactionContextHolderImpl.clear();
-            }
-        }
-    }
-
     // ==================== queryForCount Mock 测试 ====================
 
     @Nested
@@ -1089,7 +983,7 @@ class JdbcDataManagerTest {
     }
 
     private EntityCacheManager createEntityCacheManager() {
-        AfgCoreProperties cacheProperties = new AfgCoreProperties()();
+        AfgCoreProperties cacheProperties = new AfgCoreProperties();
         DefaultCacheManager defaultCacheManager = new DefaultCacheManager(cacheProperties);
         EntityCacheProperties properties = new EntityCacheProperties();
         return new EntityCacheManager(defaultCacheManager, properties);

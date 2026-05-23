@@ -11,7 +11,8 @@ import io.github.afgprojects.framework.core.security.datascope.DataScopeContext;
 import io.github.afgprojects.framework.core.security.datascope.DataScopeContextHolder;
 import io.github.afgprojects.framework.data.core.scope.DataScope;
 import io.github.afgprojects.framework.data.core.scope.DataScopeType;
-import io.github.afgprojects.framework.security.auth.autoconfigure.AuthSecurityProperties.PermissionConfig;
+import io.github.afgprojects.framework.security.core.authentication.AfgAuthentication;
+import io.github.afgprojects.framework.security.core.authentication.AfgUserDetails;
 import io.github.afgprojects.framework.security.core.permission.DataScopeService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,9 +24,19 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * DataScopeInterceptor 测试。
+ *
+ * <p>测试从 Spring Security Context 获取用户信息的安全实现。
  *
  * @author afg-projects
  * @since 1.0.0
@@ -45,6 +56,12 @@ class DataScopeInterceptorTest {
     @Mock
     private FilterChain filterChain;
 
+    @Mock
+    private AfgAuthentication afgAuthentication;
+
+    @Mock
+    private AfgUserDetails userDetails;
+
     private AuthSecurityProperties.PermissionConfig properties;
     private DataScopeInterceptor interceptor;
     private AutoCloseable mocks;
@@ -62,6 +79,7 @@ class DataScopeInterceptorTest {
     @AfterEach
     void tearDown() throws Exception {
         DataScopeContextHolder.clear();
+        SecurityContextHolder.clearContext();
         mocks.close();
     }
 
@@ -70,15 +88,23 @@ class DataScopeInterceptorTest {
     class NormalFlowTests {
 
         @Test
-        @DisplayName("应设置数据权限上下文")
-        void shouldSetDataScopeContext() throws Exception {
+        @DisplayName("应从 SecurityContext 获取用户信息并设置数据权限上下文")
+        void shouldSetDataScopeContextFromSecurityContext() throws Exception {
             // given
             String userId = "100";
             String tenantId = "tenant-001";
             DataScope dataScope = DataScope.of("sys_user", "dept_id", DataScopeType.ALL);
 
-            when(request.getHeader("X-User-Id")).thenReturn(userId);
-            when(request.getHeader("X-Tenant-Id")).thenReturn(tenantId);
+            // 设置 SecurityContext
+            SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+            when(afgAuthentication.isAuthenticated()).thenReturn(true);
+            when(afgAuthentication.getUserDetails()).thenReturn(userDetails);
+            when(userDetails.getUserId()).thenReturn(userId);
+            when(userDetails.getTenantId()).thenReturn(tenantId);
+            when(afgAuthentication.isAdmin()).thenReturn(false);
+            securityContext.setAuthentication(afgAuthentication);
+            SecurityContextHolder.setContext(securityContext);
+
             when(dataScopeService.getDataScope(userId, tenantId)).thenReturn(dataScope);
 
             // when
@@ -90,43 +116,60 @@ class DataScopeInterceptorTest {
         }
 
         @Test
-        @DisplayName("应从请求头获取用户信息")
-        void shouldGetUserInfoFromHeaders() throws Exception {
+        @DisplayName("管理员应设置全部数据权限上下文")
+        void shouldSetAllPermissionForAdmin() throws Exception {
             // given
             String userId = "100";
             String tenantId = "tenant-001";
-            String deptId = "10";
-            DataScope dataScope = DataScope.of("sys_user", "dept_id", DataScopeType.DEPT);
+            DataScope dataScope = DataScope.of("sys_user", "dept_id", DataScopeType.ALL);
 
-            when(request.getHeader("X-User-Id")).thenReturn(userId);
-            when(request.getHeader("X-Tenant-Id")).thenReturn(tenantId);
-            when(request.getHeader("X-Dept-Id")).thenReturn(deptId);
+            // 设置 SecurityContext - 管理员
+            SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+            when(afgAuthentication.isAuthenticated()).thenReturn(true);
+            when(afgAuthentication.getUserDetails()).thenReturn(userDetails);
+            when(userDetails.getUserId()).thenReturn(userId);
+            when(userDetails.getTenantId()).thenReturn(tenantId);
+            when(afgAuthentication.isAdmin()).thenReturn(true);
+            securityContext.setAuthentication(afgAuthentication);
+            SecurityContextHolder.setContext(securityContext);
+
             when(dataScopeService.getDataScope(userId, tenantId)).thenReturn(dataScope);
 
             // when
             interceptor.doFilterInternal(request, response, filterChain);
 
-            // then
-            verify(request).getHeader("X-User-Id");
-            verify(request).getHeader("X-Tenant-Id");
-            verify(request).getHeader("X-Dept-Id");
+            // then - 管理员会调用 dataScopeService 但上下文设置 allDataPermission=true
+            verify(dataScopeService).getDataScope(userId, tenantId);
+            verify(filterChain).doFilter(request, response);
         }
 
         @Test
-        @DisplayName("应根据 ALL 数据范围设置全部权限")
-        void shouldSetAllPermissionForAllScope() throws Exception {
+        @DisplayName("应根据 DEPT 数据范围获取可访问部门")
+        void shouldGetAccessibleDeptIdsForDeptScope() throws Exception {
             // given
             String userId = "100";
-            DataScope dataScope = DataScope.of("sys_user", "dept_id", DataScopeType.ALL);
+            String tenantId = "tenant-001";
+            DataScope dataScope = DataScope.of("sys_user", "dept_id", DataScopeType.DEPT);
+            Set<Long> accessibleDeptIds = Set.of(1L, 2L, 3L);
 
-            when(request.getHeader("X-User-Id")).thenReturn(userId);
-            when(request.getHeader("X-Tenant-Id")).thenReturn(null);
-            when(dataScopeService.getDataScope(eq(userId), any())).thenReturn(dataScope);
+            // 设置 SecurityContext
+            SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+            when(afgAuthentication.isAuthenticated()).thenReturn(true);
+            when(afgAuthentication.getUserDetails()).thenReturn(userDetails);
+            when(userDetails.getUserId()).thenReturn(userId);
+            when(userDetails.getTenantId()).thenReturn(tenantId);
+            when(afgAuthentication.isAdmin()).thenReturn(false);
+            securityContext.setAuthentication(afgAuthentication);
+            SecurityContextHolder.setContext(securityContext);
+
+            when(dataScopeService.getDataScope(userId, tenantId)).thenReturn(dataScope);
+            when(dataScopeService.getAccessibleDeptIds(userId, tenantId)).thenReturn(accessibleDeptIds);
 
             // when
             interceptor.doFilterInternal(request, response, filterChain);
 
-            // then - 验证 filterChain 被调用
+            // then
+            verify(dataScopeService).getAccessibleDeptIds(userId, tenantId);
             verify(filterChain).doFilter(request, response);
         }
     }
@@ -142,7 +185,16 @@ class DataScopeInterceptorTest {
             String userId = "100";
             DataScope dataScope = DataScope.of("sys_user", "dept_id", DataScopeType.ALL);
 
-            when(request.getHeader("X-User-Id")).thenReturn(userId);
+            // 设置 SecurityContext
+            SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+            when(afgAuthentication.isAuthenticated()).thenReturn(true);
+            when(afgAuthentication.getUserDetails()).thenReturn(userDetails);
+            when(userDetails.getUserId()).thenReturn(userId);
+            when(userDetails.getTenantId()).thenReturn(null);
+            when(afgAuthentication.isAdmin()).thenReturn(false);
+            securityContext.setAuthentication(afgAuthentication);
+            SecurityContextHolder.setContext(securityContext);
+
             when(dataScopeService.getDataScope(eq(userId), any())).thenReturn(dataScope);
 
             // when
@@ -159,7 +211,16 @@ class DataScopeInterceptorTest {
             String userId = "100";
             DataScope dataScope = DataScope.of("sys_user", "dept_id", DataScopeType.ALL);
 
-            when(request.getHeader("X-User-Id")).thenReturn(userId);
+            // 设置 SecurityContext
+            SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+            when(afgAuthentication.isAuthenticated()).thenReturn(true);
+            when(afgAuthentication.getUserDetails()).thenReturn(userDetails);
+            when(userDetails.getUserId()).thenReturn(userId);
+            when(userDetails.getTenantId()).thenReturn(null);
+            when(afgAuthentication.isAdmin()).thenReturn(false);
+            securityContext.setAuthentication(afgAuthentication);
+            SecurityContextHolder.setContext(securityContext);
+
             when(dataScopeService.getDataScope(eq(userId), any())).thenReturn(dataScope);
             doThrow(new RuntimeException("Test exception")).when(filterChain).doFilter(request, response);
 
@@ -176,14 +237,14 @@ class DataScopeInterceptorTest {
     }
 
     @Nested
-    @DisplayName("空用户 ID 测试")
-    class NullUserIdTests {
+    @DisplayName("未认证用户测试")
+    class UnauthenticatedUserTests {
 
         @Test
-        @DisplayName("用户 ID 为空时应跳过上下文设置")
-        void shouldSkipWhenUserIdIsNull() throws Exception {
-            // given
-            when(request.getHeader("X-User-Id")).thenReturn(null);
+        @DisplayName("无认证用户时应跳过上下文设置")
+        void shouldSkipWhenNoAuthentication() throws Exception {
+            // given - 空 SecurityContext
+            SecurityContextHolder.clearContext();
 
             // when
             interceptor.doFilterInternal(request, response, filterChain);
@@ -194,10 +255,32 @@ class DataScopeInterceptorTest {
         }
 
         @Test
-        @DisplayName("用户 ID 为空字符串时应跳过上下文设置")
-        void shouldSkipWhenUserIdIsEmpty() throws Exception {
-            // given
-            when(request.getHeader("X-User-Id")).thenReturn("");
+        @DisplayName("匿名用户时应跳过上下文设置")
+        void shouldSkipForAnonymousUser() throws Exception {
+            // given - 匿名认证
+            SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+            AnonymousAuthenticationToken anonymousToken = new AnonymousAuthenticationToken(
+                    "key", "anonymousUser", List.of(new SimpleGrantedAuthority("ROLE_ANONYMOUS")));
+            securityContext.setAuthentication(anonymousToken);
+            SecurityContextHolder.setContext(securityContext);
+
+            // when
+            interceptor.doFilterInternal(request, response, filterChain);
+
+            // then
+            verify(dataScopeService, never()).getDataScope(any(), any());
+            verify(filterChain).doFilter(request, response);
+        }
+
+        @Test
+        @DisplayName("非 AfgAuthentication 类型时应跳过上下文设置")
+        void shouldSkipForNonAfgAuthentication() throws Exception {
+            // given - 非 AfgAuthentication
+            SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+            Authentication otherAuth = mock(Authentication.class);
+            when(otherAuth.isAuthenticated()).thenReturn(true);
+            securityContext.setAuthentication(otherAuth);
+            SecurityContextHolder.setContext(securityContext);
 
             // when
             interceptor.doFilterInternal(request, response, filterChain);
@@ -254,48 +337,40 @@ class DataScopeInterceptorTest {
     }
 
     @Nested
-    @DisplayName("数据范围类型测试")
-    class DataScopeTypeTests {
+    @DisplayName("安全测试")
+    class SecurityTests {
 
         @Test
-        @DisplayName("DEPT 类型应设置部门 ID")
-        void shouldSetDeptIdForDeptScope() throws Exception {
+        @DisplayName("不应从请求头获取用户信息")
+        void shouldNotGetUserInfoFromHeaders() throws Exception {
             // given
             String userId = "100";
-            String deptId = "10";
-            DataScope dataScope = DataScope.of("sys_user", "dept_id", DataScopeType.DEPT);
+            String tenantId = "tenant-001";
+            DataScope dataScope = DataScope.of("sys_user", "dept_id", DataScopeType.ALL);
 
-            when(request.getHeader("X-User-Id")).thenReturn(userId);
-            when(request.getHeader("X-Dept-Id")).thenReturn(deptId);
-            when(dataScopeService.getDataScope(eq(userId), any())).thenReturn(dataScope);
+            // 设置 SecurityContext
+            SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+            when(afgAuthentication.isAuthenticated()).thenReturn(true);
+            when(afgAuthentication.getUserDetails()).thenReturn(userDetails);
+            when(userDetails.getUserId()).thenReturn(userId);
+            when(userDetails.getTenantId()).thenReturn(tenantId);
+            when(afgAuthentication.isAdmin()).thenReturn(false);
+            securityContext.setAuthentication(afgAuthentication);
+            SecurityContextHolder.setContext(securityContext);
+
+            when(dataScopeService.getDataScope(userId, tenantId)).thenReturn(dataScope);
+
+            // 设置请求头（这些应该被忽略）
+            when(request.getHeader("X-User-Id")).thenReturn("malicious-user");
+            when(request.getHeader("X-Tenant-Id")).thenReturn("malicious-tenant");
 
             // when
             interceptor.doFilterInternal(request, response, filterChain);
 
-            // then
-            verify(filterChain).doFilter(request, response);
-        }
-
-        @Test
-        @DisplayName("CUSTOM 类型应设置自定义条件")
-        void shouldSetCustomConditionForCustomScope() throws Exception {
-            // given
-            String userId = "100";
-            DataScope dataScope = DataScope.builder()
-                    .table("sys_user")
-                    .column("dept_id")
-                    .scopeType(DataScopeType.CUSTOM)
-                    .customCondition("dept_id IN (1, 2, 3)")
-                    .build();
-
-            when(request.getHeader("X-User-Id")).thenReturn(userId);
-            when(dataScopeService.getDataScope(eq(userId), any())).thenReturn(dataScope);
-
-            // when
-            interceptor.doFilterInternal(request, response, filterChain);
-
-            // then
-            verify(filterChain).doFilter(request, response);
+            // then - 应该使用 SecurityContext 中的用户信息，而不是请求头
+            verify(dataScopeService).getDataScope(userId, tenantId);
+            verify(request, never()).getHeader("X-User-Id");
+            verify(request, never()).getHeader("X-Tenant-Id");
         }
     }
 }

@@ -4,8 +4,8 @@ import java.io.Serial;
 
 import org.jspecify.annotations.NonNull;
 
-import io.github.afgprojects.framework.core.model.exception.BusinessException;
-import io.github.afgprojects.framework.core.model.exception.ErrorCode;
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.ErrorCode;
 
 /**
  * 租户异常类。

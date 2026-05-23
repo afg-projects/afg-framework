@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
-import io.github.afgprojects.framework.core.model.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.BusinessException;
 import io.github.afgprojects.framework.core.model.exception.CommonErrorCode;
 import io.github.afgprojects.framework.core.model.result.Result;
 import io.github.afgprojects.framework.core.model.result.Results;
