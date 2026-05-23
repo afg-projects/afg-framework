@@ -35,6 +35,7 @@ include("ai-impl:ai-llm")           // LLM 实现（OpenAI, Anthropic, Ollama）
 include("ai-impl:ai-agent")         // Agent 实现（ToolRegistry, ReAct, Plan-Execute）
 include("ai-impl:ai-agent-utils")   // Agent 工具类（SkillRegistry, SkillExecutor）
 include("ai-impl:ai-rag")           // RAG 实现（VectorStore, Embedding, Retriever）
+include("ai-impl:ai-etl")           // ETL 实现（Reader, Transformer, Writer, Pipeline）
 include("ai-impl:ai-resilience")    // 韧性实现（重试、熔断、降级）
 include("ai-impl:ai-observability")  // 可观测性实现（指标、追踪、审计）
 include("ai-impl:ai-security")      // 安全实现（API Key 管理、内容安全、PII 检测）
