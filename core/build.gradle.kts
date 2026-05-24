@@ -93,6 +93,7 @@ dependencies {
     testImplementation(libs.spring.boot.starter.web)
     testImplementation(libs.spring.boot.starter.security)
     testImplementation(libs.jakarta.validation.api)
+    testImplementation(libs.spring.boot.starter.validation)
     testImplementation(libs.spring.boot.starter.actuator)
     testImplementation(libs.spring.boot.health)
     testImplementation(libs.spring.aop)
