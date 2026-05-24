@@ -1,2 +1,3 @@
 io.github.afgprojects.framework.apt.module.AfgModuleAnnotationProcessor
 io.github.afgprojects.framework.apt.entity.EntityMetadataProcessor
+io.github.afgprojects.framework.apt.service.ServiceMetadataProcessor

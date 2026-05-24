@@ -31,6 +31,9 @@ dependencies {
 
     // APT 测试需要 data-core 模块的类
     testImplementation(project(":data-core"))
+
+    // APT 测试需要 core 模块的 ServiceMetadata 等接口
+    testImplementation(project(":core"))
 }
 
 tasks.withType<JavaCompile> {
