@@ -167,14 +167,14 @@ class ArchitectureTest {
          * Registry 类作为配置或模块注册器，应位于相应的包下以保持职责清晰。
          */
         @Test
-        @DisplayName("Registry 结尾的类应位于 config、module、client 或 api.registry 包下")
+        @DisplayName("Registry 结尾的类应位于 config、module、client、api.registry 或 invocation 包下")
         void registryClassesShouldBeInCorrectPackage() {
             ArchRule rule = classes()
                     .that()
                     .haveSimpleNameEndingWith("Registry")
                     .should()
-                    .resideInAnyPackage("..config..", "..module..", "..client..", "..api.registry..")
-                    .because("Registry 类应位于 config、module、client 或 api.registry 包下")
+                    .resideInAnyPackage("..config..", "..module..", "..client..", "..api.registry..", "..invocation..")
+                    .because("Registry 类应位于 config、module、client、api.registry 或 invocation 包下")
                     .allowEmptyShould(true);
 
             rule.check(coreClasses);
