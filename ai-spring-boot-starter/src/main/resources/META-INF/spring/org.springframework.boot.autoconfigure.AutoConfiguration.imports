@@ -2,3 +2,4 @@ io.github.afgprojects.framework.ai.autoconfigure.AiAutoConfiguration
 io.github.afgprojects.framework.ai.autoconfigure.EtlAutoConfiguration
 io.github.afgprojects.framework.ai.autoconfigure.SecureToolAutoConfiguration
 io.github.afgprojects.framework.ai.autoconfigure.ToolDiscoveryAutoConfiguration
+io.github.afgprojects.framework.ai.autoconfigure.ServiceToolAutoConfiguration
