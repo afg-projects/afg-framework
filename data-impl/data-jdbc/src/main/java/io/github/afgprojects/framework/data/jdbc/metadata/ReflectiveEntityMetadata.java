@@ -5,6 +5,7 @@ import io.github.afgprojects.framework.data.core.metadata.DatabaseFieldMetadata;
 import io.github.afgprojects.framework.data.core.metadata.FieldMetadata;
 import io.github.afgprojects.framework.data.core.relation.RelationMetadata;
 import org.jspecify.annotations.Nullable;
+import io.github.afgprojects.framework.commons.naming.NamingUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -193,7 +194,7 @@ public class ReflectiveEntityMetadata<T> implements DatabaseEntityMetadata<T> {
         }
 
         // 2. 默认：类名转 snake_case
-        return toSnakeCase(clazz.getSimpleName());
+        return NamingUtils.toSnakeCase(clazz.getSimpleName());
     }
 
     /**
@@ -257,21 +258,4 @@ public class ReflectiveEntityMetadata<T> implements DatabaseEntityMetadata<T> {
         return result;
     }
 
-    /**
-     * camelCase 转 snake_case
-     *
-     * @param name 属性名
-     * @return snake_case 格式的列名
-     */
-    private static String toSnakeCase(String name) {
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < name.length(); i++) {
-            char c = name.charAt(i);
-            if (i > 0 && Character.isUpperCase(c)) {
-                result.append('_');
-            }
-            result.append(Character.toLowerCase(c));
-        }
-        return result.toString();
-    }
 }

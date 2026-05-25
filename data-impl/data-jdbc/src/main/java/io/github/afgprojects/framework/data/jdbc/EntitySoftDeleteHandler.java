@@ -10,6 +10,9 @@ import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheManager;
 import org.jspecify.annotations.Nullable;
 import org.springframework.jdbc.core.simple.JdbcClient;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * 实体软删除处理器
  * <p>
@@ -89,12 +92,30 @@ class EntitySoftDeleteHandler<T> {
     }
 
     /**
-     * 恢复所有指定 ID 的记录
+     * 恢复所有指定 ID 的记录（使用 IN 子句批量操作）
      */
     void restoreAllById(Iterable<?> ids) {
-        for (Object id : ids) {
-            restoreById(id);
+        List<Object> idList = new ArrayList<>();
+        ids.forEach(idList::add);
+        if (idList.isEmpty()) {
+            return;
         }
+
+        String sql;
+        if (softDeleteStrategy == SoftDeleteStrategy.TIMESTAMP) {
+            sql = "UPDATE " + dialect.quoteIdentifier(metadata.getTableName()) +
+                   " SET deleted_at = NULL WHERE id IN (:ids)";
+        } else {
+            sql = "UPDATE " + dialect.quoteIdentifier(metadata.getTableName()) +
+                   " SET deleted = :deleted WHERE id IN (:ids)";
+        }
+
+        jdbcClient.sql(sql)
+            .param("ids", idList)
+            .param("deleted", false)
+            .update();
+
+        idList.forEach(this::evictCacheById);
     }
 
     /**
@@ -110,12 +131,21 @@ class EntitySoftDeleteHandler<T> {
     }
 
     /**
-     * 物理删除所有指定 ID 的记录（忽略软删除）
+     * 物理删除所有指定 ID 的记录（忽略软删除，使用 IN 子句批量操作）
      */
     void hardDeleteAllById(Iterable<?> ids) {
-        for (Object id : ids) {
-            hardDeleteById(id);
+        List<Object> idList = new ArrayList<>();
+        ids.forEach(idList::add);
+        if (idList.isEmpty()) {
+            return;
         }
+
+        String sql = "DELETE FROM " + dialect.quoteIdentifier(metadata.getTableName()) + " WHERE id IN (:ids)";
+        jdbcClient.sql(sql)
+            .param("ids", idList)
+            .update();
+
+        idList.forEach(this::evictCacheById);
     }
 
     /**

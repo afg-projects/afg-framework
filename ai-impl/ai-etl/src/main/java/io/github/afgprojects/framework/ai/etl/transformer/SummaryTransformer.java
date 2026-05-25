@@ -1,16 +1,13 @@
 package io.github.afgprojects.framework.ai.etl.transformer;
 
-import io.github.afgprojects.framework.ai.core.etl.Document;
-import io.github.afgprojects.framework.ai.core.etl.DocumentTransformer;
-import io.github.afgprojects.framework.ai.core.etl.LlmExecutor;
-import io.github.afgprojects.framework.ai.core.etl.PromptTemplate;
+import io.github.afgprojects.framework.ai.core.chat.AfgChatClient;
+import io.github.afgprojects.framework.ai.core.rag.Document;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 摘要生成转换器。
@@ -24,31 +21,36 @@ public class SummaryTransformer implements DocumentTransformer {
 
     private static final Logger log = LoggerFactory.getLogger(SummaryTransformer.class);
 
-    private final LlmExecutor llmExecutor;
-    private final PromptTemplate promptTemplate;
+    private static final String DEFAULT_SYSTEM_PROMPT = """
+            You are a summarization assistant. Your task is to generate a concise summary of the given text.
+            Preserve the key information and main points while reducing the length.
+            """;
+
+    private final AfgChatClient chatClient;
+    private final String systemPrompt;
     private final boolean replaceContent;
 
     /**
      * 创建摘要转换器。
      *
-     * @param llmExecutor LLM 执行器
+     * @param chatClient 对话客户端
      */
-    public SummaryTransformer(@NonNull LlmExecutor llmExecutor) {
-        this(llmExecutor, PromptTemplate.summarize(), false);
+    public SummaryTransformer(@NonNull AfgChatClient chatClient) {
+        this(chatClient, DEFAULT_SYSTEM_PROMPT, false);
     }
 
     /**
      * 创建摘要转换器。
      *
-     * @param llmExecutor    LLM 执行器
-     * @param promptTemplate Prompt 模板
+     * @param chatClient     对话客户端
+     * @param systemPrompt   系统提示词
      * @param replaceContent 是否用摘要替换原内容
      */
-    public SummaryTransformer(@NonNull LlmExecutor llmExecutor,
-                              @NonNull PromptTemplate promptTemplate,
+    public SummaryTransformer(@NonNull AfgChatClient chatClient,
+                              @NonNull String systemPrompt,
                               boolean replaceContent) {
-        this.llmExecutor = llmExecutor;
-        this.promptTemplate = promptTemplate;
+        this.chatClient = chatClient;
+        this.systemPrompt = systemPrompt;
         this.replaceContent = replaceContent;
     }
 
@@ -56,10 +58,11 @@ public class SummaryTransformer implements DocumentTransformer {
     public @NonNull List<Document> transform(@NonNull List<Document> documents) {
         List<Document> result = new ArrayList<>(documents.size());
 
+        AfgChatClient summaryClient = chatClient.withSystemPrompt(systemPrompt);
+
         for (Document doc : documents) {
             try {
-                String summary = llmExecutor.execute(promptTemplate,
-                    Map.of("content", doc.content()));
+                String summary = summaryClient.chat(doc.content()).content();
 
                 String newContent = replaceContent ? summary : doc.content();
                 Document newDoc = new Document(
@@ -83,12 +86,10 @@ public class SummaryTransformer implements DocumentTransformer {
         return result;
     }
 
-    @Override
     public @NonNull String getName() {
         return "SummaryTransformer";
     }
 
-    @Override
     public int getOrder() {
         return 200;
     }

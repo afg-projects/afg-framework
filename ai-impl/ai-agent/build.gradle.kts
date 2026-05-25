@@ -7,6 +7,9 @@ dependencies {
     api(project(":ai-core"))
     api(project(":data-core"))
 
+    // 依赖 ai-chat 实现（AfgChatClient、AiChatResponse、AiMessage）
+    api(project(":ai-impl:ai-chat"))
+
     // 依赖 security-core（权限服务）
     api(project(":security-core"))
 

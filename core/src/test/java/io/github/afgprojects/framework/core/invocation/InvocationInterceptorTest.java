@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Method;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -58,14 +59,20 @@ class InvocationInterceptorTest {
 
     private InvocationContext makeContext(String serviceName, String opName, boolean audit,
                                           Object[] args, Map<String, Object> rawArgs) {
-        return new DefaultInvocationContext(
-            new StubServiceMetadata(serviceName),
-            new StubOperationMetadata(opName, audit),
-            new Object(),
-            args != null ? args : new Object[0],
-            rawArgs != null ? rawArgs : Map.of(),
-            new HashMap<>()
-        );
+        StubServiceMetadata sm = new StubServiceMetadata(serviceName);
+        StubOperationMetadata om = new StubOperationMetadata(opName, audit);
+        Object bean = new Object();
+        Object[] resolvedArgs = args != null ? args : new Object[0];
+        Map<String, Object> arguments = rawArgs != null ? rawArgs : Map.of();
+        try {
+            Method method = Object.class.getMethod("toString");
+            return new DefaultInvocationContext(
+                serviceName, opName, sm, om,
+                arguments, resolvedArgs, bean, method
+            );
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     // --- Chain execution tests ---
@@ -311,21 +318,24 @@ class InvocationInterceptorTest {
     class DefaultInvocationContextTests {
 
         @Test
-        void recordAccessors() {
+        void recordAccessors() throws Exception {
             ServiceMetadata<?> sm = new StubServiceMetadata("svc");
             OperationMetadata om = new StubOperationMetadata("op");
             Object bean = new Object();
-            Object[] args = new Object[]{ "a" };
-            Map<String, Object> raw = Map.of("key", "val");
-            Map<String, Object> attrs = new HashMap<>();
+            Object[] resolvedArgs = new Object[]{ "a" };
+            Map<String, Object> arguments = Map.of("key", "val");
+            Method method = Object.class.getMethod("toString");
 
-            DefaultInvocationContext ctx = new DefaultInvocationContext(sm, om, bean, args, raw, attrs);
+            DefaultInvocationContext ctx = new DefaultInvocationContext(
+                "svc", "op", sm, om, arguments, resolvedArgs, bean, method);
+            assertEquals("svc", ctx.serviceName());
+            assertEquals("op", ctx.operationName());
             assertSame(sm, ctx.serviceMetadata());
             assertSame(om, ctx.operationMetadata());
-            assertSame(bean, ctx.targetBean());
-            assertSame(args, ctx.arguments());
-            assertSame(raw, ctx.rawArguments());
-            assertSame(attrs, ctx.attributes());
+            assertSame(arguments, ctx.arguments());
+            assertSame(resolvedArgs, ctx.resolvedArguments());
+            assertSame(bean, ctx.bean());
+            assertSame(method, ctx.method());
         }
     }
 
@@ -335,18 +345,23 @@ class InvocationInterceptorTest {
     class DefaultInvocationPlanTests {
 
         @Test
-        void recordAccessors() {
+        void recordAccessors() throws Exception {
             ServiceMetadata<?> sm = new StubServiceMetadata("svc");
             OperationMetadata om = new StubOperationMetadata("op");
             Object bean = new Object();
-            Object[] args = new Object[]{ "a" };
+            Object[] resolvedArgs = new Object[]{ "a" };
+            Map<String, Object> arguments = Map.of("key", "val");
+            Method method = Object.class.getMethod("toString");
             List<InvocationInterceptor> interceptors = List.of();
 
-            DefaultInvocationPlan plan = new DefaultInvocationPlan(sm, om, bean, args, interceptors);
+            DefaultInvocationContext ctx = new DefaultInvocationContext(
+                "svc", "op", sm, om, arguments, resolvedArgs, bean, method);
+            DefaultInvocationPlan plan = new DefaultInvocationPlan(
+                ctx, sm, om, bean, resolvedArgs, method, interceptors);
             assertSame(sm, plan.serviceMetadata());
             assertSame(om, plan.operationMetadata());
             assertSame(bean, plan.targetBean());
-            assertSame(args, plan.resolvedArguments());
+            assertSame(resolvedArgs, plan.resolvedArguments());
             assertSame(interceptors, plan.applicableInterceptors());
         }
     }

@@ -1,38 +1,42 @@
 package io.github.afgprojects.framework.ai.agent;
 
-import io.github.afgprojects.framework.ai.core.model.LlmClient;
-import io.github.afgprojects.framework.ai.core.model.LlmRequest;
-import io.github.afgprojects.framework.ai.core.model.LlmResponse;
+import io.github.afgprojects.framework.ai.core.chat.AfgChatClient;
+import io.github.afgprojects.framework.ai.core.chat.AiChatResponse;
+import io.github.afgprojects.framework.ai.core.chat.AiMessage;
 import io.github.afgprojects.framework.ai.core.planning.ReActResult;
 import io.github.afgprojects.framework.ai.core.tool.Tool;
 import io.github.afgprojects.framework.ai.core.tool.ToolRegistry;
 import io.github.afgprojects.framework.ai.agent.executor.DefaultReActExecutor;
 import io.github.afgprojects.framework.ai.agent.executor.ToolExecutor;
 import io.github.afgprojects.framework.ai.agent.tool.DefaultToolRegistry;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collection;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
  * AI Agent 集成测试
  *
- * <p>使用 Mock LLM 客户端测试 Agent 功能。
+ * <p>使用 Mock AfgChatClient 测试 Agent 功能。
  */
 class AgentIntegrationTest {
 
-    private LlmClient llmClient;
+    private AfgChatClient chatClient;
     private ToolRegistry toolRegistry;
 
     @BeforeEach
     void setUp() {
-        llmClient = mock(LlmClient.class);
+        chatClient = mock(AfgChatClient.class);
         toolRegistry = new DefaultToolRegistry();
     }
 
@@ -45,17 +49,16 @@ class AgentIntegrationTest {
         toolRegistry.register(calculator);
         toolRegistry.register(greeter);
 
-        // Mock LLM 响应
-        when(llmClient.chat(any(LlmRequest.class)))
-                .thenReturn(LlmResponse.of("我已经完成了计算和问候。"));
+        // Mock AfgChatClient 响应
+        AfgChatClient clientWithPrompt = mock(AfgChatClient.class);
+        when(chatClient.withSystemPrompt(anyString())).thenReturn(clientWithPrompt);
+        when(clientWithPrompt.chat(anyList())).thenReturn(AiChatResponse.of("我已经完成了计算和问候。"));
 
         // 创建 Tool 执行器
-        ToolExecutor executor = new ToolExecutor(toolRegistry, llmClient, 5, 30000L);
+        ToolExecutor executor = new ToolExecutor(toolRegistry, chatClient, 5, 30000L);
 
         // 发送请求
-        LlmRequest request = LlmRequest.ofUserMessage("请计算 10 + 20 并向用户打招呼");
-
-        LlmResponse response = executor.executeWithTools(request);
+        AiChatResponse response = executor.executeWithTools("请计算 10 + 20 并向用户打招呼");
 
         assertThat(response).isNotNull();
         assertThat(response.content()).isNotBlank();
@@ -73,12 +76,14 @@ class AgentIntegrationTest {
         String thought1 = "Thought: I need to calculate 15 + 27\nAction: calculator\nAction Input: {\"a\": 15, \"b\": 27, \"operation\": \"add\"}";
         String thought2 = "Thought: I have the result\nFinal Answer: 15 + 27 = 42.0";
 
-        when(llmClient.chat(any(LlmRequest.class)))
-                .thenReturn(LlmResponse.of(thought1))
-                .thenReturn(LlmResponse.of(thought2));
+        AfgChatClient clientWithPrompt = mock(AfgChatClient.class);
+        when(chatClient.withSystemPrompt(anyString())).thenReturn(clientWithPrompt);
+        when(clientWithPrompt.chat(anyList()))
+                .thenReturn(AiChatResponse.of(thought1))
+                .thenReturn(AiChatResponse.of(thought2));
 
         // 创建 ReAct 执行器
-        DefaultReActExecutor executor = new DefaultReActExecutor(llmClient, toolRegistry, 5);
+        DefaultReActExecutor executor = new DefaultReActExecutor(chatClient, toolRegistry, 5);
 
         // 执行任务
         ReActResult result = executor.execute("请计算 15 + 27 等于多少？");
@@ -99,17 +104,16 @@ class AgentIntegrationTest {
         toolRegistry.register(createGreeterTool());
         toolRegistry.register(createTimeTool());
 
-        // Mock LLM 响应
-        when(llmClient.chat(any(LlmRequest.class)))
-                .thenReturn(LlmResponse.of("我已经完成了所有任务。"));
+        // Mock AfgChatClient 响应
+        AfgChatClient clientWithPrompt = mock(AfgChatClient.class);
+        when(chatClient.withSystemPrompt(anyString())).thenReturn(clientWithPrompt);
+        when(clientWithPrompt.chat(anyList())).thenReturn(AiChatResponse.of("我已经完成了所有任务。"));
 
         // 创建执行器
-        ToolExecutor executor = new ToolExecutor(toolRegistry, llmClient, 5, 30000L);
+        ToolExecutor executor = new ToolExecutor(toolRegistry, chatClient, 5, 30000L);
 
         // 发送请求
-        LlmRequest request = LlmRequest.ofUserMessage("请告诉我时间，计算 5 * 8，然后向张三打招呼");
-
-        LlmResponse response = executor.executeWithTools(request);
+        AiChatResponse response = executor.executeWithTools("请告诉我时间，计算 5 * 8，然后向张三打招呼");
 
         assertThat(response).isNotNull();
         assertThat(response.content()).isNotBlank();
@@ -129,13 +133,13 @@ class AgentIntegrationTest {
         assertThat(toolRegistry.exists("calculator")).isTrue();
         assertThat(toolRegistry.exists("greeter")).isTrue();
 
-        // 获取工具定义
-        var definitions = toolRegistry.getAllToolDefinitions();
-        assertThat(definitions).hasSize(2);
+        // 获取所有工具
+        Collection<Tool<?, ?>> allTools = toolRegistry.getAllTools();
+        assertThat(allTools).hasSize(2);
 
         System.out.println("Registered tools:");
-        for (var def : definitions) {
-            System.out.println("  - " + def.name() + ": " + def.description());
+        for (Tool<?, ?> tool : allTools) {
+            System.out.println("  - " + tool.name() + ": " + tool.description());
         }
     }
 
@@ -165,19 +169,16 @@ class AgentIntegrationTest {
         toolRegistry.register(createGreeterTool());
 
         // 模拟多步骤工具调用
-        when(llmClient.chat(any(LlmRequest.class)))
-                .thenReturn(LlmResponse.of("第一步完成"))
-                .thenReturn(LlmResponse.of("第二步完成"))
-                .thenReturn(LlmResponse.of("所有步骤完成"));
+        AfgChatClient clientWithPrompt = mock(AfgChatClient.class);
+        when(chatClient.withSystemPrompt(anyString())).thenReturn(clientWithPrompt);
+        when(clientWithPrompt.chat(anyList()))
+                .thenReturn(AiChatResponse.of("第一步完成"))
+                .thenReturn(AiChatResponse.of("第二步完成"))
+                .thenReturn(AiChatResponse.of("所有步骤完成"));
 
-        ToolExecutor executor = new ToolExecutor(toolRegistry, llmClient, 5, 30000L);
+        ToolExecutor executor = new ToolExecutor(toolRegistry, chatClient, 5, 30000L);
 
-        LlmRequest request = LlmRequest.builder()
-                .systemPrompt("你是一个有用的助手")
-                .addMessage(io.github.afgprojects.framework.ai.core.memory.Message.user("执行多个任务"))
-                .build();
-
-        LlmResponse response = executor.executeWithTools(request);
+        AiChatResponse response = executor.executeWithTools("执行多个任务");
 
         assertThat(response).isNotNull();
         System.out.println("Final response: " + response.content());
@@ -189,17 +190,17 @@ class AgentIntegrationTest {
     private Tool<Map<String, Object>, Object> createCalculatorTool() {
         return new Tool<>() {
             @Override
-            public String name() {
+            public @NonNull String name() {
                 return "calculator";
             }
 
             @Override
-            public String description() {
+            public @NonNull String description() {
                 return "执行简单的数学计算。输入两个数字和操作符（add/subtract/multiply/divide）。";
             }
 
             @Override
-            public String inputSchema() {
+            public @NonNull String inputSchema() {
                 return """
                     {
                         "type": "object",
@@ -233,17 +234,17 @@ class AgentIntegrationTest {
     private Tool<Map<String, Object>, Object> createGreeterTool() {
         return new Tool<>() {
             @Override
-            public String name() {
+            public @NonNull String name() {
                 return "greeter";
             }
 
             @Override
-            public String description() {
+            public @NonNull String description() {
                 return "向用户打招呼。输入用户名字。";
             }
 
             @Override
-            public String inputSchema() {
+            public @NonNull String inputSchema() {
                 return "{\"type\": \"object\", \"properties\": {\"name\": {\"type\": \"string\"}}}";
             }
 
@@ -259,17 +260,17 @@ class AgentIntegrationTest {
     private Tool<Map<String, Object>, Object> createTimeTool() {
         return new Tool<>() {
             @Override
-            public String name() {
+            public @NonNull String name() {
                 return "current_time";
             }
 
             @Override
-            public String description() {
+            public @NonNull String description() {
                 return "获取当前时间。";
             }
 
             @Override
-            public String inputSchema() {
+            public @NonNull String inputSchema() {
                 return "{\"type\": \"object\"}";
             }
 

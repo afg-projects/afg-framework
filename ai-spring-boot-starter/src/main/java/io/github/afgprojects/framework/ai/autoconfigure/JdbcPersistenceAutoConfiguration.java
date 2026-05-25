@@ -5,9 +5,7 @@ import io.github.afgprojects.framework.ai.core.persistence.SessionStore;
 import io.github.afgprojects.framework.ai.persistence.JdbcMessageHistoryStore;
 import io.github.afgprojects.framework.ai.persistence.JdbcSessionStore;
 import io.github.afgprojects.framework.data.jdbc.JdbcDataManager;
-import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -17,44 +15,34 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 
 /**
- * JDBC 持久化自动配置
+ * Auto-configuration for JDBC-based AI persistence.
  *
- * <p>当 classpath 上存在 JdbcDataManager 且配置 type=jdbc 时激活。
- * 独立于 PersistenceAutoConfiguration 以避免类加载失败。
+ * <p>Configures JDBC-backed session storage and message history storage
+ * when a JdbcDataManager is available.
  *
- * @author afg-projects
- * @since 1.0.0
+ * @see PersistenceProperties
  */
-@AutoConfiguration(after = {AiAutoConfiguration.class, PersistenceAutoConfiguration.class})
-@EnableConfigurationProperties(AiConfigurationProperties.class)
+@Slf4j
+@AutoConfiguration
+@EnableConfigurationProperties(PersistenceProperties.class)
 @ConditionalOnClass(JdbcDataManager.class)
 @ConditionalOnBean(JdbcDataManager.class)
 @ConditionalOnProperty(prefix = "afg.ai.persistence", name = "type", havingValue = "jdbc")
 public class JdbcPersistenceAutoConfiguration {
 
-    private static final Logger log = LoggerFactory.getLogger(JdbcPersistenceAutoConfiguration.class);
-
     @Bean
-    @ConditionalOnMissingBean(SessionStore.class)
-    public SessionStore jdbcSessionStore(
-            @NonNull JdbcDataManager dataManager,
-            @NonNull AiConfigurationProperties properties) {
-
-        String tableName = properties.getPersistence().getSession().getTableName();
-        log.info("Creating JDBC session store with DataManager: table={}", tableName);
-
+    @ConditionalOnMissingBean
+    public SessionStore jdbcSessionStore(JdbcDataManager dataManager, PersistenceProperties properties) {
+        String tableName = properties.getSession().getTableName();
+        log.info("Creating JdbcSessionStore with tableName={}", tableName);
         return new JdbcSessionStore(dataManager, tableName);
     }
 
     @Bean
-    @ConditionalOnMissingBean(MessageHistoryStore.class)
-    public MessageHistoryStore jdbcMessageHistoryStore(
-            @NonNull JdbcDataManager dataManager,
-            @NonNull AiConfigurationProperties properties) {
-
-        String tableName = properties.getPersistence().getMessageHistory().getTableName();
-        log.info("Creating JDBC message history store with DataManager: table={}", tableName);
-
+    @ConditionalOnMissingBean
+    public MessageHistoryStore jdbcMessageHistoryStore(JdbcDataManager dataManager, PersistenceProperties properties) {
+        String tableName = properties.getMessageHistory().getTableName();
+        log.info("Creating JdbcMessageHistoryStore with tableName={}", tableName);
         return new JdbcMessageHistoryStore(dataManager, tableName);
     }
 }

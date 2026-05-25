@@ -1,7 +1,7 @@
 package io.github.afgprojects.framework.ai.autoconfigure;
 
-import io.github.afgprojects.framework.ai.core.etl.DocumentReader;
 import io.github.afgprojects.framework.ai.etl.reader.CompositeReader;
+import io.github.afgprojects.framework.ai.etl.reader.DocumentReader;
 import io.github.afgprojects.framework.ai.etl.reader.DefaultEncodingDetector;
 import io.github.afgprojects.framework.ai.etl.reader.EncodingDetector;
 import io.github.afgprojects.framework.ai.etl.transformer.RecursiveCharacterTextSplitter;

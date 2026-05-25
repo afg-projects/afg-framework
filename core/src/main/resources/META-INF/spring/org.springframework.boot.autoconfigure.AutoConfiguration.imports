@@ -13,7 +13,6 @@ io.github.afgprojects.framework.core.autoconfigure.CacheAutoConfiguration
 io.github.afgprojects.framework.core.autoconfigure.LockAutoConfiguration
 io.github.afgprojects.framework.core.autoconfigure.MultiDataSourceAutoConfiguration
 io.github.afgprojects.framework.core.autoconfigure.VirtualThreadAutoConfiguration
-io.github.afgprojects.framework.core.autoconfigure.TracingAutoConfiguration
 io.github.afgprojects.framework.core.autoconfigure.AfgSecurityAutoConfiguration
 io.github.afgprojects.framework.core.autoconfigure.SignatureAutoConfiguration
 io.github.afgprojects.framework.core.autoconfigure.RateLimitAutoConfiguration

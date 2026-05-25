@@ -13,6 +13,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 关联加载辅助类
@@ -27,9 +28,9 @@ class AssociationLoader {
     private final JdbcDataManager dataManager;
 
     /**
-     * 字段缓存，避免每次反射查找
+     * 字段缓存，避免每次反射查找（使用 ConcurrentHashMap 保证线程安全）
      */
-    private final Map<Class<?>, Map<String, Field>> fieldCache = new HashMap<>();
+    private final Map<Class<?>, Map<String, Field>> fieldCache = new ConcurrentHashMap<>();
 
     AssociationLoader(Dialect dialect, JdbcDataManager dataManager) {
         this.dialect = dialect;

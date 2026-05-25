@@ -1,6 +1,9 @@
 package io.github.afgprojects.framework.ai.core.etl;
 
+import io.github.afgprojects.framework.ai.core.rag.Document;
+
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,6 +11,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * 默认 ETL Pipeline 实现。
@@ -19,16 +24,18 @@ public class DefaultEtlPipeline implements EtlPipeline {
 
     private static final Logger log = LoggerFactory.getLogger(DefaultEtlPipeline.class);
 
-    private final DocumentReader reader;
-    private final List<DocumentTransformer> transformers;
-    private final DocumentWriter writer;
-    private final ErrorHandler errorHandler;
+    private static final int DEFAULT_MAX_ATTEMPTS = 4;
+
+    private final Function<List<Source>, List<Document>> reader;
+    private final List<Function<List<Document>, List<Document>>> transformers;
+    private final Consumer<List<Document>> writer;
+    private final @Nullable Consumer<Exception> errorHandler;
 
     public DefaultEtlPipeline(
-        @NonNull DocumentReader reader,
-        @NonNull List<DocumentTransformer> transformers,
-        @NonNull DocumentWriter writer,
-        @NonNull ErrorHandler errorHandler
+        @NonNull Function<List<Source>, List<Document>> reader,
+        @NonNull List<Function<List<Document>, List<Document>>> transformers,
+        @NonNull Consumer<List<Document>> writer,
+        @Nullable Consumer<Exception> errorHandler
     ) {
         this.reader = reader;
         this.transformers = transformers;
@@ -49,18 +56,20 @@ public class DefaultEtlPipeline implements EtlPipeline {
         // 1. Read
         List<Document> documents = new ArrayList<>();
         try {
-            documents.addAll(reader.readAll(sources));
+            documents.addAll(reader.apply(sources));
             log.debug("Read {} documents from {} sources", documents.size(), sources.size());
         } catch (Exception e) {
             log.error("Failed to read documents", e);
             context.recordFailure(null, "read", e);
+            handleError(e);
             return buildResult(documents, context, start);
         }
 
         // 2. Transform（带重试支持）
         List<Document> transformed = documents;
-        for (DocumentTransformer transformer : transformers) {
-            transformed = executeTransformerWithRetry(transformer, transformed, context);
+        for (int i = 0; i < transformers.size(); i++) {
+            Function<List<Document>, List<Document>> transformer = transformers.get(i);
+            transformed = executeTransformerWithRetry(transformer, i, transformed, context);
             if (transformed.isEmpty() && !context.getFailures().isEmpty()) {
                 // 如果全部失败且使用 FAIL_FAST 策略，提前返回
                 break;
@@ -77,24 +86,25 @@ public class DefaultEtlPipeline implements EtlPipeline {
      * 执行转换器，支持重试。
      */
     private List<Document> executeTransformerWithRetry(
-            DocumentTransformer transformer,
+            Function<List<Document>, List<Document>> transformer,
+            int index,
             List<Document> documents,
             EtlContext context) {
 
-        int maxAttempts = getMaxRetryAttempts();
+        int maxAttempts = DEFAULT_MAX_ATTEMPTS;
         List<Document> result = documents;
 
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
-                result = transformer.transform(result);
+                result = transformer.apply(result);
                 log.debug("Transformer {} produced {} documents (attempt {}/{})",
-                    transformer.getName(), result.size(), attempt, maxAttempts);
+                    index, result.size(), attempt, maxAttempts);
                 return result;
             } catch (Exception e) {
                 log.warn("Transformer {} failed (attempt {}/{}): {}",
-                    transformer.getName(), attempt, maxAttempts, e.getMessage());
+                    index, attempt, maxAttempts, e.getMessage());
 
-                if (attempt < maxAttempts && shouldRetryOnError(e, context)) {
+                if (attempt < maxAttempts) {
                     // 等待后重试
                     sleepBeforeRetry();
                     result = documents; // 重置输入
@@ -102,12 +112,11 @@ public class DefaultEtlPipeline implements EtlPipeline {
                 }
 
                 // 记录失败
-                log.error("Transformer {} failed after {} attempts", transformer.getName(), attempt);
+                log.error("Transformer {} failed after {} attempts", index, attempt);
                 for (Document doc : documents) {
-                    if (!errorHandler.handle(doc, e, context)) {
-                        return result; // FAIL_FAST，提前返回
-                    }
+                    context.recordFailure(doc, "transform", e);
                 }
+                handleError(e);
                 return result;
             }
         }
@@ -119,11 +128,11 @@ public class DefaultEtlPipeline implements EtlPipeline {
      * 执行写入，支持重试。
      */
     private void executeWriteWithRetry(List<Document> documents, EtlContext context) {
-        int maxAttempts = getMaxRetryAttempts();
+        int maxAttempts = DEFAULT_MAX_ATTEMPTS;
 
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
-                writer.write(documents);
+                writer.accept(documents);
                 log.debug("Wrote {} documents (attempt {}/{})",
                     documents.size(), attempt, maxAttempts);
                 return;
@@ -131,7 +140,7 @@ public class DefaultEtlPipeline implements EtlPipeline {
                 log.warn("Write failed (attempt {}/{}): {}",
                     attempt, maxAttempts, e.getMessage());
 
-                if (attempt < maxAttempts && shouldRetryOnError(e, context)) {
+                if (attempt < maxAttempts) {
                     sleepBeforeRetry();
                     continue;
                 }
@@ -139,42 +148,29 @@ public class DefaultEtlPipeline implements EtlPipeline {
                 // 记录失败
                 log.error("Write failed after {} attempts", attempt);
                 for (Document doc : documents) {
-                    if (!errorHandler.handle(doc, e, context)) {
-                        break;
-                    }
+                    context.recordFailure(doc, "write", e);
                 }
+                handleError(e);
                 return;
             }
         }
     }
 
     /**
-     * 获取最大重试次数。
+     * 处理错误。
      */
-    private int getMaxRetryAttempts() {
-        if (errorHandler instanceof DefaultErrorHandler defaultHandler) {
-            return defaultHandler.getMaxRetries() + 1; // +1 表示首次尝试
+    private void handleError(Exception e) {
+        if (errorHandler != null) {
+            errorHandler.accept(e);
         }
-        return 4; // 默认 3 次重试 + 1 次首次尝试
-    }
-
-    /**
-     * 判断是否应该重试。
-     */
-    private boolean shouldRetryOnError(Exception error, EtlContext context) {
-        return errorHandler instanceof DefaultErrorHandler;
     }
 
     /**
      * 重试前等待。
      */
     private void sleepBeforeRetry() {
-        Duration delay = Duration.ofSeconds(1);
-        if (errorHandler instanceof DefaultErrorHandler defaultHandler) {
-            delay = defaultHandler.getRetryDelay();
-        }
         try {
-            Thread.sleep(delay.toMillis());
+            Thread.sleep(Duration.ofSeconds(1).toMillis());
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }

@@ -1,13 +1,12 @@
 package io.github.afgprojects.framework.ai.agent.executor;
 
+import io.github.afgprojects.framework.ai.core.chat.AfgChatClient;
+import io.github.afgprojects.framework.ai.core.chat.AiChatResponse;
+import io.github.afgprojects.framework.ai.core.chat.AiMessage;
+import io.github.afgprojects.framework.ai.core.exception.AiException;
 import io.github.afgprojects.framework.ai.core.exception.ToolException;
-import io.github.afgprojects.framework.ai.core.model.LlmClient;
-import io.github.afgprojects.framework.ai.core.model.LlmRequest;
-import io.github.afgprojects.framework.ai.core.model.LlmResponse;
 import io.github.afgprojects.framework.ai.core.tool.Tool;
-import io.github.afgprojects.framework.ai.core.tool.ToolCall;
 import io.github.afgprojects.framework.ai.core.tool.ToolRegistry;
-import io.github.afgprojects.framework.ai.core.tool.ToolResult;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -23,6 +22,7 @@ import java.util.concurrent.TimeUnit;
  * 工具执行器
  *
  * <p>负责执行工具调用并将结果返回给 LLM。
+ * 使用 AfgChatClient 进行对话，Spring AI Advisor 链处理原生工具调用。
  *
  * @author afg-projects
  * @since 1.0.0
@@ -32,7 +32,7 @@ public class ToolExecutor {
     private static final Logger log = LoggerFactory.getLogger(ToolExecutor.class);
 
     private final ToolRegistry toolRegistry;
-    private final LlmClient llmClient;
+    private final AfgChatClient chatClient;
     private final int maxIterations;
     private final long timeoutMs;
 
@@ -40,160 +40,133 @@ public class ToolExecutor {
      * 创建工具执行器
      *
      * @param toolRegistry  工具注册表
-     * @param llmClient     LLM 客户端
+     * @param chatClient    对话客户端
      * @param maxIterations 最大迭代次数
      * @param timeoutMs     执行超时（毫秒）
      */
     public ToolExecutor(
             @NonNull ToolRegistry toolRegistry,
-            @NonNull LlmClient llmClient,
+            @NonNull AfgChatClient chatClient,
             int maxIterations,
             long timeoutMs
     ) {
         this.toolRegistry = toolRegistry;
-        this.llmClient = llmClient;
+        this.chatClient = chatClient;
         this.maxIterations = maxIterations;
         this.timeoutMs = timeoutMs;
     }
 
     /**
-     * 执行带工具调用的请求
+     * 执行带工具调用的对话
      *
      * <p>循环执行：
      * <ol>
      *   <li>调用 LLM</li>
-     *   <li>如果有工具调用，执行工具</li>
-     *   <li>将工具结果反馈给 LLM</li>
-     *   <li>重复直到 LLM 返回最终答案或达到最大迭代次数</li>
+     *   <li>如果 LLM 返回最终答案（无工具调用），返回结果</li>
+     *   <li>否则继续迭代直到达到最大迭代次数</li>
      * </ol>
      *
-     * @param request 初始请求
+     * <p>Spring AI Advisor 链自动处理工具调用，
+     * 本方法负责编排多轮对话流程。
+     *
+     * @param systemPrompt 系统提示词
+     * @param messages     对话消息列表
      * @return 最终响应
      */
-    public @NonNull LlmResponse executeWithTools(@NonNull LlmRequest request) {
-        LlmRequest currentRequest = request;
-        int iteration = 0;
+    public @NonNull AiChatResponse executeWithTools(
+            @Nullable String systemPrompt,
+            @NonNull List<AiMessage> messages
+    ) {
+        AfgChatClient client = systemPrompt != null
+                ? chatClient.withSystemPrompt(systemPrompt)
+                : chatClient;
 
-        while (iteration < maxIterations) {
-            iteration++;
+        List<AiMessage> currentMessages = new ArrayList<>(messages);
+        AiChatResponse lastResponse = null;
+
+        for (int iteration = 1; iteration <= maxIterations; iteration++) {
             log.debug("Tool execution iteration {}", iteration);
 
-            // 调用 LLM
-            LlmResponse response = llmClient.chat(currentRequest);
+            // 调用 LLM（Spring AI Advisor 链自动处理工具调用）
+            AiChatResponse response = client.chat(currentMessages);
+            String content = response.content() != null ? response.content() : "";
 
-            // 如果没有工具调用，返回结果
-            if (!response.hasToolCalls()) {
-                log.debug("LLM returned final response after {} iterations", iteration);
-                return response;
+            if (content.isBlank()) {
+                log.debug("Empty response at iteration {}, continuing", iteration);
+                continue;
             }
 
-            // 执行工具调用
-            List<ToolResult> toolResults = executeTools(response.toolCalls());
-
-            // 构建包含工具结果的请求
-            currentRequest = buildRequestWithToolResults(currentRequest, response, toolResults);
+            // Advisor 链已处理工具调用，响应为最终结果
+            log.debug("LLM returned response after {} iterations", iteration);
+            lastResponse = response;
+            break;
         }
 
-        log.warn("Max iterations ({}) reached, returning last response", maxIterations);
-        return llmClient.chat(currentRequest);
-    }
-
-    /**
-     * 异步执行带工具调用的请求
-     */
-    public @NonNull CompletableFuture<LlmResponse> executeWithToolsAsync(@NonNull LlmRequest request) {
-        return CompletableFuture.supplyAsync(() -> executeWithTools(request));
-    }
-
-    /**
-     * 执行工具调用列表
-     */
-    private @NonNull List<ToolResult> executeTools(@NonNull List<ToolCall> toolCalls) {
-        List<ToolResult> results = new ArrayList<>();
-
-        for (ToolCall call : toolCalls) {
-            ToolResult result = executeSingleTool(call);
-            results.add(result);
+        if (lastResponse != null) {
+            return lastResponse;
         }
 
-        return results;
+        log.warn("Max iterations ({}) reached, making final call", maxIterations);
+        return client.chat(currentMessages);
     }
 
     /**
-     * 执行单个工具调用
+     * 执行带工具调用的对话（简化版）
+     *
+     * @param task 用户任务
+     * @return 最终响应
      */
-    private @NonNull ToolResult executeSingleTool(@NonNull ToolCall call) {
-        log.debug("Executing tool: {} with id: {}", call.name(), call.id());
+    public @NonNull AiChatResponse executeWithTools(@NonNull String task) {
+        List<AiMessage> messages = new ArrayList<>();
+        messages.add(AiMessage.user(task));
+        return executeWithTools(null, messages);
+    }
 
-        // 查找工具
-        var toolOpt = toolRegistry.getTool(call.name());
+    /**
+     * 异步执行带工具调用的对话
+     */
+    public @NonNull CompletableFuture<AiChatResponse> executeWithToolsAsync(
+            @Nullable String systemPrompt,
+            @NonNull List<AiMessage> messages
+    ) {
+        return CompletableFuture.supplyAsync(() -> executeWithTools(systemPrompt, messages));
+    }
+
+    /**
+     * 异步执行带工具调用的对话（简化版）
+     */
+    public @NonNull CompletableFuture<AiChatResponse> executeWithToolsAsync(@NonNull String task) {
+        return CompletableFuture.supplyAsync(() -> executeWithTools(task));
+    }
+
+    /**
+     * 执行单个工具（带超时）
+     *
+     * @param toolName  工具名称
+     * @param arguments 工具参数
+     * @return 工具执行结果
+     */
+    public @Nullable Object executeTool(@NonNull String toolName, @NonNull Map<String, Object> arguments) {
+        var toolOpt = toolRegistry.getTool(toolName);
         if (toolOpt.isEmpty()) {
-            log.warn("Tool not found: {}", call.name());
-            return new ToolResult(call.id(), call.name(), null, "Tool not found: " + call.name());
+            throw new ToolException("Tool not found: " + toolName,
+                    AiException.ErrorCodes.TOOL_NOT_FOUND, toolName);
         }
 
         Tool<?, ?> tool = toolOpt.get();
 
         try {
-            // 执行工具（带超时）
-            Object output = executeWithTimeout(tool, call.arguments());
-
-            log.debug("Tool {} executed successfully", call.name());
-            return new ToolResult(call.id(), call.name(), output != null ? output.toString() : "", null);
-
-        } catch (Exception e) {
-            log.error("Tool {} execution failed: {}", call.name(), e.getMessage());
-            return new ToolResult(call.id(), call.name(), null, e.getMessage());
-        }
-    }
-
-    /**
-     * 带超时执行工具
-     */
-    private @Nullable Object executeWithTimeout(@NonNull Tool<?, ?> tool, @NonNull Map<String, Object> arguments) {
-        try {
             return CompletableFuture.supplyAsync(() -> {
-                // 由于 Tool 是泛型，我们需要使用原始类型执行
-                // 实际实现中应该有类型安全的转换
                 @SuppressWarnings("unchecked")
                 Tool<Map<String, Object>, Object> typedTool = (Tool<Map<String, Object>, Object>) tool;
                 return typedTool.execute(arguments);
             }).get(timeoutMs, TimeUnit.MILLISECONDS);
         } catch (java.util.concurrent.TimeoutException e) {
-            throw new ToolException("Tool execution timeout: " + tool.name(), ToolException.ErrorCodes.TOOL_EXECUTION_FAILED, tool.name(), e);
+            throw new ToolException("Tool execution timeout: " + toolName,
+                    AiException.ErrorCodes.TOOL_EXECUTION_FAILED, toolName, e);
         } catch (Exception e) {
-            throw new ToolException("Tool execution failed: " + tool.name(), ToolException.ErrorCodes.TOOL_EXECUTION_FAILED, tool.name(), e);
+            throw new ToolException("Tool execution failed: " + toolName,
+                    AiException.ErrorCodes.TOOL_EXECUTION_FAILED, toolName, e);
         }
-    }
-
-    /**
-     * 构建包含工具结果的请求
-     */
-    private @NonNull LlmRequest buildRequestWithToolResults(
-            @NonNull LlmRequest previousRequest,
-            @NonNull LlmResponse response,
-            @NonNull List<ToolResult> toolResults
-    ) {
-        // 构建消息列表
-        List<io.github.afgprojects.framework.ai.core.memory.Message> messages = new ArrayList<>(previousRequest.messages());
-
-        // 添加助手响应（包含工具调用）
-        messages.add(io.github.afgprojects.framework.ai.core.memory.Message.assistantWithTools(
-                response.content(),
-                new ArrayList<>(response.toolCalls())
-        ));
-
-        // 添加工具结果
-        messages.add(io.github.afgprojects.framework.ai.core.memory.Message.tool(
-                null,
-                new ArrayList<>(toolResults)
-        ));
-
-        return new LlmRequest(
-                previousRequest.systemPrompt(),
-                messages,
-                previousRequest.tools(),
-                previousRequest.options()
-        );
     }
 }

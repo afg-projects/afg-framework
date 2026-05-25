@@ -1,5 +1,7 @@
 package io.github.afgprojects.framework.ai.core.etl;
 
+import io.github.afgprojects.framework.ai.core.rag.Document;
+
 import org.jspecify.annotations.NonNull;
 
 import java.time.Duration;

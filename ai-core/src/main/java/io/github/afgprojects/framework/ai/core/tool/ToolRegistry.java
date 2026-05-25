@@ -62,17 +62,7 @@ public interface ToolRegistry {
      */
     Collection<Tool<?, ?>> getAllTools();
 
-    /**
-     * Gets all tool definitions.
-     * <p>
-     * This is useful for providing tool information to AI models
-     * without exposing the actual implementations.
-     * </p>
-     *
-     * @return a collection of all tool definitions
-     */
-    Collection<ToolDefinition> getAllToolDefinitions();
-
+    
     /**
      * Checks if a tool with the given name exists.
      *

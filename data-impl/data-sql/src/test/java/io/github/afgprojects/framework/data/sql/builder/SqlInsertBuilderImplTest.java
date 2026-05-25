@@ -43,8 +43,8 @@ class SqlInsertBuilderImplTest {
         void testH2DialectConstructor() {
             SqlInsertBuilderImpl builder = new SqlInsertBuilderImpl(new H2Dialect());
             String sql = builder.into("users").columns("name").values("test").toSql();
-            // H2 方言不添加引号
-            assertThat(sql).contains("INSERT INTO users");
+            // H2 方言使用双引号引用标识符
+            assertThat(sql).contains("INSERT INTO \"users\"");
         }
     }
 

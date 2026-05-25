@@ -80,10 +80,10 @@ class FieldNameResolverIntegrationTest {
 
             assertThat(condition.getCriteria()).hasSize(2);
             assertThat(condition.getCriteria().get(0).field()).isEqualTo("is_deleted");
-            // Nested conditions use "__nested__" as field name
-            assertThat(condition.getCriteria().get(1).field()).isEqualTo("__nested__");
+            // Nested conditions use isNested() flag
+            assertThat(condition.getCriteria().get(1).isNested()).isTrue();
             // Verify the nested condition itself has correct field names
-            Condition nestedCondition = (Condition) condition.getCriteria().get(1).value();
+            Condition nestedCondition = condition.getCriteria().get(1).nestedCondition();
             assertThat(nestedCondition.getCriteria().get(0).field()).isEqualTo("status");
         }
 

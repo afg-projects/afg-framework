@@ -1,7 +1,6 @@
 package io.github.afgprojects.framework.ai.etl.reader;
 
-import io.github.afgprojects.framework.ai.core.etl.Document;
-import io.github.afgprojects.framework.ai.core.etl.DocumentReader;
+import io.github.afgprojects.framework.ai.core.rag.Document;
 import io.github.afgprojects.framework.ai.core.etl.Source;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;

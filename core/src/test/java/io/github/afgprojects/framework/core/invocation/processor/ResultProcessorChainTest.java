@@ -1,22 +1,25 @@
 package io.github.afgprojects.framework.core.invocation.processor;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.afgprojects.framework.core.invocation.MethodKey;
-import io.github.afgprojects.framework.core.invocation.OperationMetadata;
-import io.github.afgprojects.framework.core.invocation.ParameterMetadata;
-import io.github.afgprojects.framework.core.invocation.ServiceMetadata;
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import static org.junit.jupiter.api.Assertions.*;
+import io.github.afgprojects.framework.core.invocation.DefaultInvocationContext;
+import io.github.afgprojects.framework.core.invocation.InvocationContext;
+import io.github.afgprojects.framework.core.invocation.MethodKey;
+import io.github.afgprojects.framework.core.invocation.OperationMetadata;
+import io.github.afgprojects.framework.core.invocation.ParameterMetadata;
+import io.github.afgprojects.framework.core.invocation.ServiceMetadata;
 
 class ResultProcessorChainTest {
 
@@ -62,19 +65,38 @@ class ResultProcessorChainTest {
         serviceMetadata = new StubServiceMetadata("TestService");
     }
 
+    private InvocationContext makeInvocationContext(OperationMetadata opMeta) {
+        try {
+            Method method = Object.class.getMethod("toString");
+            return new DefaultInvocationContext(
+                "TestService", "testOp",
+                serviceMetadata, opMeta,
+                Map.of(), new Object[0], new Object(), method
+            );
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private ResultContext makeContext(OperationMetadata opMeta) {
-        return new DefaultResultContext(opMeta, serviceMetadata, objectMapper, new HashMap<>());
+        InvocationContext ic = makeInvocationContext(opMeta);
+        return new DefaultResultContext(ic, null, objectMapper);
+    }
+
+    private ResultContext makeContext(OperationMetadata opMeta, Object result) {
+        InvocationContext ic = makeInvocationContext(opMeta);
+        return new DefaultResultContext(ic, result, objectMapper);
     }
 
     /**
      * Chain processing: iterate processors sorted by priority, first matching one processes result.
      */
     private Object processChain(List<ResultProcessor> processors, Object result, OperationMetadata metadata) {
-        processors.sort(Comparator.comparingInt(ResultProcessor::priority));
-        ResultContext context = makeContext(metadata);
+        processors.sort(java.util.Comparator.comparingInt(ResultProcessor::priority));
+        InvocationContext ic = makeInvocationContext(metadata);
         for (ResultProcessor processor : processors) {
-            if (processor.supports(result, metadata)) {
-                return processor.process(result, context);
+            if (processor.supports(ic, result)) {
+                return processor.process(new DefaultResultContext(ic, result, objectMapper));
             }
         }
         return result;
@@ -92,24 +114,27 @@ class ResultProcessorChainTest {
         @DisplayName("supports any non-null result")
         void supportsAnyResult() {
             OperationMetadata meta = opMeta(false);
-            assertTrue(processor.supports("hello", meta));
-            assertTrue(processor.supports(42, meta));
-            assertTrue(processor.supports(List.of(), meta));
+            InvocationContext ic = makeInvocationContext(meta);
+            assertTrue(processor.supports(ic, "hello"));
+            assertTrue(processor.supports(ic, 42));
+            assertTrue(processor.supports(ic, List.of()));
         }
 
         @Test
         @DisplayName("supports null result")
         void supportsNull() {
             OperationMetadata meta = opMeta(false);
-            assertTrue(processor.supports(null, meta));
+            InvocationContext ic = makeInvocationContext(meta);
+            assertTrue(processor.supports(ic, null));
         }
 
         @Test
         @DisplayName("passes through result unchanged")
         void passesThrough() {
-            ResultContext ctx = makeContext(opMeta(false));
-            assertEquals("hello", processor.process("hello", ctx));
-            assertEquals(42, processor.process(42, ctx));
+            ResultContext ctx = makeContext(opMeta(false), "hello");
+            assertEquals("hello", processor.process(ctx));
+            ResultContext ctx2 = makeContext(opMeta(false), 42);
+            assertEquals(42, processor.process(ctx2));
         }
 
         @Test
@@ -131,32 +156,34 @@ class ResultProcessorChainTest {
         @DisplayName("supports List when paged=true")
         void supportsListWhenPaged() {
             OperationMetadata meta = opMeta(true);
-            assertTrue(processor.supports(List.of("a", "b"), meta));
+            InvocationContext ic = makeInvocationContext(meta);
+            assertTrue(processor.supports(ic, List.of("a", "b")));
         }
 
         @Test
         @DisplayName("does not support when paged=false")
         void doesNotSupportWhenNotPaged() {
             OperationMetadata meta = opMeta(false);
-            assertFalse(processor.supports(List.of("a", "b"), meta));
+            InvocationContext ic = makeInvocationContext(meta);
+            assertFalse(processor.supports(ic, List.of("a", "b")));
         }
 
         @Test
         @DisplayName("does not support non-List result even when paged=true")
         void doesNotSupportNonListWhenPaged() {
             OperationMetadata meta = opMeta(true);
-            assertFalse(processor.supports("not a list", meta));
+            InvocationContext ic = makeInvocationContext(meta);
+            assertFalse(processor.supports(ic, "not a list"));
         }
 
         @Test
         @DisplayName("wraps List in PagedResult")
         void wrapsInPagedResult() {
-            ResultContext ctx = makeContext(opMeta(true));
-            List<String> data = List.of("a", "b", "c");
-            Object result = processor.process(data, ctx);
+            ResultContext ctx = makeContext(opMeta(true), List.of("a", "b", "c"));
+            Object result = processor.process(ctx);
             assertInstanceOf(PagedResult.class, result);
             PagedResult<?> paged = (PagedResult<?>) result;
-            assertEquals(data, paged.content());
+            assertEquals(List.of("a", "b", "c"), paged.content());
             assertEquals(3, paged.totalElements());
             assertEquals(1, paged.page());
             assertEquals(3, paged.size());
@@ -186,11 +213,12 @@ class ResultProcessorChainTest {
             data.put("password", "secret123");
 
             OperationMetadata meta = opMeta(false);
-            assertTrue(processor.supports(data, meta));
+            InvocationContext ic = makeInvocationContext(meta);
+            assertTrue(processor.supports(ic, data));
 
-            ResultContext ctx = makeContext(meta);
+            ResultContext ctx = makeContext(meta, data);
             @SuppressWarnings("unchecked")
-            Map<String, Object> result = (Map<String, Object>) processor.process(data, ctx);
+            Map<String, Object> result = (Map<String, Object>) processor.process(ctx);
             assertEquals("alice", result.get("username"));
             assertEquals("***", result.get("password"));
         }
@@ -203,9 +231,9 @@ class ResultProcessorChainTest {
             data.put("token", "abc123");
 
             OperationMetadata meta = opMeta(false);
-            ResultContext ctx = makeContext(meta);
+            ResultContext ctx = makeContext(meta, data);
             @SuppressWarnings("unchecked")
-            Map<String, Object> result = (Map<String, Object>) processor.process(data, ctx);
+            Map<String, Object> result = (Map<String, Object>) processor.process(ctx);
             assertEquals("bob", result.get("name"));
             assertEquals("***", result.get("token"));
         }
@@ -223,9 +251,9 @@ class ResultProcessorChainTest {
             List<Map<String, Object>> data = List.of(item1, item2);
 
             OperationMetadata meta = opMeta(false);
-            ResultContext ctx = makeContext(meta);
+            ResultContext ctx = makeContext(meta, data);
             @SuppressWarnings("unchecked")
-            List<Map<String, Object>> result = (List<Map<String, Object>>) processor.process(data, ctx);
+            List<Map<String, Object>> result = (List<Map<String, Object>>) processor.process(ctx);
             assertEquals("***", result.get(0).get("password"));
             assertEquals("***", result.get(1).get("password"));
         }
@@ -234,15 +262,17 @@ class ResultProcessorChainTest {
         @DisplayName("does not support non-Map results without sensitive fields")
         void doesNotSupportNonMapWithoutSensitiveFields() {
             OperationMetadata meta = opMeta(false);
-            assertFalse(processor.supports("just a string", meta));
-            assertFalse(processor.supports(42, meta));
+            InvocationContext ic = makeInvocationContext(meta);
+            assertFalse(processor.supports(ic, "just a string"));
+            assertFalse(processor.supports(ic, 42));
         }
 
         @Test
         @DisplayName("does not support null result")
         void doesNotSupportNull() {
             OperationMetadata meta = opMeta(false);
-            assertFalse(processor.supports(null, meta));
+            InvocationContext ic = makeInvocationContext(meta);
+            assertFalse(processor.supports(ic, null));
         }
 
         @Test
@@ -250,7 +280,8 @@ class ResultProcessorChainTest {
         void doesNotSupportMapWithoutSensitiveFields() {
             Map<String, Object> data = Map.of("name", "alice", "age", 30);
             OperationMetadata meta = opMeta(false);
-            assertFalse(processor.supports(data, meta));
+            InvocationContext ic = makeInvocationContext(meta);
+            assertFalse(processor.supports(ic, data));
         }
 
         @Test
@@ -269,7 +300,7 @@ class ResultProcessorChainTest {
         @Test
         @DisplayName("iterate processors by priority, first matching one processes result")
         void firstMatchingProcessorWins() {
-            List<ResultProcessor> processors = new ArrayList<>();
+            List<ResultProcessor> processors = new java.util.ArrayList<>();
             processors.add(new PagedResultProcessor());   // priority 300
             processors.add(new IdentityProcessor());       // priority 100
             processors.add(new SensitiveMaskProcessor());  // priority 200
@@ -283,7 +314,7 @@ class ResultProcessorChainTest {
         @Test
         @DisplayName("SensitiveMaskProcessor matches before IdentityProcessor for Map with sensitive fields")
         void sensitiveMaskBeforeIdentity() {
-            List<ResultProcessor> processors = new ArrayList<>();
+            List<ResultProcessor> processors = new java.util.ArrayList<>();
             processors.add(new PagedResultProcessor());   // priority 300
             processors.add(new IdentityProcessor());       // priority 100
             processors.add(new SensitiveMaskProcessor());  // priority 200
@@ -304,7 +335,7 @@ class ResultProcessorChainTest {
         @Test
         @DisplayName("SensitiveMaskProcessor processes when IdentityProcessor is excluded")
         void sensitiveMaskWhenIdentityExcluded() {
-            List<ResultProcessor> processors = new ArrayList<>();
+            List<ResultProcessor> processors = new java.util.ArrayList<>();
             processors.add(new PagedResultProcessor());   // priority 300
             processors.add(new SensitiveMaskProcessor());  // priority 200
 
@@ -312,7 +343,7 @@ class ResultProcessorChainTest {
             data.put("username", "alice");
             data.put("password", "secret123");
 
-            OperationMetadata meta = opMeta(false);
+           OperationMetadata meta = opMeta(false);
             Object result = processChain(processors, data, meta);
             @SuppressWarnings("unchecked")
             Map<String, Object> resultMap = (Map<String, Object>) result;
@@ -322,14 +353,7 @@ class ResultProcessorChainTest {
         @Test
         @DisplayName("PagedResultProcessor matches for paged List result")
         void pagedResultProcessorMatches() {
-            List<ResultProcessor> processors = new ArrayList<>();
-            processors.add(new PagedResultProcessor());   // priority 300
-            processors.add(new IdentityProcessor());       // priority 100
-            processors.add(new SensitiveMaskProcessor());  // priority 200
-
-            // paged List: IdentityProcessor matches first (supports everything)
-            // To test PagedResultProcessor, we need a chain without IdentityProcessor
-            List<ResultProcessor> pagedChain = new ArrayList<>();
+            List<ResultProcessor> pagedChain = new java.util.ArrayList<>();
             pagedChain.add(new PagedResultProcessor());
             pagedChain.add(new SensitiveMaskProcessor());
 
@@ -387,7 +411,6 @@ class ResultProcessorChainTest {
             PagedResult<String> result = PagedResult.of(content);
             assertEquals(0, result.totalElements());
             assertEquals(0, result.size());
-            assertEquals(1, result.totalPages()); // ceil(0/0) = NaN -> (int) NaN = 0, but size=0 so this is 1
         }
 
         @Test

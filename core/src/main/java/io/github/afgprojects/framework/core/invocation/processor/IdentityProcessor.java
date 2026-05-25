@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.core.invocation.processor;
 
-import io.github.afgprojects.framework.core.invocation.OperationMetadata;
+import io.github.afgprojects.framework.core.invocation.InvocationContext;
 
 public class IdentityProcessor implements ResultProcessor {
     @Override
@@ -9,12 +9,12 @@ public class IdentityProcessor implements ResultProcessor {
     }
 
     @Override
-    public boolean supports(Object result, OperationMetadata metadata) {
+    public boolean supports(InvocationContext context, Object result) {
         return true;
     }
 
     @Override
-    public Object process(Object result, ResultContext context) {
-        return result;
+    public Object process(ResultContext context) {
+        return context.result();
     }
 }

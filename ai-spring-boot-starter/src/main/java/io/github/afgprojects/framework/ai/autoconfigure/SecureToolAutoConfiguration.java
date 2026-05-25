@@ -130,7 +130,7 @@ public class SecureToolAutoConfiguration {
     @ConditionalOnMissingBean(SecureToolExecutor.class)
     public SecureToolExecutor secureToolExecutor(
             @Autowired ToolRegistry toolRegistry,
-            @Autowired io.github.afgprojects.framework.ai.core.model.LlmClient llmClient,
+            @Autowired io.github.afgprojects.framework.ai.core.chat.AfgChatClient chatClient,
             @Autowired ToolContextProvider contextProvider,
             @Autowired(required = false) @Nullable ToolPermissionChecker permissionChecker,
             @Autowired(required = false) @Nullable ToolAuditLogger auditLogger,
@@ -142,7 +142,7 @@ public class SecureToolAutoConfiguration {
 
         return new SecureToolExecutor(
             toolRegistry,
-            llmClient,
+            chatClient,
             contextProvider,
             permissionChecker,
             auditLogger,

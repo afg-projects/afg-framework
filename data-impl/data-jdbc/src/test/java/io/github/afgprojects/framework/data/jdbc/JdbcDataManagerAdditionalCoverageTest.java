@@ -36,6 +36,7 @@ class JdbcDataManagerAdditionalCoverageTest {
     void setUp() {
         dataSource = createDataSource();
         dataManager = new JdbcDataManager(dataSource, DatabaseType.POSTGRESQL);
+        dataManager.setTransactionManager(new org.springframework.jdbc.datasource.DataSourceTransactionManager(dataSource));
         createTestTable();
     }
 

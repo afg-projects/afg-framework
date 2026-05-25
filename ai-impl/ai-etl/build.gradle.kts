@@ -15,7 +15,7 @@ dependencies {
     testCompileOnly(libs.lombok)
     testAnnotationProcessor(libs.lombok)
 
-    // Spring AI（可选，用于 SpringAiLlmExecutor 和 VectorStoreWriter）
+    // Spring AI（可选，用于 VectorStoreWriter）
     compileOnly(libs.spring.ai.openai)
     compileOnly(libs.spring.ai.client.chat)
     compileOnly(libs.spring.ai.vector.store)

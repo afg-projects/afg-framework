@@ -1,11 +1,13 @@
 package io.github.afgprojects.framework.data.sql.converter;
 
+import io.github.afgprojects.framework.data.core.dialect.Dialect;
 import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.query.Criterion;
 import io.github.afgprojects.framework.data.core.query.LogicalOperator;
 import io.github.afgprojects.framework.data.core.query.NotCondition;
 import io.github.afgprojects.framework.data.core.query.Operator;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +23,9 @@ public class ConditionToSqlConverter {
     private static final java.util.regex.Pattern FIELD_NAME_PATTERN =
             java.util.regex.Pattern.compile("^[a-zA-Z_][a-zA-Z0-9_.]*$");
 
+    /** 可选的方言，用于生成数据库兼容的 JSON 操作 SQL */
+    private final @Nullable Dialect dialect;
+
     /** 操作符处理器映射 */
     private final Map<Operator, BiConsumer<StringBuilder, List<Object>>> simpleOperators = Map.of(
             Operator.EQ, (sql, params) -> { sql.append(" = ?"); },
@@ -30,6 +35,14 @@ public class ConditionToSqlConverter {
             Operator.LT, (sql, params) -> { sql.append(" < ?"); },
             Operator.LE, (sql, params) -> { sql.append(" <= ?"); }
     );
+
+    public ConditionToSqlConverter() {
+        this.dialect = null;
+    }
+
+    public ConditionToSqlConverter(@Nullable Dialect dialect) {
+        this.dialect = dialect;
+    }
 
     /**
      * 验证字段名是否合法，防止 SQL 注入
@@ -114,8 +127,10 @@ public class ConditionToSqlConverter {
         Object value = criterion.value();
 
         // 处理嵌套条件
-        if ("__nested__".equals(field) && value instanceof Condition nestedCondition) {
-            convertCondition(nestedCondition, sql, parameters);
+        if (criterion.isNested()) {
+            sql.append("(");
+            convertCondition(criterion.nestedCondition(), sql, parameters);
+            sql.append(")");
             return;
         }
 
@@ -128,6 +143,13 @@ public class ConditionToSqlConverter {
 
         // 安全检查：验证字段名只包含合法字符，防止 SQL 注入
         validateFieldName(field);
+
+        // JSON 操作符需要委托给 Dialect 生成（列名是表达式的一部分）
+        if (operator == Operator.JSON_CONTAINS || operator == Operator.JSON_CONTAINED || operator == Operator.JSON_PATH) {
+            handleJsonOperator(field, operator, sql, parameters, value);
+            return;
+        }
+
         // 直接使用字段名（已由 FieldNameResolver 在 Conditions 中转换为列名）
         sql.append(field);
 
@@ -146,12 +168,32 @@ public class ConditionToSqlConverter {
             case IS_NOT_NULL -> sql.append(" IS NOT NULL");
             case BETWEEN -> handleBetween(sql, parameters, value, false);
             case NOT_BETWEEN -> handleBetween(sql, parameters, value, true);
-            case JSON_CONTAINS -> handleJsonContains(sql, parameters, value);
-            case JSON_CONTAINED -> handleJsonContained(sql, parameters, value);
-            case JSON_PATH -> handleJsonPath(sql, parameters, value);
             case NOT -> { /* 已在上面处理 */ }
             default -> { /* 其他操作符已在 handleSimpleOperator 中处理 */ }
         }
+    }
+
+    /**
+     * 使用 Dialect 处理 JSON 操作符，生成数据库兼容的 SQL 表达式
+     */
+    private void handleJsonOperator(String field, Operator operator, StringBuilder sql, List<Object> parameters, Object value) {
+        if (dialect != null) {
+            switch (operator) {
+                case JSON_CONTAINS -> sql.append(dialect.getJsonContainsExpression(field));
+                case JSON_CONTAINED -> sql.append(dialect.getJsonContainedExpression(field));
+                case JSON_PATH -> sql.append(dialect.getJsonPathExpression(field));
+                default -> {}
+            }
+        } else {
+            // 无 Dialect 时降级为 PostgreSQL 语法（保持向后兼容）
+            switch (operator) {
+                case JSON_CONTAINS -> sql.append(field).append(" @> ?::jsonb");
+                case JSON_CONTAINED -> sql.append(field).append(" <@ ?::jsonb");
+                case JSON_PATH -> sql.append(field).append(" ?? ?");
+                default -> {}
+            }
+        }
+        parameters.add(value);
     }
 
     /**

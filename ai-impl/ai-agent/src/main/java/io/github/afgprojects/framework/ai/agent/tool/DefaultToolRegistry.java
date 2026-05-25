@@ -1,15 +1,12 @@
 package io.github.afgprojects.framework.ai.agent.tool;
 
 import io.github.afgprojects.framework.ai.core.tool.Tool;
-import io.github.afgprojects.framework.ai.core.tool.ToolDefinition;
 import io.github.afgprojects.framework.ai.core.tool.ToolRegistry;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -75,19 +72,6 @@ public class DefaultToolRegistry implements ToolRegistry {
     @Override
     public @NonNull Collection<Tool<?, ?>> getAllTools() {
         return Collections.unmodifiableCollection(tools.values());
-    }
-
-    @Override
-    public @NonNull Collection<ToolDefinition> getAllToolDefinitions() {
-        List<ToolDefinition> definitions = new ArrayList<>();
-        for (Tool<?, ?> tool : tools.values()) {
-            definitions.add(new ToolDefinition(
-                    tool.name(),
-                    tool.description(),
-                    tool.inputSchema()
-            ));
-        }
-        return Collections.unmodifiableList(definitions);
     }
 
     @Override

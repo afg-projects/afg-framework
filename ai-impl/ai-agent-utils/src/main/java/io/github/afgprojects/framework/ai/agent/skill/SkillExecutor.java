@@ -1,7 +1,6 @@
 package io.github.afgprojects.framework.ai.agent.skill;
 
-import io.github.afgprojects.framework.ai.core.model.LlmResponse;
-import io.github.afgprojects.framework.ai.core.tool.ToolDefinition;
+import io.github.afgprojects.framework.ai.core.chat.AiChatResponse;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;
@@ -60,10 +59,10 @@ public interface SkillExecutor {
      * 执行 Skill 并返回 LLM 原始响应
      *
      * @param context 执行上下文
-     * @return LLM 响应
+     * @return AI 对话响应
      */
     @NonNull
-    LlmResponse executeRaw(@NonNull SkillContext context);
+    AiChatResponse executeRaw(@NonNull SkillContext context);
 
     /**
      * 渲染提示词模板
@@ -84,17 +83,16 @@ public interface SkillExecutor {
     SkillRegistry getRegistry();
 
     /**
-     * 获取 Skill 可用的工具列表
+     * 获取 Skill 可用的工具名称列表
      *
      * @param definition Skill 定义
-     * @return 工具定义列表
+     * @return 工具名称列表
      */
     @NonNull
-    default List<ToolDefinition> getTools(@NonNull SkillDefinition definition) {
+    default List<String> getToolNames(@NonNull SkillDefinition definition) {
         if (definition.tools() == null || definition.tools().isEmpty()) {
             return List.of();
         }
-        // 从 ToolRegistry 获取工具定义
-        return List.of();
+        return definition.tools();
     }
 }

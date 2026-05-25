@@ -8,10 +8,9 @@ import io.github.afgprojects.framework.ai.agent.skill.SkillResult;
 import io.github.afgprojects.framework.ai.agent.skill.intent.IntentAnalyzer;
 import io.github.afgprojects.framework.ai.agent.skill.intent.IntentResult;
 import io.github.afgprojects.framework.ai.agent.skill.intent.SkillMatch;
-import io.github.afgprojects.framework.ai.core.model.LlmClient;
-import io.github.afgprojects.framework.ai.core.model.LlmRequest;
-import io.github.afgprojects.framework.ai.core.model.LlmResponse;
-import io.github.afgprojects.framework.ai.core.tool.ToolDefinition;
+import io.github.afgprojects.framework.ai.core.chat.AfgChatClient;
+import io.github.afgprojects.framework.ai.core.chat.AiChatResponse;
+import io.github.afgprojects.framework.ai.core.chat.AiMessage;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,29 +38,29 @@ public class DefaultSkillDispatcher implements SkillDispatcher {
     private final IntentAnalyzer intentAnalyzer;
     private final SkillExecutor skillExecutor;
     private final SkillRegistry skillRegistry;
-    private final LlmClient llmClient;
+    private final AfgChatClient chatClient;
     private final double confidenceThreshold;
 
     public DefaultSkillDispatcher(
         @NonNull IntentAnalyzer intentAnalyzer,
         @NonNull SkillExecutor skillExecutor,
         @NonNull SkillRegistry skillRegistry,
-        @NonNull LlmClient llmClient
+        @NonNull AfgChatClient chatClient
     ) {
-        this(intentAnalyzer, skillExecutor, skillRegistry, llmClient, DEFAULT_CONFIDENCE_THRESHOLD);
+        this(intentAnalyzer, skillExecutor, skillRegistry, chatClient, DEFAULT_CONFIDENCE_THRESHOLD);
     }
 
     public DefaultSkillDispatcher(
         @NonNull IntentAnalyzer intentAnalyzer,
         @NonNull SkillExecutor skillExecutor,
         @NonNull SkillRegistry skillRegistry,
-        @NonNull LlmClient llmClient,
+        @NonNull AfgChatClient chatClient,
         double confidenceThreshold
     ) {
         this.intentAnalyzer = intentAnalyzer;
         this.skillExecutor = skillExecutor;
         this.skillRegistry = skillRegistry;
-        this.llmClient = llmClient;
+        this.chatClient = chatClient;
         this.confidenceThreshold = confidenceThreshold;
     }
 
@@ -197,12 +196,9 @@ public class DefaultSkillDispatcher implements SkillDispatcher {
      * 使用 LLM 直接处理（无 Skill 匹配时）
      */
     private SkillRoutingResult handleWithLlm(String userInput, SkillContext context) {
-        LlmRequest request = LlmRequest.builder()
-            .systemPrompt("你是一个智能助手，请根据用户的问题提供帮助。")
-            .addMessage(io.github.afgprojects.framework.ai.core.memory.Message.user(userInput))
-            .build();
-
-        LlmResponse response = llmClient.chat(request);
+        AiChatResponse response = chatClient
+            .withSystemPrompt("你是一个智能助手，请根据用户的问题提供帮助。")
+            .chat(userInput);
 
         SkillResult llmResult = SkillResult.success(response.content());
         return new SkillRoutingResult(
@@ -225,12 +221,9 @@ public class DefaultSkillDispatcher implements SkillDispatcher {
 
             log.debug("Executing skill prompt with LLM: {}", prompt);
 
-            LlmRequest request = LlmRequest.builder()
-                .systemPrompt("你是一个智能助手，请根据提示完成任务。")
-                .addMessage(io.github.afgprojects.framework.ai.core.memory.Message.user(prompt))
-                .build();
-
-            LlmResponse response = llmClient.chat(request);
+            AiChatResponse response = chatClient
+                .withSystemPrompt("你是一个智能助手，请根据提示完成任务。")
+                .chat(prompt);
             return response.content();
         }
 

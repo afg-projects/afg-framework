@@ -14,7 +14,7 @@ import io.github.afgprojects.framework.core.module.ModuleDefinitionInfo;
  * 模块环境后置处理器
  *
  * <p>在 Spring 环境初始化阶段（早于任何 bean 创建）加载模块定义信息，
- * 并存储到环境属性中，供 {@link io.github.afgprojects.framework.core.web.module.ModuleWebAutoConfiguration} 使用。
+ * 并存储到环境属性中，供 {@link io.github.afgprojects.framework.core.autoconfigure.ModuleWebAutoConfiguration} 使用。
  */
 @Slf4j
 public class ModuleEnvironmentPostProcessor implements EnvironmentPostProcessor {

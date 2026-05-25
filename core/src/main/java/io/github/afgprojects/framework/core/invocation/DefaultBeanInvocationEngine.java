@@ -4,15 +4,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.afgprojects.framework.core.invocation.processor.ResultProcessor;
 import io.github.afgprojects.framework.core.invocation.resolver.ArgumentResolver;
 import io.github.afgprojects.framework.core.invocation.resolver.DefaultResolveContext;
-import io.github.afgprojects.framework.core.invocation.resolver.ResolveContext;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-@Slf4j
 public class DefaultBeanInvocationEngine implements BeanInvocationEngine {
+
+    private static final Logger log = LoggerFactory.getLogger(DefaultBeanInvocationEngine.class);
 
     @FunctionalInterface
     public interface BeanProvider {
@@ -35,157 +39,230 @@ public class DefaultBeanInvocationEngine implements BeanInvocationEngine {
                                        ObjectMapper objectMapper) {
         this.registry = registry;
         this.beanProvider = beanProvider;
-        this.interceptors = interceptors.stream().sorted(Comparator.comparingInt(InvocationInterceptor::order)).toList();
-        this.argumentResolvers = argumentResolvers.stream().sorted(Comparator.comparingInt(ArgumentResolver::priority)).toList();
-        this.resultProcessors = resultProcessors.stream().sorted(Comparator.comparingInt(ResultProcessor::priority)).toList();
+        this.interceptors = interceptors;
+        this.argumentResolvers = argumentResolvers;
+        this.resultProcessors = resultProcessors;
         this.objectMapper = objectMapper;
-        this.asyncExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors(),
-                r -> new Thread(r, "bean-invocation-async"));
+        this.asyncExecutor = Executors.newFixedThreadPool(
+                Runtime.getRuntime().availableProcessors(),
+                new InvocationContextTaskDecorator());
+    }
+
+    public DefaultBeanInvocationEngine(ServiceMetadataRegistry registry,
+                                       BeanProvider beanProvider,
+                                       List<InvocationInterceptor> interceptors,
+                                       List<ArgumentResolver> argumentResolvers,
+                                       List<ResultProcessor> resultProcessors,
+                                       ObjectMapper objectMapper,
+                                       int asyncPoolSize) {
+        this.registry = registry;
+        this.beanProvider = beanProvider;
+        this.interceptors = interceptors;
+        this.argumentResolvers = argumentResolvers;
+        this.resultProcessors = resultProcessors;
+        this.objectMapper = objectMapper;
+        this.asyncExecutor = Executors.newFixedThreadPool(
+                asyncPoolSize,
+                new InvocationContextTaskDecorator());
     }
 
     @Override
     public Object invoke(String serviceName, String operationName, Map<String, Object> arguments) {
         InvocationPlan plan = plan(serviceName, operationName, arguments);
-        InvocationContext context = new DefaultInvocationContext(
-                plan.serviceMetadata(), plan.operationMetadata(), plan.targetBean(),
-                plan.resolvedArguments(), arguments, new HashMap<>());
+        return executePlan(plan);
+    }
 
-        // before interceptors
-        for (InvocationInterceptor interceptor : interceptors) {
-            if (!interceptor.before(context)) {
-                throw new InvocationRejectedException(interceptor.getClass().getSimpleName(), "Interceptor rejected invocation");
-            }
-        }
-
-        // execute
-        Object result;
-        try {
-            Method method = plan.operationMetadata().method().resolve(plan.serviceMetadata().serviceType());
-            result = method.invoke(plan.targetBean(), plan.resolvedArguments());
-        } catch (Exception e) {
-            Throwable cause = e.getCause() != null ? e.getCause() : e;
-            Exception ex = cause instanceof Exception ? (Exception) cause : new RuntimeException(cause);
-            for (InvocationInterceptor interceptor : interceptors) {
-                interceptor.onError(context, ex);
-            }
-            throw new ServiceInvocationException("Invocation failed: " + serviceName + "." + operationName, e);
-        }
-
-        // after interceptors
-        for (InvocationInterceptor interceptor : interceptors) {
-            result = interceptor.after(context, result);
-        }
-
-        // result processors
-        for (ResultProcessor processor : resultProcessors) {
-            if (processor.supports(result, plan.operationMetadata())) {
-                result = processor.process(result, null);
-                break;
-            }
-        }
-
-        return result;
+    @Override
+    public Object invoke(String serviceName, String operationName, Object... arguments) {
+        InvocationPlan plan = plan(serviceName, operationName, arguments);
+        return executePlan(plan);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> T invoke(String serviceName, String operationName, Map<String, Object> arguments, Class<T> returnType) {
+    public <R> R invoke(String serviceName, String operationName, Map<String, Object> arguments, Class<R> resultType) {
         Object result = invoke(serviceName, operationName, arguments);
-        if (result == null) return null;
-        if (returnType.isAssignableFrom(result.getClass())) return (T) result;
-        return objectMapper.convertValue(result, returnType);
+        return convertResult(result, resultType);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <R> R invoke(String serviceName, String operationName, Object[] arguments, Class<R> resultType) {
+        Object result = invoke(serviceName, operationName, arguments);
+        return convertResult(result, resultType);
     }
 
     @Override
     public CompletableFuture<Object> invokeAsync(String serviceName, String operationName, Map<String, Object> arguments) {
-        OperationMetadata op = registry.getOperation(serviceName, operationName)
-                .orElseThrow(() -> new ServiceNotFoundException(serviceName, operationName));
-        if (!op.async()) {
-            log.warn("Operation {}.{} is not marked as async but invoked asynchronously", serviceName, operationName);
-        }
-        return CompletableFuture.supplyAsync(() -> invoke(serviceName, operationName, arguments), asyncExecutor);
+        InvocationPlan plan = plan(serviceName, operationName, arguments);
+        return CompletableFuture.supplyAsync(() -> executePlan(plan), asyncExecutor);
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T> CompletableFuture<T> invokeAsync(String serviceName, String operationName, Map<String, Object> arguments, Class<T> returnType) {
-        return invokeAsync(serviceName, operationName, arguments).thenApply(result -> {
-            if (result == null) return null;
-            if (returnType.isAssignableFrom(result.getClass())) return returnType.cast(result);
-            return objectMapper.convertValue(result, returnType);
-        });
+        return invokeAsync(serviceName, operationName, arguments)
+                .thenApply(result -> convertResult(result, returnType));
+    }
+
+    @Override
+    public CompletableFuture<Object> invokeAsync(String serviceName, String operationName, Object... arguments) {
+        InvocationPlan plan = plan(serviceName, operationName, arguments);
+        return CompletableFuture.supplyAsync(() -> executePlan(plan), asyncExecutor);
+    }
+
+    @Override
+    public <R> CompletableFuture<R> invokeAsync(String serviceName, String operationName, Object[] arguments, Class<R> resultType) {
+        return invokeAsync(serviceName, operationName, arguments)
+                .thenApply(result -> convertResult(result, resultType));
     }
 
     @Override
     public InvocationPlan plan(String serviceName, String operationName, Map<String, Object> arguments) {
-        ServiceMetadata<?> serviceMeta = registry.get(serviceName)
-                .orElseThrow(() -> new ServiceNotFoundException(serviceName, operationName));
-        OperationMetadata opMeta = serviceMeta.operations().stream()
-                .filter(op -> op.name().equals(operationName))
-                .findFirst()
-                .orElseThrow(() -> new ServiceNotFoundException(serviceName, operationName));
-
+        ServiceMetadata<?> metadata = resolveService(serviceName);
+        OperationMetadata operation = resolveOperation(metadata, operationName);
+        Object[] resolvedArgs = resolveArguments(operation, arguments);
+        Method method = operation.method().resolve(metadata.serviceType());
         Object bean = beanProvider.getBean(serviceName);
-        Object[] resolvedArgs = resolveArguments(opMeta, arguments);
-        return new DefaultInvocationPlan(serviceMeta, opMeta, bean, resolvedArgs, interceptors);
+
+        InvocationContext context = new DefaultInvocationContext(
+                serviceName, operationName, metadata, operation,
+                arguments, resolvedArgs, bean, method);
+
+        return new DefaultInvocationPlan(context, metadata, operation, bean, resolvedArgs, method, interceptors);
     }
 
-    private Object[] resolveArguments(OperationMetadata opMeta, Map<String, Object> arguments) {
-        Object[] resolved = new Object[opMeta.parameters().size()];
-        for (ParameterMetadata param : opMeta.parameters()) {
-            if (param.injected()) { resolved[param.index()] = null; continue; }
+    @Override
+    public InvocationPlan plan(String serviceName, String operationName, Object... arguments) {
+        ServiceMetadata<?> metadata = resolveService(serviceName);
+        OperationMetadata operation = resolveOperation(metadata, operationName);
+        Method method = operation.method().resolve(metadata.serviceType());
+        Object bean = beanProvider.getBean(serviceName);
 
-            Object rawValue = arguments.get(param.name());
-            if (rawValue == null && !param.defaultValue().isEmpty()) { rawValue = resolveDefaultValue(param); }
-            if (rawValue == null && param.required()) { throw new MissingArgumentException(param.name()); }
-            if (rawValue != null) { resolved[param.index()] = convertArgument(param, rawValue); }
-            else { resolved[param.index()] = null; }
+        Object[] args;
+        if (arguments != null && arguments.length == 1 && arguments[0] instanceof Map<?, ?> mapArgs) {
+            args = resolveArguments(operation, (Map<String, Object>) mapArgs);
+        } else {
+            args = arguments != null ? arguments : new Object[0];
         }
+
+        InvocationContext context = new DefaultInvocationContext(
+                serviceName, operationName, metadata, operation,
+                null, args, bean, method);
+
+        return new DefaultInvocationPlan(context, metadata, operation, bean, args, method, interceptors);
+    }
+
+    private Object executePlan(InvocationPlan plan) {
+        InvocationContext context = plan.context();
+        Object[] args = plan.resolvedArguments();
+
+        runBeforeInterceptors(context);
+
+        try {
+            Object result = plan.method().invoke(plan.targetBean(), args);
+            result = runAfterInterceptors(context, result);
+            result = processResult(result, context);
+            return result;
+        } catch (Exception e) {
+            Throwable cause = e instanceof java.lang.reflect.InvocationTargetException ie
+                    ? ie.getTargetException() : e;
+            runErrorInterceptors(context, cause);
+            if (cause instanceof RuntimeException re) throw re;
+            throw new ServiceInvocationException(
+                    "Invocation failed: " + context.serviceName() + "." + context.operationName() + " - " + cause.getMessage(), cause);
+        }
+    }
+
+    private ServiceMetadata<?> resolveService(String serviceName) {
+        return registry.get(serviceName)
+                .orElseThrow(() -> new ServiceNotFoundException(serviceName));
+    }
+
+    private OperationMetadata resolveOperation(ServiceMetadata<?> metadata, String operationName) {
+        return metadata.operations().stream()
+                .filter(op -> op.name().equals(operationName))
+                .findFirst()
+                .orElseThrow(() -> new ServiceNotFoundException(
+                        metadata.serviceName() + "." + operationName));
+    }
+
+    private Object[] resolveArguments(OperationMetadata operation, Map<String, Object> arguments) {
+        Object[] resolved = new Object[operation.parameters().size()];
+
+        for (ParameterMetadata param : operation.parameters()) {
+            Object rawValue = arguments.get(param.name());
+            if (rawValue == null && !param.required()) {
+                rawValue = param.defaultValue().isEmpty() ? null : param.defaultValue();
+            }
+            if (rawValue == null && param.required()) {
+                throw new MissingArgumentException(
+                        param.name());
+            }
+            resolved[param.index()] = resolveArgument(param, rawValue);
+        }
+
         return resolved;
     }
 
-    private static final Map<String, Class<?>> PRIMITIVE_TYPES = Map.of(
-            "boolean", boolean.class, "byte", byte.class, "char", char.class,
-            "short", short.class, "int", int.class, "long", long.class,
-            "float", float.class, "double", double.class, "void", void.class
-    );
-
-    private Class<?> resolveType(String typeName) throws ClassNotFoundException {
-        Class<?> primitive = PRIMITIVE_TYPES.get(typeName);
-        if (primitive != null) return primitive;
-        return Class.forName(typeName);
-    }
-
-    private Object resolveDefaultValue(ParameterMetadata param) {
-        if (param.defaultValue().isEmpty()) return null;
-        try {
-            Class<?> targetType = resolveType(param.type());
-            ResolveContext ctx = new DefaultResolveContext(param, objectMapper, Map.of());
-            for (ArgumentResolver resolver : argumentResolvers) {
-                if (resolver.supports(String.class, targetType)) {
-                    return resolver.resolve(param.defaultValue(), targetType, ctx);
-                }
-            }
-        } catch (ClassNotFoundException e) {
-            log.warn("Cannot load class for parameter type: {}", param.type());
+    private Object resolveArgument(ParameterMetadata param, Object rawValue) {
+        if (rawValue == null) {
+            return null;
         }
-        return param.defaultValue();
-    }
 
-    private Object convertArgument(ParameterMetadata param, Object rawValue) {
-        try {
-            Class<?> targetType = resolveType(param.type());
-            if (targetType.isAssignableFrom(rawValue.getClass())) return rawValue;
-            ResolveContext ctx = new DefaultResolveContext(param, objectMapper, Map.of());
-            for (ArgumentResolver resolver : argumentResolvers) {
-                if (resolver.supports(rawValue.getClass(), targetType)) {
-                    try { return resolver.resolve(rawValue, targetType, ctx); }
-                    catch (Exception e) { /* try next */ }
+        for (ArgumentResolver resolver : argumentResolvers) {
+            if (resolver.supports(param, rawValue)) {
+                try {
+                    return resolver.resolve(new DefaultResolveContext(param, objectMapper, rawValue));
+                } catch (Exception e) {
+                    throw new ArgumentConversionException(
+                            param.name(), param.type(), rawValue.getClass().getName(), e);
                 }
             }
-            throw new ArgumentConversionException(param.name(), rawValue.getClass(), targetType, null);
-        } catch (ClassNotFoundException e) {
-            throw new ArgumentConversionException(param.name(), rawValue.getClass(), Object.class, e);
+        }
+
+        return rawValue;
+    }
+
+    @SuppressWarnings("unchecked")
+    private <R> R convertResult(Object result, Class<R> resultType) {
+        if (result == null) return null;
+        if (resultType.isInstance(result)) return (R) result;
+        return objectMapper.convertValue(result, resultType);
+    }
+
+    private Object processResult(Object result, InvocationContext context) {
+        for (ResultProcessor processor : resultProcessors) {
+            if (processor.supports(context, result)) {
+                result = processor.process(new io.github.afgprojects.framework.core.invocation.processor.DefaultResultContext(context, result, objectMapper));
+            }
+        }
+        return result;
+    }
+
+    private void runBeforeInterceptors(InvocationContext context) {
+        for (InvocationInterceptor interceptor : interceptors) {
+            if (!interceptor.before(context)) {
+                throw new InvocationRejectedException(
+                        interceptor.getClass().getSimpleName(), "before returned false");
+            }
+        }
+    }
+
+    private Object runAfterInterceptors(InvocationContext context, Object result) {
+        for (InvocationInterceptor interceptor : interceptors) {
+            result = interceptor.after(context, result);
+        }
+        return result;
+    }
+
+    private void runErrorInterceptors(InvocationContext context, Throwable error) {
+        Exception ex = error instanceof Exception e ? e : new ServiceInvocationException(error.getMessage(), error);
+        for (InvocationInterceptor interceptor : interceptors) {
+            try {
+                interceptor.onError(context, ex);
+            } catch (Exception e) {
+                log.error("Interceptor {} error handler failed", interceptor.getClass().getSimpleName(), e);
+            }
         }
     }
 }

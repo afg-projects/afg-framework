@@ -8,6 +8,8 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.jdbc.core.simple.JdbcClient;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 实体删除操作处理器
@@ -106,13 +108,61 @@ public class EntityDeleteHandler<T> {
 
     /**
      * 批量删除实体（根据 ID）
+     * <p>
+     * 使用 IN 子句批量操作，每批最多 500 条，减少数据库往返次数。
      *
      * @param ids ID 集合
      */
     public void deleteAllById(@NonNull Iterable<?> ids) {
-        for (Object id : ids) {
-            deleteById(id);
+        List<Object> idList = new ArrayList<>();
+        ids.forEach(idList::add);
+        if (idList.isEmpty()) {
+            return;
         }
+
+        // 分批处理
+        int batchSize = 500;
+        for (int i = 0; i < idList.size(); i += batchSize) {
+            List<Object> batch = idList.subList(i, Math.min(i + batchSize, idList.size()));
+            if (softDeleteHandler.isSoftDeletable()) {
+                batchSoftDeleteByIds(batch);
+            } else {
+                batchPhysicalDeleteByIds(batch);
+            }
+            batch.forEach(cacheHandler::evict);
+        }
+    }
+
+    /**
+     * 批量软删除
+     */
+    private void batchSoftDeleteByIds(List<Object> ids) {
+        String sql;
+        if (softDeleteHandler.getSoftDeleteStrategy() == SoftDeleteStrategy.TIMESTAMP) {
+            sql = "UPDATE " + dialect.quoteIdentifier(metadata.getTableName()) +
+                    " SET deleted_at = :deletedAt WHERE id IN (:ids)";
+            jdbcClient.sql(sql)
+                    .param("deletedAt", LocalDateTime.now())
+                    .param("ids", ids)
+                    .update();
+        } else {
+            sql = "UPDATE " + dialect.quoteIdentifier(metadata.getTableName()) +
+                    " SET deleted = :deleted WHERE id IN (:ids)";
+            jdbcClient.sql(sql)
+                    .param("deleted", true)
+                    .param("ids", ids)
+                    .update();
+        }
+    }
+
+    /**
+     * 批量物理删除
+     */
+    private void batchPhysicalDeleteByIds(List<Object> ids) {
+        String sql = "DELETE FROM " + dialect.quoteIdentifier(metadata.getTableName()) + " WHERE id IN (:ids)";
+        jdbcClient.sql(sql)
+                .param("ids", ids)
+                .update();
     }
 
     /**

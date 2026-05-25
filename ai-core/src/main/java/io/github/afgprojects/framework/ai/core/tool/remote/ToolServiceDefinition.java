@@ -1,6 +1,5 @@
 package io.github.afgprojects.framework.ai.core.tool.remote;
 
-import io.github.afgprojects.framework.ai.core.tool.ToolDefinition;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -46,15 +45,6 @@ public record ToolServiceDefinition(
     int retryCount,
     @NonNull Map<String, String> metadata
 ) {
-
-    /**
-     * 转换为 ToolDefinition。
-     *
-     * @return ToolDefinition 实例
-     */
-    public @NonNull ToolDefinition toToolDefinition() {
-        return new ToolDefinition(name, description, inputSchema);
-    }
 
     /**
      * 创建 Builder。

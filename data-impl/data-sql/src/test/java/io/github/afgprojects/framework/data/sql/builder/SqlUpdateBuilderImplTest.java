@@ -45,8 +45,8 @@ class SqlUpdateBuilderImplTest {
         void testH2DialectConstructor() {
             SqlUpdateBuilderImpl builder = new SqlUpdateBuilderImpl(new H2Dialect());
             String sql = builder.table("users").set("name", "test").toSql();
-            // H2 方言不添加引号
-            assertThat(sql).contains("UPDATE users SET name = ?");
+            // H2 方言使用双引号引用标识符
+            assertThat(sql).contains("UPDATE \"users\" SET \"name\" = ?");
         }
     }
 

@@ -1,16 +1,13 @@
 package io.github.afgprojects.framework.ai.etl.transformer;
 
-import io.github.afgprojects.framework.ai.core.etl.Document;
-import io.github.afgprojects.framework.ai.core.etl.DocumentTransformer;
-import io.github.afgprojects.framework.ai.core.etl.LlmExecutor;
-import io.github.afgprojects.framework.ai.core.etl.PromptTemplate;
+import io.github.afgprojects.framework.ai.core.chat.AfgChatClient;
+import io.github.afgprojects.framework.ai.core.rag.Document;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 语言检测转换器。
@@ -24,38 +21,45 @@ public class LanguageDetectorTransformer implements DocumentTransformer {
 
     private static final Logger log = LoggerFactory.getLogger(LanguageDetectorTransformer.class);
 
-    private final LlmExecutor llmExecutor;
-    private final PromptTemplate promptTemplate;
+    private static final String DEFAULT_SYSTEM_PROMPT = """
+            You are a language detection assistant. Your task is to identify the language of the given text.
+            Respond with ONLY the language name in English (e.g., "English", "Chinese", "Japanese", "French", etc.).
+            Do not include any explanation or additional text.
+            """;
+
+    private final AfgChatClient chatClient;
+    private final String systemPrompt;
 
     /**
      * 创建语言检测转换器。
      *
-     * @param llmExecutor LLM 执行器
+     * @param chatClient 对话客户端
      */
-    public LanguageDetectorTransformer(@NonNull LlmExecutor llmExecutor) {
-        this(llmExecutor, PromptTemplate.detectLanguage());
+    public LanguageDetectorTransformer(@NonNull AfgChatClient chatClient) {
+        this(chatClient, DEFAULT_SYSTEM_PROMPT);
     }
 
     /**
      * 创建语言检测转换器。
      *
-     * @param llmExecutor    LLM 执行器
-     * @param promptTemplate Prompt 模板
+     * @param chatClient   对话客户端
+     * @param systemPrompt 系统提示词
      */
-    public LanguageDetectorTransformer(@NonNull LlmExecutor llmExecutor,
-                                       @NonNull PromptTemplate promptTemplate) {
-        this.llmExecutor = llmExecutor;
-        this.promptTemplate = promptTemplate;
+    public LanguageDetectorTransformer(@NonNull AfgChatClient chatClient,
+                                       @NonNull String systemPrompt) {
+        this.chatClient = chatClient;
+        this.systemPrompt = systemPrompt;
     }
 
     @Override
     public @NonNull List<Document> transform(@NonNull List<Document> documents) {
         List<Document> result = new ArrayList<>(documents.size());
 
+        AfgChatClient languageClient = chatClient.withSystemPrompt(systemPrompt);
+
         for (Document doc : documents) {
             try {
-                String language = llmExecutor.execute(promptTemplate,
-                    Map.of("content", doc.content()));
+                String language = languageClient.chat(doc.content()).content();
 
                 // 清理语言名称
                 language = language.trim();
@@ -75,12 +79,10 @@ public class LanguageDetectorTransformer implements DocumentTransformer {
         return result;
     }
 
-    @Override
     public @NonNull String getName() {
         return "LanguageDetectorTransformer";
     }
 
-    @Override
     public int getOrder() {
         return 150;
     }

@@ -2,10 +2,9 @@ package io.github.afgprojects.framework.ai.agent.executor;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.afgprojects.framework.ai.core.memory.Message;
-import io.github.afgprojects.framework.ai.core.model.LlmClient;
-import io.github.afgprojects.framework.ai.core.model.LlmRequest;
-import io.github.afgprojects.framework.ai.core.model.LlmResponse;
+import io.github.afgprojects.framework.ai.core.chat.AfgChatClient;
+import io.github.afgprojects.framework.ai.core.chat.AiChatResponse;
+import io.github.afgprojects.framework.ai.core.chat.AiMessage;
 import io.github.afgprojects.framework.ai.core.planning.ReActExecutor;
 import io.github.afgprojects.framework.ai.core.planning.ReActResult;
 import io.github.afgprojects.framework.ai.core.tool.Tool;
@@ -68,7 +67,7 @@ public class DefaultReActExecutor implements ReActExecutor {
     private static final Pattern ACTION_INPUT_PATTERN = Pattern.compile("Action Input:\\s*(.+?)(?=\\n|$)", Pattern.DOTALL);
     private static final Pattern FINAL_ANSWER_PATTERN = Pattern.compile("Final Answer:\\s*(.+)$", Pattern.DOTALL);
 
-    private final LlmClient llmClient;
+    private final AfgChatClient chatClient;
     private final ToolRegistry toolRegistry;
     private final int maxSteps;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -76,16 +75,16 @@ public class DefaultReActExecutor implements ReActExecutor {
     /**
      * 创建 ReAct 执行器
      *
-     * @param llmClient    LLM 客户端
+     * @param chatClient   对话客户端
      * @param toolRegistry 工具注册表
      * @param maxSteps     最大推理步数
      */
     public DefaultReActExecutor(
-            @NonNull LlmClient llmClient,
+            @NonNull AfgChatClient chatClient,
             @NonNull ToolRegistry toolRegistry,
             int maxSteps
     ) {
-        this.llmClient = llmClient;
+        this.chatClient = chatClient;
         this.toolRegistry = toolRegistry;
         this.maxSteps = maxSteps;
     }
@@ -100,7 +99,8 @@ public class DefaultReActExecutor implements ReActExecutor {
         log.info("Starting ReAct execution for task: {}", task);
 
         List<Object> steps = new ArrayList<>();
-        List<Message> conversationHistory = new ArrayList<>();
+        List<AiMessage> messages = new ArrayList<>();
+        messages.add(AiMessage.user(task));
 
         // 构建系统提示
         String systemPrompt = buildSystemPrompt();
@@ -108,11 +108,8 @@ public class DefaultReActExecutor implements ReActExecutor {
         for (int step = 1; step <= maxSteps; step++) {
             log.debug("ReAct step {}", step);
 
-            // 构建请求
-            LlmRequest request = buildRequest(systemPrompt, task, conversationHistory);
-
             // 调用 LLM
-            LlmResponse response = llmClient.chat(request);
+            AiChatResponse response = chatClient.withSystemPrompt(systemPrompt).chat(messages);
             String content = response.content() != null ? response.content() : "";
 
             // 解析响应
@@ -144,9 +141,9 @@ public class DefaultReActExecutor implements ReActExecutor {
             steps.add(stepRecord);
 
             // 更新对话历史
-            conversationHistory.add(Message.assistant(content));
+            messages.add(AiMessage.assistant(content));
             if (observation != null) {
-                conversationHistory.add(Message.user("Observation: " + observation));
+                messages.add(AiMessage.user("Observation: " + observation));
             }
         }
 
@@ -159,25 +156,10 @@ public class DefaultReActExecutor implements ReActExecutor {
      */
     private @NonNull String buildSystemPrompt() {
         StringBuilder toolsDescription = new StringBuilder();
-        for (var toolDef : toolRegistry.getAllToolDefinitions()) {
-            toolsDescription.append("- ").append(toolDef.name()).append(": ").append(toolDef.description()).append("\n");
+        for (Tool<?, ?> tool : toolRegistry.getAllTools()) {
+            toolsDescription.append("- ").append(tool.name()).append(": ").append(tool.description()).append("\n");
         }
         return String.format(REACT_SYSTEM_PROMPT, toolsDescription.toString());
-    }
-
-    /**
-     * 构建请求
-     */
-    private @NonNull LlmRequest buildRequest(
-            @NonNull String systemPrompt,
-            @NonNull String task,
-            @NonNull List<Message> history
-    ) {
-        List<Message> messages = new ArrayList<>();
-        messages.add(Message.user(task));
-        messages.addAll(history);
-
-        return new LlmRequest(systemPrompt, messages, List.of(), Map.of());
     }
 
     /**

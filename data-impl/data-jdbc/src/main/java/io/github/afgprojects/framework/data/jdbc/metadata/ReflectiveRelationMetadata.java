@@ -1,11 +1,13 @@
 package io.github.afgprojects.framework.data.jdbc.metadata;
 
+import io.github.afgprojects.framework.commons.naming.NamingUtils;
 import io.github.afgprojects.framework.data.core.relation.CascadeType;
 import io.github.afgprojects.framework.data.core.relation.FetchType;
 import io.github.afgprojects.framework.data.core.relation.ManyToMany;
 import io.github.afgprojects.framework.data.core.relation.ManyToOne;
 import io.github.afgprojects.framework.data.core.relation.OneToMany;
 import io.github.afgprojects.framework.data.core.relation.OneToOne;
+import io.github.afgprojects.framework.commons.naming.NamingUtils;
 import io.github.afgprojects.framework.data.core.relation.RelationMetadata;
 import io.github.afgprojects.framework.data.core.relation.RelationType;
 import org.jspecify.annotations.NonNull;
@@ -191,7 +193,7 @@ public class ReflectiveRelationMetadata implements RelationMetadata {
             return oto.foreignKey();
         }
         // 默认：字段名_id
-        return toSnakeCase(field.getName()) + "_id";
+        return NamingUtils.toSnakeCase(field.getName()) + "_id";
     }
 
     private static String inferMappedBy(Field field) {
@@ -217,8 +219,8 @@ public class ReflectiveRelationMetadata implements RelationMetadata {
         }
         // 默认：实体表名_目标实体表名
         if (mtm != null) {
-            return toSnakeCase(field.getDeclaringClass().getSimpleName()) + "_" +
-                   toSnakeCase(inferTargetEntity(field).getSimpleName());
+            return NamingUtils.toSnakeCase(field.getDeclaringClass().getSimpleName()) + "_" +
+                   NamingUtils.toSnakeCase(inferTargetEntity(field).getSimpleName());
         }
         return null;
     }
@@ -230,7 +232,7 @@ public class ReflectiveRelationMetadata implements RelationMetadata {
         }
         // 默认：实体表名_id
         if (mtm != null) {
-            return toSnakeCase(entityClass.getSimpleName()) + "_id";
+            return NamingUtils.toSnakeCase(entityClass.getSimpleName()) + "_id";
         }
         return null;
     }
@@ -242,7 +244,7 @@ public class ReflectiveRelationMetadata implements RelationMetadata {
         }
         // 默认：目标实体表名_id
         if (mtm != null) {
-            return toSnakeCase(targetEntityClass.getSimpleName()) + "_id";
+            return NamingUtils.toSnakeCase(targetEntityClass.getSimpleName()) + "_id";
         }
         return null;
     }
@@ -303,15 +305,4 @@ public class ReflectiveRelationMetadata implements RelationMetadata {
         return true;
     }
 
-    private static String toSnakeCase(String name) {
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < name.length(); i++) {
-            char c = name.charAt(i);
-            if (i > 0 && Character.isUpperCase(c)) {
-                result.append('_');
-            }
-            result.append(Character.toLowerCase(c));
-        }
-        return result.toString();
-    }
 }

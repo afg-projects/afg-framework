@@ -19,7 +19,7 @@ public class ValidationInvocationInterceptor implements InvocationInterceptor {
     @Override
     public boolean before(InvocationContext context) {
         if (validator == null) return true;
-        for (Object arg : context.arguments()) {
+        for (Object arg : context.resolvedArguments()) {
             if (arg == null) continue;
             Set<ConstraintViolation<Object>> violations = validator.validate(arg);
             if (!violations.isEmpty()) {

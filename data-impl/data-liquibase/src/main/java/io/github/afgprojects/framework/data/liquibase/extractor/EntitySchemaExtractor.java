@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.data.liquibase.extractor;
 
+import io.github.afgprojects.framework.commons.naming.NamingUtils;
 import io.github.afgprojects.framework.data.core.converter.SchemaConverter;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
@@ -77,7 +78,7 @@ public class EntitySchemaExtractor implements SchemaConverter<EntityMetadata<?>,
             return ForeignKeyMetadataImpl.builder()
                     .constraintName("fk_" + tableName + "_" + relation.getFieldName())
                     .columnNames(List.of(relation.getForeignKeyColumn()))
-                    .referencedTableName(inferTableName(relation.getTargetEntityClass()))
+                    .referencedTableName(NamingUtils.toSnakeCase(relation.getTargetEntityClass().getSimpleName()))
                     .referencedColumnNames(List.of("id"))
                     .updateRule("NO ACTION")
                     .deleteRule("NO ACTION")
@@ -88,7 +89,7 @@ public class EntitySchemaExtractor implements SchemaConverter<EntityMetadata<?>,
             return ForeignKeyMetadataImpl.builder()
                     .constraintName("fk_" + tableName + "_" + relation.getFieldName())
                     .columnNames(List.of(relation.getForeignKeyColumn()))
-                    .referencedTableName(inferTableName(relation.getTargetEntityClass()))
+                    .referencedTableName(NamingUtils.toSnakeCase(relation.getTargetEntityClass().getSimpleName()))
                     .referencedColumnNames(List.of("id"))
                     .updateRule("NO ACTION")
                     .deleteRule("NO ACTION")

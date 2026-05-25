@@ -4,9 +4,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.afgprojects.framework.ai.agent.skill.SkillContext;
 import io.github.afgprojects.framework.ai.agent.skill.SkillDefinition;
-import io.github.afgprojects.framework.ai.core.model.LlmClient;
-import io.github.afgprojects.framework.ai.core.model.LlmRequest;
-import io.github.afgprojects.framework.ai.core.model.LlmResponse;
+import io.github.afgprojects.framework.ai.core.chat.AfgChatClient;
+import io.github.afgprojects.framework.ai.core.chat.AiChatResponse;
+import io.github.afgprojects.framework.ai.core.chat.AiMessage;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,22 +32,22 @@ public class DefaultIntentAnalyzer implements IntentAnalyzer {
     private static final double CLARIFICATION_THRESHOLD = 0.15; // 置信度差距小于此值需要澄清
     private static final double MIN_CONFIDENCE_THRESHOLD = 0.5; // 最低置信度阈值
 
-    private final LlmClient llmClient;
+    private final AfgChatClient chatClient;
     private final ObjectMapper objectMapper;
     private final double clarificationThreshold;
     private final double minConfidenceThreshold;
 
-    public DefaultIntentAnalyzer(@NonNull LlmClient llmClient) {
-        this(llmClient, new ObjectMapper(), CLARIFICATION_THRESHOLD, MIN_CONFIDENCE_THRESHOLD);
+    public DefaultIntentAnalyzer(@NonNull AfgChatClient chatClient) {
+        this(chatClient, new ObjectMapper(), CLARIFICATION_THRESHOLD, MIN_CONFIDENCE_THRESHOLD);
     }
 
     public DefaultIntentAnalyzer(
-        @NonNull LlmClient llmClient,
+        @NonNull AfgChatClient chatClient,
         @NonNull ObjectMapper objectMapper,
         double clarificationThreshold,
         double minConfidenceThreshold
     ) {
-        this.llmClient = llmClient;
+        this.chatClient = chatClient;
         this.objectMapper = objectMapper;
         this.clarificationThreshold = clarificationThreshold;
         this.minConfidenceThreshold = minConfidenceThreshold;
@@ -111,14 +111,13 @@ public class DefaultIntentAnalyzer implements IntentAnalyzer {
             请分析用户意图并返回 JSON 格式的结果。
             """.formatted(skillsDescription, userInput);
 
-        LlmRequest request = LlmRequest.builder()
-            .systemPrompt(INTENT_ANALYSIS_SYSTEM_PROMPT)
-            .addMessage(io.github.afgprojects.framework.ai.core.memory.Message.user(analysisPrompt))
-            .option("temperature", 0.3)
-            .build();
-
         // 调用 LLM 进行分析
-        LlmResponse response = llmClient.chat(request);
+        AiChatResponse response = chatClient
+            .withSystemPrompt(INTENT_ANALYSIS_SYSTEM_PROMPT)
+            .prompt(analysisPrompt)
+            .options(Map.of("temperature", 0.3))
+            .call();
+
         String responseContent = response.content();
 
         log.debug("LLM response: {}", responseContent);

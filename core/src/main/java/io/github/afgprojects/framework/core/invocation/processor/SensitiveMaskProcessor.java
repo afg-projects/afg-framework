@@ -1,7 +1,7 @@
 package io.github.afgprojects.framework.core.invocation.processor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.afgprojects.framework.core.invocation.OperationMetadata;
+import io.github.afgprojects.framework.core.invocation.InvocationContext;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -19,15 +19,16 @@ public class SensitiveMaskProcessor implements ResultProcessor {
     }
 
     @Override
-    public boolean supports(Object result, OperationMetadata metadata) {
+    public boolean supports(InvocationContext context, Object result) {
         return result != null && hasSensitiveFields(result);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public Object process(Object result, ResultContext context) {
+    public Object process(ResultContext context) {
+        Object result = context.result();
         try {
-            ObjectMapper mapper = context != null ? context.objectMapper() : new ObjectMapper();
+            ObjectMapper mapper = context.objectMapper();
             if (result instanceof List<?> list) {
                 return list.stream().map(item -> maskItem(item, mapper)).toList();
             }

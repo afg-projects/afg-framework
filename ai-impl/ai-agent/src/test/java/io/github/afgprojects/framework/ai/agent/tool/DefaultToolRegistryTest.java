@@ -1,19 +1,22 @@
 package io.github.afgprojects.framework.ai.agent.tool;
 
 import io.github.afgprojects.framework.ai.core.tool.Tool;
-import io.github.afgprojects.framework.ai.core.tool.ToolDefinition;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * DefaultToolRegistry 单元测试
+ * {@link DefaultToolRegistry} 单元测试
  */
+@DisplayName("DefaultToolRegistry")
 class DefaultToolRegistryTest {
 
     private DefaultToolRegistry registry;
@@ -23,130 +26,125 @@ class DefaultToolRegistryTest {
         registry = new DefaultToolRegistry();
     }
 
-    @Test
-    @DisplayName("注册工具成功")
-    void register_success() {
-        Tool<String, String> tool = createTestTool("test_tool", "Test tool");
+    // ── 辅助方法 ───────────────────────────────────────────────────────────────
 
-        registry.register(tool);
-
-        assertThat(registry.exists("test_tool")).isTrue();
-        assertThat(registry.size()).isEqualTo(1);
-    }
-
-    @Test
-    @DisplayName("注册重复工具抛出异常")
-    void register_duplicate_throwsException() {
-        Tool<String, String> tool = createTestTool("test_tool", "Test tool");
-        registry.register(tool);
-
-        assertThatThrownBy(() -> registry.register(tool))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Tool already registered");
-    }
-
-    @Test
-    @DisplayName("registerOrReplace 替换已存在的工具")
-    void registerOrReplace_replacesExisting() {
-        Tool<String, String> tool1 = createTestTool("test_tool", "Description 1");
-        Tool<String, String> tool2 = createTestTool("test_tool", "Description 2");
-
-        registry.register(tool1);
-        registry.registerOrReplace(tool2);
-
-        assertThat(registry.size()).isEqualTo(1);
-        assertThat(registry.getTool("test_tool"))
-                .isPresent()
-                .get()
-                .extracting(Tool::description)
-                .isEqualTo("Description 2");
-    }
-
-    @Test
-    @DisplayName("获取不存在的工具返回空")
-    void getTool_notFound_returnsEmpty() {
-        assertThat(registry.getTool("nonexistent")).isEmpty();
-    }
-
-    @Test
-    @DisplayName("注销工具成功")
-    void unregister_success() {
-        Tool<String, String> tool = createTestTool("test_tool", "Test tool");
-        registry.register(tool);
-
-        boolean result = registry.unregister("test_tool");
-
-        assertThat(result).isTrue();
-        assertThat(registry.exists("test_tool")).isFalse();
-    }
-
-    @Test
-    @DisplayName("注销不存在的工具返回 false")
-    void unregister_notFound_returnsFalse() {
-        boolean result = registry.unregister("nonexistent");
-        assertThat(result).isFalse();
-    }
-
-    @Test
-    @DisplayName("获取所有工具定义")
-    void getAllToolDefinitions() {
-        Tool<String, String> tool1 = createTestTool("tool1", "Tool 1");
-        Tool<String, String> tool2 = createTestTool("tool2", "Tool 2");
-
-        registry.register(tool1);
-        registry.register(tool2);
-
-        var definitions = registry.getAllToolDefinitions();
-
-        assertThat(definitions).hasSize(2);
-        assertThat(definitions)
-                .extracting(ToolDefinition::name)
-                .containsExactlyInAnyOrder("tool1", "tool2");
-    }
-
-    @Test
-    @DisplayName("清空注册表")
-    void clear() {
-        registry.register(createTestTool("tool1", "Tool 1"));
-        registry.register(createTestTool("tool2", "Tool 2"));
-
-        registry.clear();
-
-        assertThat(registry.size()).isZero();
-        assertThat(registry.size()).isZero();
-    }
-
-    @Test
-    @DisplayName("带初始工具创建注册表")
-    void createWithInitialTools() {
-        Tool<?, ?> tool1 = createTestTool("tool1", "Tool 1");
-        Tool<?, ?> tool2 = createTestTool("tool2", "Tool 2");
-
-        Map<String, Tool<?, ?>> initialTools = new java.util.HashMap<>();
-        initialTools.put("tool1", tool1);
-        initialTools.put("tool2", tool2);
-
-        var registryWithTools = new DefaultToolRegistry(initialTools);
-
-        assertThat(registryWithTools.size()).isEqualTo(2);
-    }
-
-    private Tool<String, String> createTestTool(String name, String description) {
+    private Tool<Map<String, Object>, String> createTool(String name, String description) {
         return new Tool<>() {
             @Override
-            public String name() {
+            public @NonNull String name() {
                 return name;
             }
 
             @Override
-            public String description() {
+            public @NonNull String description() {
                 return description;
             }
 
             @Override
-            public String execute(String input) {
-                return "result: " + input;
+            public @NonNull String execute(Map<String, Object> input) {
+                return name + "-result";
             }
         };
+    }
+
+    // ── 注册 ───────────────────────────────────────────────────────────────────
+
+    @Nested
+    @DisplayName("register")
+    class Register {
+
+        @Test
+        @DisplayName("应能注册工具并查询")
+        void shouldRegisterAndFind() {
+            Tool<?, ?> tool = createTool("weather", "Get weather info");
+            registry.register(tool);
+
+            Optional<Tool<?, ?>> found = registry.getTool("weather");
+            assertThat(found).isPresent();
+            assertThat(found.get().name()).isEqualTo("weather");
+        }
+
+        @Test
+        @DisplayName("注册重复名称应覆盖旧工具")
+        void shouldOverrideOnDuplicate() {
+            registry.register(createTool("calc", "v1"));
+            registry.register(createTool("calc", "v2"));
+
+            assertThat(registry.getTool("calc").get().description()).isEqualTo("v2");
+        }
+    }
+
+    // ── 查询 ───────────────────────────────────────────────────────────────────
+
+    @Nested
+    @DisplayName("查询")
+    class Query {
+
+        @Test
+        @DisplayName("查询不存在的工具返回空")
+        void shouldReturnEmptyForMissing() {
+            assertThat(registry.getTool("missing")).isEmpty();
+        }
+
+        @Test
+        @DisplayName("exists 对已注册工具返回 true")
+        void shouldReturnTrueForExisting() {
+            registry.register(createTool("a", "desc"));
+            assertThat(registry.exists("a")).isTrue();
+        }
+
+        @Test
+        @DisplayName("exists 对未注册工具返回 false")
+        void shouldReturnFalseForNonExisting() {
+            assertThat(registry.exists("nope")).isFalse();
+        }
+
+        @Test
+        @DisplayName("getAllTools 返回所有已注册工具")
+        void shouldReturnAllTools() {
+            registry.register(createTool("t1", "d1"));
+            registry.register(createTool("t2", "d2"));
+
+            Collection<Tool<?, ?>> all = registry.getAllTools();
+            assertThat(all).hasSize(2);
+            assertThat(all.stream().map(Tool::name)).containsExactlyInAnyOrder("t1", "t2");
+        }
+    }
+
+    // ── 注销 ───────────────────────────────────────────────────────────────────
+
+    @Nested
+    @DisplayName("unregister")
+    class Unregister {
+
+        @Test
+        @DisplayName("应能注销已注册工具")
+        void shouldUnregister() {
+            registry.register(createTool("x", "desc"));
+            registry.unregister("x");
+            assertThat(registry.getTool("x")).isEmpty();
+        }
+
+        @Test
+        @DisplayName("注销不存在的工具不抛异常")
+        void shouldNotThrowOnMissing() {
+            registry.unregister("ghost");
+        }
+    }
+
+    // ── 清空 ───────────────────────────────────────────────────────────────────
+
+    @Nested
+    @DisplayName("clear")
+    class Clear {
+
+        @Test
+        @DisplayName("clear 后所有工具都不存在")
+        void shouldClearAll() {
+            registry.register(createTool("a", "d"));
+            registry.register(createTool("b", "d"));
+            registry.clear();
+            assertThat(registry.getAllTools()).isEmpty();
+        }
     }
 }

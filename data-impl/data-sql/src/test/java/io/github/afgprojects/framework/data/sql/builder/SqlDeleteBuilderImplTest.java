@@ -41,8 +41,8 @@ class SqlDeleteBuilderImplTest {
         void testH2DialectConstructor() {
             SqlDeleteBuilderImpl builder = new SqlDeleteBuilderImpl(new H2Dialect());
             String sql = builder.from("users").toSql();
-            // H2 方言不添加引号
-            assertThat(sql).isEqualTo("DELETE FROM users");
+            // H2 方言使用双引号引用标识符
+            assertThat(sql).isEqualTo("DELETE FROM \"users\"");
         }
     }
 

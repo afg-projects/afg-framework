@@ -24,7 +24,8 @@ dependencies {
     testAnnotationProcessor(libs.lombok)
 
     // Test
+    api(project(":ai-impl:ai-chat"))
     testImplementation(libs.bundles.testing)
-    testImplementation(project(":ai-impl:ai-llm"))
+    testImplementation(project(":ai-impl:ai-chat"))
     testImplementation(libs.spring.ai.ollama)
 }

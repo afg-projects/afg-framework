@@ -1,7 +1,6 @@
 package io.github.afgprojects.framework.ai.agent.tool.remote;
 
 import io.github.afgprojects.framework.ai.core.tool.Tool;
-import io.github.afgprojects.framework.ai.core.tool.ToolDefinition;
 import io.github.afgprojects.framework.ai.core.tool.ToolRegistry;
 import io.github.afgprojects.framework.ai.core.tool.remote.ToolDiscoveryClient;
 import io.github.afgprojects.framework.ai.core.tool.remote.ToolServiceDefinition;
@@ -166,17 +165,6 @@ public class RemoteToolRegistry implements ToolRegistry {
     @Override
     public @NonNull Collection<Tool<?, ?>> getAllTools() {
         return Collections.unmodifiableCollection(remoteTools.values());
-    }
-
-    @Override
-    public @NonNull Collection<ToolDefinition> getAllToolDefinitions() {
-        return remoteTools.values().stream()
-            .map(tool -> new ToolDefinition(
-                tool.name(),
-                tool.description(),
-                tool.inputSchema()
-            ))
-            .toList();
     }
 
     @Override

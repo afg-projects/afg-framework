@@ -1,11 +1,18 @@
 package io.github.afgprojects.framework.ai.agent.executor;
 
+import io.github.afgprojects.framework.ai.core.chat.AfgChatClient;
+import io.github.afgprojects.framework.ai.core.chat.AiChatResponse;
+import io.github.afgprojects.framework.ai.core.chat.AiMessage;
 import io.github.afgprojects.framework.ai.core.exception.ToolException;
-import io.github.afgprojects.framework.ai.core.model.LlmClient;
-import io.github.afgprojects.framework.ai.core.model.LlmRequest;
-import io.github.afgprojects.framework.ai.core.model.LlmResponse;
 import io.github.afgprojects.framework.ai.core.security.ContentSafetyChecker;
-import io.github.afgprojects.framework.ai.core.tool.*;
+import io.github.afgprojects.framework.ai.core.tool.SecureTool;
+import io.github.afgprojects.framework.ai.core.tool.Tool;
+import io.github.afgprojects.framework.ai.core.tool.ToolAuditLogger;
+import io.github.afgprojects.framework.ai.core.tool.ToolContext;
+import io.github.afgprojects.framework.ai.core.tool.ToolContextProvider;
+import io.github.afgprojects.framework.ai.core.tool.ToolPermissionChecker;
+import io.github.afgprojects.framework.ai.core.tool.ToolPermissionChecker.PermissionResult;
+import io.github.afgprojects.framework.ai.core.tool.ToolRegistry;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -31,6 +38,9 @@ import java.util.concurrent.TimeUnit;
  *   <li>PII 保护 - 脱敏敏感信息</li>
  * </ul>
  *
+ * <p>使用 AfgChatClient 进行对话，Spring AI Advisor 链处理原生工具调用。
+ * 安全检查通过 Advisor 链中的安全 Advisor 拦截实现。
+ *
  * @since 1.0.0
  */
 public class SecureToolExecutor {
@@ -38,7 +48,7 @@ public class SecureToolExecutor {
     private static final Logger log = LoggerFactory.getLogger(SecureToolExecutor.class);
 
     private final ToolRegistry toolRegistry;
-    private final LlmClient llmClient;
+    private final AfgChatClient chatClient;
     private final ToolContextProvider contextProvider;
     private final ToolPermissionChecker permissionChecker;
     private final ToolAuditLogger auditLogger;
@@ -52,7 +62,7 @@ public class SecureToolExecutor {
      * 创建安全工具执行器。
      *
      * @param toolRegistry         工具注册表
-     * @param llmClient            LLM 客户端
+     * @param chatClient           对话客户端
      * @param contextProvider      上下文提供者
      * @param permissionChecker    权限检查器（可选）
      * @param auditLogger          审计日志器（可选）
@@ -62,7 +72,7 @@ public class SecureToolExecutor {
      */
     public SecureToolExecutor(
             @NonNull ToolRegistry toolRegistry,
-            @NonNull LlmClient llmClient,
+            @NonNull AfgChatClient chatClient,
             @NonNull ToolContextProvider contextProvider,
             @Nullable ToolPermissionChecker permissionChecker,
             @Nullable ToolAuditLogger auditLogger,
@@ -70,7 +80,7 @@ public class SecureToolExecutor {
             int maxIterations,
             long timeoutMs) {
         this.toolRegistry = toolRegistry;
-        this.llmClient = llmClient;
+        this.chatClient = chatClient;
         this.contextProvider = contextProvider;
         this.permissionChecker = permissionChecker;
         this.auditLogger = auditLogger;
@@ -81,142 +91,195 @@ public class SecureToolExecutor {
     }
 
     /**
-     * 执行带工具调用的请求。
+     * 执行带安全检查的工具调用对话。
      *
-     * @param request 初始请求
+     * @param systemPrompt 系统提示词
+     * @param messages     对话消息列表
      * @return 最终响应
      */
-    public @NonNull LlmResponse executeWithTools(@NonNull LlmRequest request) {
-        return executeWithTools(request, contextProvider.provide());
+    public @NonNull AiChatResponse executeWithTools(
+            @Nullable String systemPrompt,
+            @NonNull List<AiMessage> messages
+    ) {
+        return executeWithTools(systemPrompt, messages, contextProvider.provide());
     }
 
     /**
-     * 执行带工具调用的请求（指定上下文）。
+     * 执行带安全检查的工具调用对话（指定上下文）。
      *
-     * @param request 初始请求
+     * @param systemPrompt 系统提示词
+     * @param messages     对话消息列表
+     * @param context      工具上下文
+     * @return 最终响应
+     */
+    public @NonNull AiChatResponse executeWithTools(
+            @Nullable String systemPrompt,
+            @NonNull List<AiMessage> messages,
+            @NonNull ToolContext context
+    ) {
+        AfgChatClient client = systemPrompt != null
+                ? chatClient.withSystemPrompt(systemPrompt)
+                : chatClient;
+
+        List<AiMessage> currentMessages = new ArrayList<>(messages);
+        AiChatResponse lastResponse = null;
+
+        for (int iteration = 1; iteration <= maxIterations; iteration++) {
+            log.debug("Tool execution iteration {}", iteration);
+
+            // 检查输入内容安全性（首轮对话）
+            if (enableContentSafety && iteration == 1) {
+                String inputContent = serializeMessages(currentMessages);
+                var checkResult = contentSafetyChecker.checkInput(inputContent, buildSafetyContext(context));
+                if (checkResult.isBlocked()) {
+                    log.warn("Input blocked by content safety: {}", checkResult.getReason());
+                    return AiChatResponse.of("Content blocked: " + checkResult.getReason());
+                }
+            }
+
+            // 调用 LLM（Spring AI Advisor 链自动处理工具调用，安全 Advisor 拦截权限检查）
+            AiChatResponse response = client.chat(currentMessages);
+            String content = response.content() != null ? response.content() : "";
+
+            if (content.isBlank()) {
+                log.debug("Empty response at iteration {}, continuing", iteration);
+                continue;
+            }
+
+            // 检查输出内容安全性
+            if (enableContentSafety) {
+                var checkResult = contentSafetyChecker.checkOutput(content, buildSafetyContext(context));
+                if (checkResult.isBlocked()) {
+                    log.warn("Output blocked by content safety: {}", checkResult.getReason());
+                    return AiChatResponse.of("Output blocked: " + checkResult.getReason());
+                }
+            }
+
+            // Advisor 链已处理工具调用（包括安全检查）
+            log.debug("LLM returned response after {} iterations", iteration);
+            lastResponse = response;
+            break;
+        }
+
+        if (lastResponse != null) {
+            return lastResponse;
+        }
+
+        log.warn("Max iterations ({}) reached, making final call", maxIterations);
+        return client.chat(currentMessages);
+    }
+
+    /**
+     * 执行带安全检查的工具调用对话（简化版）
+     *
+     * @param task 用户任务
+     * @return 最终响应
+     */
+    public @NonNull AiChatResponse executeWithTools(@NonNull String task) {
+        List<AiMessage> messages = new ArrayList<>();
+        messages.add(AiMessage.user(task));
+        return executeWithTools(null, messages);
+    }
+
+    /**
+     * 执行带安全检查的工具调用对话（简化版，指定上下文）
+     *
+     * @param task    用户任务
      * @param context 工具上下文
      * @return 最终响应
      */
-    public @NonNull LlmResponse executeWithTools(
-            @NonNull LlmRequest request,
-            @NonNull ToolContext context) {
-        LlmRequest currentRequest = request;
-        int iteration = 0;
-
-        while (iteration < maxIterations) {
-            iteration++;
-            log.debug("Tool execution iteration {}", iteration);
-
-            // 调用 LLM
-            LlmResponse response = llmClient.chat(currentRequest);
-
-            // 如果没有工具调用，返回结果
-            if (!response.hasToolCalls()) {
-                log.debug("LLM returned final response after {} iterations", iteration);
-                return response;
-            }
-
-            // 执行工具调用（带安全检查）
-            List<ToolResult> toolResults = executeToolsSecure(response.toolCalls(), context);
-
-            // 构建包含工具结果的请求
-            currentRequest = buildRequestWithToolResults(currentRequest, response, toolResults);
-        }
-
-        log.warn("Max iterations ({}) reached, returning last response", maxIterations);
-        return llmClient.chat(currentRequest);
+    public @NonNull AiChatResponse executeWithTools(@NonNull String task, @NonNull ToolContext context) {
+        List<AiMessage> messages = new ArrayList<>();
+        messages.add(AiMessage.user(task));
+        return executeWithTools(null, messages, context);
     }
 
     /**
-     * 异步执行带工具调用的请求。
+     * 异步执行带安全检查的工具调用对话。
      */
-    public @NonNull CompletableFuture<LlmResponse> executeWithToolsAsync(@NonNull LlmRequest request) {
-        return CompletableFuture.supplyAsync(() -> executeWithTools(request));
+    public @NonNull CompletableFuture<AiChatResponse> executeWithToolsAsync(
+            @Nullable String systemPrompt,
+            @NonNull List<AiMessage> messages
+    ) {
+        return CompletableFuture.supplyAsync(() -> executeWithTools(systemPrompt, messages));
     }
 
     /**
-     * 执行工具调用列表（带安全检查）。
+     * 异步执行带安全检查的工具调用对话（简化版）。
      */
-    private @NonNull List<ToolResult> executeToolsSecure(
-            @NonNull List<ToolCall> toolCalls,
-            @NonNull ToolContext context) {
-        List<ToolResult> results = new ArrayList<>();
-
-        for (ToolCall call : toolCalls) {
-            ToolResult result = executeSingleToolSecure(call, context);
-            results.add(result);
-        }
-
-        return results;
+    public @NonNull CompletableFuture<AiChatResponse> executeWithToolsAsync(@NonNull String task) {
+        return CompletableFuture.supplyAsync(() -> executeWithTools(task));
     }
 
     /**
-     * 执行单个工具调用（带安全检查）。
+     * 执行单个安全工具（带完整安全检查流程）。
+     *
+     * @param toolName  工具名称
+     * @param arguments 工具参数
+     * @param context   工具上下文
+     * @return 工具执行结果，null 表示执行失败
      */
-    private @NonNull ToolResult executeSingleToolSecure(
-            @NonNull ToolCall call,
-            @NonNull ToolContext context) {
-        log.debug("Executing tool: {} with id: {}", call.name(), call.id());
+    public @Nullable String executeToolSecure(
+            @NonNull String toolName,
+            @NonNull Map<String, Object> arguments,
+            @NonNull ToolContext context
+    ) {
+        log.debug("Executing tool securely: {}", toolName);
         Instant start = Instant.now();
+        String callId = "call-" + System.currentTimeMillis();
         String recordId = null;
 
         // 1. 查找工具
-        var toolOpt = toolRegistry.getTool(call.name());
+        var toolOpt = toolRegistry.getTool(toolName);
         if (toolOpt.isEmpty()) {
-            log.warn("Tool not found: {}", call.name());
-            return ToolResult.failure(call.id(), call.name(), "Tool not found: " + call.name());
+            log.warn("Tool not found: {}", toolName);
+            return "Error: Tool not found: " + toolName;
         }
-
         Tool<?, ?> tool = toolOpt.get();
 
         // 2. 权限检查
-        if (tool instanceof SecureTool<?, ?> secureTool) {
-            if (permissionChecker != null) {
-                var result = permissionChecker.checkSecureTool(secureTool, context);
-                if (result.isDenied()) {
-                    log.warn("Tool {} permission denied: {}", call.name(), result.getDenyReason());
-                    if (auditLogger != null && secureTool.isAuditable()) {
-                        auditLogger.logPermissionDenied(call.id(), call.name(), result.getDenyReason(), context);
-                    }
-                    return ToolResult.failure(call.id(), call.name(),
-                        "Permission denied: " + result.getDenyReason());
+        if (tool instanceof SecureTool<?, ?> secureTool && permissionChecker != null) {
+            var result = permissionChecker.checkSecureTool(secureTool, context);
+            if (result.isDenied()) {
+                log.warn("Tool {} permission denied: {}", toolName, result.getDenyReason());
+                if (auditLogger != null && secureTool.isAuditable()) {
+                    auditLogger.logPermissionDenied(callId, toolName, result.getDenyReason(), context);
                 }
+                return "Error: Permission denied: " + result.getDenyReason();
             }
         }
 
         // 3. 内容安全检查（输入）
-        if (enableContentSafety && contentSafetyChecker != null) {
-            String inputContent = serializeArguments(call.arguments());
+        if (enableContentSafety) {
+            String inputContent = serializeArguments(arguments);
             var checkResult = contentSafetyChecker.checkInput(inputContent, buildSafetyContext(context));
             if (checkResult.isBlocked()) {
-                log.warn("Tool {} input blocked by content safety: {}", call.name(), checkResult.getReason());
-                return ToolResult.failure(call.id(), call.name(),
-                    "Content blocked: " + checkResult.getReason());
+                log.warn("Tool {} input blocked by content safety: {}", toolName, checkResult.getReason());
+                return "Error: Content blocked: " + checkResult.getReason();
             }
         }
 
         // 4. 记录审计开始
         if (auditLogger != null && isAuditable(tool)) {
-            Map<String, Object> auditArgs = new HashMap<>(call.arguments());
+            Map<String, Object> auditArgs = new HashMap<>(arguments);
             auditArgs.put("__tool__", tool);
-            recordId = auditLogger.logStart(call.id(), call.name(), auditArgs, context);
+            recordId = auditLogger.logStart(callId, toolName, auditArgs, context);
         }
 
         try {
             // 5. 执行工具
-            Object output = executeWithTimeout(tool, call.arguments(), context);
+            Object output = executeWithTimeout(tool, arguments, context);
 
             // 6. 内容安全检查（输出）
-            if (enableContentSafety && contentSafetyChecker != null && output != null) {
+            if (enableContentSafety && output != null) {
                 var checkResult = contentSafetyChecker.checkOutput(output.toString(), buildSafetyContext(context));
                 if (checkResult.isBlocked()) {
-                    log.warn("Tool {} output blocked by content safety: {}", call.name(), checkResult.getReason());
+                    log.warn("Tool {} output blocked by content safety: {}", toolName, checkResult.getReason());
                     if (recordId != null) {
                         auditLogger.logFailure(recordId, "Output blocked: " + checkResult.getReason(),
                             Duration.between(start, Instant.now()));
                     }
-                    return ToolResult.failure(call.id(), call.name(),
-                        "Output blocked: " + checkResult.getReason());
+                    return "Error: Output blocked: " + checkResult.getReason();
                 }
             }
 
@@ -226,24 +289,24 @@ public class SecureToolExecutor {
                 auditLogger.logSuccess(recordId, output, duration);
             }
 
-            log.debug("Tool {} executed successfully in {}ms", call.name(), duration.toMillis());
-            return ToolResult.success(call.id(), call.name(), output != null ? output.toString() : "");
+            log.debug("Tool {} executed successfully in {}ms", toolName, duration.toMillis());
+            return output != null ? output.toString() : "";
 
         } catch (java.util.concurrent.TimeoutException e) {
             Duration duration = Duration.between(start, Instant.now());
-            log.error("Tool {} execution timeout after {}ms", call.name(), timeoutMs);
+            log.error("Tool {} execution timeout after {}ms", toolName, timeoutMs);
             if (recordId != null) {
-                auditLogger.logTimeout(call.id(), call.name(), context, Duration.ofMillis(timeoutMs));
+                auditLogger.logTimeout(callId, toolName, context, Duration.ofMillis(timeoutMs));
             }
-            return ToolResult.failure(call.id(), call.name(), "Tool execution timeout after " + timeoutMs + "ms");
+            return "Error: Tool execution timeout after " + timeoutMs + "ms";
 
         } catch (Exception e) {
             Duration duration = Duration.between(start, Instant.now());
-            log.error("Tool {} execution failed: {}", call.name(), e.getMessage());
+            log.error("Tool {} execution failed: {}", toolName, e.getMessage());
             if (recordId != null) {
                 auditLogger.logFailure(recordId, e.getMessage(), duration);
             }
-            return ToolResult.failure(call.id(), call.name(), e.getMessage());
+            return "Error: " + e.getMessage();
         }
     }
 
@@ -281,35 +344,6 @@ public class SecureToolExecutor {
     }
 
     /**
-     * 构建包含工具结果的请求。
-     */
-    private @NonNull LlmRequest buildRequestWithToolResults(
-            @NonNull LlmRequest previousRequest,
-            @NonNull LlmResponse response,
-            @NonNull List<ToolResult> toolResults) {
-
-        List<io.github.afgprojects.framework.ai.core.memory.Message> messages =
-            new ArrayList<>(previousRequest.messages());
-
-        messages.add(io.github.afgprojects.framework.ai.core.memory.Message.assistantWithTools(
-            response.content(),
-            new ArrayList<>(response.toolCalls())
-        ));
-
-        messages.add(io.github.afgprojects.framework.ai.core.memory.Message.tool(
-            null,
-            new ArrayList<>(toolResults)
-        ));
-
-        return new LlmRequest(
-            previousRequest.systemPrompt(),
-            messages,
-            previousRequest.tools(),
-            previousRequest.options()
-        );
-    }
-
-    /**
      * 判断工具是否需要审计。
      */
     private boolean isAuditable(@NonNull Tool<?, ?> tool) {
@@ -326,6 +360,19 @@ public class SecureToolExecutor {
         Map<String, Object> filtered = new HashMap<>(arguments);
         filtered.remove("__tool__");
         return filtered.toString();
+    }
+
+    /**
+     * 序列化消息列表。
+     */
+    private @NonNull String serializeMessages(@NonNull List<AiMessage> messages) {
+        StringBuilder sb = new StringBuilder();
+        for (AiMessage msg : messages) {
+            if (msg.content() != null) {
+                sb.append(msg.content()).append("\n");
+            }
+        }
+        return sb.toString();
     }
 
     /**
@@ -349,7 +396,7 @@ public class SecureToolExecutor {
             }
 
             @Override
-            public @Nullable String getOperationType() {
+            public @NonNull String getOperationType() {
                 return "tool_execution";
             }
 

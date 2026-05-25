@@ -1,199 +1,128 @@
-// ai-core/src/test/java/io/github/afgprojects/framework/ai/core/tool/ToolTest.java
 package io.github.afgprojects.framework.ai.core.tool;
 
+import org.jspecify.annotations.NonNull;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+/**
+ * {@link Tool} 接口测试
+ */
+@DisplayName("Tool")
 class ToolTest {
 
-    @Test
-    void tool_shouldHaveNameAndDescription() {
-        Tool<String, String> tool = new Tool<>() {
+    // ── 辅助方法 ───────────────────────────────────────────────────────────────
+
+    private Tool<Map<String, Object>, String> createEchoTool() {
+        return new Tool<>() {
             @Override
-            public String name() {
-                return "test_tool";
+            public @NonNull String name() {
+                return "echo";
             }
 
             @Override
-            public String description() {
-                return "A test tool";
+            public @NonNull String description() {
+                return "Echoes the input";
             }
 
             @Override
-            public String execute(String input) {
-                return "result: " + input;
-            }
-        };
-
-        assertEquals("test_tool", tool.name());
-        assertEquals("A test tool", tool.description());
-        assertEquals("result: hello", tool.execute("hello"));
-    }
-
-    @Test
-    void toolCall_shouldCreateWithAllFields() {
-        ToolCall toolCall = new ToolCall(
-            "call-123",
-            "test_tool",
-            java.util.Map.of("arg", "value")
-        );
-
-        assertEquals("call-123", toolCall.id());
-        assertEquals("test_tool", toolCall.name());
-        assertEquals("value", toolCall.arguments().get("arg"));
-    }
-
-    @Test
-    void toolResult_shouldCreateWithAllFields() {
-        ToolResult result = new ToolResult(
-            "call-123",
-            "test_tool",
-            "tool output",
-            null
-        );
-
-        assertEquals("call-123", result.toolCallId());
-        assertEquals("test_tool", result.toolName());
-        assertEquals("tool output", result.output());
-        assertNull(result.error());
-    }
-
-    @Test
-    void tool_shouldHaveDefaultInputSchema() {
-        Tool<String, String> tool = new Tool<>() {
-            @Override
-            public String name() {
-                return "test_tool";
+            public @NonNull String inputSchema() {
+                return "{\"type\":\"object\",\"properties\":{\"message\":{\"type\":\"string\"}}}";
             }
 
             @Override
-            public String description() {
-                return "A test tool";
-            }
-
-            @Override
-            public String execute(String input) {
-                return input;
+            public @NonNull String execute(Map<String, Object> input) {
+                return String.valueOf(input.get("message"));
             }
         };
-
-        assertEquals("{}", tool.inputSchema());
     }
 
-    @Test
-    void toolCall_shouldCreateWithEmptyArguments() {
-        ToolCall toolCall = ToolCall.of("call-456", "simple_tool");
-
-        assertEquals("call-456", toolCall.id());
-        assertEquals("simple_tool", toolCall.name());
-        assertTrue(toolCall.arguments().isEmpty());
-    }
-
-    @Test
-    void toolCall_shouldCreateWithSingleArgument() {
-        ToolCall toolCall = ToolCall.of("call-789", "param_tool", "key", "value");
-
-        assertEquals("call-789", toolCall.id());
-        assertEquals("param_tool", toolCall.name());
-        assertEquals("value", toolCall.arguments().get("key"));
-    }
-
-    @Test
-    void toolCall_shouldRejectNullId() {
-        assertThrows(IllegalArgumentException.class, () ->
-            new ToolCall(null, "test_tool", java.util.Map.of())
-        );
-    }
-
-    @Test
-    void toolCall_shouldRejectBlankId() {
-        assertThrows(IllegalArgumentException.class, () ->
-            new ToolCall("", "test_tool", java.util.Map.of())
-        );
-    }
-
-    @Test
-    void toolCall_shouldRejectNullName() {
-        assertThrows(IllegalArgumentException.class, () ->
-            new ToolCall("call-123", null, java.util.Map.of())
-        );
-    }
-
-    @Test
-    void toolResult_shouldCreateSuccess() {
-        ToolResult result = ToolResult.success("call-123", "test_tool", "output");
-
-        assertTrue(result.isSuccess());
-        assertFalse(result.isFailure());
-        assertEquals("output", result.output());
-        assertNull(result.error());
-    }
-
-    @Test
-    void toolResult_shouldCreateFailure() {
-        ToolResult result = ToolResult.failure("call-123", "test_tool", "error message");
-
-        assertFalse(result.isSuccess());
-        assertTrue(result.isFailure());
-        assertNull(result.output());
-        assertEquals("error message", result.error());
-    }
-
-    @Test
-    void toolDefinition_shouldCreateFromTool() {
-        Tool<String, String> tool = new Tool<>() {
+    private Tool<Map<String, Object>, Double> createMathTool() {
+        return new Tool<>() {
             @Override
-            public String name() {
-                return "test_tool";
+            public @NonNull String name() {
+                return "add";
             }
 
             @Override
-            public String description() {
-                return "A test tool";
+            public @NonNull String description() {
+                return "Adds two numbers";
             }
 
             @Override
-            public String execute(String input) {
-                return input;
+            public @NonNull String inputSchema() {
+                return "{\"type\":\"object\",\"properties\":{\"a\":{\"type\":\"number\"},\"b\":{\"type\":\"number\"}}}";
+            }
+
+            @Override
+            public @NonNull Double execute(Map<String, Object> input) {
+                double a = ((Number) input.get("a")).doubleValue();
+                double b = ((Number) input.get("b")).doubleValue();
+                return a + b;
             }
         };
-
-        ToolDefinition definition = ToolDefinition.from(tool);
-
-        assertEquals("test_tool", definition.name());
-        assertEquals("A test tool", definition.description());
-        assertEquals("{}", definition.inputSchema());
     }
 
-    @Test
-    void toolDefinition_shouldCreateWithEmptySchema() {
-        ToolDefinition definition = ToolDefinition.of("my_tool", "My description");
+    // ── 基本属性 ───────────────────────────────────────────────────────────────
 
-        assertEquals("my_tool", definition.name());
-        assertEquals("My description", definition.description());
-        assertEquals("{}", definition.inputSchema());
+    @Nested
+    @DisplayName("基本属性")
+    class BasicProperties {
+
+        @Test
+        @DisplayName("应返回正确的名称")
+        void shouldReturnName() {
+            Tool<?, ?> tool = createEchoTool();
+            assertThat(tool.name()).isEqualTo("echo");
+        }
+
+        @Test
+        @DisplayName("应返回正确的描述")
+        void shouldReturnDescription() {
+            Tool<?, ?> tool = createEchoTool();
+            assertThat(tool.description()).isEqualTo("Echoes the input");
+        }
+
+        @Test
+        @DisplayName("应返回正确的 inputSchema")
+        void shouldReturnInputSchema() {
+            Tool<?, ?> tool = createEchoTool();
+            assertThat(tool.inputSchema()).isNotBlank();
+        }
     }
 
-    @Test
-    void toolDefinition_shouldRejectNullName() {
-        assertThrows(IllegalArgumentException.class, () ->
-            new ToolDefinition(null, "description", "{}")
-        );
-    }
+    // ── 执行 ───────────────────────────────────────────────────────────────────
 
-    @Test
-    void toolExecutionException_shouldCreateWithMessage() {
-        ToolExecutionException ex = new ToolExecutionException("Tool failed");
+    @Nested
+    @DisplayName("执行")
+    class Execution {
 
-        assertEquals("Tool failed", ex.getMessage());
-    }
+        @Test
+        @DisplayName("应正确执行 echo 工具")
+        void shouldExecuteEcho() {
+            Tool<Map<String, Object>, String> tool = createEchoTool();
+            String result = tool.execute(Map.of("message", "hello"));
+            assertThat(result).isEqualTo("hello");
+        }
 
-    @Test
-    void toolExecutionException_shouldCreateWithMessageAndCause() {
-        RuntimeException cause = new RuntimeException("Underlying error");
-        ToolExecutionException ex = new ToolExecutionException("Tool failed", cause);
+        @Test
+        @DisplayName("应正确执行数学工具")
+        void shouldExecuteMath() {
+            Tool<Map<String, Object>, Double> tool = createMathTool();
+            Double result = tool.execute(Map.of("a", 3, "b", 4));
+            assertThat(result).isEqualTo(7.0);
+        }
 
-        assertEquals("Tool failed", ex.getMessage());
-        assertEquals(cause, ex.getCause());
+        @Test
+        @DisplayName("inputType 默认返回 null")
+        void shouldReturnNullInputTypeByDefault() {
+            Tool<?, ?> tool = createEchoTool();
+            assertThat(tool.inputType()).isNull();
+        }
     }
 }

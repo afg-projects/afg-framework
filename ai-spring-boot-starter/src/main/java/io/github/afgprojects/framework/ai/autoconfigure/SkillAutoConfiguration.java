@@ -4,8 +4,7 @@ import io.github.afgprojects.framework.ai.agent.skill.DefaultSkillExecutor;
 import io.github.afgprojects.framework.ai.agent.skill.DefaultSkillRegistry;
 import io.github.afgprojects.framework.ai.agent.skill.SkillExecutor;
 import io.github.afgprojects.framework.ai.agent.skill.SkillRegistry;
-import io.github.afgprojects.framework.ai.core.model.LlmClient;
-import io.github.afgprojects.framework.ai.core.model.LlmClientRegistry;
+import io.github.afgprojects.framework.ai.core.chat.AfgChatClient;
 import io.github.afgprojects.framework.ai.core.tool.ToolRegistry;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -93,28 +92,20 @@ public class SkillAutoConfiguration {
     /**
      * 配置 Skill 执行器
      *
-     * <p>优先使用 LlmClientRegistry.getDefault()，其次使用单独的 LlmClient
+     * <p>使用 AfgChatClient 进行对话
      */
     @Bean
     @ConditionalOnMissingBean(SkillExecutor.class)
     public SkillExecutor skillExecutor(
             @NonNull SkillRegistry skillRegistry,
-            @Nullable LlmClient llmClient,
-            @Nullable LlmClientRegistry llmClientRegistry,
+            @Nullable AfgChatClient chatClient,
             @Nullable ToolRegistry toolRegistry) {
 
-        // 优先使用 LlmClientRegistry
-        LlmClient client;
-        if (llmClientRegistry != null) {
-            client = llmClientRegistry.getDefault();
-            log.info("Creating default skill executor with LlmClientRegistry");
-        } else if (llmClient != null) {
-            client = llmClient;
-            log.info("Creating default skill executor with LlmClient");
-        } else {
-            throw new IllegalStateException("No LlmClient or LlmClientRegistry available");
+        if (chatClient == null) {
+            throw new IllegalStateException("No AfgChatClient available");
         }
 
-        return new DefaultSkillExecutor(skillRegistry, client, toolRegistry);
+        log.info("Creating default skill executor with AfgChatClient");
+        return new DefaultSkillExecutor(skillRegistry, chatClient, toolRegistry);
     }
 }

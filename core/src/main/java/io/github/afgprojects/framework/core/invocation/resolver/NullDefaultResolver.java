@@ -3,25 +3,27 @@ package io.github.afgprojects.framework.core.invocation.resolver;
 import io.github.afgprojects.framework.core.invocation.ParameterMetadata;
 
 public class NullDefaultResolver implements ArgumentResolver {
+
     @Override
     public int priority() {
         return 5;
     }
 
     @Override
-    public boolean supports(Class<?> sourceType, Class<?> targetType) {
-        return true;
+    public boolean supports(ParameterMetadata param, Object rawValue) {
+        return rawValue == null && !param.defaultValue().isEmpty();
     }
 
     @Override
-    public Object resolve(Object source, Class<?> targetType, ResolveContext context) {
-        if (source != null) return source;
-        ParameterMetadata meta = context.parameterMetadata();
-        if (meta.defaultValue().isEmpty()) return null;
+    public Object resolve(ResolveContext context) {
         StringConverterResolver stringResolver = new StringConverterResolver();
-        if (stringResolver.supports(String.class, targetType)) {
-            return stringResolver.resolve(meta.defaultValue(), targetType, context);
+        if (stringResolver.supports(context.parameterMetadata(), context.parameterMetadata().defaultValue())) {
+            return stringResolver.resolve(new DefaultResolveContext(
+                    context.parameterMetadata(),
+                    context.objectMapper(),
+                    context.parameterMetadata().defaultValue()
+            ));
         }
-        return null;
+        return context.parameterMetadata().defaultValue();
     }
 }

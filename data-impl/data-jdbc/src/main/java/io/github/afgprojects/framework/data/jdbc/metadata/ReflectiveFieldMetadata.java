@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.data.jdbc.metadata;
 
+import io.github.afgprojects.framework.commons.naming.NamingUtils;
 import io.github.afgprojects.framework.data.core.metadata.DatabaseFieldMetadata;
 import io.github.afgprojects.framework.data.core.metadata.FieldAccessor;
 import org.jspecify.annotations.Nullable;
@@ -162,7 +163,7 @@ public class ReflectiveFieldMetadata implements DatabaseFieldMetadata {
         }
 
         // 2. 默认：camelCase → snake_case
-        return toSnakeCase(field.getName());
+        return NamingUtils.toSnakeCase(field.getName());
     }
 
     /**
@@ -219,23 +220,5 @@ public class ReflectiveFieldMetadata implements DatabaseFieldMetadata {
             }
         }
         return false;
-    }
-
-    /**
-     * camelCase 转 snake_case
-     *
-     * @param name 属性名
-     * @return snake_case 格式的列名
-     */
-    private static String toSnakeCase(String name) {
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < name.length(); i++) {
-            char c = name.charAt(i);
-            if (i > 0 && Character.isUpperCase(c)) {
-                result.append('_');
-            }
-            result.append(Character.toLowerCase(c));
-        }
-        return result.toString();
     }
 }

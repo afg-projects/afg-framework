@@ -1,11 +1,15 @@
 package io.github.afgprojects.framework.ai.core.etl;
 
+import io.github.afgprojects.framework.ai.core.rag.Document;
+
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * ETL Pipeline 构建器。
@@ -15,52 +19,62 @@ import java.util.Objects;
  */
 public class EtlPipelineBuilder {
 
-    private DocumentReader reader;
-    private final List<DocumentTransformer> transformers = new ArrayList<>();
-    private DocumentWriter writer;
-    private ErrorHandler errorHandler;
+    private Function<List<Source>, List<Document>> reader;
+    private final List<Function<List<Document>, List<Document>>> transformers = new ArrayList<>();
+    private Consumer<List<Document>> writer;
+    private @Nullable Consumer<Exception> errorHandler;
 
     /**
      * 设置 Reader。
+     *
+     * @param reader 读取函数，接收数据源列表，返回文档列表
      */
     @NonNull
-    public EtlPipelineBuilder reader(@NonNull DocumentReader reader) {
+    public EtlPipelineBuilder reader(@NonNull Function<List<Source>, List<Document>> reader) {
         this.reader = reader;
         return this;
     }
 
     /**
      * 添加 Transformer。
+     *
+     * @param transformer 转换函数，接收文档列表，返回转换后的文档列表
      */
     @NonNull
-    public EtlPipelineBuilder transformer(@NonNull DocumentTransformer transformer) {
+    public EtlPipelineBuilder transformer(@NonNull Function<List<Document>, List<Document>> transformer) {
         this.transformers.add(transformer);
         return this;
     }
 
     /**
      * 添加多个 Transformer。
+     *
+     * @param transformers 转换函数列表
      */
     @NonNull
-    public EtlPipelineBuilder transformers(@NonNull List<DocumentTransformer> transformers) {
+    public EtlPipelineBuilder transformers(@NonNull List<Function<List<Document>, List<Document>>> transformers) {
         this.transformers.addAll(transformers);
         return this;
     }
 
     /**
      * 设置 Writer。
+     *
+     * @param writer 写入函数，接收文档列表
      */
     @NonNull
-    public EtlPipelineBuilder writer(@NonNull DocumentWriter writer) {
+    public EtlPipelineBuilder writer(@NonNull Consumer<List<Document>> writer) {
         this.writer = writer;
         return this;
     }
 
     /**
      * 设置错误处理器。
+     *
+     * @param errorHandler 错误处理函数，接收异常
      */
     @NonNull
-    public EtlPipelineBuilder errorHandler(@NonNull ErrorHandler errorHandler) {
+    public EtlPipelineBuilder errorHandler(@NonNull Consumer<Exception> errorHandler) {
         this.errorHandler = errorHandler;
         return this;
     }
@@ -70,7 +84,11 @@ public class EtlPipelineBuilder {
      */
     @NonNull
     public EtlPipelineBuilder errorHandlingStrategy(@NonNull ErrorHandlingStrategy strategy) {
-        this.errorHandler = new DefaultErrorHandler(strategy);
+        this.errorHandler = switch (strategy) {
+            case FAIL_FAST -> e -> { throw e instanceof RuntimeException re ? re : new RuntimeException(e); };
+            case CONTINUE, SKIP_AND_LOG -> e -> {};
+            case RETRY -> e -> {};
+        };
         return this;
     }
 
@@ -82,15 +100,6 @@ public class EtlPipelineBuilder {
         Objects.requireNonNull(reader, "reader is required");
         Objects.requireNonNull(writer, "writer is required");
 
-        if (errorHandler == null) {
-            errorHandler = new DefaultErrorHandler(ErrorHandlingStrategy.FAIL_FAST);
-        }
-
-        // 按 order 排序 Transformer
-        List<DocumentTransformer> sortedTransformers = transformers.stream()
-            .sorted(Comparator.comparingInt(DocumentTransformer::getOrder))
-            .toList();
-
-        return new DefaultEtlPipeline(reader, sortedTransformers, writer, errorHandler);
+        return new DefaultEtlPipeline(reader, transformers, writer, errorHandler);
     }
 }

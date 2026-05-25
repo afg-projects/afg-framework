@@ -756,4 +756,102 @@ class DefaultBeanInvocationEngineTest {
             assertEquals("Wuhan", req.getAddress().getCity());
         }
     }
+
+    @Nested
+    @DisplayName("Positional arguments (Object...)")
+    class PositionalArgsTests {
+
+        @Test
+        @DisplayName("single positional arg: String")
+        void singleStringArg() {
+            Object result = engine.invoke("testService", "greet", "World");
+            assertEquals("Hello World", result);
+        }
+
+        @Test
+        @DisplayName("multiple positional args: String + int")
+        void multipleArgs() {
+            Object result = engine.invoke("testService", "repeat", "ab", 3);
+            assertEquals("ababab", result);
+        }
+
+        @Test
+        @DisplayName("no positional args")
+        void noArgs() {
+            Object result = engine.invoke("testService", "getName");
+            assertEquals("TestService", result);
+        }
+
+        @Test
+        @DisplayName("positional arg with return type conversion")
+        void withReturnType() {
+            String result = engine.invoke("testService", "greet", new Object[]{"World"}, String.class);
+            assertEquals("Hello World", result);
+        }
+
+        @Test
+        @DisplayName("complex POJO positional arg: CreateUserRequest")
+        void pojoArg() {
+            Address addr = new Address();
+            addr.setCity("Hangzhou");
+            addr.setStreet("West Lake");
+            CreateUserRequest req = new CreateUserRequest();
+            req.setUsername("frank");
+            req.setEmail("frank@example.com");
+            req.setAge(30);
+            req.setAddress(addr);
+
+            Object result = complexEngine.invoke("complexService", "createUser", req);
+            assertInstanceOf(UserDTO.class, result);
+            UserDTO dto = (UserDTO) result;
+            assertEquals("frank", dto.getUsername());
+            assertEquals("Hangzhou", dto.getAddress().getCity());
+        }
+
+        @Test
+        @DisplayName("enum positional arg")
+        void enumArg() {
+            Object result = complexEngine.invoke("complexService", "checkStatus", Status.INACTIVE);
+            assertEquals("Status: INACTIVE", result);
+        }
+
+        @Test
+        @DisplayName("async with positional args")
+        void asyncPositional() throws Exception {
+            CompletableFuture<Object> future = engine.invokeAsync("testService", "greet", "Async");
+            assertEquals("Hello Async", future.get());
+        }
+
+        @Test
+        @DisplayName("async with positional args and typed return")
+        void asyncPositionalTypedReturn() throws Exception {
+            CompletableFuture<String> future = engine.invokeAsync("testService", "greet",
+                    new Object[]{"Typed"}, String.class);
+            assertEquals("Hello Typed", future.get());
+        }
+
+        @Test
+        @DisplayName("plan with positional args")
+        void planPositional() {
+            InvocationPlan plan = engine.plan("testService", "greet", "Planned");
+            assertEquals("greet", plan.operationMetadata().name());
+            Object[] args = plan.resolvedArguments();
+            assertEquals(1, args.length);
+            assertEquals("Planned", args[0]);
+        }
+
+        @Test
+        @DisplayName("null args array")
+        void nullArgs() {
+            Object result = engine.invoke("testService", "getName", (Object[]) null);
+            assertEquals("TestService", result);
+        }
+
+        @Test
+        @DisplayName("empty args array")
+        void emptyArgs() {
+            Object result = engine.invoke("testService", "getName", new Object[0]);
+            assertEquals("TestService", result);
+        }
+    }
 }

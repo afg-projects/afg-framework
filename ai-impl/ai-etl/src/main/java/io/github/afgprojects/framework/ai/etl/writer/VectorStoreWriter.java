@@ -1,7 +1,6 @@
 package io.github.afgprojects.framework.ai.etl.writer;
 
-import io.github.afgprojects.framework.ai.core.etl.Document;
-import io.github.afgprojects.framework.ai.core.etl.DocumentWriter;
+import io.github.afgprojects.framework.ai.core.rag.Document;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +38,11 @@ public class VectorStoreWriter implements DocumentWriter {
         this.vectorStore = vectorStore;
     }
 
+    /**
+     * 将文档写入向量存储。
+     *
+     * @param documents 文档列表
+     */
     @Override
     public void write(@NonNull List<Document> documents) {
         log.debug("Writing {} documents to vector store", documents.size());
@@ -56,7 +60,12 @@ public class VectorStoreWriter implements DocumentWriter {
         log.debug("Wrote {} documents to vector store", documents.size());
     }
 
-    @Override
+    /**
+     * 将文档分批写入向量存储。
+     *
+     * @param documents 文档列表
+     * @param batchSize 每批大小
+     */
     public void write(@NonNull List<Document> documents, int batchSize) {
         log.debug("Writing {} documents in batches of {}", documents.size(), batchSize);
 
