@@ -141,6 +141,7 @@ public class ServiceMetadataProcessor extends AbstractProcessor {
                             tags = tagValues.stream().map(tv -> tv.getValue().toString()).toList();
                         }
                         case "deprecated" -> deprecated = (Boolean) value;
+                        default -> {} // ignore unknown annotation attributes
                     }
                 }
                 break;
@@ -213,6 +214,7 @@ public class ServiceMetadataProcessor extends AbstractProcessor {
                         case "tenantScope" -> tenantScope = (Boolean) value;
                         case "dataScope" -> dataScope = (Boolean) value;
                         case "inputSchema" -> inputSchema = value.toString();
+                        default -> {} // ignore unknown annotation attributes
                     }
                 }
                 break;
@@ -266,6 +268,7 @@ public class ServiceMetadataProcessor extends AbstractProcessor {
                                 List<? extends AnnotationValue> evValues = (List<? extends AnnotationValue>) value;
                                 enumValues = evValues.stream().map(ev -> ev.getValue().toString()).toList();
                             }
+                            default -> {} // ignore unknown annotation attributes
                         }
                     }
                     break;
@@ -297,6 +300,7 @@ public class ServiceMetadataProcessor extends AbstractProcessor {
                         case "description" -> description = value.toString();
                         case "paged" -> paged = (Boolean) value;
                         case "streaming" -> streaming = (Boolean) value;
+                        default -> {} // ignore unknown annotation attributes
                     }
                 }
                 break;
