@@ -221,7 +221,7 @@ class SqlQueryBuilderImplAdditionalTest {
             SqlQueryBuilderImpl builder = new SqlQueryBuilderImpl(new H2Dialect());
             String sql = builder.select("*").from("users").toSql();
 
-            assertThat(sql).contains("SELECT * FROM users");
+            assertThat(sql).isEqualTo("SELECT * FROM \"users\"");
         }
     }
 

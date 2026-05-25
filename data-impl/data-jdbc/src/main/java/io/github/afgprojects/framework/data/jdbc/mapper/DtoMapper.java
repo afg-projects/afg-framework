@@ -54,6 +54,7 @@ public class DtoMapper<R> implements ResultMapper<R> {
         if (components.length == 0) {
             try {
                 Constructor<R> ctor = dtoType.getDeclaredConstructor();
+                ctor.setAccessible(true);
                 return ctor.newInstance();
             } catch (Exception e) {
                 throw new EntityMappingException(
@@ -76,6 +77,7 @@ public class DtoMapper<R> implements ResultMapper<R> {
 
         try {
             Constructor<R> ctor = dtoType.getDeclaredConstructor(paramTypes);
+            ctor.setAccessible(true);
             return ctor.newInstance(args);
         } catch (Exception e) {
             throw new EntityMappingException(

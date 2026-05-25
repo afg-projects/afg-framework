@@ -4,22 +4,15 @@ import io.github.afgprojects.framework.data.core.page.PageRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * H2 数据库方言测试
- * <p>
- * 覆盖所有 Dialect 接口方法的边界情况
- */
 @DisplayName("H2Dialect 测试")
 class H2DialectTest {
 
@@ -28,7 +21,6 @@ class H2DialectTest {
     @Nested
     @DisplayName("数据库类型测试")
     class DatabaseTypeTests {
-
         @Test
         @DisplayName("应返回 H2 数据库类型")
         void shouldReturnH2DatabaseType() {
@@ -39,13 +31,11 @@ class H2DialectTest {
     @Nested
     @DisplayName("分页 SQL 测试")
     class PaginationTests {
-
         @Test
         @DisplayName("应生成正确的分页 SQL")
         void shouldGeneratePaginationSql() {
             String sql = "SELECT * FROM user";
             String paged = dialect.getPaginationSql(sql, 20, 10);
-
             assertThat(paged).isEqualTo("SELECT * FROM user LIMIT 10 OFFSET 20");
         }
 
@@ -54,7 +44,6 @@ class H2DialectTest {
         void shouldHandleZeroOffset() {
             String sql = "SELECT * FROM user";
             String paged = dialect.getPaginationSql(sql, 0, 10);
-
             assertThat(paged).isEqualTo("SELECT * FROM user LIMIT 10 OFFSET 0");
         }
 
@@ -63,7 +52,6 @@ class H2DialectTest {
         void shouldHandleLargeOffset() {
             String sql = "SELECT * FROM user";
             String paged = dialect.getPaginationSql(sql, 1000000L, 100);
-
             assertThat(paged).isEqualTo("SELECT * FROM user LIMIT 100 OFFSET 1000000");
         }
 
@@ -72,8 +60,6 @@ class H2DialectTest {
         void shouldGeneratePaginationWithPageRequest() {
             String sql = "SELECT * FROM user";
             String paged = dialect.getPaginationSql(sql, PageRequest.of(3, 20));
-
-            // page 3, size 20 -> offset = (3-1) * 20 = 40
             assertThat(paged).isEqualTo("SELECT * FROM user LIMIT 20 OFFSET 40");
         }
 
@@ -82,7 +68,6 @@ class H2DialectTest {
         void shouldGeneratePaginationWithFirstPage() {
             String sql = "SELECT * FROM user";
             String paged = dialect.getPaginationSql(sql, PageRequest.of(1, 15));
-
             assertThat(paged).isEqualTo("SELECT * FROM user LIMIT 15 OFFSET 0");
         }
 
@@ -91,7 +76,6 @@ class H2DialectTest {
         void shouldHandleComplexSql() {
             String sql = "SELECT u.id, u.name, r.role_name FROM user u JOIN role r ON u.role_id = r.id WHERE u.status = 1 ORDER BY u.id";
             String paged = dialect.getPaginationSql(sql, 50, 20);
-
             assertThat(paged).isEqualTo(sql + " LIMIT 20 OFFSET 50");
         }
     }
@@ -99,7 +83,6 @@ class H2DialectTest {
     @Nested
     @DisplayName("分页能力测试")
     class PaginationCapabilityTests {
-
         @Test
         @DisplayName("应支持 LIMIT OFFSET 语法")
         void shouldSupportLimitOffset() {
@@ -107,46 +90,50 @@ class H2DialectTest {
         }
 
         @Test
-        @DisplayName("应支持 FETCH FIRST 语法")
-        void shouldSupportFetchFirst() {
-            assertThat(dialect.supportsFetchFirst()).isTrue();
+        @DisplayName("H2 不支持 FETCH FIRST 语法（使用 LIMIT OFFSET）")
+        void shouldNotSupportFetchFirst() {
+            assertThat(dialect.supportsFetchFirst()).isFalse();
         }
     }
 
     @Nested
     @DisplayName("标识符引用测试")
     class IdentifierQuoteTests {
-
         @Test
-        @DisplayName("应返回空字符串作为标识符引用字符")
-        void shouldReturnEmptyQuote() {
-            assertThat(dialect.getIdentifierQuote()).isEmpty();
+        @DisplayName("应返回双引号作为标识符引用字符")
+        void shouldReturnDoubleQuote() {
+            assertThat(dialect.getIdentifierQuote()).isEqualTo("\"");
         }
 
         @Test
-        @DisplayName("应不引用标识符")
-        void shouldNotQuoteIdentifier() {
-            assertThat(dialect.quoteIdentifier("name")).isEqualTo("name");
+        @DisplayName("应正确引用标识符")
+        void shouldQuoteIdentifier() {
+            assertThat(dialect.quoteIdentifier("name")).isEqualTo("\"name\"");
         }
 
         @Test
         @DisplayName("应正确处理包含特殊字符的标识符")
         void shouldHandleSpecialCharacters() {
-            assertThat(dialect.quoteIdentifier("user_name")).isEqualTo("user_name");
-            assertThat(dialect.quoteIdentifier("columnName")).isEqualTo("columnName");
+            assertThat(dialect.quoteIdentifier("user_name")).isEqualTo("\"user_name\"");
+            assertThat(dialect.quoteIdentifier("columnName")).isEqualTo("\"columnName\"");
         }
 
         @Test
         @DisplayName("应正确处理中文标识符")
         void shouldHandleChineseIdentifier() {
-            assertThat(dialect.quoteIdentifier("用户名")).isEqualTo("用户名");
+            assertThat(dialect.quoteIdentifier("用户名")).isEqualTo("\"用户名\"");
+        }
+
+        @Test
+        @DisplayName("应正确处理包含引号的标识符")
+        void shouldHandleIdentifierWithQuote() {
+            assertThat(dialect.quoteIdentifier("my\"col")).isEqualTo("\"my\"\"col\"");
         }
     }
 
     @Nested
     @DisplayName("时间函数测试")
     class TimeFunctionTests {
-
         @Test
         @DisplayName("应返回正确的时间函数")
         void shouldReturnCurrentTimeFunction() {
@@ -169,7 +156,6 @@ class H2DialectTest {
     @Nested
     @DisplayName("主键生成测试")
     class PrimaryKeyGenerationTests {
-
         @Test
         @DisplayName("应返回正确的自增语法")
         void shouldReturnAutoIncrementSyntax() {
@@ -179,20 +165,19 @@ class H2DialectTest {
         @Test
         @DisplayName("应生成正确的序列查询 SQL")
         void shouldGenerateSequenceNextValueSql() {
-            assertThat(dialect.getSequenceNextValueSql("user_seq")).isEqualTo("SELECT NEXT VALUE FOR user_seq");
+            assertThat(dialect.getSequenceNextValueSql("user_seq")).isEqualTo("NEXT VALUE FOR \"user_seq\"");
         }
 
         @Test
         @DisplayName("应支持带模式的序列名")
         void shouldHandleSequenceWithSchema() {
-            assertThat(dialect.getSequenceNextValueSql("public.user_seq")).isEqualTo("SELECT NEXT VALUE FOR public.user_seq");
+            assertThat(dialect.getSequenceNextValueSql("public.user_seq")).isEqualTo("NEXT VALUE FOR \"public.user_seq\"");
         }
     }
 
     @Nested
     @DisplayName("SQL 类型映射测试")
     class SqlTypeMappingTests {
-
         @Test
         @DisplayName("应正确映射 String 类型")
         void shouldMapStringType() {
@@ -223,8 +208,8 @@ class H2DialectTest {
         @Test
         @DisplayName("应正确映射 Float 类型（包装类和基本类型）")
         void shouldMapFloatType() {
-            assertThat(dialect.getSqlType(Float.class)).isEqualTo("REAL");
-            assertThat(dialect.getSqlType(float.class)).isEqualTo("REAL");
+            assertThat(dialect.getSqlType(Float.class)).isEqualTo("FLOAT");
+            assertThat(dialect.getSqlType(float.class)).isEqualTo("FLOAT");
         }
 
         @Test
@@ -245,27 +230,31 @@ class H2DialectTest {
         @Test
         @DisplayName("应正确映射 BigDecimal 类型")
         void shouldMapBigDecimalType() {
-            assertThat(dialect.getSqlType(BigDecimal.class)).isEqualTo("DECIMAL(19,4)");
+            assertThat(dialect.getSqlType(BigDecimal.class)).isEqualTo("DECIMAL(19,2)");
         }
 
         @Test
         @DisplayName("应正确映射 byte[] 类型")
         void shouldMapByteArrayType() {
-            assertThat(dialect.getSqlType(byte[].class)).isEqualTo("BINARY");
+            assertThat(dialect.getSqlType(byte[].class)).isEqualTo("BLOB");
+        }
+
+        @Test
+        @DisplayName("应正确映射 UUID 类型")
+        void shouldMapUuidType() {
+            assertThat(dialect.getSqlType(UUID.class)).isEqualTo("VARCHAR(36)");
         }
 
         @Test
         @DisplayName("未知类型应返回 VARCHAR(255)")
         void shouldReturnDefaultForUnknownType() {
             assertThat(dialect.getSqlType(Object.class)).isEqualTo("VARCHAR(255)");
-            assertThat(dialect.getSqlType(java.util.UUID.class)).isEqualTo("VARCHAR(255)");
         }
     }
 
     @Nested
     @DisplayName("FOR UPDATE 测试")
     class ForUpdateTests {
-
         @Test
         @DisplayName("应返回正确的 FOR UPDATE 语法")
         void shouldReturnForUpdateSyntax() {

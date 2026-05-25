@@ -73,12 +73,52 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
 
     @Override
     public <R> @NonNull ProjectedQuery<T, R> project(@NonNull Class<R> dtoType) {
-        return new JdbcProjectedQuery<>(this, dtoType, null, typeHandlerRegistry);
+        JdbcProjectedQuery<T, R> pq = new JdbcProjectedQuery<>(this, dtoType, null, typeHandlerRegistry);
+        // 将已有的查询条件传递给投影查询
+        if (!condition.isEmpty()) {
+            pq.where(condition);
+        }
+        if (sort != null && sort.isSorted()) {
+            pq.orderBy(sort);
+        }
+        if (tenantId != null) {
+            pq.withTenant(tenantId);
+        }
+        if (includeDeleted) {
+            pq.includeDeleted();
+        }
+        if (limit != null) {
+            pq.limit(limit);
+        }
+        if (offset != null) {
+            pq.offset(offset);
+        }
+        return pq;
     }
 
     @Override
     public <R> @NonNull ProjectedQuery<T, R> project(@NonNull Projection<T, R> projection) {
-        return new JdbcProjectedQuery<>(this, projection.resultType(), projection, typeHandlerRegistry);
+        JdbcProjectedQuery<T, R> pq = new JdbcProjectedQuery<>(this, projection.resultType(), projection, typeHandlerRegistry);
+        // 将已有的查询条件传递给投影查询
+        if (!condition.isEmpty()) {
+            pq.where(condition);
+        }
+        if (sort != null && sort.isSorted()) {
+            pq.orderBy(sort);
+        }
+        if (tenantId != null) {
+            pq.withTenant(tenantId);
+        }
+        if (includeDeleted) {
+            pq.includeDeleted();
+        }
+        if (limit != null) {
+            pq.limit(limit);
+        }
+        if (offset != null) {
+            pq.offset(offset);
+        }
+        return pq;
     }
 
     @Override
