@@ -50,6 +50,7 @@ class JdbcDataManagerIntegrationTest {
     void setUp() {
         dataSource = createDataSource();
         dataManager = new JdbcDataManager(dataSource, DatabaseType.POSTGRESQL);
+        dataManager.setTransactionManager(new org.springframework.jdbc.datasource.DataSourceTransactionManager(dataSource));
         createTestTable();
     }
 
@@ -87,7 +88,7 @@ class JdbcDataManagerIntegrationTest {
         @DisplayName("应该返回正确的事务管理器")
         void shouldReturnTransactionManager() {
             Object transactionManager = dataManager.getTransactionManager();
-            assertThat(transactionManager).isSameAs(dataSource);
+            assertThat(transactionManager).isInstanceOf(org.springframework.transaction.PlatformTransactionManager.class);
         }
 
         @Test
@@ -403,7 +404,7 @@ class JdbcDataManagerIntegrationTest {
                     throw new RuntimeException("Simulated failure");
                 });
             }).isInstanceOf(RuntimeException.class)
-              .hasMessageContaining("Transaction failed");
+              .hasMessageContaining("Simulated failure");
 
             assertThat(proxy.findAll()).isEmpty();
         }
@@ -818,7 +819,7 @@ class JdbcDataManagerIntegrationTest {
                     throw new RuntimeException("Lambda exception test");
                 });
             }).isInstanceOf(RuntimeException.class)
-              .hasMessageContaining("Transaction failed");
+              .hasMessageContaining("Lambda exception test");
         }
 
         @Test

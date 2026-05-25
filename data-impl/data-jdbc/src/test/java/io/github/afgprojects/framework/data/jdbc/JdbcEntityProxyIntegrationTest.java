@@ -28,6 +28,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -59,6 +61,9 @@ class JdbcEntityProxyIntegrationTest {
     void setUp() {
         dataSource = createDataSource();
         dataManager = new JdbcDataManager(dataSource);
+        // 配置事务管理器以支持 executeInTransaction 方法
+        PlatformTransactionManager txManager = new DataSourceTransactionManager(dataSource);
+        dataManager.setTransactionManager(txManager);
         createTestTable();
         userProxy = dataManager.entity(TestUser.class);
     }
