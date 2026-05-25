@@ -1,12 +1,10 @@
 package io.github.afgprojects.framework.data.core.dialect;
 
-import io.github.afgprojects.framework.data.core.page.PageRequest;
 import org.jspecify.annotations.NonNull;
 
 /**
- * OceanBase 数据库方言
- * <p>
- * OceanBase 兼容 MySQL 模式，语法与 MySQL 基本一致
+ * OceanBase 方言。
+ * 继承 MySQLDialect，覆盖 OceanBase 特有的函数。
  */
 public class OceanBaseDialect extends MySQLDialect {
 
@@ -22,6 +20,6 @@ public class OceanBaseDialect extends MySQLDialect {
 
     @Override
     public @NonNull String getCurrentTimestampFunction() {
-        return "NOW(6)";  // OceanBase 支持微秒精度
+        return "NOW(6)";
     }
 }

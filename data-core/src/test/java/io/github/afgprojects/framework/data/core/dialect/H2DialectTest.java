@@ -171,18 +171,6 @@ class H2DialectTest {
     class PrimaryKeyGenerationTests {
 
         @Test
-        @DisplayName("应支持自增主键")
-        void shouldSupportAutoIncrement() {
-            assertThat(dialect.supportsAutoIncrement()).isTrue();
-        }
-
-        @Test
-        @DisplayName("应支持序列")
-        void shouldSupportSequence() {
-            assertThat(dialect.supportsSequence()).isTrue();
-        }
-
-        @Test
         @DisplayName("应返回正确的自增语法")
         void shouldReturnAutoIncrementSyntax() {
             assertThat(dialect.getAutoIncrementSyntax()).isEqualTo("AUTO_INCREMENT");
@@ -275,20 +263,8 @@ class H2DialectTest {
     }
 
     @Nested
-    @DisplayName("其他功能测试")
-    class OtherFunctionTests {
-
-        @Test
-        @DisplayName("应返回正确的 LIKE 通配符")
-        void shouldReturnLikeWildcard() {
-            assertThat(dialect.getLikeWildcard()).isEqualTo("%");
-        }
-
-        @Test
-        @DisplayName("应支持 FOR UPDATE")
-        void shouldSupportForUpdate() {
-            assertThat(dialect.supportsForUpdate()).isTrue();
-        }
+    @DisplayName("FOR UPDATE 测试")
+    class ForUpdateTests {
 
         @Test
         @DisplayName("应返回正确的 FOR UPDATE 语法")

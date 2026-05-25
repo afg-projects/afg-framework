@@ -1,9 +1,11 @@
 package io.github.afgprojects.framework.data.core;
 
 import io.github.afgprojects.framework.data.core.condition.SFunction;
+import io.github.afgprojects.framework.data.core.mapper.Projection;
 import io.github.afgprojects.framework.data.core.page.PageRequest;
 import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.query.Page;
+import io.github.afgprojects.framework.data.core.query.ProjectedQuery;
 import io.github.afgprojects.framework.data.core.query.Sort;
 import io.github.afgprojects.framework.data.core.scope.DataScope;
 import io.github.afgprojects.framework.data.core.scope.DataScopeType;
@@ -235,6 +237,30 @@ public interface EntityQuery<T> {
      * @return 查询构建器（支持链式调用）
      */
     @NonNull EntityQuery<T> offset(int offset);
+
+    // ==================== DTO 投影 ====================
+
+    /**
+     * 投影到 DTO 类型
+     * <p>
+     * 使用同名匹配 + @MappingField 注解进行字段映射。
+     *
+     * @param dtoType DTO 类型
+     * @param <R>     DTO 类型参数
+     * @return DTO 投影查询构建器
+     */
+    <R> @NonNull ProjectedQuery<T, R> project(@NonNull Class<R> dtoType);
+
+    /**
+     * 投影到 DTO 类型（编程式映射）
+     * <p>
+     * 使用 Projection 接口自定义实体到 DTO 的映射逻辑。
+     *
+     * @param projection 投影映射
+     * @param <R>        DTO 类型参数
+     * @return DTO 投影查询构建器
+     */
+    <R> @NonNull ProjectedQuery<T, R> project(@NonNull Projection<T, R> projection);
 
     // ==================== 执行方法 ====================
 

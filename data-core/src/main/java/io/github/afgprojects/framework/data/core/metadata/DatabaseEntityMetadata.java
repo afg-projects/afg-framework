@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.data.core.metadata;
 
+import io.github.afgprojects.framework.commons.naming.NamingUtils;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -114,24 +115,6 @@ public interface DatabaseEntityMetadata<T>
             return field.getColumnName();
         }
         // 降级：转换为 snake_case
-        return toSnakeCase(propertyName);
-    }
-
-    /**
-     * camelCase 转 snake_case
-     *
-     * @param name 属性名
-     * @return snake_case 格式的列名
-     */
-    private String toSnakeCase(String name) {
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < name.length(); i++) {
-            char c = name.charAt(i);
-            if (i > 0 && Character.isUpperCase(c)) {
-                result.append('_');
-            }
-            result.append(Character.toLowerCase(c));
-        }
-        return result.toString();
+        return NamingUtils.toSnakeCase(propertyName);
     }
 }

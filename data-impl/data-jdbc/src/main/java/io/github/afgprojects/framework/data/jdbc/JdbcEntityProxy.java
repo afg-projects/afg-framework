@@ -4,10 +4,13 @@ import io.github.afgprojects.framework.data.core.EntityProxy;
 import io.github.afgprojects.framework.data.core.EntityQuery;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
 import io.github.afgprojects.framework.data.core.entity.SoftDeleteStrategy;
+import io.github.afgprojects.framework.data.core.mapper.Projection;
+import io.github.afgprojects.framework.data.core.mapper.TypeHandlerRegistry;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
 import io.github.afgprojects.framework.data.core.page.PageRequest;
 import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.query.Page;
+import io.github.afgprojects.framework.data.core.query.ProjectedQuery;
 import io.github.afgprojects.framework.data.core.relation.RelationMetadata;
 import io.github.afgprojects.framework.data.core.relation.RelationType;
 import io.github.afgprojects.framework.data.core.scope.DataScope;
@@ -59,6 +62,7 @@ public class JdbcEntityProxy<T> implements EntityProxy<T>, ProxyStateProvider {
     final JdbcDataManager dataManager;
     private final EntityMetadata<T> metadata;
     final RowMapper<T> rowMapper;
+    private final TypeHandlerRegistry typeHandlerRegistry;
 
     /**
      * 查询辅助类
@@ -127,14 +131,21 @@ public class JdbcEntityProxy<T> implements EntityProxy<T>, ProxyStateProvider {
 
     public JdbcEntityProxy(Class<T> entityClass, JdbcClient jdbcClient, Dialect dialect,
                            JdbcDataManager dataManager, @Nullable EntityCacheManager cacheManager) {
+        this(entityClass, jdbcClient, dialect, dataManager, cacheManager, TypeHandlerRegistry.defaultRegistry());
+    }
+
+    public JdbcEntityProxy(Class<T> entityClass, JdbcClient jdbcClient, Dialect dialect,
+                           JdbcDataManager dataManager, @Nullable EntityCacheManager cacheManager,
+                           TypeHandlerRegistry typeHandlerRegistry) {
         this.entityClass = entityClass;
         this.jdbcClient = jdbcClient;
         this.dialect = dialect;
         this.dataManager = dataManager;
         this.cacheHandler = new EntityCacheHandler<>(entityClass, cacheManager, dataManager.getTenantContextHolder());
         this.metadata = dataManager.getEntityMetadata(entityClass);
-        this.queryHelper = new EntityQueryHelper<>(entityClass, dialect, metadata);
+        this.queryHelper = new EntityQueryHelper<>(entityClass, dialect, metadata, typeHandlerRegistry);
         this.rowMapper = queryHelper::mapRow;
+        this.typeHandlerRegistry = typeHandlerRegistry;
         this.insertHandler = new EntityInsertHandler<>(entityClass, jdbcClient, dialect, metadata, queryHelper, dataManager, cacheHandler);
         this.updateHandler = new EntityUpdateHandler<>(entityClass, jdbcClient, metadata, queryHelper, dataManager, cacheHandler);
         this.softDeleteHandler = new EntitySoftDeleteHandler<>(entityClass, dialect, metadata, jdbcClient, cacheManager);
@@ -407,6 +418,14 @@ public class JdbcEntityProxy<T> implements EntityProxy<T>, ProxyStateProvider {
     @NonNull
     public RowMapper<T> getRowMapper() {
         return rowMapper;
+    }
+
+    /**
+     * 获取类型处理器注册表
+     */
+    @NonNull
+    public TypeHandlerRegistry getTypeHandlerRegistry() {
+        return typeHandlerRegistry;
     }
 
     // ==================== 软删除扩展 ====================

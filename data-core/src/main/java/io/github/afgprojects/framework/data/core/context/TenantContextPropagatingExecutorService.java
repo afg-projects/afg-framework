@@ -83,16 +83,22 @@ public class TenantContextPropagatingExecutorService implements ExecutorService 
     }
 
     /**
-     * 包装 Callable，使其携带租户上下文
+     * 包装 Callable，使其携带租户上下文。
+     * 与 wrapRunnable 行为一致：执行完成后恢复目标线程之前的租户上下文。
      */
     private static <T> Callable<T> wrapCallable(Callable<T> task, TenantContextHolder holder) {
         TenantContextHolder.TenantContextSnapshot snapshot = holder.snapshot();
         return () -> {
-            holder.restore(snapshot);
+            String previousTenantId = holder.getTenantId();
             try {
+                holder.restore(snapshot);
                 return task.call();
             } finally {
-                holder.clear();
+                if (previousTenantId == null) {
+                    holder.clear();
+                } else {
+                    holder.setTenantId(previousTenantId);
+                }
             }
         };
     }

@@ -2,6 +2,7 @@ package io.github.afgprojects.framework.data.jdbc;
 
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
+import io.github.afgprojects.framework.data.core.mapper.TypeHandlerRegistry;
 import io.github.afgprojects.framework.data.jdbc.util.NamingUtils;
 import org.jspecify.annotations.Nullable;
 
@@ -30,9 +31,13 @@ class EntityQueryHelper<T> {
     private final EntityMapper<T> entityMapper;
 
     EntityQueryHelper(Class<T> entityClass, Dialect dialect, EntityMetadata<T> metadata) {
+        this(entityClass, dialect, metadata, TypeHandlerRegistry.defaultRegistry());
+    }
+
+    EntityQueryHelper(Class<T> entityClass, Dialect dialect, EntityMetadata<T> metadata, TypeHandlerRegistry typeHandlerRegistry) {
         this.sqlBuilder = new SqlBuilder<>(entityClass, dialect, metadata);
         this.parameterExtractor = new ParameterExtractor<>(entityClass, metadata);
-        this.entityMapper = new EntityMapper<>(entityClass, metadata);
+        this.entityMapper = new EntityMapper<>(entityClass, metadata, typeHandlerRegistry);
     }
 
     // ==================== SQL 构建（委托给 SqlBuilder） ====================

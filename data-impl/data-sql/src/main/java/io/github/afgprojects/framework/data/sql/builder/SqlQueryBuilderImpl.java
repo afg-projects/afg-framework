@@ -4,6 +4,7 @@ import io.github.afgprojects.framework.data.core.condition.Conditions;
 import io.github.afgprojects.framework.data.core.condition.SFunction;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
 import io.github.afgprojects.framework.data.core.dialect.MySQLDialect;
+import io.github.afgprojects.framework.data.core.mapper.ResultMapper;
 import io.github.afgprojects.framework.data.core.page.PageRequest;
 import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.query.Page;
@@ -667,7 +668,11 @@ public class SqlQueryBuilderImpl implements SqlQueryBuilder {
 
     @Override
     public <T> @NonNull List<T> fetch(@NonNull Class<T> resultType) {
-        // 需要 DataManager 支持
+        throw new UnsupportedOperationException("Use DataManager to execute query");
+    }
+
+    @Override
+    public <T> @NonNull List<T> fetch(@NonNull Class<T> resultType, @NonNull ResultMapper<T> mapper) {
         throw new UnsupportedOperationException("Use DataManager to execute query");
     }
 
@@ -677,12 +682,27 @@ public class SqlQueryBuilderImpl implements SqlQueryBuilder {
     }
 
     @Override
+    public <T> @NonNull Optional<T> fetchOne(@NonNull Class<T> resultType, @NonNull ResultMapper<T> mapper) {
+        throw new UnsupportedOperationException("Use DataManager to execute query");
+    }
+
+    @Override
     public <T> @NonNull Optional<T> fetchFirst(@NonNull Class<T> resultType) {
         throw new UnsupportedOperationException("Use DataManager to execute query");
     }
 
     @Override
+    public <T> @NonNull Optional<T> fetchFirst(@NonNull Class<T> resultType, @NonNull ResultMapper<T> mapper) {
+        throw new UnsupportedOperationException("Use DataManager to execute query");
+    }
+
+    @Override
     public <T> @NonNull Page<T> fetchPage(@NonNull Class<T> resultType, @NonNull PageRequest pageable) {
+        throw new UnsupportedOperationException("Use DataManager to execute query");
+    }
+
+    @Override
+    public <T> @NonNull Page<T> fetchPage(@NonNull Class<T> resultType, @NonNull PageRequest pageable, @NonNull ResultMapper<T> mapper) {
         throw new UnsupportedOperationException("Use DataManager to execute query");
     }
 

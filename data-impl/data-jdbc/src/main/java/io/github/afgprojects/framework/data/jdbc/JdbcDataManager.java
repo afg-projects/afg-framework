@@ -5,6 +5,8 @@ import io.github.afgprojects.framework.data.core.EntityProxy;
 import io.github.afgprojects.framework.data.core.context.TenantContextHolder;
 import io.github.afgprojects.framework.data.core.dialect.*;
 import io.github.afgprojects.framework.data.core.exception.EntityMappingException;
+import io.github.afgprojects.framework.data.core.mapper.ResultMapper;
+import io.github.afgprojects.framework.data.core.mapper.TypeHandlerRegistry;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadataCache;
 import io.github.afgprojects.framework.data.core.scope.TenantScope;
@@ -15,6 +17,8 @@ import io.github.afgprojects.framework.data.core.sql.SqlUpdateBuilder;
 import io.github.afgprojects.framework.data.core.transaction.TransactionAdapter;
 import io.github.afgprojects.framework.data.core.transaction.TransactionException;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheManager;
+import io.github.afgprojects.framework.data.jdbc.mapper.DtoMapper;
+import io.github.afgprojects.framework.data.jdbc.mapper.ResultMapperAdapter;
 import io.github.afgprojects.framework.data.sql.builder.SqlDeleteBuilderImpl;
 import io.github.afgprojects.framework.data.sql.builder.SqlInsertBuilderImpl;
 import io.github.afgprojects.framework.data.sql.builder.SqlQueryBuilderImpl;
@@ -85,6 +89,11 @@ public class JdbcDataManager implements DataManager {
      * 实体元数据缓存
      */
     private final EntityMetadataCache metadataCache = new EntityMetadataCache();
+
+    /**
+     * 类型处理器注册表
+     */
+    private TypeHandlerRegistry typeHandlerRegistry = TypeHandlerRegistry.defaultRegistry();
 
     public JdbcDataManager(DataSource dataSource) {
         this.dataSource = dataSource;
@@ -455,6 +464,42 @@ public class JdbcDataManager implements DataManager {
             .query(Long.class)
             .single();
         return count != null ? count : 0L;
+    }
+
+    /**
+     * 使用 ResultMapper 执行查询，返回列表
+     */
+    public <T> List<T> queryWithMapper(String sql, List<Object> params, ResultMapper<T> mapper) {
+        return jdbcClient.sql(sql)
+                .params(params)
+                .query(ResultMapperAdapter.adapt(mapper))
+                .list();
+    }
+
+    /**
+     * 获取类型处理器注册表
+     */
+    public TypeHandlerRegistry getTypeHandlerRegistry() {
+        return typeHandlerRegistry;
+    }
+
+    /**
+     * 设置类型处理器注册表
+     */
+    public void setTypeHandlerRegistry(TypeHandlerRegistry registry) {
+        this.typeHandlerRegistry = registry;
+    }
+
+    /**
+     * 判断给定类型是否为已注册的实体类型
+     */
+    public boolean isEntityType(Class<?> type) {
+        try {
+            getEntityMetadata(type);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     // ==================== 私有方法 ====================

@@ -35,7 +35,7 @@ public final class NotCondition implements Condition {
     @Override
     public @NonNull List<Criterion> getCriteria() {
         return Collections.singletonList(
-            new Criterion("NOT", Operator.NOT, original, null)
+            new Criterion("NOT", Operator.NOT, original, null, null)
         );
     }
 
@@ -59,8 +59,8 @@ public final class NotCondition implements Condition {
         if (this.isEmpty()) return other;
         if (other.isEmpty()) return this;
         return new ConditionImpl(LogicalOperator.AND, List.of(
-            new Criterion("__nested__", Operator.EQ, this, LogicalOperator.AND),
-            new Criterion("__nested__", Operator.EQ, other, LogicalOperator.AND)
+            Criterion.nested(this, LogicalOperator.AND),
+            Criterion.nested(other, LogicalOperator.AND)
         ));
     }
 
@@ -69,8 +69,8 @@ public final class NotCondition implements Condition {
         if (this.isEmpty()) return other;
         if (other.isEmpty()) return this;
         return new ConditionImpl(LogicalOperator.OR, List.of(
-            new Criterion("__nested__", Operator.EQ, this, LogicalOperator.OR),
-            new Criterion("__nested__", Operator.EQ, other, LogicalOperator.OR)
+            Criterion.nested(this, LogicalOperator.OR),
+            Criterion.nested(other, LogicalOperator.OR)
         ));
     }
 

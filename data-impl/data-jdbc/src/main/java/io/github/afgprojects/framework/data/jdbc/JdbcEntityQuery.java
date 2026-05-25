@@ -3,10 +3,13 @@ package io.github.afgprojects.framework.data.jdbc;
 import io.github.afgprojects.framework.data.core.EntityQuery;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
 import io.github.afgprojects.framework.data.core.entity.SoftDeleteStrategy;
+import io.github.afgprojects.framework.data.core.mapper.Projection;
+import io.github.afgprojects.framework.data.core.mapper.TypeHandlerRegistry;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
 import io.github.afgprojects.framework.data.core.page.PageRequest;
 import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.query.Page;
+import io.github.afgprojects.framework.data.core.query.ProjectedQuery;
 import io.github.afgprojects.framework.data.core.query.Sort;
 import io.github.afgprojects.framework.data.core.scope.DataScope;
 import io.github.afgprojects.framework.data.core.scope.DataScopeType;
@@ -32,6 +35,7 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
     private final EntityMetadata<T> metadata;
     private final RowMapper<T> rowMapper;
     private final JdbcEntityProxy<T> parentProxy;
+    private final TypeHandlerRegistry typeHandlerRegistry;
 
     private Condition condition = Condition.empty();
     private Sort sort;
@@ -62,6 +66,19 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
         this.dataManager = parentProxy.dataManager;
         this.metadata = dataManager.getEntityMetadata(entityClass);
         this.rowMapper = parentProxy.getRowMapper();
+        this.typeHandlerRegistry = parentProxy.getTypeHandlerRegistry();
+    }
+
+    // ==================== DTO 投影 ====================
+
+    @Override
+    public <R> @NonNull ProjectedQuery<T, R> project(@NonNull Class<R> dtoType) {
+        return new JdbcProjectedQuery<>(this, dtoType, null, typeHandlerRegistry);
+    }
+
+    @Override
+    public <R> @NonNull ProjectedQuery<T, R> project(@NonNull Projection<T, R> projection) {
+        return new JdbcProjectedQuery<>(this, projection.resultType(), projection, typeHandlerRegistry);
     }
 
     @Override
@@ -82,14 +99,54 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
 
     @Override
     public @NonNull EntityQuery<T> select(@NonNull String... fields) {
-        this.selectedFields = Arrays.asList(fields);
+        // 校验字段名必须在实体元数据中存在，防止 SQL 注入
+        List<String> validated = new ArrayList<>(fields.length);
+        for (String field : fields) {
+            var fieldMetadata = metadata.getField(field);
+            if (fieldMetadata != null) {
+                validated.add(dialect.quoteIdentifier(fieldMetadata.getColumnName()));
+            } else {
+                // 尝试作为列名匹配
+                boolean found = false;
+                for (var fm : metadata.getFields()) {
+                    if (fm.getColumnName().equals(field)) {
+                        validated.add(dialect.quoteIdentifier(field));
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    throw new IllegalArgumentException(
+                            "Invalid field '" + field + "' for entity " + entityClass.getSimpleName()
+                    );
+                }
+            }
+        }
+        this.selectedFields = validated;
         this.excludedFields.clear();
         return this;
     }
 
     @Override
     public @NonNull EntityQuery<T> exclude(@NonNull String... fields) {
-        this.excludedFields.addAll(Arrays.asList(fields));
+        for (String field : fields) {
+            // 校验字段名必须在实体元数据中存在
+            if (metadata.getField(field) == null) {
+                boolean found = false;
+                for (var fm : metadata.getFields()) {
+                    if (fm.getColumnName().equals(field)) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    throw new IllegalArgumentException(
+                            "Invalid field '" + field + "' for entity " + entityClass.getSimpleName()
+                    );
+                }
+            }
+            this.excludedFields.add(field);
+        }
         this.selectedFields = null;
         return this;
     }
@@ -197,7 +254,7 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
         List<Object> params = new ArrayList<>();
 
         if (!condition.isEmpty()) {
-            ConditionToSqlConverter converter = new ConditionToSqlConverter();
+            ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
             ConditionToSqlConverter.SqlResult result = converter.convert(condition);
             sql += " WHERE " + result.sql();
             params.addAll(result.parameters());
@@ -235,7 +292,7 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
         List<Object> params = new ArrayList<>();
 
         if (!condition.isEmpty()) {
-            ConditionToSqlConverter converter = new ConditionToSqlConverter();
+            ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
             ConditionToSqlConverter.SqlResult result = converter.convert(condition);
             whereClause = result.sql();
             params.addAll(result.parameters());
@@ -262,7 +319,7 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
         if (pageRequest.hasSort()) {
             dataSql += " ORDER BY " + buildOrderByClauseFromPageRequest(pageRequest);
         }
-        dataSql += " LIMIT " + pageRequest.size() + " OFFSET " + pageRequest.offset();
+        dataSql = dialect.getPaginationSql(dataSql, pageRequest.offset(), pageRequest.size());
 
         List<T> records = jdbcClient.sql(dataSql)
                 .params(params)
@@ -274,7 +331,29 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
 
     @Override
     public @NonNull Optional<T> one() {
-        List<T> results = list();
+        // 使用 LIMIT 2 而非获取全部结果，节省带宽和查询时间
+        String sql = buildSelectSql();
+        List<Object> params = new ArrayList<>();
+
+        if (!condition.isEmpty()) {
+            ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
+            ConditionToSqlConverter.SqlResult result = converter.convert(condition);
+            sql += " WHERE " + result.sql();
+            params.addAll(result.parameters());
+        }
+
+        // 软删除过滤
+        if (!includeDeleted && parentProxy.isSoftDeletable()) {
+            sql = appendSoftDeleteFilter(sql, !condition.isEmpty());
+        }
+
+        sql += " LIMIT 2";
+
+        List<T> results = jdbcClient.sql(sql)
+                .params(params)
+                .query(rowMapper)
+                .list();
+
         if (results.isEmpty()) {
             return Optional.empty();
         }
@@ -290,7 +369,7 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
         List<Object> params = new ArrayList<>();
 
         if (!condition.isEmpty()) {
-            ConditionToSqlConverter converter = new ConditionToSqlConverter();
+            ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
             ConditionToSqlConverter.SqlResult result = converter.convert(condition);
             sql += " WHERE " + result.sql();
             params.addAll(result.parameters());
@@ -315,7 +394,7 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
         List<Object> params = new ArrayList<>();
 
         if (!condition.isEmpty()) {
-            ConditionToSqlConverter converter = new ConditionToSqlConverter();
+            ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
             ConditionToSqlConverter.SqlResult result = converter.convert(condition);
             sql += " WHERE " + result.sql();
             params.addAll(result.parameters());
@@ -335,7 +414,30 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
 
     @Override
     public boolean exists() {
-        return count() > 0;
+        // 使用 SELECT 1 ... LIMIT 1 代替 count()，避免全表计数
+        String sql = "SELECT 1 FROM " + dialect.quoteIdentifier(metadata.getTableName());
+        List<Object> params = new ArrayList<>();
+
+        if (!condition.isEmpty()) {
+            ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
+            ConditionToSqlConverter.SqlResult result = converter.convert(condition);
+            sql += " WHERE " + result.sql();
+            params.addAll(result.parameters());
+        }
+
+        // 软删除过滤
+        if (!includeDeleted && parentProxy.isSoftDeletable()) {
+            sql = appendSoftDeleteFilter(sql, !condition.isEmpty());
+        }
+
+        sql += " LIMIT 1";
+
+        List<Integer> results = jdbcClient.sql(sql)
+                .params(params)
+                .query(Integer.class)
+                .list();
+
+        return !results.isEmpty();
     }
 
     // ==================== 辅助方法 ====================
@@ -345,7 +447,11 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
         if (fields == null || fields.isEmpty()) {
             return "SELECT * FROM " + dialect.quoteIdentifier(metadata.getTableName());
         }
-        return "SELECT " + String.join(", ", fields) + " FROM " + dialect.quoteIdentifier(metadata.getTableName());
+        // 确保所有字段名被引用（selectedFields 已在 select() 中引用，excludedFields 场景需要在此引用）
+        List<String> quotedFields = fields.stream()
+                .map(f -> f.startsWith(dialect.getIdentifierQuote()) ? f : dialect.quoteIdentifier(f))
+                .toList();
+        return "SELECT " + String.join(", ", quotedFields) + " FROM " + dialect.quoteIdentifier(metadata.getTableName());
     }
 
     /**
@@ -428,5 +534,13 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
                     "Association '" + name + "' not found in entity " + entityClass.getSimpleName()
             );
         }
+    }
+
+    Class<T> getEntityClass() {
+        return entityClass;
+    }
+
+    JdbcEntityProxy<T> getParentProxy() {
+        return parentProxy;
     }
 }

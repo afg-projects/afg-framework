@@ -1,12 +1,11 @@
 package io.github.afgprojects.framework.data.core.dialect;
 
-import io.github.afgprojects.framework.data.core.page.PageRequest;
 import org.jspecify.annotations.NonNull;
 
 /**
- * Oracle 数据库方言
+ * Oracle 方言实现。
  */
-public class OracleDialect implements Dialect {
+public class OracleDialect extends AbstractDialect {
 
     @Override
     public @NonNull DatabaseType getDatabaseType() {
@@ -14,34 +13,8 @@ public class OracleDialect implements Dialect {
     }
 
     @Override
-    public @NonNull String getPaginationSql(@NonNull String sql, long offset, long limit) {
-        // Oracle 12c+ 使用 FETCH FIRST 语法
-        return "SELECT * FROM (" + sql + ") OFFSET " + offset + " ROWS FETCH NEXT " + limit + " ROWS ONLY";
-    }
-
-    @Override
-    public @NonNull String getPaginationSql(@NonNull String sql, @NonNull PageRequest pageable) {
-        return getPaginationSql(sql, pageable.offset(), pageable.size());
-    }
-
-    @Override
-    public boolean supportsLimitOffset() {
-        return false;  // Oracle 12c+ 支持 OFFSET FETCH，但传统方式不支持
-    }
-
-    @Override
-    public boolean supportsFetchFirst() {
-        return true;  // Oracle 12c+
-    }
-
-    @Override
     public @NonNull String getIdentifierQuote() {
         return "\"";
-    }
-
-    @Override
-    public @NonNull String quoteIdentifier(@NonNull String identifier) {
-        return getIdentifierQuote() + identifier + getIdentifierQuote();
     }
 
     @Override
@@ -60,13 +33,18 @@ public class OracleDialect implements Dialect {
     }
 
     @Override
-    public boolean supportsAutoIncrement() {
-        return true;  // Oracle 12c+ supports GENERATED AS IDENTITY
+    public boolean supportsLimitOffset() {
+        return false;
     }
 
     @Override
-    public boolean supportsSequence() {
+    public boolean supportsFetchFirst() {
         return true;
+    }
+
+    @Override
+    public @NonNull String getPaginationSql(@NonNull String sql, long offset, long limit) {
+        return "SELECT * FROM (" + sql + ") OFFSET " + offset + " ROWS FETCH NEXT " + limit + " ROWS ONLY";
     }
 
     @Override
@@ -80,33 +58,25 @@ public class OracleDialect implements Dialect {
     }
 
     @Override
-    public @NonNull String getSqlType(@NonNull Class<?> javaType) {
-        if (javaType == String.class) return "VARCHAR2(255)";
-        if (javaType == Integer.class || javaType == int.class) return "NUMBER(10)";
-        if (javaType == Long.class || javaType == long.class) return "NUMBER(19)";
-        if (javaType == Double.class || javaType == double.class) return "NUMBER(19,4)";
-        if (javaType == Float.class || javaType == float.class) return "NUMBER(19,4)";
-        if (javaType == Boolean.class || javaType == boolean.class) return "NUMBER(1)";
-        if (javaType == java.time.LocalDateTime.class) return "TIMESTAMP";
-        if (javaType == java.time.LocalDate.class) return "DATE";
-        if (javaType == java.time.LocalTime.class) return "TIMESTAMP";
-        if (javaType == java.math.BigDecimal.class) return "NUMBER(19,4)";
-        if (javaType == byte[].class) return "BLOB";
-        return "VARCHAR2(255)";
-    }
-
-    @Override
-    public @NonNull String getLikeWildcard() {
-        return "%";
-    }
-
-    @Override
-    public boolean supportsForUpdate() {
-        return true;
-    }
-
-    @Override
-    public @NonNull String getForUpdateSyntax() {
-        return "FOR UPDATE";
+    protected void configureSqlTypeMap(java.util.Map<Class<?>, String> map) {
+        map.put(String.class, "VARCHAR2(255)");
+        map.put(Boolean.class, "NUMBER(1)");
+        map.put(boolean.class, "NUMBER(1)");
+        map.put(Integer.class, "NUMBER(10)");
+        map.put(int.class, "NUMBER(10)");
+        map.put(Long.class, "NUMBER(19)");
+        map.put(long.class, "NUMBER(19)");
+        map.put(Double.class, "NUMBER(19,4)");
+        map.put(double.class, "NUMBER(19,4)");
+        map.put(Float.class, "NUMBER(19,4)");
+        map.put(float.class, "NUMBER(19,4)");
+        map.put(java.math.BigDecimal.class, "NUMBER(19,4)");
+        map.put(byte[].class, "BLOB");
+        map.put(java.sql.Timestamp.class, "TIMESTAMP");
+        map.put(java.time.LocalDateTime.class, "TIMESTAMP");
+        map.put(java.time.LocalTime.class, "TIMESTAMP");
+        map.put(java.time.OffsetDateTime.class, "TIMESTAMP WITH TIME ZONE");
+        map.put(java.time.ZonedDateTime.class, "TIMESTAMP WITH TIME ZONE");
+        map.put(Object.class, "VARCHAR2(255)");
     }
 }

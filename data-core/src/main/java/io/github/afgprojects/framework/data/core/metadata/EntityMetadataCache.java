@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.data.core.metadata;
 
+import io.github.afgprojects.framework.commons.naming.NamingUtils;
 import io.github.afgprojects.framework.data.core.relation.RelationMetadata;
 
 import java.util.ArrayList;
@@ -149,7 +150,7 @@ public class EntityMetadataCache {
 
         @Override
         public String getTableName() {
-            return toSnakeCase(entityClass.getSimpleName());
+            return NamingUtils.toSnakeCase(entityClass.getSimpleName());
         }
 
         @Override

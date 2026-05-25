@@ -1,51 +1,69 @@
 package io.github.afgprojects.framework.data.core.query;
 
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 /**
- * 查询条件项
+ * 查询条件准则，表示一个字段-运算符-值的原子条件或嵌套条件。
  *
- * @param field        字段名
- * @param operator     操作符
- * @param value        值（可为 null，用于 IS_NULL/IS_NOT_NULL）
- * @param nextOperator 下一个条件的逻辑操作符（AND/OR），null 表示最后一个条件
+ * @param field          属性名（实体字段名或数据库列名），嵌套条件时为 null
+ * @param operator       运算符
+ * @param value          条件值，嵌套条件时为嵌套的 Condition 对象
+ * @param nextOperator   与下一个准则之间的逻辑运算符
+ * @param nestedCondition 嵌套条件（替代 __nested__ hack）
  */
 public record Criterion(
-    String field,
-    Operator operator,
-    @Nullable Object value,
-    @Nullable LogicalOperator nextOperator
+        @Nullable String field,
+        @NonNull Operator operator,
+        @Nullable Object value,
+        @Nullable LogicalOperator nextOperator,
+        @Nullable Condition nestedCondition
 ) {
+
     /**
-     * 创建简单条件项（无 nextOperator）
+     * 创建普通条件准则
      */
-    public static Criterion of(String field, Operator operator, @Nullable Object value) {
-        return new Criterion(field, operator, value, null);
+    public static @NonNull Criterion of(@NonNull String field, @NonNull Operator operator, @Nullable Object value) {
+        return new Criterion(field, operator, value, null, null);
     }
 
     /**
-     * 兼容旧 API 的构造方法
+     * 创建带逻辑运算符的条件准则
      */
-    public Criterion(String field, Operator operator, @Nullable Object value) {
-        this(field, operator, value, null);
+    public static @NonNull Criterion of(@NonNull String field, @NonNull Operator operator, @Nullable Object value, @Nullable LogicalOperator nextOperator) {
+        return new Criterion(field, operator, value, nextOperator, null);
     }
 
     /**
-     * 判断是否为一元操作符（无需值）
+     * 创建嵌套条件准则
+     */
+    public static @NonNull Criterion nested(@NonNull Condition nestedCondition, @Nullable LogicalOperator nextOperator) {
+        return new Criterion(null, Operator.EQ, nestedCondition, nextOperator, nestedCondition);
+    }
+
+    /**
+     * 判断是否为嵌套条件
+     */
+    public boolean isNested() {
+        return nestedCondition != null;
+    }
+
+    /**
+     * 判断是否为一元运算符（不需要值）
      */
     public boolean isUnary() {
         return operator == Operator.IS_NULL || operator == Operator.IS_NOT_NULL;
     }
 
     /**
-     * 判断是否为范围操作符
+     * 判断是否为范围运算符（需要两个值）
      */
     public boolean isRange() {
         return operator == Operator.BETWEEN || operator == Operator.NOT_BETWEEN;
     }
 
     /**
-     * 判断是否为集合操作符
+     * 判断是否为集合运算符（需要集合值）
      */
     public boolean isCollection() {
         return operator == Operator.IN || operator == Operator.NOT_IN;

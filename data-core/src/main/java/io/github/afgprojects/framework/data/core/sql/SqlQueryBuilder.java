@@ -1,6 +1,7 @@
 package io.github.afgprojects.framework.data.core.sql;
 
 import io.github.afgprojects.framework.data.core.condition.SFunction;
+import io.github.afgprojects.framework.data.core.mapper.ResultMapper;
 import io.github.afgprojects.framework.data.core.page.PageRequest;
 import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.query.Page;
@@ -425,9 +426,19 @@ public interface SqlQueryBuilder {
     <T> @NonNull List<T> fetch(@NonNull Class<T> resultType);
 
     /**
+     * 使用自定义映射器执行查询，返回列表
+     */
+    <T> @NonNull List<T> fetch(@NonNull Class<T> resultType, @NonNull ResultMapper<T> mapper);
+
+    /**
      * 执行查询，返回单条记录
      */
     <T> @NonNull Optional<T> fetchOne(@NonNull Class<T> resultType);
+
+    /**
+     * 使用自定义映射器执行查询，返回单条记录
+     */
+    <T> @NonNull Optional<T> fetchOne(@NonNull Class<T> resultType, @NonNull ResultMapper<T> mapper);
 
     /**
      * 执行查询，返回第一条记录
@@ -435,9 +446,19 @@ public interface SqlQueryBuilder {
     <T> @NonNull Optional<T> fetchFirst(@NonNull Class<T> resultType);
 
     /**
+     * 使用自定义映射器执行查询，返回第一条记录
+     */
+    <T> @NonNull Optional<T> fetchFirst(@NonNull Class<T> resultType, @NonNull ResultMapper<T> mapper);
+
+    /**
      * 执行分页查询
      */
     <T> @NonNull Page<T> fetchPage(@NonNull Class<T> resultType, @NonNull PageRequest pageable);
+
+    /**
+     * 使用自定义映射器执行分页查询
+     */
+    <T> @NonNull Page<T> fetchPage(@NonNull Class<T> resultType, @NonNull PageRequest pageable, @NonNull ResultMapper<T> mapper);
 
     /**
      * 执行 COUNT 查询

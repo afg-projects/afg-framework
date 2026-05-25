@@ -78,16 +78,6 @@ public interface Dialect {
     // ==================== 主键生成 ====================
 
     /**
-     * 是否支持自增主键
-     */
-    boolean supportsAutoIncrement();
-
-    /**
-     * 是否支持序列
-     */
-    boolean supportsSequence();
-
-    /**
      * 获取自增主键语法
      */
     @NonNull String getAutoIncrementSyntax();
@@ -110,17 +100,45 @@ public interface Dialect {
     // ==================== 其他 ====================
 
     /**
-     * 获取 LIKE 表达式的通配符
-     */
-    @NonNull String getLikeWildcard();
-
-    /**
-     * 是否支持 FOR UPDATE
-     */
-    boolean supportsForUpdate();
-
-    /**
      * 获取 FOR UPDATE 语法
      */
     @NonNull String getForUpdateSyntax();
+
+    // ==================== JSON 操作 ====================
+
+    /**
+     * 生成 JSON 包含（contains）操作的 SQL 表达式
+     * <p>
+     * PostgreSQL 使用 @> 运算符，MySQL 使用 JSON_CONTAINS() 函数
+     *
+     * @param column 列名表达式（已包含在 SQL 中）
+     * @return 完整的 JSON contains SQL 表达式
+     */
+    default @NonNull String getJsonContainsExpression(@NonNull String column) {
+        return column + " @> ?::jsonb";
+    }
+
+    /**
+     * 生成 JSON 被包含（contained）操作的 SQL 表达式
+     * <p>
+     * PostgreSQL 使用 <@ 运算符，MySQL 无直接等价操作
+     *
+     * @param column 列名表达式（已包含在 SQL 中）
+     * @return 完整的 JSON contained SQL 表达式
+     */
+    default @NonNull String getJsonContainedExpression(@NonNull String column) {
+        return column + " <@ ?::jsonb";
+    }
+
+    /**
+     * 生成 JSON 路径查询操作的 SQL 表达式
+     * <p>
+     * PostgreSQL 使用 ?? 运算符，MySQL 使用 JSON_EXTRACT() 函数
+     *
+     * @param column 列名表达式（已包含在 SQL 中）
+     * @return 完整的 JSON path SQL 表达式
+     */
+    default @NonNull String getJsonPathExpression(@NonNull String column) {
+        return column + " ?? ?";
+    }
 }

@@ -358,37 +358,37 @@ public final class Conditions {
 
         @Override
         public ConditionBuilder eq(String field, @Nullable Object value) {
-            criteria.add(new Criterion(field, Operator.EQ, value, null));
+            criteria.add(new Criterion(field, Operator.EQ, value, null, null));
             return this;
         }
 
         @Override
         public ConditionBuilder ne(String field, @Nullable Object value) {
-            criteria.add(new Criterion(field, Operator.NE, value, null));
+            criteria.add(new Criterion(field, Operator.NE, value, null, null));
             return this;
         }
 
         @Override
         public ConditionBuilder gt(String field, @Nullable Comparable<?> value) {
-            criteria.add(new Criterion(field, Operator.GT, value, null));
+            criteria.add(new Criterion(field, Operator.GT, value, null, null));
             return this;
         }
 
         @Override
         public ConditionBuilder ge(String field, @Nullable Comparable<?> value) {
-            criteria.add(new Criterion(field, Operator.GE, value, null));
+            criteria.add(new Criterion(field, Operator.GE, value, null, null));
             return this;
         }
 
         @Override
         public ConditionBuilder lt(String field, @Nullable Comparable<?> value) {
-            criteria.add(new Criterion(field, Operator.LT, value, null));
+            criteria.add(new Criterion(field, Operator.LT, value, null, null));
             return this;
         }
 
         @Override
         public ConditionBuilder le(String field, @Nullable Comparable<?> value) {
-            criteria.add(new Criterion(field, Operator.LE, value, null));
+            criteria.add(new Criterion(field, Operator.LE, value, null, null));
             return this;
         }
 
@@ -398,7 +398,7 @@ public final class Conditions {
             if (v != null && !v.contains("%")) {
                 v = "%" + v + "%";
             }
-            criteria.add(new Criterion(field, Operator.LIKE, v, null));
+            criteria.add(new Criterion(field, Operator.LIKE, v, null, null));
             return this;
         }
 
@@ -408,7 +408,7 @@ public final class Conditions {
             if (v != null && !v.endsWith("%")) {
                 v = v + "%";
             }
-            criteria.add(new Criterion(field, Operator.LIKE_LEFT, v, null));
+            criteria.add(new Criterion(field, Operator.LIKE_LEFT, v, null, null));
             return this;
         }
 
@@ -418,56 +418,56 @@ public final class Conditions {
             if (v != null && !v.startsWith("%")) {
                 v = "%" + v;
             }
-            criteria.add(new Criterion(field, Operator.LIKE_RIGHT, v, null));
+            criteria.add(new Criterion(field, Operator.LIKE_RIGHT, v, null, null));
             return this;
         }
 
         @Override
         public ConditionBuilder notLike(String field, @Nullable String value) {
-            criteria.add(new Criterion(field, Operator.NOT_LIKE, value, null));
+            criteria.add(new Criterion(field, Operator.NOT_LIKE, value, null, null));
             return this;
         }
 
         @Override
         public ConditionBuilder in(String field, @Nullable Iterable<?> values) {
-            criteria.add(new Criterion(field, Operator.IN, values, null));
+            criteria.add(new Criterion(field, Operator.IN, values, null, null));
             return this;
         }
 
         @Override
         public ConditionBuilder notIn(String field, @Nullable Iterable<?> values) {
-            criteria.add(new Criterion(field, Operator.NOT_IN, values, null));
+            criteria.add(new Criterion(field, Operator.NOT_IN, values, null, null));
             return this;
         }
 
         @Override
         public ConditionBuilder isNull(String field) {
-            criteria.add(new Criterion(field, Operator.IS_NULL, null, null));
+            criteria.add(new Criterion(field, Operator.IS_NULL, null, null, null));
             return this;
         }
 
         @Override
         public ConditionBuilder isNotNull(String field) {
-            criteria.add(new Criterion(field, Operator.IS_NOT_NULL, null, null));
+            criteria.add(new Criterion(field, Operator.IS_NOT_NULL, null, null, null));
             return this;
         }
 
         @Override
         public ConditionBuilder between(String field, @Nullable Comparable<?> from, @Nullable Comparable<?> to) {
-            criteria.add(new Criterion(field, Operator.BETWEEN, new Comparable<?>[]{from, to}, null));
+            criteria.add(new Criterion(field, Operator.BETWEEN, new Comparable<?>[]{from, to}, null, null));
             return this;
         }
 
         @Override
         public ConditionBuilder notBetween(String field, @Nullable Comparable<?> from, @Nullable Comparable<?> to) {
-            criteria.add(new Criterion(field, Operator.NOT_BETWEEN, new Comparable<?>[]{from, to}, null));
+            criteria.add(new Criterion(field, Operator.NOT_BETWEEN, new Comparable<?>[]{from, to}, null, null));
             return this;
         }
 
         @Override
         public ConditionBuilder and(Condition condition) {
             if (!condition.isEmpty()) {
-                criteria.add(new Criterion("__nested__", Operator.EQ, condition, LogicalOperator.AND));
+                criteria.add(Criterion.nested(condition, LogicalOperator.AND));
             }
             return this;
         }
@@ -475,7 +475,7 @@ public final class Conditions {
         @Override
         public ConditionBuilder or(Condition condition) {
             if (!condition.isEmpty()) {
-                criteria.add(new Criterion("__nested__", Operator.EQ, condition, LogicalOperator.OR));
+                criteria.add(Criterion.nested(condition, LogicalOperator.OR));
             }
             return this;
         }
@@ -491,7 +491,7 @@ public final class Conditions {
                 Criterion c = criteria.get(i);
                 if (i < criteria.size() - 1) {
                     if (c.nextOperator() == null) {
-                        finalCriteria.add(new Criterion(c.field(), c.operator(), c.value(), operator));
+                        finalCriteria.add(new Criterion(c.field(), c.operator(), c.value(), operator, c.nestedCondition()));
                     } else {
                         finalCriteria.add(c);
                     }

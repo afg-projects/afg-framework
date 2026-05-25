@@ -141,7 +141,7 @@ class QueryTest {
         @Test
         @DisplayName("应正确创建条件项 - 完整构造")
         void shouldCreateCriterionWithFullConstructor() {
-            Criterion criterion = new Criterion("name", Operator.EQ, "test", LogicalOperator.AND);
+            Criterion criterion = Criterion.of("name", Operator.EQ, "test", LogicalOperator.AND);
 
             assertThat(criterion.field()).isEqualTo("name");
             assertThat(criterion.operator()).isEqualTo(Operator.EQ);
@@ -152,7 +152,7 @@ class QueryTest {
         @Test
         @DisplayName("应正确创建条件项 - 兼容构造")
         void shouldCreateCriterionWithCompatibleConstructor() {
-            Criterion criterion = new Criterion("age", Operator.GT, 18);
+            Criterion criterion = Criterion.of("age", Operator.GT, 18);
 
             assertThat(criterion.field()).isEqualTo("age");
             assertThat(criterion.operator()).isEqualTo(Operator.GT);
