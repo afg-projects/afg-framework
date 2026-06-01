@@ -14,7 +14,7 @@ classgraph = "4.8.165"
 nimbus-jose-jwt = "9.37.3"
 jjwt = "0.12.6"
 clikt = "5.0.3"
-spring-ai = "1.1.6"
+spring-ai = "2.0.0-M7"
 jmh = "1.37"
 archunit = "1.4.2"
 compile-testing = "0.21.0"
@@ -27,6 +27,7 @@ apollo = "2.3.0"
 consul = "1.4.5"
 aws-s3 = "2.44.3"
 aliyun-oss = "3.18.1"
+langchain4j = "1.15.1"
 
 # Gradle 插件版本
 dependency-management = "1.1.7"
@@ -48,6 +49,7 @@ spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-
 spring-boot-starter-websocket = { module = "org.springframework.boot:spring-boot-starter-websocket" }
 spring-boot-starter-amqp = { module = "org.springframework.boot:spring-boot-starter-amqp" }
 spring-boot-starter-data-redis = { module = "org.springframework.boot:spring-boot-starter-data-redis" }
+spring-tx = { module = "org.springframework:spring-tx" }
 spring-boot-starter-aspectj = { module = "org.springframework.boot:spring-boot-starter-aspectj" }
 spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure" }
 spring-boot-health = { module = "org.springframework.boot:spring-boot-health" }
@@ -127,6 +129,7 @@ spring-ai-openai = { module = "org.springframework.ai:spring-ai-openai", version
 spring-ai-anthropic = { module = "org.springframework.ai:spring-ai-anthropic", version.ref = "spring-ai" }
 spring-ai-ollama = { module = "org.springframework.ai:spring-ai-ollama", version.ref = "spring-ai" }
 spring-ai-client-chat = { module = "org.springframework.ai:spring-ai-client-chat", version.ref = "spring-ai" }
+spring-ai-model = { module = "org.springframework.ai:spring-ai-model", version.ref = "spring-ai" }
 spring-ai-vector-store = { module = "org.springframework.ai:spring-ai-vector-store", version.ref = "spring-ai" }
 jsqlparser = { module = "com.github.jsqlparser:jsqlparser", version.ref = "jsqlparser" }
 spring-jdbc = { module = "org.springframework.boot:spring-boot-starter-data-jdbc" }
@@ -160,6 +163,10 @@ consul-client = { module = "com.ecwid.consul:consul-api", version.ref = "consul"
 # 云存储
 aws-s3 = { module = "software.amazon.awssdk:s3", version.ref = "aws-s3" }
 aliyun-oss = { module = "com.aliyun.oss:aliyun-sdk-oss", version.ref = "aliyun-oss" }
+
+# LangChain4j
+langchain4j = { module = "dev.langchain4j:langchain4j", version.ref = "langchain4j" }
+langchain4j-spring-boot-starter = { module = "dev.langchain4j:langchain4j-spring-boot-starter", version.ref = "langchain4j" }
 
 [plugins]
 spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
