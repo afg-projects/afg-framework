@@ -41,7 +41,11 @@ public class JsonDslParser {
                         posJson.path("y").asDouble(0)
                     );
 
+                    // Support both 'params' (legacy) and 'data' (React Flow style) for node parameters
                     Map<String, Object> params = parseParams(nodeJson.path("params"));
+                    if (params.isEmpty() && nodeJson.has("data")) {
+                        params = parseParams(nodeJson.path("data"));
+                    }
 
                     nodes.add(new NodeInstance(id, type, name, position, params));
                 }
