@@ -43,6 +43,7 @@ include("ai-impl:ai-security")      // 安全实现（API Key 管理、内容安
 include("ai-impl:ai-persistence")   // 持久化实现（会话存储、消息历史）
 include("ai-impl:ai-performance")   // 性能优化实现（缓存、速率限制）
 include("ai-impl:ai-pipeline")      // Pipeline 实现（DefaultChatPipeline, 4 steps）
+include("ai-impl:ai-workflow")      // Workflow 实现（工作流引擎、节点编排）
 
 // 数据访问模块
 include("data-core")
