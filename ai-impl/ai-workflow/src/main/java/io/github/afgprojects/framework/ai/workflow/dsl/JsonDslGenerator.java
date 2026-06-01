@@ -37,7 +37,8 @@ public class JsonDslGenerator {
                 posObj.put("x", node.position().x());
                 posObj.put("y", node.position().y());
 
-                nodeObj.set("params", objectMapper.valueToTree(node.params()));
+                // Use 'data' key to align with frontend WorkflowNodeDSL type (React Flow convention)
+                nodeObj.set("data", objectMapper.valueToTree(node.params()));
             }
 
             // Serialize edges

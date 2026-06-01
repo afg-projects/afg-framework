@@ -41,10 +41,19 @@ public class JsonDslParser {
                         posJson.path("y").asDouble(0)
                     );
 
-                    // Support both 'params' (legacy) and 'data' (React Flow style) for node parameters
+                    // Support both 'params' (legacy) and 'data' (React Flow style) for node parameters.
+                    // When 'data' contains a nested 'data' key (React Flow wrapper: {name, data: {...}}),
+                    // extract the inner data as the actual node params.
                     Map<String, Object> params = parseParams(nodeJson.path("params"));
                     if (params.isEmpty() && nodeJson.has("data")) {
                         params = parseParams(nodeJson.path("data"));
+                        // Detect React Flow wrapper nesting: if 'data' field contains a 'data' sub-key,
+                        // the actual node config is nested inside (e.g. { name: "Chat", data: { model: "gpt-4" } })
+                        if (params.containsKey("data") && params.get("data") instanceof Map) {
+                            @SuppressWarnings("unchecked")
+                            Map<String, Object> innerData = (Map<String, Object>) params.get("data");
+                            params = innerData;
+                        }
                     }
 
                     nodes.add(new NodeInstance(id, type, name, position, params));

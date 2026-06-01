@@ -369,6 +369,6 @@ public class DefaultDagEngine implements DagEngine {
      * Determine if a node type supports streaming output.
      */
     private boolean isStreamingNode(String type) {
-        return "llm".equals(type) || "chat".equals(type) || "reply".equals(type);
+        return "ai-chat".equals(type) || "llm".equals(type) || "chat".equals(type) || "reply".equals(type);
     }
 }
