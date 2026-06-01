@@ -133,7 +133,7 @@ public class DefaultAfgChatClient implements AfgChatClient {
             spec.system(systemPrompt);
         }
         if (modelName != null) {
-            spec.options(ChatOptions.builder().model(modelName).build());
+            spec.options(ChatOptions.builder().model(modelName));
         }
         if (conversationId != null) {
             applyConversationId(spec, conversationId);
@@ -174,7 +174,7 @@ public class DefaultAfgChatClient implements AfgChatClient {
         return AiChatResponse.of(content, metadata);
     }
 
-    private static ChatOptions buildChatOptions(@NonNull Map<String, Object> options) {
+    private static ChatOptions.Builder<?> buildChatOptions(@NonNull Map<String, Object> options) {
         var builder = ChatOptions.builder();
         if (options.containsKey("model")) {
             builder.model((String) options.get("model"));
@@ -188,7 +188,7 @@ public class DefaultAfgChatClient implements AfgChatClient {
         if (options.containsKey("topP")) {
             builder.topP(((Number) options.get("topP")).doubleValue());
         }
-        return builder.build();
+        return builder;
     }
 
     // ---- ChatRequestSpec 实现 ----
@@ -249,6 +249,9 @@ public class DefaultAfgChatClient implements AfgChatClient {
             if (specConversationId != null) {
                 applyConversationId(spec, specConversationId);
             }
+            if (!specOptions.isEmpty()) {
+                spec.options(buildChatOptions(specOptions));
+            }
 
             return spec.stream().content();
         }
@@ -262,6 +265,9 @@ public class DefaultAfgChatClient implements AfgChatClient {
             }
             if (specConversationId != null) {
                 applyConversationId(spec, specConversationId);
+            }
+            if (!specOptions.isEmpty()) {
+                spec.options(buildChatOptions(specOptions));
             }
 
             return spec.call().entity(type);

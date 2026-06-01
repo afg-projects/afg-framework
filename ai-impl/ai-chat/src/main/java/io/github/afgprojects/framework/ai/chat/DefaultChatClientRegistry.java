@@ -61,4 +61,9 @@ public class DefaultChatClientRegistry implements ChatClientRegistry {
     public List<String> listNames() {
         return List.copyOf(clients.keySet());
     }
+
+    @Override
+    public void remove(@NonNull String name) {
+        clients.remove(name);
+    }
 }

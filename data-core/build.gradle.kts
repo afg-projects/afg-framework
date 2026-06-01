@@ -18,6 +18,9 @@ dependencies {
     // Spring Boot Starter (for ApplicationEvent，版本由 Spring Boot BOM 管理)
     api(libs.spring.boot.starter)
 
+    // Spring TX (for TransactionAdapter/PlatformTransactionManager)
+    api(libs.spring.tx)
+
     // Lombok
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)

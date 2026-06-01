@@ -57,6 +57,9 @@ dependencies {
     compileOnly(libs.spring.boot.starter.actuator)
     compileOnly(libs.spring.boot.health)
 
+    // SpringDoc OpenAPI (AfgOpenApiAutoConfiguration - optional)
+    compileOnly(libs.springdoc.openapi.starter.webmvc)
+
     // HikariCP (连接池健康检查)
     compileOnly(libs.spring.boot.starter.data.jdbc)
 

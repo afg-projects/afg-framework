@@ -6,6 +6,9 @@ dependencies {
     api(project(":ai-core"))
     api(project(":ai-impl:ai-agent"))
 
+    // Spring Boot AutoConfiguration
+    api(libs.spring.boot.autoconfigure)
+
     // Spring
     api(libs.spring.context)
     api(libs.spring.beans)

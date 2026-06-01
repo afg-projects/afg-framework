@@ -7,6 +7,9 @@ dependencies {
     api(project(":ai-core"))
     api(project(":data-impl:data-jdbc"))
 
+    // Spring Boot AutoConfiguration
+    api(libs.spring.boot.autoconfigure)
+
     // JSpecify 空安全注解
     api(libs.jspecify)
 

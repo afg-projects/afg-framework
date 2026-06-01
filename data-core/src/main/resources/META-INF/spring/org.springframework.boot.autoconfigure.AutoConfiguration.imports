@@ -1,1 +1,2 @@
 io.github.afgprojects.framework.data.core.autoconfigure.TenantContextAutoConfiguration
+io.github.afgprojects.framework.data.core.autoconfigure.TransactionAutoConfiguration

@@ -19,6 +19,9 @@ dependencies {
     // Spring Web (for HttpHeaders)
     api(libs.spring.boot.starter.web)
 
+    // Spring Boot Autoconfigure (for @ConfigurationProperties)
+    api(libs.spring.boot.autoconfigure)
+
     // Lombok
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)

@@ -1,0 +1,6 @@
+io.github.afgprojects.framework.ai.agent.autoconfigure.AiAutoConfiguration
+io.github.afgprojects.framework.ai.agent.autoconfigure.AiAgentAutoConfiguration
+io.github.afgprojects.framework.ai.agent.autoconfigure.SecureToolAutoConfiguration
+io.github.afgprojects.framework.ai.agent.autoconfigure.ToolDiscoveryAutoConfiguration
+io.github.afgprojects.framework.ai.agent.autoconfigure.RemoteToolContextFilterConfiguration
+io.github.afgprojects.framework.ai.agent.autoconfigure.ServiceToolAutoConfiguration

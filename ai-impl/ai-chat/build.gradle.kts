@@ -5,11 +5,13 @@ plugins {
 dependencies {
     api(project(":ai-core"))
     api(libs.spring.ai.client.chat)
+    api(libs.spring.ai.model)
 
     compileOnly(libs.spring.ai.openai)
     compileOnly(libs.spring.ai.anthropic)
     compileOnly(libs.spring.ai.ollama)
 
+    api(libs.spring.boot.autoconfigure)
     api(libs.reactor.core)
     api(libs.jackson.databind)
     api(libs.jspecify)

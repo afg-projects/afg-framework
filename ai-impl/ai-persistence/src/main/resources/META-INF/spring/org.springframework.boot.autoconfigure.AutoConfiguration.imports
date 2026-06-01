@@ -1,0 +1,2 @@
+io.github.afgprojects.framework.ai.persistence.autoconfigure.PersistenceAutoConfiguration
+io.github.afgprojects.framework.ai.persistence.autoconfigure.JdbcPersistenceAutoConfiguration

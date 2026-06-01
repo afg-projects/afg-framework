@@ -28,6 +28,7 @@ class AfgPlugin : Plugin<Project> {
     companion object {
         const val DEFAULT_SPRING_BOOT_VERSION = "4.0.6"
         const val DEFAULT_FRAMEWORK_VERSION = "1.0.0-SNAPSHOT"
+        const val DEFAULT_SPRING_AI_VERSION = "2.0.0-M7"
         const val FRAMEWORK_GROUP = "io.github.afg-projects"
     }
 
@@ -72,6 +73,7 @@ class AfgPlugin : Plugin<Project> {
      */
     private fun configureDependencyManagement(project: Project, extension: AfgExtension) {
         val springBootVersion = extension.springBootVersion.getOrElse(DEFAULT_SPRING_BOOT_VERSION)
+        val springAiVersion = extension.springAiVersion.getOrElse(DEFAULT_SPRING_AI_VERSION)
         val frameworkVersion = extension.frameworkVersion
 
         // 配置 Spring Boot BOM
@@ -81,6 +83,9 @@ class AfgPlugin : Plugin<Project> {
             add("implementation", springBootBom)
             add("annotationProcessor", springBootBom)
             add("testAnnotationProcessor", springBootBom)
+
+            // Spring AI BOM - 管理 Spring AI 依赖版本
+            add("implementation", platform("org.springframework.ai:spring-ai-bom:$springAiVersion"))
         }
 
         // 配置框架依赖版本约束
@@ -91,6 +96,12 @@ class AfgPlugin : Plugin<Project> {
                     requested.name.startsWith("afg-framework-") &&
                     requested.version.isNullOrBlank()) {
                     useVersion(frameworkVersion.getOrElse(DEFAULT_FRAMEWORK_VERSION))
+                }
+                // Spring AI starter 版本由 BOM 管理，部分 starter 可能需要显式回退
+                if (requested.group == "org.springframework.ai" &&
+                    (requested.name.contains("spring-boot-starter") || requested.name.startsWith("spring-ai-starter-")) &&
+                    requested.version.isNullOrBlank()) {
+                    useVersion(springAiVersion)
                 }
             }
         }

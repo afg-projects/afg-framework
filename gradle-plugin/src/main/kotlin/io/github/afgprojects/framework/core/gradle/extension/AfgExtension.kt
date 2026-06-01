@@ -61,6 +61,15 @@ abstract class AfgExtension @Inject constructor(
     abstract val frameworkVersion: Property<String>
 
     /**
+     * Spring AI 版本
+     *
+     * 格式: major.minor.patch[-qualifier]
+     * 示例: 2.0.0-M7
+     * 默认: 2.0.0-M7
+     */
+    abstract val springAiVersion: Property<String>
+
+    /**
      * 是否启用代码生成
      *
      * 启用后，编译时自动执行 generateEntity 任务

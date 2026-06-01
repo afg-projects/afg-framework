@@ -13,6 +13,9 @@ dependencies {
     // 依赖 security-core（权限服务）
     api(project(":security-core"))
 
+    // Spring Boot AutoConfiguration
+    api(libs.spring.boot.autoconfigure)
+
     // Spring JDBC（JdbcClient）
     implementation(libs.spring.jdbc)
 

@@ -17,6 +17,8 @@ public interface ChatClientRegistry {
 
     void register(@NonNull String name, @NonNull AfgChatClient client);
 
+    void remove(@NonNull String name);
+
     @NonNull
     Optional<AfgChatClient> get(@NonNull String name);
 

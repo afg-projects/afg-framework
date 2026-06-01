@@ -53,7 +53,17 @@ class ServiceToolAdapterTest {
             }
 
             @Override
+            public Object invoke(String serviceName, String operationName, Object... arguments) {
+                return null;
+            }
+
+            @Override
             public <T> T invoke(String serviceName, String operationName, Map<String, Object> arguments, Class<T> returnType) {
+                return null;
+            }
+
+            @Override
+            public <R> R invoke(String serviceName, String operationName, Object[] arguments, Class<R> resultType) {
                 return null;
             }
 
@@ -68,7 +78,22 @@ class ServiceToolAdapterTest {
             }
 
             @Override
+            public CompletableFuture<Object> invokeAsync(String serviceName, String operationName, Object... arguments) {
+                return null;
+            }
+
+            @Override
+            public <R> CompletableFuture<R> invokeAsync(String serviceName, String operationName, Object[] arguments, Class<R> resultType) {
+                return null;
+            }
+
+            @Override
             public InvocationPlan plan(String serviceName, String operationName, Map<String, Object> arguments) {
+                return null;
+            }
+
+            @Override
+            public InvocationPlan plan(String serviceName, String operationName, Object... arguments) {
                 return null;
             }
         };
