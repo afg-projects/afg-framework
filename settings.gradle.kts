@@ -33,7 +33,9 @@ include("core")
 
 // AI 模块
 include("ai-core")
-include("ai-impl:ai-chat")           // LLM 实现（OpenAI, Anthropic, Ollama）
+include("ai-impl:ai-spring-ai")
+include("ai-impl:ai-langchain4j")           // LLM 实现（OpenAI, Anthropic, Ollama）
+include("ai-impl:ai-spring-ai")      // Spring AI 适配实现
 include("ai-impl:ai-agent")         // Agent 实现（ToolRegistry, ReAct, Plan-Execute）
 include("ai-impl:ai-agent-security") // Agent 安全实现（Casbin 权限检查、安全上下文）
 include("ai-impl:ai-agent-utils")   // Agent 工具类（SkillRegistry, SkillExecutor）
