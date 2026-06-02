@@ -1,4 +1,0 @@
-io.github.afgprojects.framework.ai.chat.autoconfigure.ChatClientAutoConfiguration
-io.github.afgprojects.framework.ai.chat.autoconfigure.ChatClientAdvisorAutoConfiguration
-io.github.afgprojects.framework.ai.chat.autoconfigure.ChatMemoryAutoConfiguration
-io.github.afgprojects.framework.ai.chat.autoconfigure.EmbeddingClientAutoConfiguration
