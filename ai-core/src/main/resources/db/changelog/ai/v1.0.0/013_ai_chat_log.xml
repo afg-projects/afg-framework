@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="v1.0.0-013-ai-chat-log" author="afg">
+        <createTable tableName="ai_chat_log" remarks="对话日志">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_ai_chat_log"/>
+            </column>
+            <column name="application_id" type="BIGINT" remarks="应用ID"/>
+            <column name="session_id" type="VARCHAR(100)" remarks="会话ID"/>
+            <column name="user_id" type="VARCHAR(100)" remarks="用户ID"/>
+            <column name="question" type="CLOB" remarks="问题"/>
+            <column name="answer" type="CLOB" remarks="回答"/>
+            <column name="input_tokens" type="BIGINT" defaultValueNumeric="0" remarks="输入Token数"/>
+            <column name="output_tokens" type="BIGINT" defaultValueNumeric="0" remarks="输出Token数"/>
+            <column name="duration_ms" type="BIGINT" remarks="耗时(毫秒)"/>
+            <column name="model_config_id" type="BIGINT" remarks="模型配置ID"/>
+            <column name="vote" type="INT" defaultValueNumeric="0" remarks="投票(1好评/-1差评)"/>
+            <column name="vote_reason" type="VARCHAR(500)" remarks="投票原因"/>
+            <column name="metadata" type="CLOB" remarks="元数据(JSON)"/>
+            <column name="create_time" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="创建时间">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="ai_chat_log" indexName="idx_ai_chat_log_app">
+            <column name="application_id"/>
+        </createIndex>
+
+        <createIndex tableName="ai_chat_log" indexName="idx_ai_chat_log_session">
+            <column name="session_id"/>
+        </createIndex>
+
+        <createIndex tableName="ai_chat_log" indexName="idx_ai_chat_log_time">
+            <column name="create_time"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,4 +1,4 @@
-package io.github.afgprojects.framework.ai.core.rag.entity;
+package io.github.afgprojects.framework.ai.core.entity.knowledge;
 
 import io.github.afgprojects.framework.apt.entity.AfEntity;
 import jakarta.persistence.Column;
@@ -6,21 +6,23 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 /**
- * Knowledge base entity for RAG system.
- *
- * <p>Represents a knowledge base that groups related documents together.
+ * AI 知识库实体
  *
  * @author afg-projects
  * @since 1.0.0
  */
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @AfEntity
 @Table(name = "ai_knowledge_base")
 public class KnowledgeBaseEntity {
@@ -29,17 +31,14 @@ public class KnowledgeBaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "knowledge_base_id", nullable = false, length = 64, unique = true)
-    private String knowledgeBaseId;
-
     @Column(name = "name", nullable = false, length = 200)
     private String name;
 
     @Column(name = "description", length = 1000)
     private String description;
 
-    @Column(name = "embedding_model", length = 100)
-    private String embeddingModel;
+    @Column(name = "embedding_model_name", length = 200)
+    private String embeddingModelName;
 
     @Column(name = "document_count")
     private Integer documentCount = 0;
@@ -47,15 +46,15 @@ public class KnowledgeBaseEntity {
     @Column(name = "chunk_count")
     private Integer chunkCount = 0;
 
-    @Column(name = "tenant_id", length = 50)
-    private String tenantId;
+    @Column(name = "config", columnDefinition = "JSON")
+    private String config;
 
-    @Column(name = "status")
-    private Integer status = 1;
+    @Column(name = "user_id", length = 64)
+    private String userId;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    @Column(name = "create_time")
+    private LocalDateTime createTime;
 
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    @Column(name = "update_time")
+    private LocalDateTime updateTime;
 }

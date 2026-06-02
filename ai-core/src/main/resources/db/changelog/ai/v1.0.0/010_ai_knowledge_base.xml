@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="v1.0.0-010-ai-knowledge-base" author="afg">
+        <createTable tableName="ai_knowledge_base" remarks="知识库">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_ai_knowledge_base"/>
+            </column>
+            <column name="name" type="VARCHAR(100)" remarks="名称">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(500)" remarks="描述"/>
+            <column name="embedding_model_name" type="VARCHAR(100)" remarks="嵌入模型名称"/>
+            <column name="document_count" type="INT" defaultValueNumeric="0" remarks="文档数量"/>
+            <column name="chunk_count" type="INT" defaultValueNumeric="0" remarks="分块数量"/>
+            <column name="config" type="CLOB" remarks="配置(JSON)"/>
+            <column name="user_id" type="VARCHAR(100)" remarks="用户ID"/>
+            <column name="create_time" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="创建时间">
+                <constraints nullable="false"/>
+            </column>
+            <column name="update_time" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="更新时间">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint tableName="ai_knowledge_base" columnNames="name" constraintName="uk_ai_knowledge_base_name"/>
+    </changeSet>
+
+</databaseChangeLog>

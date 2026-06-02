@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="v1.0.0-014-ai-api-key" author="afg">
+        <createTable tableName="ai_api_key" remarks="API密钥">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_ai_api_key"/>
+            </column>
+            <column name="name" type="VARCHAR(100)" remarks="名称">
+                <constraints nullable="false"/>
+            </column>
+            <column name="key_hash" type="VARCHAR(128)" remarks="密钥哈希">
+                <constraints nullable="false"/>
+            </column>
+            <column name="key_prefix" type="VARCHAR(20)" remarks="密钥前缀"/>
+            <column name="application_id" type="BIGINT" remarks="应用ID"/>
+            <column name="permissions" type="CLOB" remarks="权限(JSON)"/>
+            <column name="allowed_origins" type="VARCHAR(2000)" remarks="允许的来源"/>
+            <column name="rate_limit" type="INT" remarks="速率限制"/>
+            <column name="enabled" type="BOOLEAN" defaultValueBoolean="true" remarks="是否启用">
+                <constraints nullable="false"/>
+            </column>
+            <column name="expires_at" type="TIMESTAMP" remarks="过期时间"/>
+            <column name="last_used_at" type="TIMESTAMP" remarks="最后使用时间"/>
+            <column name="user_id" type="VARCHAR(100)" remarks="用户ID"/>
+            <column name="create_time" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="创建时间">
+                <constraints nullable="false"/>
+            </column>
+            <column name="update_time" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="更新时间">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint tableName="ai_api_key" columnNames="key_hash" constraintName="uk_ai_api_key_hash"/>
+
+        <createIndex tableName="ai_api_key" indexName="idx_ai_api_key_app">
+            <column name="application_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

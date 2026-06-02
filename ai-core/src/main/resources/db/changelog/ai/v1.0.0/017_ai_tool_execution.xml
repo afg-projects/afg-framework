@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="v1.0.0-017-ai-tool-execution" author="afg">
+        <createTable tableName="ai_tool_execution" remarks="工具执行">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_ai_tool_execution"/>
+            </column>
+            <column name="tool_name" type="VARCHAR(100)" remarks="工具名称">
+                <constraints nullable="false"/>
+            </column>
+            <column name="session_id" type="VARCHAR(100)" remarks="会话ID"/>
+            <column name="user_id" type="VARCHAR(100)" remarks="用户ID"/>
+            <column name="input" type="CLOB" remarks="输入(JSON)"/>
+            <column name="output" type="CLOB" remarks="输出(JSON)"/>
+            <column name="duration_ms" type="BIGINT" remarks="耗时(毫秒)"/>
+            <column name="status" type="VARCHAR(50)" remarks="状态">
+                <constraints nullable="false"/>
+            </column>
+            <column name="error" type="CLOB" remarks="错误信息"/>
+            <column name="create_time" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="创建时间">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="ai_tool_execution" indexName="idx_ai_tool_exec_name">
+            <column name="tool_name"/>
+        </createIndex>
+
+        <createIndex tableName="ai_tool_execution" indexName="idx_ai_tool_exec_time">
+            <column name="create_time"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

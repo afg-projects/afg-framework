@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="v1.0.0-012-ai-document-chunk" author="afg">
+        <createTable tableName="ai_document_chunk" remarks="文档分块">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_ai_document_chunk"/>
+            </column>
+            <column name="document_id" type="BIGINT" remarks="文档ID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="knowledge_base_id" type="BIGINT" remarks="知识库ID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content" type="CLOB" remarks="内容">
+                <constraints nullable="false"/>
+            </column>
+            <column name="chunk_index" type="INT" remarks="分块索引">
+                <constraints nullable="false"/>
+            </column>
+            <column name="metadata" type="CLOB" remarks="元数据(JSON)"/>
+            <column name="create_time" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="创建时间">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="ai_document_chunk" indexName="idx_ai_doc_chunk_doc">
+            <column name="document_id"/>
+        </createIndex>
+
+        <createIndex tableName="ai_document_chunk" indexName="idx_ai_doc_chunk_kb">
+            <column name="knowledge_base_id"/>
+        </createIndex>
+
+        <addForeignKeyConstraint baseTableName="ai_document_chunk" baseColumnNames="document_id"
+                                 constraintName="fk_ai_doc_chunk_doc"
+                                 referencedTableName="ai_document" referencedColumnNames="id"/>
+
+        <addForeignKeyConstraint baseTableName="ai_document_chunk" baseColumnNames="knowledge_base_id"
+                                 constraintName="fk_ai_doc_chunk_kb"
+                                 referencedTableName="ai_knowledge_base" referencedColumnNames="id"/>
+    </changeSet>
+
+</databaseChangeLog>
