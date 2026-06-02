@@ -22,6 +22,9 @@ dependencies {
     // Spring Boot Autoconfigure (for @ConfigurationProperties)
     api(libs.spring.boot.autoconfigure)
 
+    // AspectJ (for AOP aspects: AiChatAspect, ContentSafetyAspect, AiAuditedAspect, ToolExecutionAspect)
+    implementation(libs.aspectj.weaver)
+
     // Spring Boot Actuator (for AiHealthEndpoint, compileOnly as it's optional)
     compileOnly(libs.spring.boot.starter.actuator)
 

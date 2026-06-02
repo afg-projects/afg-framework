@@ -3,6 +3,7 @@ package io.github.afgprojects.framework.ai.agent.autoconfigure;
 import io.github.afgprojects.framework.ai.agent.tool.execution.JdbcToolExecutionRecorder;
 import io.github.afgprojects.framework.ai.agent.tool.execution.NoOpToolExecutionRecorder;
 import io.github.afgprojects.framework.ai.core.api.tool.ToolExecutionRecorder;
+import io.github.afgprojects.framework.ai.core.tool.ToolExecutionAspect;
 import io.github.afgprojects.framework.data.core.DataManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,5 +65,20 @@ public class ToolExecutionRecorderAutoConfiguration {
     public ToolExecutionRecorder noOpToolExecutionRecorder() {
         log.info("Creating NoOp tool execution recorder (DataManager not available)");
         return new NoOpToolExecutionRecorder();
+    }
+
+    /**
+     * 配置工具执行切面
+     *
+     * <p>拦截 @ToolExecution 注解的方法，记录工具执行的生命周期事件。
+     *
+     * @param recorder 工具执行记录器（可选）
+     * @return 工具执行切面
+     */
+    @Bean
+    @ConditionalOnMissingBean(ToolExecutionAspect.class)
+    public ToolExecutionAspect toolExecutionAspect(@Autowired(required = false) ToolExecutionRecorder recorder) {
+        log.info("Creating ToolExecutionAspect");
+        return new ToolExecutionAspect(recorder);
     }
 }

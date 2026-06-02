@@ -4,6 +4,7 @@ import io.github.afgprojects.framework.ai.core.autoconfigure.AiConfigurationProp
 import io.github.afgprojects.framework.ai.core.api.security.ApiKeyManager;
 import io.github.afgprojects.framework.ai.core.api.security.ContentSafetyChecker;
 import io.github.afgprojects.framework.ai.core.api.security.PiiDetector;
+import io.github.afgprojects.framework.ai.core.security.ContentSafetyAspect;
 import io.github.afgprojects.framework.ai.security.DefaultApiKeyManager;
 import io.github.afgprojects.framework.ai.security.DefaultContentSafetyChecker;
 import io.github.afgprojects.framework.ai.security.DefaultPiiDetector;
@@ -41,7 +42,7 @@ import org.springframework.context.annotation.Bean;
  */
 @AutoConfiguration
 @EnableConfigurationProperties(AiConfigurationProperties.class)
-@ConditionalOnClass({DefaultApiKeyManager.class, DefaultContentSafetyChecker.class, DefaultPiiDetector.class})
+@ConditionalOnClass({DefaultApiKeyManager.class, DefaultContentSafetyChecker.class, DefaultPiiDetector.class, ContentSafetyAspect.class})
 @ConditionalOnProperty(prefix = "afg.ai.security", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class SecurityAutoConfiguration {
 
@@ -93,5 +94,17 @@ public class SecurityAutoConfiguration {
         log.info("Creating PII service");
 
         return new PiiService(piiDetector);
+    }
+
+    /**
+     * 配置内容安全切面
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = "afg.ai.security.content-safety", name = "enabled", havingValue = "true", matchIfMissing = true)
+    @ConditionalOnMissingBean(ContentSafetyAspect.class)
+    public ContentSafetyAspect contentSafetyAspect(ContentSafetyChecker contentSafetyChecker) {
+        log.info("Creating ContentSafetyAspect");
+
+        return new ContentSafetyAspect(contentSafetyChecker);
     }
 }

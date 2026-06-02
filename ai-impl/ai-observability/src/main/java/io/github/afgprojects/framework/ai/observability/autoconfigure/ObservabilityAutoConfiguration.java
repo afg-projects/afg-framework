@@ -3,6 +3,7 @@ package io.github.afgprojects.framework.ai.observability.autoconfigure;
 import io.github.afgprojects.framework.ai.core.api.observability.AuditLogger;
 import io.github.afgprojects.framework.ai.core.api.observability.MetricsCollector;
 import io.github.afgprojects.framework.ai.core.api.observability.Tracer;
+import io.github.afgprojects.framework.ai.core.observability.AiAuditedAspect;
 import io.github.afgprojects.framework.ai.observability.DefaultAuditLogger;
 import io.github.afgprojects.framework.ai.observability.DefaultMetricsCollector;
 import io.github.afgprojects.framework.ai.observability.DefaultTracer;
@@ -31,7 +32,7 @@ import org.springframework.context.annotation.Configuration;
 @Slf4j
 @AutoConfiguration
 @EnableConfigurationProperties(ObservabilityProperties.class)
-@ConditionalOnClass(DefaultMetricsCollector.class)
+@ConditionalOnClass({DefaultMetricsCollector.class, AiAuditedAspect.class})
 @ConditionalOnProperty(prefix = "afg.ai.observability", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class ObservabilityAutoConfiguration {
 
@@ -57,6 +58,14 @@ public class ObservabilityAutoConfiguration {
     public AuditLogger auditLogger(ObservabilityProperties properties) {
         log.info("Creating DefaultAuditLogger with maxEntries={}", properties.getAudit().getMaxEntries());
         return new DefaultAuditLogger(properties.getAudit().getMaxEntries());
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(prefix = "afg.ai.observability.audit", name = "enabled", havingValue = "true", matchIfMissing = true)
+    public AiAuditedAspect aiAuditedAspect(AuditLogger auditLogger) {
+        log.info("Creating AiAuditedAspect");
+        return new AiAuditedAspect(auditLogger);
     }
 
     /**
@@ -98,6 +107,14 @@ public class ObservabilityAutoConfiguration {
             int maxEntries = properties.getAudit().getMaxEntries();
             log.info("Creating DefaultAuditLogger with maxEntries={}", maxEntries);
             return new DefaultAuditLogger(maxEntries);
+        }
+
+        @Bean
+        @ConditionalOnMissingBean
+        @ConditionalOnProperty(prefix = "afg.ai.observability.audit", name = "enabled", havingValue = "true", matchIfMissing = true)
+        public AiAuditedAspect aiAuditedAspect(AuditLogger auditLogger) {
+            log.info("Creating AiAuditedAspect");
+            return new AiAuditedAspect(auditLogger);
         }
     }
 }
