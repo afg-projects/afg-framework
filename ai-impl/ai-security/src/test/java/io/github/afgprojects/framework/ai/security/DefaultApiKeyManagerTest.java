@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.ai.security;
 
-import io.github.afgprojects.framework.ai.core.security.ApiKeyManager;
+import io.github.afgprojects.framework.ai.core.api.security.ApiKeyManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

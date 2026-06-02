@@ -1,8 +1,8 @@
 package io.github.afgprojects.framework.ai.workflow.engine;
 
-import io.github.afgprojects.framework.ai.core.workflow.definition.EdgeDefinition;
-import io.github.afgprojects.framework.ai.core.workflow.definition.WorkflowDefinition;
-import io.github.afgprojects.framework.ai.core.workflow.engine.*;
+import io.github.afgprojects.framework.ai.core.api.workflow.definition.EdgeDefinition;
+import io.github.afgprojects.framework.ai.core.api.workflow.definition.WorkflowDefinition;
+import io.github.afgprojects.framework.ai.core.api.workflow.engine.*;
 import io.github.afgprojects.framework.ai.workflow.dsl.DefaultVariableResolver;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;

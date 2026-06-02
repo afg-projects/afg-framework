@@ -164,12 +164,39 @@ public class EntityQueryExecutor<T> {
 
     /**
      * 根据 ID 判断实体是否存在
+     * <p>
+     * 使用 {@code SELECT 1 ... LIMIT 1} 代替 {@link #findById}，
+     * 避免完整的实体映射，提高查询效率。
      *
      * @param id 实体 ID
      * @return 是否存在
      */
     public boolean existsById(@NonNull Object id) {
-        return findById(id).isPresent();
+        // 先检查缓存（如果缓存命中，避免数据库查询）
+        EntityCacheHandler.CacheResult<T> cacheResult = cacheHandler.get(id);
+        if (cacheResult.isHit()) {
+            return !cacheResult.isNullHit();
+        }
+
+        // 使用 SELECT 1 代替 SELECT *，避免完整实体映射
+        StringBuilder sqlBuilder = new StringBuilder("SELECT 1 FROM ")
+                .append(dialect.quoteIdentifier(metadata.getTableName()))
+                .append(" WHERE id = :id");
+
+        // 自动过滤已删除记录
+        boolean includeDeleted = stateProvider.isIncludeDeleted();
+        if (softDeleteHandler.getSoftDeleteStrategy() != null && !includeDeleted) {
+            appendSoftDeleteFilter(sqlBuilder, true, includeDeleted);
+        }
+
+        // 使用 Dialect 生成分页 SQL（LIMIT 1）
+        String sql = dialect.getLimitSql(sqlBuilder.toString(), 1);
+
+        return jdbcClient.sql(sql)
+                .param("id", id)
+                .query(Integer.class)
+                .optional()
+                .isPresent();
     }
 
     /**

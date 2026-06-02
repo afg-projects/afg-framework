@@ -1,7 +1,7 @@
 package io.github.afgprojects.framework.ai.agent.tool;
 
-import io.github.afgprojects.framework.ai.core.tool.Tool;
-import io.github.afgprojects.framework.ai.core.tool.ToolRegistry;
+import io.github.afgprojects.framework.ai.core.api.tool.Tool;
+import io.github.afgprojects.framework.ai.core.api.tool.ToolRegistry;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -40,11 +40,7 @@ public class DefaultToolRegistry implements ToolRegistry {
 
     @Override
     public <I, O> void register(@NonNull Tool<I, O> tool) {
-        String name = tool.name();
-        if (tools.containsKey(name)) {
-            throw new IllegalArgumentException("Tool already registered: " + name);
-        }
-        tools.put(name, tool);
+        tools.put(tool.name(), tool);
     }
 
     @Override

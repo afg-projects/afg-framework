@@ -1,4 +1,4 @@
-package io.github.afgprojects.framework.ai.core.planning;
+package io.github.afgprojects.framework.ai.core.api.planning.
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

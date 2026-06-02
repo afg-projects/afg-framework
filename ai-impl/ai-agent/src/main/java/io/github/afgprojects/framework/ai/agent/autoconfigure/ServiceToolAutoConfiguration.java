@@ -1,7 +1,7 @@
 package io.github.afgprojects.framework.ai.agent.autoconfigure;
 
-import io.github.afgprojects.framework.ai.core.tool.ServiceToolRegistrar;
-import io.github.afgprojects.framework.ai.core.tool.ToolRegistry;
+import io.github.afgprojects.framework.ai.core.api.tool.ServiceToolRegistrar;
+import io.github.afgprojects.framework.ai.core.api.tool.ToolRegistry;
 import io.github.afgprojects.framework.core.invocation.BeanInvocationEngine;
 import io.github.afgprojects.framework.core.invocation.ServiceMetadataRegistry;
 import org.springframework.boot.autoconfigure.AutoConfiguration;

@@ -1,12 +1,12 @@
 package io.github.afgprojects.framework.ai.agent.node;
 
-import io.github.afgprojects.framework.ai.core.agent.Agent;
-import io.github.afgprojects.framework.ai.core.agent.AgentRequest;
-import io.github.afgprojects.framework.ai.core.agent.AgentResponse;
-import io.github.afgprojects.framework.ai.core.multiagent.graph.NodeResult;
-import io.github.afgprojects.framework.ai.core.multiagent.graph.NodeType;
-import io.github.afgprojects.framework.ai.core.multiagent.node.AgentNode;
-import io.github.afgprojects.framework.ai.core.multiagent.state.WorkflowState;
+import io.github.afgprojects.framework.ai.core.api.agent.Agent;
+import io.github.afgprojects.framework.ai.core.api.agent.AgentRequest;
+import io.github.afgprojects.framework.ai.core.api.agent.AgentResponse;
+import io.github.afgprojects.framework.ai.core.api.multiagent.graph.NodeResult;
+import io.github.afgprojects.framework.ai.core.api.multiagent.graph.NodeType;
+import io.github.afgprojects.framework.ai.core.api.multiagent.node.AgentNode;
+import io.github.afgprojects.framework.ai.core.api.multiagent.state.WorkflowState;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 

@@ -1,10 +1,10 @@
 package io.github.afgprojects.framework.ai.chat;
 
 import io.github.afgprojects.framework.ai.chat.memory.AiMessageConverter;
-import io.github.afgprojects.framework.ai.core.chat.AfgChatClient;
-import io.github.afgprojects.framework.ai.core.chat.AiChatMetadata;
-import io.github.afgprojects.framework.ai.core.chat.AiChatResponse;
-import io.github.afgprojects.framework.ai.core.chat.AiMessage;
+import io.github.afgprojects.framework.ai.core.api.chat.AfgChatClient;
+import io.github.afgprojects.framework.ai.core.api.chat.AiChatMetadata;
+import io.github.afgprojects.framework.ai.core.api.chat.AiChatResponse;
+import io.github.afgprojects.framework.ai.core.api.chat.AiMessage;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.ai.chat.client.ChatClient;

@@ -1,12 +1,13 @@
 package io.github.afgprojects.framework.ai.security.autoconfigure;
 
 import io.github.afgprojects.framework.ai.core.autoconfigure.AiConfigurationProperties;
-import io.github.afgprojects.framework.ai.core.security.ApiKeyManager;
-import io.github.afgprojects.framework.ai.core.security.ContentSafetyChecker;
-import io.github.afgprojects.framework.ai.core.security.PiiDetector;
+import io.github.afgprojects.framework.ai.core.api.security.ApiKeyManager;
+import io.github.afgprojects.framework.ai.core.api.security.ContentSafetyChecker;
+import io.github.afgprojects.framework.ai.core.api.security.PiiDetector;
 import io.github.afgprojects.framework.ai.security.DefaultApiKeyManager;
 import io.github.afgprojects.framework.ai.security.DefaultContentSafetyChecker;
 import io.github.afgprojects.framework.ai.security.DefaultPiiDetector;
+import io.github.afgprojects.framework.ai.security.PiiService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -80,5 +81,17 @@ public class SecurityAutoConfiguration {
         log.info("Creating default PII detector");
 
         return new DefaultPiiDetector();
+    }
+
+    /**
+     * 配置 PII 检测服务
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = "afg.ai.security.pii", name = "enabled", havingValue = "true", matchIfMissing = true)
+    @ConditionalOnMissingBean(PiiService.class)
+    public PiiService piiService(PiiDetector piiDetector) {
+        log.info("Creating PII service");
+
+        return new PiiService(piiDetector);
     }
 }

@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.ai.chat.advisor;
 
-import io.github.afgprojects.framework.ai.core.security.ContentSafetyChecker;
+import io.github.afgprojects.framework.ai.core.api.security.ContentSafetyChecker;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

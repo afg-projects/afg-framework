@@ -1,0 +1,44 @@
+package io.github.afgprojects.framework.ai.core.autoconfigure;
+
+import io.github.afgprojects.framework.ai.core.config.AfgAiProperties;
+// import io.github.afgprojects.framework.ai.core.api.pipeline.ChatPipeline;
+// import io.github.afgprojects.framework.ai.core.api.pipeline.KnowledgeSearchClient;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+/**
+ * AFG AI 对话管道自动配置。
+ *
+ * <p>配置前缀：{@code afg.ai.pipeline}
+ *
+ * @author afg-projects
+ * @since 1.0.0
+ */
+@AutoConfiguration
+@EnableConfigurationProperties(AfgAiProperties.class)
+@ConditionalOnProperty(prefix = "afg.ai.pipeline", name = "enabled", havingValue = "true", matchIfMissing = true)
+public class AiPipelineAutoConfiguration {
+
+    @Configuration
+    @ConditionalOnProperty(prefix = "afg.ai.pipeline", name = "enabled", havingValue = "true", matchIfMissing = true)
+    static class PipelineConfiguration {
+
+        // TODO: 阶段3添加默认实现Bean
+        // @Bean
+        // @ConditionalOnMissingBean
+        // public DefaultChatPipeline defaultChatPipeline() {
+        //     return new DefaultChatPipeline();
+        // }
+
+        // TODO: 阶段3添加默认实现Bean
+        // @Bean
+        // @ConditionalOnMissingBean
+        // public NoOpKnowledgeSearchClient noOpKnowledgeSearchClient() {
+        //     return new NoOpKnowledgeSearchClient();
+        // }
+    }
+}

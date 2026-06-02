@@ -1,7 +1,7 @@
 package io.github.afgprojects.framework.ai.agent.autoconfigure;
 
 import io.github.afgprojects.framework.ai.core.autoconfigure.AiConfigurationProperties;
-import io.github.afgprojects.framework.ai.core.tool.ToolRegistry;
+import io.github.afgprojects.framework.ai.core.api.tool.ToolRegistry;
 import io.github.afgprojects.framework.ai.agent.tool.DefaultToolRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

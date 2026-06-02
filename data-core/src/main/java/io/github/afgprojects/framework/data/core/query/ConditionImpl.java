@@ -48,9 +48,19 @@ public final class ConditionImpl implements Condition {
         if (this.isEmpty()) return other;
         if (other.isEmpty()) return this;
 
-        List<Criterion> combined = new ArrayList<>(this.criteria);
-        combined.addAll(other.getCriteria());
-        return new ConditionImpl(LogicalOperator.AND, combined);
+        // 如果两个条件的 operator 相同且都是 AND，可以直接合并 criteria
+        // 否则必须使用嵌套条件保持逻辑结构
+        if (this.operator == LogicalOperator.AND && other.getOperator() == LogicalOperator.AND) {
+            List<Criterion> combined = new ArrayList<>(this.criteria);
+            combined.addAll(other.getCriteria());
+            return new ConditionImpl(LogicalOperator.AND, combined);
+        }
+
+        // 使用嵌套条件保持逻辑结构：(this) AND (other)
+        return new ConditionImpl(LogicalOperator.AND, List.of(
+            Criterion.nested(this, null),
+            Criterion.nested(other, null)
+        ));
     }
 
     @Override
@@ -58,9 +68,19 @@ public final class ConditionImpl implements Condition {
         if (this.isEmpty()) return other;
         if (other.isEmpty()) return this;
 
-        List<Criterion> combined = new ArrayList<>(this.criteria);
-        combined.addAll(other.getCriteria());
-        return new ConditionImpl(LogicalOperator.OR, combined);
+        // 如果两个条件的 operator 相同且都是 OR，可以直接合并 criteria
+        // 否则必须使用嵌套条件保持逻辑结构
+        if (this.operator == LogicalOperator.OR && other.getOperator() == LogicalOperator.OR) {
+            List<Criterion> combined = new ArrayList<>(this.criteria);
+            combined.addAll(other.getCriteria());
+            return new ConditionImpl(LogicalOperator.OR, combined);
+        }
+
+        // 使用嵌套条件保持逻辑结构：(this) OR (other)
+        return new ConditionImpl(LogicalOperator.OR, List.of(
+            Criterion.nested(this, null),
+            Criterion.nested(other, null)
+        ));
     }
 
     @Override

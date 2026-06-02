@@ -6,6 +6,9 @@ dependencies {
     api(project(":ai-core"))
     api(project(":ai-impl:ai-agent"))
 
+    // Data module for PersistentSkillRegistry
+    api(project(":data-core"))
+
     // Spring Boot AutoConfiguration
     api(libs.spring.boot.autoconfigure)
 
@@ -19,6 +22,13 @@ dependencies {
 
     // JSpecify
     api(libs.jspecify)
+
+    // APT for entity metadata generation
+    compileOnly(project(":apt-api"))
+    annotationProcessor(project(":apt-impl"))
+
+    // JPA annotations for entity
+    compileOnly(libs.jakarta.persistence.api)
 
     // Lombok
     compileOnly(libs.lombok)

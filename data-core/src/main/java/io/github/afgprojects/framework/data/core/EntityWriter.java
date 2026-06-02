@@ -134,7 +134,7 @@ public interface EntityWriter<T> {
      * @param condition 删除条件
      * @return 受影响行数
      */
-    long deleteAll(@NonNull Condition condition);
+    long deleteByCondition(@NonNull Condition condition);
 
     /**
      * 根据ID恢复删除（软删除场景）

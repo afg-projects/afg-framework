@@ -1,8 +1,8 @@
 package io.github.afgprojects.framework.ai.agent.tool.remote;
 
-import io.github.afgprojects.framework.ai.core.tool.remote.ToolDiscoveryClient;
-import io.github.afgprojects.framework.ai.core.tool.remote.ToolEndpoint;
-import io.github.afgprojects.framework.ai.core.tool.remote.ToolServiceDefinition;
+import io.github.afgprojects.framework.ai.core.api.tool.remote.ToolDiscoveryClient;
+import io.github.afgprojects.framework.ai.core.api.tool.remote.ToolEndpoint;
+import io.github.afgprojects.framework.ai.core.api.tool.remote.ToolServiceDefinition;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

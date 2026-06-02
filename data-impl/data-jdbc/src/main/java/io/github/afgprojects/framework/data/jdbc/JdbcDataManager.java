@@ -42,6 +42,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
@@ -73,17 +74,17 @@ public class JdbcDataManager implements DataManager {
     /**
      * 事务管理器（可选，用于 executeInTransaction 方法）
      */
-    private @Nullable PlatformTransactionManager transactionManager;
+    private volatile @Nullable PlatformTransactionManager transactionManager;
 
     /**
      * 实体缓存管理器（可选）
      */
-    private @Nullable EntityCacheManager cacheManager;
+    private volatile @Nullable EntityCacheManager cacheManager;
 
     /**
      * 事务适配器（可选）
      */
-    private @Nullable TransactionAdapter transactionAdapter;
+    private volatile @Nullable TransactionAdapter transactionAdapter;
 
     /**
      * 实体元数据缓存
@@ -93,7 +94,7 @@ public class JdbcDataManager implements DataManager {
     /**
      * 类型处理器注册表
      */
-    private TypeHandlerRegistry typeHandlerRegistry = TypeHandlerRegistry.defaultRegistry();
+    private volatile TypeHandlerRegistry typeHandlerRegistry = TypeHandlerRegistry.defaultRegistry();
 
     public JdbcDataManager(DataSource dataSource) {
         this.dataSource = dataSource;
@@ -227,6 +228,32 @@ public class JdbcDataManager implements DataManager {
         this.transactionAdapter = adapter;
     }
 
+    // ==================== DataManager 原始 SQL 操作接口实现 ====================
+
+    @Override
+    public <T> List<T> queryForList(@NonNull String sql, @NonNull List<Object> params, @NonNull ResultMapper<T> rowMapper) {
+        return jdbcClient.sql(sql)
+            .params(params)
+            .query(ResultMapperAdapter.adapt(rowMapper))
+            .list();
+    }
+
+    @Override
+    public <T> @Nullable T queryForObject(@NonNull String sql, @NonNull List<Object> params, @NonNull ResultMapper<T> rowMapper) {
+        return jdbcClient.sql(sql)
+            .params(params)
+            .query(ResultMapperAdapter.adapt(rowMapper))
+            .single();
+    }
+
+    @Override
+    public <T> Optional<T> queryForOptional(@NonNull String sql, @NonNull List<Object> params, @NonNull ResultMapper<T> rowMapper) {
+        return jdbcClient.sql(sql)
+            .params(params)
+            .query(ResultMapperAdapter.adapt(rowMapper))
+            .optional();
+    }
+
     // ==================== 连接管理（集成 Spring 事务） ====================
 
     /**
@@ -272,7 +299,7 @@ public class JdbcDataManager implements DataManager {
     // ==================== JdbcClient 便捷方法 ====================
 
     /**
-     * 执行查询并返回列表
+     * 执行查询并返回列表（Spring RowMapper 版本，保留向后兼容）
      */
     public <T> List<T> queryForList(String sql, List<Object> params, RowMapper<T> rowMapper) {
         return jdbcClient.sql(sql)
@@ -282,7 +309,7 @@ public class JdbcDataManager implements DataManager {
     }
 
     /**
-     * 执行查询并返回单个结果
+     * 执行查询并返回单个结果（Spring RowMapper 版本，保留向后兼容）
      */
     public <T> T queryForObject(String sql, List<Object> params, RowMapper<T> rowMapper) {
         return jdbcClient.sql(sql)
@@ -304,6 +331,7 @@ public class JdbcDataManager implements DataManager {
     /**
      * 执行更新操作
      */
+    @Override
     public int executeUpdate(String sql, List<Object> params) {
         return jdbcClient.sql(sql)
             .params(params)
@@ -311,8 +339,9 @@ public class JdbcDataManager implements DataManager {
     }
 
     /**
-     * 执行更新操作并返回受影响的行数
+     * 执行更新操作（命名参数）
      */
+    @Override
     public int executeUpdate(String sql, Map<String, Object> params) {
         return jdbcClient.sql(sql)
             .params(params)
@@ -458,6 +487,7 @@ public class JdbcDataManager implements DataManager {
     /**
      * 查询计数
      */
+    @Override
     public long queryForCount(String sql, List<Object> params) {
         Long count = jdbcClient.sql(sql)
             .params(params)

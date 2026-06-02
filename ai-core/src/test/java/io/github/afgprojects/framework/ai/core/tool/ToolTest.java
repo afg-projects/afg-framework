@@ -1,4 +1,4 @@
-package io.github.afgprojects.framework.ai.core.tool;
+package io.github.afgprojects.framework.ai.core.api.tool.
 
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.DisplayName;

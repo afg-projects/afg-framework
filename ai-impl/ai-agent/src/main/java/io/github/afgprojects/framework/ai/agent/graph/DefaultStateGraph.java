@@ -1,8 +1,8 @@
 package io.github.afgprojects.framework.ai.agent.graph;
 
 import io.github.afgprojects.framework.ai.agent.state.InMemoryStateManager;
-import io.github.afgprojects.framework.ai.core.multiagent.graph.*;
-import io.github.afgprojects.framework.ai.core.multiagent.state.*;
+import io.github.afgprojects.framework.ai.core.api.multiagent.graph.*;
+import io.github.afgprojects.framework.ai.core.api.multiagent.state.*;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

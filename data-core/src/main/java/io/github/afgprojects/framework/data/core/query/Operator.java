@@ -86,11 +86,6 @@ public enum Operator {
     NOT_BETWEEN("NOT BETWEEN"),
 
     /**
-     * NOT（条件取反）
-     */
-    NOT("NOT"),
-
-    /**
      * JSON 包含
      */
     JSON_CONTAINS("@>"),

@@ -344,7 +344,7 @@ class JdbcDataManagerTest {
             List<Map<String, Object>> result = dataManager.queryForList(
                 "SELECT * FROM test_query ORDER BY id",
                 List.of(),
-                (rs, rowNum) -> {
+                (io.github.afgprojects.framework.data.core.mapper.ResultMapper<Map<String, Object>>) (rs, rowNum) -> {
                     Map<String, Object> map = new java.util.HashMap<>();
                     map.put("id", rs.getInt("id"));
                     map.put("name", rs.getString("name"));
@@ -368,7 +368,7 @@ class JdbcDataManagerTest {
             String result = dataManager.queryForObject(
                 "SELECT col_data FROM test_single WHERE id = ?",
                 List.of(1),
-                (rs, rowNum) -> rs.getString("col_data")
+                (io.github.afgprojects.framework.data.core.mapper.ResultMapper<String>) (rs, rowNum) -> rs.getString("col_data")
             );
 
             assertThat(result).isEqualTo("single_value");

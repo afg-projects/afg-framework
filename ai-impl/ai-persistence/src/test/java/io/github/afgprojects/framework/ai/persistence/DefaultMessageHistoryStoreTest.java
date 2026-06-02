@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.ai.persistence;
 
-import io.github.afgprojects.framework.ai.core.persistence.MessageHistoryStore;
+import io.github.afgprojects.framework.ai.core.api.persistence.MessageHistoryStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

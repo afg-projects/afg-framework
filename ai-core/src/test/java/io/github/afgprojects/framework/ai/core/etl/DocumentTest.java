@@ -1,6 +1,6 @@
-package io.github.afgprojects.framework.ai.core.etl;
+package io.github.afgprojects.framework.ai.core.api.etl.
 
-import io.github.afgprojects.framework.ai.core.rag.Document;
+import io.github.afgprojects.framework.ai.core.api.rag.Document;
 
 import org.junit.jupiter.api.Test;
 

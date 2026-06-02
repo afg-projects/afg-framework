@@ -1,7 +1,7 @@
 package io.github.afgprojects.framework.ai.persistence.autoconfigure;
 
-import io.github.afgprojects.framework.ai.core.persistence.MessageHistoryStore;
-import io.github.afgprojects.framework.ai.core.persistence.SessionStore;
+import io.github.afgprojects.framework.ai.core.api.persistence.MessageHistoryStore;
+import io.github.afgprojects.framework.ai.core.api.persistence.SessionStore;
 import io.github.afgprojects.framework.ai.persistence.DefaultMessageHistoryStore;
 import io.github.afgprojects.framework.ai.persistence.DefaultSessionStore;
 import lombok.extern.slf4j.Slf4j;

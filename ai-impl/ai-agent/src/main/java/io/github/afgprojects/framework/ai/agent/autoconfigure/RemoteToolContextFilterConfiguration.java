@@ -1,8 +1,8 @@
 package io.github.afgprojects.framework.ai.agent.autoconfigure;
 
-import io.github.afgprojects.framework.ai.core.tool.RemoteToolContextHolder;
-import io.github.afgprojects.framework.ai.core.tool.ToolContext;
-import io.github.afgprojects.framework.ai.core.tool.remote.ToolContextHeaders;
+import io.github.afgprojects.framework.ai.core.api.tool.RemoteToolContextHolder;
+import io.github.afgprojects.framework.ai.core.api.tool.ToolContext;
+import io.github.afgprojects.framework.ai.core.api.tool.remote.ToolContextHeaders;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

@@ -1,8 +1,8 @@
 package io.github.afgprojects.framework.ai.chat.autoconfigure;
 
 import io.github.afgprojects.framework.ai.chat.memory.ChatMemoryRepositoryAdapter;
-import io.github.afgprojects.framework.ai.core.memory.ConversationMemory;
-import io.github.afgprojects.framework.ai.core.persistence.MessageHistoryStore;
+import io.github.afgprojects.framework.ai.core.api.memory.ConversationMemory;
+import io.github.afgprojects.framework.ai.core.api.persistence.MessageHistoryStore;
 import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;

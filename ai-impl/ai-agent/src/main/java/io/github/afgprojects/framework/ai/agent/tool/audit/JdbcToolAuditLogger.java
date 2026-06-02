@@ -1,7 +1,7 @@
 package io.github.afgprojects.framework.ai.agent.tool.audit;
 
-import io.github.afgprojects.framework.ai.core.tool.ToolAuditLogger;
-import io.github.afgprojects.framework.ai.core.tool.ToolContext;
+import io.github.afgprojects.framework.ai.core.api.tool.ToolAuditLogger;
+import io.github.afgprojects.framework.ai.core.api.tool.ToolContext;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;

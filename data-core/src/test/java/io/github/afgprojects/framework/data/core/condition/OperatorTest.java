@@ -15,7 +15,7 @@ class OperatorTest {
             Operator.IN, Operator.NOT_IN,
             Operator.IS_NULL, Operator.IS_NOT_NULL,
             Operator.BETWEEN, Operator.NOT_BETWEEN,
-            Operator.NOT, Operator.JSON_CONTAINS, Operator.JSON_CONTAINED, Operator.JSON_PATH
+            Operator.JSON_CONTAINS, Operator.JSON_CONTAINED, Operator.JSON_PATH
         );
     }
 
@@ -23,7 +23,6 @@ class OperatorTest {
     void shouldReturnSymbol() {
         assertThat(Operator.EQ.getSymbol()).isEqualTo("=");
         assertThat(Operator.LIKE.getSymbol()).isEqualTo("LIKE");
-        assertThat(Operator.NOT.getSymbol()).isEqualTo("NOT");
         assertThat(Operator.JSON_CONTAINS.getSymbol()).isEqualTo("@>");
     }
 
@@ -32,7 +31,6 @@ class OperatorTest {
         assertThat(Operator.EQ.requiresValue()).isTrue();
         assertThat(Operator.IS_NULL.requiresValue()).isFalse();
         assertThat(Operator.IS_NOT_NULL.requiresValue()).isFalse();
-        assertThat(Operator.NOT.requiresValue()).isTrue();
         assertThat(Operator.JSON_CONTAINS.requiresValue()).isTrue();
     }
 }

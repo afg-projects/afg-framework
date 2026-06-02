@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.ai.observability;
 
-import io.github.afgprojects.framework.ai.core.observability.Tracer;
+import io.github.afgprojects.framework.ai.core.api.observability.Tracer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

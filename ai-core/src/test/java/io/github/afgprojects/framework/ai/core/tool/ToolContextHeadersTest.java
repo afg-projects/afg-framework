@@ -1,6 +1,6 @@
-package io.github.afgprojects.framework.ai.core.tool;
+package io.github.afgprojects.framework.ai.core.api.tool.
 
-import io.github.afgprojects.framework.ai.core.tool.remote.ToolContextHeaders;
+import io.github.afgprojects.framework.ai.core.api.tool.remote.ToolContextHeaders;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;

@@ -28,10 +28,42 @@ public final class Conditions {
 
     /**
      * 字段名解析器（用于 Lambda → 列名转换）
+     * <p>
+     * 使用懒加载单例模式，允许通过 {@link #setFieldNameResolver(FieldNameResolver)} 替换。
      */
-    private static final FieldNameResolver FIELD_NAME_RESOLVER = new FieldNameResolver(new EntityMetadataCache());
+    private static volatile FieldNameResolver FIELD_NAME_RESOLVER;
 
     private Conditions() {}
+
+    /**
+     * 获取字段名解析器（懒加载）
+     *
+     * @return 字段名解析器
+     */
+    private static FieldNameResolver getFieldNameResolver() {
+        if (FIELD_NAME_RESOLVER == null) {
+            synchronized (Conditions.class) {
+                if (FIELD_NAME_RESOLVER == null) {
+                    FIELD_NAME_RESOLVER = new FieldNameResolver(new EntityMetadataCache());
+                }
+            }
+        }
+        return FIELD_NAME_RESOLVER;
+    }
+
+    /**
+     * 设置字段名解析器
+     * <p>
+     * 允许替换默认的 FieldNameResolver，用于自定义 EntityMetadataCache 配置。
+     * 必须在首次使用 Conditions 之前调用。
+     *
+     * @param resolver 字段名解析器
+     */
+    public static void setFieldNameResolver(FieldNameResolver resolver) {
+        synchronized (Conditions.class) {
+            FIELD_NAME_RESOLVER = resolver;
+        }
+    }
 
     /**
      * 创建条件构建器
@@ -634,7 +666,7 @@ public final class Conditions {
          * @return 数据库列名
          */
         private <R> String resolveColumnName(SFunction<T, R> getter) {
-            return FIELD_NAME_RESOLVER.resolveColumnName(entityClass, getter);
+            return getFieldNameResolver().resolveColumnName(entityClass, getter);
         }
     }
 }

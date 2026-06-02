@@ -1,9 +1,9 @@
 package io.github.afgprojects.framework.ai.pipeline.autoconfigure;
 
-import io.github.afgprojects.framework.ai.core.chat.ChatClientRegistry;
-import io.github.afgprojects.framework.ai.core.pipeline.ChatPipeline;
-import io.github.afgprojects.framework.ai.core.pipeline.KnowledgeSearchClient;
-import io.github.afgprojects.framework.ai.core.pipeline.PipelineStep;
+import io.github.afgprojects.framework.ai.core.api.chat.ChatClientRegistry;
+import io.github.afgprojects.framework.ai.core.api.pipeline.ChatPipeline;
+import io.github.afgprojects.framework.ai.core.api.pipeline.KnowledgeSearchClient;
+import io.github.afgprojects.framework.ai.core.api.pipeline.PipelineStep;
 import io.github.afgprojects.framework.ai.pipeline.AiChatStep;
 import io.github.afgprojects.framework.ai.pipeline.DefaultChatPipeline;
 import io.github.afgprojects.framework.ai.pipeline.KnowledgeSearchStep;

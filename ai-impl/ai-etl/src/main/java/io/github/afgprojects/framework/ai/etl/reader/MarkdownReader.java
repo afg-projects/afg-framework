@@ -1,7 +1,7 @@
 package io.github.afgprojects.framework.ai.etl.reader;
 
-import io.github.afgprojects.framework.ai.core.rag.Document;
-import io.github.afgprojects.framework.ai.core.etl.Source;
+import io.github.afgprojects.framework.ai.core.api.rag.Document;
+import io.github.afgprojects.framework.ai.core.api.etl.Source;
 import org.commonmark.ext.gfm.tables.TablesExtension;
 import org.commonmark.node.Heading;
 import org.commonmark.node.Node;

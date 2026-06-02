@@ -58,7 +58,7 @@ public class EntityConditionalHandler<T> {
      * @param condition 删除条件
      * @return 受影响的行数
      */
-    public long deleteAll(@NonNull Condition condition) {
+    public long deleteByCondition(@NonNull Condition condition) {
         long affected = executeConditionalDelete(condition);
         if (affected > 0) {
             cacheHandler.clear();

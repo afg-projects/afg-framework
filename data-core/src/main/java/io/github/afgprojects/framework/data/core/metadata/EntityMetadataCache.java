@@ -1,13 +1,16 @@
 package io.github.afgprojects.framework.data.core.metadata;
 
 import io.github.afgprojects.framework.commons.naming.NamingUtils;
+import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.relation.RelationMetadata;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -159,6 +162,31 @@ public class EntityMetadataCache {
         }
 
         @Override
+        public String getIdFieldName() {
+            return "id";
+        }
+
+        @Override
+        public FieldMetadata getSoftDeleteField() {
+            return null;
+        }
+
+        @Override
+        public FieldMetadata getTenantField() {
+            return null;
+        }
+
+        @Override
+        public Map<String, String> getColumnToFieldMap() {
+            return Map.of();
+        }
+
+        @Override
+        public Map<String, String> getFieldToColumnMap() {
+            return Map.of();
+        }
+
+        @Override
         public List<FieldMetadata> getFields() {
             return List.of();
         }
@@ -169,53 +197,28 @@ public class EntityMetadataCache {
         }
 
         @Override
-        public boolean isSoftDeletable() {
+        public boolean hasTrait(EntityTrait trait) {
             return false;
         }
 
         @Override
-        public boolean isTenantAware() {
+        public Set<EntityTrait> getTraits() {
+            return Set.of();
+        }
+
+        @Override
+        public boolean isDataScopeAware() {
             return false;
         }
 
         @Override
-        public boolean isAuditable() {
-            return false;
-        }
-
-        @Override
-        public boolean isVersioned() {
-            return false;
-        }
-
-        @Override
-        public List<RelationMetadata> getRelations() {
-            return List.of();
-        }
-
-        @Override
-        public Optional<RelationMetadata> getRelation(String fieldName) {
-            return Optional.empty();
+        public Condition getDefaultCondition() {
+            return null;
         }
 
         @Override
         public boolean hasRelation(String fieldName) {
             return false;
-        }
-
-        /**
-         * camelCase 转 snake_case
-         */
-        private String toSnakeCase(String name) {
-            StringBuilder result = new StringBuilder();
-            for (int i = 0; i < name.length(); i++) {
-                char c = name.charAt(i);
-                if (i > 0 && Character.isUpperCase(c)) {
-                    result.append('_');
-                }
-                result.append(Character.toLowerCase(c));
-            }
-            return result.toString();
         }
     }
 }

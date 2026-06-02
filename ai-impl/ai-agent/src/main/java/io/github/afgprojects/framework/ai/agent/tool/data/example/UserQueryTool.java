@@ -1,7 +1,7 @@
 package io.github.afgprojects.framework.ai.agent.tool.data.example;
 
 import io.github.afgprojects.framework.ai.agent.tool.data.DataQueryTool;
-import io.github.afgprojects.framework.ai.core.tool.ToolContext;
+import io.github.afgprojects.framework.ai.core.api.tool.ToolContext;
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.condition.Conditions;
 import io.github.afgprojects.framework.data.core.query.Condition;

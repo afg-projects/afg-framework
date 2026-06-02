@@ -1,8 +1,8 @@
 package io.github.afgprojects.framework.ai.resilience.autoconfigure;
 
-import io.github.afgprojects.framework.ai.core.resilience.CircuitBreaker;
-import io.github.afgprojects.framework.ai.core.resilience.ResilienceExecutor;
-import io.github.afgprojects.framework.ai.core.resilience.RetryPolicy;
+import io.github.afgprojects.framework.ai.core.api.resilience.CircuitBreaker;
+import io.github.afgprojects.framework.ai.core.api.resilience.ResilienceExecutor;
+import io.github.afgprojects.framework.ai.core.api.resilience.RetryPolicy;
 import io.github.afgprojects.framework.ai.resilience.DefaultCircuitBreaker;
 import io.github.afgprojects.framework.ai.resilience.DefaultResilienceExecutor;
 import io.github.afgprojects.framework.ai.resilience.DefaultRetryPolicy;

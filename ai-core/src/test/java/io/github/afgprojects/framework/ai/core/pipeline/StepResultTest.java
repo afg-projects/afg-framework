@@ -1,4 +1,4 @@
-package io.github.afgprojects.framework.ai.core.pipeline;
+package io.github.afgprojects.framework.ai.core.api.pipeline.
 
 import org.junit.jupiter.api.Test;
 import java.util.Map;

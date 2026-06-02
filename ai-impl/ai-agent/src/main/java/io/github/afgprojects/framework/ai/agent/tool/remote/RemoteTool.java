@@ -1,9 +1,9 @@
 package io.github.afgprojects.framework.ai.agent.tool.remote;
 
-import io.github.afgprojects.framework.ai.core.tool.*;
-import io.github.afgprojects.framework.ai.core.tool.remote.ToolContextHeaders;
-import io.github.afgprojects.framework.ai.core.tool.remote.ToolEndpoint;
-import io.github.afgprojects.framework.ai.core.tool.remote.ToolServiceDefinition;
+import io.github.afgprojects.framework.ai.core.api.tool.*;
+import io.github.afgprojects.framework.ai.core.api.tool.remote.ToolContextHeaders;
+import io.github.afgprojects.framework.ai.core.api.tool.remote.ToolEndpoint;
+import io.github.afgprojects.framework.ai.core.api.tool.remote.ToolServiceDefinition;
 import io.github.afgprojects.framework.core.api.registry.ServiceDiscovery;
 import io.github.afgprojects.framework.core.api.registry.ServiceInstance;
 import io.github.afgprojects.framework.data.core.scope.DataScope;

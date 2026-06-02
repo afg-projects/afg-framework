@@ -1,8 +1,8 @@
 package io.github.afgprojects.framework.ai.observability.autoconfigure;
 
-import io.github.afgprojects.framework.ai.core.observability.AuditLogger;
-import io.github.afgprojects.framework.ai.core.observability.MetricsCollector;
-import io.github.afgprojects.framework.ai.core.observability.Tracer;
+import io.github.afgprojects.framework.ai.core.api.observability.AuditLogger;
+import io.github.afgprojects.framework.ai.core.api.observability.MetricsCollector;
+import io.github.afgprojects.framework.ai.core.api.observability.Tracer;
 import io.github.afgprojects.framework.ai.observability.DefaultAuditLogger;
 import io.github.afgprojects.framework.ai.observability.DefaultMetricsCollector;
 import io.github.afgprojects.framework.ai.observability.DefaultTracer;

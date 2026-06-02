@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import io.github.afgprojects.framework.ai.core.workflow.definition.EdgeDefinition;
-import io.github.afgprojects.framework.ai.core.workflow.definition.WorkflowDefinition;
-import io.github.afgprojects.framework.ai.core.workflow.definition.WorkflowDefinition.NodeInstance;
+import io.github.afgprojects.framework.ai.core.api.workflow.definition.EdgeDefinition;
+import io.github.afgprojects.framework.ai.core.api.workflow.definition.WorkflowDefinition;
+import io.github.afgprojects.framework.ai.core.api.workflow.definition.WorkflowDefinition.NodeInstance;
 
 /**
  * Serializes WorkflowDefinition to JSON using Jackson with pretty print.

@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.ai.agent.decomposition;
 
-import io.github.afgprojects.framework.ai.core.multiagent.decomposition.*;
+import io.github.afgprojects.framework.ai.core.api.multiagent.decomposition.*;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.ai.agent.state;
 
-import io.github.afgprojects.framework.ai.core.multiagent.state.*;
+import io.github.afgprojects.framework.ai.core.api.multiagent.state.*;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 

@@ -1,1 +1,2 @@
 io.github.afgprojects.framework.ai.agent.skill.autoconfigure.SkillAutoConfiguration
+io.github.afgprojects.framework.ai.agent.skill.autoconfigure.PersistentSkillRegistryAutoConfiguration

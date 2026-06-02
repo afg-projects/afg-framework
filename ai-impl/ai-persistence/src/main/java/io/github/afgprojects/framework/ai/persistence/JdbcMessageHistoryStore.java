@@ -1,9 +1,9 @@
 package io.github.afgprojects.framework.ai.persistence;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.afgprojects.framework.ai.core.persistence.MessageHistoryStore;
-import io.github.afgprojects.framework.ai.core.persistence.MessageHistoryStore.*;
-import io.github.afgprojects.framework.data.jdbc.JdbcDataManager;
+import io.github.afgprojects.framework.ai.core.api.persistence.MessageHistoryStore;
+import io.github.afgprojects.framework.ai.core.api.persistence.MessageHistoryStore.*;
+import io.github.afgprojects.framework.data.core.DataManager;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -24,18 +24,18 @@ public class JdbcMessageHistoryStore implements MessageHistoryStore {
 
     private static final Logger log = LoggerFactory.getLogger(JdbcMessageHistoryStore.class);
 
-    private final JdbcDataManager dataManager;
+    private final DataManager dataManager;
     private final ObjectMapper objectMapper;
     private final String tableName;
 
-    public JdbcMessageHistoryStore(@NonNull JdbcDataManager dataManager, @NonNull String tableName) {
+    public JdbcMessageHistoryStore(@NonNull DataManager dataManager, @NonNull String tableName) {
         this.dataManager = dataManager;
         this.objectMapper = new ObjectMapper();
         this.tableName = tableName;
         log.info("JdbcMessageHistoryStore initialized: table={}", tableName);
     }
 
-    public JdbcMessageHistoryStore(@NonNull JdbcDataManager dataManager) {
+    public JdbcMessageHistoryStore(@NonNull DataManager dataManager) {
         this(dataManager, "ai_message");
     }
 

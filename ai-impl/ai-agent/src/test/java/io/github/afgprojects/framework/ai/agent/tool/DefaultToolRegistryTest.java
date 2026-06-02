@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.ai.agent.tool;
 
-import io.github.afgprojects.framework.ai.core.tool.Tool;
+import io.github.afgprojects.framework.ai.core.api.tool.Tool;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

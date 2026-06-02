@@ -35,7 +35,7 @@ public final class NotCondition implements Condition {
     @Override
     public @NonNull List<Criterion> getCriteria() {
         return Collections.singletonList(
-            new Criterion("NOT", Operator.NOT, original, null, null)
+            Criterion.notNested(original)
         );
     }
 

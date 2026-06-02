@@ -1,7 +1,7 @@
 package io.github.afgprojects.framework.ai.resilience;
 
-import io.github.afgprojects.framework.ai.core.resilience.CircuitBreaker;
-import io.github.afgprojects.framework.ai.core.resilience.CircuitBreakerException;
+import io.github.afgprojects.framework.ai.core.api.resilience.CircuitBreaker;
+import io.github.afgprojects.framework.ai.core.api.resilience.CircuitBreakerException;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

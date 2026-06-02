@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.ai.chat.memory;
 
-import io.github.afgprojects.framework.ai.core.memory.ConversationMemory;
+import io.github.afgprojects.framework.ai.core.api.memory.ConversationMemory;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.ai.chat.memory.ChatMemoryRepository;

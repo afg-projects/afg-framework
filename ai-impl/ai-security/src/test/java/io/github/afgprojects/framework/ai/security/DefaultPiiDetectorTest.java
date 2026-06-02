@@ -1,7 +1,7 @@
 package io.github.afgprojects.framework.ai.security;
 
-import io.github.afgprojects.framework.ai.core.security.ContentSafetyChecker;
-import io.github.afgprojects.framework.ai.core.security.PiiDetector;
+import io.github.afgprojects.framework.ai.core.api.security.ContentSafetyChecker;
+import io.github.afgprojects.framework.ai.core.api.security.PiiDetector;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -1,8 +1,8 @@
 package io.github.afgprojects.framework.ai.resilience;
 
-import io.github.afgprojects.framework.ai.core.resilience.CircuitBreaker;
-import io.github.afgprojects.framework.ai.core.resilience.FallbackStrategy;
-import io.github.afgprojects.framework.ai.core.resilience.RetryPolicy;
+import io.github.afgprojects.framework.ai.core.api.resilience.CircuitBreaker;
+import io.github.afgprojects.framework.ai.core.api.resilience.FallbackStrategy;
+import io.github.afgprojects.framework.ai.core.api.resilience.RetryPolicy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

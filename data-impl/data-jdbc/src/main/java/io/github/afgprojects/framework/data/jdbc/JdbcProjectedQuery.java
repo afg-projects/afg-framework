@@ -210,11 +210,9 @@ public class JdbcProjectedQuery<T, R> implements ProjectedQuery<T, R> {
             sql += " ORDER BY " + buildOrderByClause(dialect, metadata);
         }
 
+        // 分页限制（使用 Dialect 生成兼容 SQL）
         if (limit != null) {
-            sql += " LIMIT " + limit;
-            if (offset != null) {
-                sql += " OFFSET " + offset;
-            }
+            sql = dialect.getPaginationSql(sql, offset != null ? offset : 0, limit);
         }
 
         DtoMapper<R> dtoMapper = new DtoMapper<>(dtoType, typeHandlerRegistry);
@@ -273,6 +271,20 @@ public class JdbcProjectedQuery<T, R> implements ProjectedQuery<T, R> {
     }
 
     private String buildSelectSql(Dialect dialect, EntityMetadata<T> metadata) {
+        if (selectedFields != null && !selectedFields.isEmpty()) {
+            // 使用 selectedFields 构建列列表，减少数据库带宽
+            StringBuilder columns = new StringBuilder();
+            for (int i = 0; i < selectedFields.size(); i++) {
+                if (i > 0) {
+                    columns.append(", ");
+                }
+                String fieldName = selectedFields.get(i);
+                var fieldMetadata = metadata.getField(fieldName);
+                String columnName = fieldMetadata != null ? fieldMetadata.getColumnName() : fieldName;
+                columns.append(dialect.quoteIdentifier(columnName));
+            }
+            return "SELECT " + columns + " FROM " + dialect.quoteIdentifier(metadata.getTableName());
+        }
         return "SELECT * FROM " + dialect.quoteIdentifier(metadata.getTableName());
     }
 

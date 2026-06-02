@@ -106,10 +106,10 @@ public class EntityConditionQueryHandler<T> {
         String countSql = "SELECT COUNT(*) FROM " + dialect.quoteIdentifier(metadata.getTableName()) + whereSql;
         long total = dataManager.queryForCount(countSql, whereResult.parameters());
 
-        // 数据查询
+        // 数据查询（使用 Dialect 生成兼容的分页 SQL）
         String dataSql = "SELECT * FROM " + dialect.quoteIdentifier(metadata.getTableName()) +
-                whereSql +
-                " LIMIT " + pageable.size() + " OFFSET " + pageable.offset();
+                whereSql;
+        dataSql = dialect.getPaginationSql(dataSql, pageable.offset(), pageable.size());
         List<T> records = jdbcClient.sql(dataSql)
                 .params(whereResult.parameters())
                 .query(rowMapper)

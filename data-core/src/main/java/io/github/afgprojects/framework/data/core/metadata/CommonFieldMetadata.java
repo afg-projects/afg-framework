@@ -41,47 +41,47 @@ public final class CommonFieldMetadata {
     /**
      * 创建时间字段元数据（createdAt -> created_at）
      */
-    public static final DatabaseFieldMetadata CREATED_AT = new CreatedAtFieldMetadata();
+    public static final DatabaseFieldMetadata CREATED_AT = commonField("createdAt", "created_at", LocalDateTime.class);
 
     /**
      * 更新时间字段元数据（updatedAt -> updated_at）
      */
-    public static final DatabaseFieldMetadata UPDATED_AT = new UpdatedAtFieldMetadata();
+    public static final DatabaseFieldMetadata UPDATED_AT = commonField("updatedAt", "updated_at", LocalDateTime.class);
 
     /**
      * 软删除标记字段元数据（deleted -> deleted）
      */
-    public static final DatabaseFieldMetadata DELETED = new DeletedFieldMetadata();
+    public static final DatabaseFieldMetadata DELETED = commonField("deleted", "deleted", Boolean.class);
 
     /**
      * 软删除时间字段元数据（deletedAt -> deleted_at）
      */
-    public static final DatabaseFieldMetadata DELETED_AT = new DeletedAtFieldMetadata();
+    public static final DatabaseFieldMetadata DELETED_AT = commonField("deletedAt", "deleted_at", LocalDateTime.class);
 
     /**
      * 租户ID字段元数据（tenantId -> tenant_id）
      */
-    public static final DatabaseFieldMetadata TENANT_ID = new TenantIdFieldMetadata();
+    public static final DatabaseFieldMetadata TENANT_ID = commonField("tenantId", "tenant_id", String.class);
 
     /**
      * 版本号字段元数据（version -> version，Long 类型）
      */
-    public static final DatabaseFieldMetadata VERSION_LONG = new VersionLongFieldMetadata();
+    public static final DatabaseFieldMetadata VERSION_LONG = commonField("version", "version", Long.class);
 
     /**
      * 版本号字段元数据（version -> version，Integer 类型）
      */
-    public static final DatabaseFieldMetadata VERSION_INTEGER = new VersionIntegerFieldMetadata();
+    public static final DatabaseFieldMetadata VERSION_INTEGER = commonField("version", "version", Integer.class);
 
     /**
      * 创建人字段元数据（createBy -> create_by）
      */
-    public static final DatabaseFieldMetadata CREATE_BY = new CreateByFieldMetadata();
+    public static final DatabaseFieldMetadata CREATE_BY = commonField("createBy", "create_by", String.class);
 
     /**
      * 更新人字段元数据（updateBy -> update_by）
      */
-    public static final DatabaseFieldMetadata UPDATE_BY = new UpdateByFieldMetadata();
+    public static final DatabaseFieldMetadata UPDATE_BY = commonField("updateBy", "update_by", String.class);
 
     // ==================== 动态创建方法 ====================
 
@@ -94,7 +94,7 @@ public final class CommonFieldMetadata {
      * @return 主键字段元数据
      */
     public static DatabaseFieldMetadata id(Class<?> idType) {
-        return new IdFieldMetadata(idType);
+        return new SimpleFieldMetadata("id", "id", idType, true, true);
     }
 
     /**
@@ -133,42 +133,27 @@ public final class CommonFieldMetadata {
     public static DatabaseFieldMetadata match(String propertyName, String fieldType) {
         // createdAt - 必须是 LocalDateTime
         if ("createdAt".equals(propertyName)) {
-            if (isLocalDateTime(fieldType)) {
-                return CREATED_AT;
-            }
-            return null;
+            return isLocalDateTime(fieldType) ? CREATED_AT : null;
         }
 
         // updatedAt - 必须是 LocalDateTime
         if ("updatedAt".equals(propertyName)) {
-            if (isLocalDateTime(fieldType)) {
-                return UPDATED_AT;
-            }
-            return null;
+            return isLocalDateTime(fieldType) ? UPDATED_AT : null;
         }
 
         // deleted - 必须是 Boolean/boolean
         if ("deleted".equals(propertyName)) {
-            if (isBoolean(fieldType)) {
-                return DELETED;
-            }
-            return null;
+            return isBoolean(fieldType) ? DELETED : null;
         }
 
         // deletedAt - 必须是 LocalDateTime
         if ("deletedAt".equals(propertyName)) {
-            if (isLocalDateTime(fieldType)) {
-                return DELETED_AT;
-            }
-            return null;
+            return isLocalDateTime(fieldType) ? DELETED_AT : null;
         }
 
         // tenantId - 必须是 String
         if ("tenantId".equals(propertyName)) {
-            if (isString(fieldType)) {
-                return TENANT_ID;
-            }
-            return null;
+            return isString(fieldType) ? TENANT_ID : null;
         }
 
         // version - 支持 Long/long 或 Integer/int
@@ -184,34 +169,22 @@ public final class CommonFieldMetadata {
 
         // createBy - 必须是 String
         if ("createBy".equals(propertyName)) {
-            if (isString(fieldType)) {
-                return CREATE_BY;
-            }
-            return null;
+            return isString(fieldType) ? CREATE_BY : null;
         }
 
         // updateBy - 必须是 String
         if ("updateBy".equals(propertyName)) {
-            if (isString(fieldType)) {
-                return UPDATE_BY;
-            }
-            return null;
+            return isString(fieldType) ? UPDATE_BY : null;
         }
 
         // createdBy（别名）- 必须是 String
         if ("createdBy".equals(propertyName)) {
-            if (isString(fieldType)) {
-                return CREATE_BY;
-            }
-            return null;
+            return isString(fieldType) ? CREATE_BY : null;
         }
 
         // updatedBy（别名）- 必须是 String
         if ("updatedBy".equals(propertyName)) {
-            if (isString(fieldType)) {
-                return UPDATE_BY;
-            }
-            return null;
+            return isString(fieldType) ? UPDATE_BY : null;
         }
 
         return null;
@@ -269,322 +242,53 @@ public final class CommonFieldMetadata {
     // ==================== 内部实现类 ====================
 
     /**
-     * 创建时间字段元数据
+     * 创建通用字段的元数据实例
+     *
+     * @param propertyName 属性名
+     * @param columnName   列名
+     * @param fieldType    字段类型
+     * @return 通用字段元数据
      */
-    private static final class CreatedAtFieldMetadata implements DatabaseFieldMetadata {
-        @Override
-        public String getPropertyName() {
-            return "createdAt";
-        }
-
-        @Override
-        public String getColumnName() {
-            return "created_at";
-        }
-
-        @Override
-        public Class<?> getFieldType() {
-            return LocalDateTime.class;
-        }
-
-        @Override
-        public boolean isId() {
-            return false;
-        }
-
-        @Override
-        public boolean isGenerated() {
-            return false;
-        }
+    private static DatabaseFieldMetadata commonField(String propertyName, String columnName, Class<?> fieldType) {
+        return new SimpleFieldMetadata(propertyName, columnName, fieldType, false, false);
     }
 
     /**
-     * 更新时间字段元数据
+     * 参数化的字段元数据实现
+     * <p>
+     * 替代原来 9 个重复的内部类，通过构造函数参数化差异部分。
      */
-    private static final class UpdatedAtFieldMetadata implements DatabaseFieldMetadata {
+    private record SimpleFieldMetadata(
+            String propertyName,
+            String columnName,
+            Class<?> fieldType,
+            boolean id,
+            boolean generated
+    ) implements DatabaseFieldMetadata {
+
         @Override
         public String getPropertyName() {
-            return "updatedAt";
+            return propertyName;
         }
 
         @Override
         public String getColumnName() {
-            return "updated_at";
+            return columnName;
         }
 
         @Override
         public Class<?> getFieldType() {
-            return LocalDateTime.class;
+            return fieldType;
         }
 
         @Override
         public boolean isId() {
-            return false;
+            return id;
         }
 
         @Override
         public boolean isGenerated() {
-            return false;
-        }
-    }
-
-    /**
-     * 软删除标记字段元数据
-     */
-    private static final class DeletedFieldMetadata implements DatabaseFieldMetadata {
-        @Override
-        public String getPropertyName() {
-            return "deleted";
-        }
-
-        @Override
-        public String getColumnName() {
-            return "deleted";
-        }
-
-        @Override
-        public Class<?> getFieldType() {
-            return Boolean.class;
-        }
-
-        @Override
-        public boolean isId() {
-            return false;
-        }
-
-        @Override
-        public boolean isGenerated() {
-            return false;
-        }
-    }
-
-    /**
-     * 软删除时间字段元数据
-     */
-    private static final class DeletedAtFieldMetadata implements DatabaseFieldMetadata {
-        @Override
-        public String getPropertyName() {
-            return "deletedAt";
-        }
-
-        @Override
-        public String getColumnName() {
-            return "deleted_at";
-        }
-
-        @Override
-        public Class<?> getFieldType() {
-            return LocalDateTime.class;
-        }
-
-        @Override
-        public boolean isId() {
-            return false;
-        }
-
-        @Override
-        public boolean isGenerated() {
-            return false;
-        }
-    }
-
-    /**
-     * 租户ID字段元数据
-     */
-    private static final class TenantIdFieldMetadata implements DatabaseFieldMetadata {
-        @Override
-        public String getPropertyName() {
-            return "tenantId";
-        }
-
-        @Override
-        public String getColumnName() {
-            return "tenant_id";
-        }
-
-        @Override
-        public Class<?> getFieldType() {
-            return String.class;
-        }
-
-        @Override
-        public boolean isId() {
-            return false;
-        }
-
-        @Override
-        public boolean isGenerated() {
-            return false;
-        }
-    }
-
-    /**
-     * 版本号字段元数据（Long 类型）
-     */
-    private static final class VersionLongFieldMetadata implements DatabaseFieldMetadata {
-        @Override
-        public String getPropertyName() {
-            return "version";
-        }
-
-        @Override
-        public String getColumnName() {
-            return "version";
-        }
-
-        @Override
-        public Class<?> getFieldType() {
-            return Long.class;
-        }
-
-        @Override
-        public boolean isId() {
-            return false;
-        }
-
-        @Override
-        public boolean isGenerated() {
-            return false;
-        }
-    }
-
-    /**
-     * 版本号字段元数据（Integer 类型）
-     */
-    private static final class VersionIntegerFieldMetadata implements DatabaseFieldMetadata {
-        @Override
-        public String getPropertyName() {
-            return "version";
-        }
-
-        @Override
-        public String getColumnName() {
-            return "version";
-        }
-
-        @Override
-        public Class<?> getFieldType() {
-            return Integer.class;
-        }
-
-        @Override
-        public boolean isId() {
-            return false;
-        }
-
-        @Override
-        public boolean isGenerated() {
-            return false;
-        }
-    }
-
-    /**
-     * 创建人字段元数据
-     */
-    private static final class CreateByFieldMetadata implements DatabaseFieldMetadata {
-        @Override
-        public String getPropertyName() {
-            return "createBy";
-        }
-
-        @Override
-        public String getColumnName() {
-            return "create_by";
-        }
-
-        @Override
-        public Class<?> getFieldType() {
-            return String.class;
-        }
-
-        @Override
-        public boolean isId() {
-            return false;
-        }
-
-        @Override
-        public boolean isGenerated() {
-            return false;
-        }
-
-        /**
-         * 别名支持：createdBy
-         */
-        public String getAliasPropertyName() {
-            return "createdBy";
-        }
-    }
-
-    /**
-     * 更新人字段元数据
-     */
-    private static final class UpdateByFieldMetadata implements DatabaseFieldMetadata {
-        @Override
-        public String getPropertyName() {
-            return "updateBy";
-        }
-
-        @Override
-        public String getColumnName() {
-            return "update_by";
-        }
-
-        @Override
-        public Class<?> getFieldType() {
-            return String.class;
-        }
-
-        @Override
-        public boolean isId() {
-            return false;
-        }
-
-        @Override
-        public boolean isGenerated() {
-            return false;
-        }
-
-        /**
-         * 别名支持：updatedBy
-         */
-        public String getAliasPropertyName() {
-            return "updatedBy";
-        }
-    }
-
-    /**
-     * 主键字段元数据（动态类型）
-     */
-    private static final class IdFieldMetadata implements DatabaseFieldMetadata {
-        private final Class<?> idType;
-
-        IdFieldMetadata(Class<?> idType) {
-            this.idType = idType;
-        }
-
-        @Override
-        public String getPropertyName() {
-            return "id";
-        }
-
-        @Override
-        public String getColumnName() {
-            return "id";
-        }
-
-        @Override
-        public Class<?> getFieldType() {
-            return idType;
-        }
-
-        @Override
-        public boolean isId() {
-            return true;
-        }
-
-        @Override
-        public boolean isGenerated() {
-            return true;
+            return generated;
         }
     }
 }

@@ -1,4 +1,4 @@
-package io.github.afgprojects.framework.ai.core.agent;
+package io.github.afgprojects.framework.ai.core.api.agent.
 
 import org.junit.jupiter.api.Test;
 

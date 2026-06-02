@@ -1,8 +1,8 @@
 package io.github.afgprojects.framework.ai.pipeline;
 
-import io.github.afgprojects.framework.ai.core.pipeline.ApplicationConfig;
-import io.github.afgprojects.framework.ai.core.pipeline.NoReferenceStrategy;
-import io.github.afgprojects.framework.ai.core.pipeline.SearchMode;
+import io.github.afgprojects.framework.ai.core.api.pipeline.ApplicationConfig;
+import io.github.afgprojects.framework.ai.core.api.pipeline.NoReferenceStrategy;
+import io.github.afgprojects.framework.ai.core.api.pipeline.SearchMode;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;

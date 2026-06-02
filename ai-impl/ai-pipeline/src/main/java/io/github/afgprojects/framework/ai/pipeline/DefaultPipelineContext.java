@@ -1,7 +1,7 @@
 package io.github.afgprojects.framework.ai.pipeline;
 
-import io.github.afgprojects.framework.ai.core.pipeline.ApplicationConfig;
-import io.github.afgprojects.framework.ai.core.pipeline.PipelineContext;
+import io.github.afgprojects.framework.ai.core.api.pipeline.ApplicationConfig;
+import io.github.afgprojects.framework.ai.core.api.pipeline.PipelineContext;
 import lombok.Getter;
 
 import java.util.Map;

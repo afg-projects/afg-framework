@@ -1,17 +1,22 @@
 package io.github.afgprojects.framework.ai.agent.autoconfigure;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.afgprojects.framework.ai.agent.coordinator.DefaultAgentRoutingStrategy;
+import io.github.afgprojects.framework.ai.agent.coordinator.DefaultCoordinator;
 import io.github.afgprojects.framework.ai.agent.executor.DefaultReActExecutor;
 import io.github.afgprojects.framework.ai.agent.executor.SecureToolExecutor;
 import io.github.afgprojects.framework.ai.agent.executor.ToolExecutor;
 import io.github.afgprojects.framework.ai.agent.tool.DefaultToolRegistry;
 import io.github.afgprojects.framework.ai.chat.DefaultAfgChatClient;
-import io.github.afgprojects.framework.ai.core.chat.AfgChatClient;
-import io.github.afgprojects.framework.ai.core.security.ContentSafetyChecker;
-import io.github.afgprojects.framework.ai.core.tool.ToolAuditLogger;
-import io.github.afgprojects.framework.ai.core.tool.ToolContextProvider;
-import io.github.afgprojects.framework.ai.core.tool.ToolPermissionChecker;
-import io.github.afgprojects.framework.ai.core.tool.ToolRegistry;
+import io.github.afgprojects.framework.ai.core.api.chat.AfgChatClient;
+import io.github.afgprojects.framework.ai.core.api.multiagent.AgentRoutingStrategy;
+import io.github.afgprojects.framework.ai.core.api.multiagent.Coordinator;
+import io.github.afgprojects.framework.ai.core.api.security.ContentSafetyChecker;
+import io.github.afgprojects.framework.ai.core.api.tool.ToolAuditLogger;
+import io.github.afgprojects.framework.ai.core.api.tool.ToolContextProvider;
+import io.github.afgprojects.framework.ai.core.api.tool.ToolExecutionRecorder;
+import io.github.afgprojects.framework.ai.core.api.tool.ToolPermissionChecker;
+import io.github.afgprojects.framework.ai.core.api.tool.ToolRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -62,6 +67,7 @@ public class AiAgentAutoConfiguration {
             @Autowired(required = false) ToolPermissionChecker permissionChecker,
             @Autowired(required = false) ToolAuditLogger auditLogger,
             @Autowired(required = false) ContentSafetyChecker contentSafetyChecker,
+            @Autowired(required = false) ToolExecutionRecorder executionRecorder,
             AiAgentProperties properties
     ) {
         return new SecureToolExecutor(
@@ -71,8 +77,21 @@ public class AiAgentAutoConfiguration {
                 permissionChecker,
                 auditLogger,
                 contentSafetyChecker,
+                executionRecorder,
                 properties.getToolExecution().getMaxIterations(),
                 properties.getToolExecution().getTimeoutMs()
         );
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(AgentRoutingStrategy.class)
+    public AgentRoutingStrategy agentRoutingStrategy() {
+        return new DefaultAgentRoutingStrategy();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(Coordinator.class)
+    public DefaultCoordinator defaultCoordinator(AgentRoutingStrategy routingStrategy) {
+        return new DefaultCoordinator(routingStrategy);
     }
 }

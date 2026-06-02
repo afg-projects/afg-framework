@@ -21,8 +21,9 @@ class DtoMapperTest {
         when(meta.getColumnCount()).thenReturn(2);
         when(meta.getColumnLabel(1)).thenReturn("id");
         when(meta.getColumnLabel(2)).thenReturn("name");
-        when(rs.getObject("id")).thenReturn(1L);
-        when(rs.getObject("name")).thenReturn("test");
+        // DtoMapper uses readAndNormalizeValue which calls getObject(index)
+        when(rs.getObject(1)).thenReturn(1L);
+        when(rs.getObject(2)).thenReturn("test");
 
         DtoMapper<UserRecord> mapper = new DtoMapper<>(UserRecord.class, TypeHandlerRegistry.defaultRegistry());
         UserRecord result = mapper.map(rs, 1);
@@ -39,8 +40,9 @@ class DtoMapperTest {
         when(meta.getColumnCount()).thenReturn(2);
         when(meta.getColumnLabel(1)).thenReturn("id");
         when(meta.getColumnLabel(2)).thenReturn("username");
-        when(rs.getObject("id")).thenReturn(1L);
-        when(rs.getObject("username")).thenReturn("test_user");
+        // DtoMapper uses readAndNormalizeValue which calls getObject(index)
+        when(rs.getObject(1)).thenReturn(1L);
+        when(rs.getObject(2)).thenReturn("test_user");
 
         DtoMapper<UserPojo> mapper = new DtoMapper<>(UserPojo.class, TypeHandlerRegistry.defaultRegistry());
         UserPojo result = mapper.map(rs, 1);
@@ -57,8 +59,9 @@ class DtoMapperTest {
         when(meta.getColumnCount()).thenReturn(2);
         when(meta.getColumnLabel(1)).thenReturn("id");
         when(meta.getColumnLabel(2)).thenReturn("user_name");
-        when(rs.getObject("id")).thenReturn(1L);
-        when(rs.getObject("user_name")).thenReturn("annotated");
+        // DtoMapper uses readAndNormalizeValue which calls getObject(index)
+        when(rs.getObject(1)).thenReturn(1L);
+        when(rs.getObject(2)).thenReturn("annotated");
 
         DtoMapper<AnnotatedPojo> mapper = new DtoMapper<>(AnnotatedPojo.class, TypeHandlerRegistry.defaultRegistry());
         AnnotatedPojo result = mapper.map(rs, 1);
@@ -75,8 +78,9 @@ class DtoMapperTest {
         when(meta.getColumnCount()).thenReturn(2);
         when(meta.getColumnLabel(1)).thenReturn("id");
         when(meta.getColumnLabel(2)).thenReturn("user_name");
-        when(rs.getObject("id")).thenReturn(1L);
-        when(rs.getObject("user_name")).thenReturn("snake_case");
+        // DtoMapper uses readAndNormalizeValue which calls getObject(index)
+        when(rs.getObject(1)).thenReturn(1L);
+        when(rs.getObject(2)).thenReturn("snake_case");
 
         DtoMapper<SnakeCasePojo> mapper = new DtoMapper<>(SnakeCasePojo.class, TypeHandlerRegistry.defaultRegistry());
         SnakeCasePojo result = mapper.map(rs, 1);

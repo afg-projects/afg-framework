@@ -43,6 +43,11 @@ public class OracleDialect extends AbstractDialect {
     }
 
     @Override
+    public @NonNull String getLimitSql(@NonNull String sql, long limit) {
+        return "SELECT * FROM (" + sql + ") FETCH FIRST " + limit + " ROWS ONLY";
+    }
+
+    @Override
     public @NonNull String getPaginationSql(@NonNull String sql, long offset, long limit) {
         return "SELECT * FROM (" + sql + ") OFFSET " + offset + " ROWS FETCH NEXT " + limit + " ROWS ONLY";
     }
@@ -78,5 +83,26 @@ public class OracleDialect extends AbstractDialect {
         map.put(java.time.OffsetDateTime.class, "TIMESTAMP WITH TIME ZONE");
         map.put(java.time.ZonedDateTime.class, "TIMESTAMP WITH TIME ZONE");
         map.put(Object.class, "VARCHAR2(255)");
+    }
+
+    // ==================== JSON 支持（Oracle 12c+） ====================
+
+    @Override
+    public @NonNull String getJsonContainsExpression(@NonNull String column) {
+        // Oracle 12c+: JSON_EXISTS 检查 JSON 中是否存在指定路径
+        // 注意：Oracle 的 JSON_EXISTS 不支持动态值匹配，此处使用路径存在检查
+        return "JSON_EXISTS(" + column + ", ?)";
+    }
+
+    @Override
+    public @NonNull String getJsonContainedExpression(@NonNull String column) {
+        // Oracle 无原生 JSON_CONTAINED 操作，降级为 JSON_EXISTS 反向检查
+        return "JSON_EXISTS(?, ?)";
+    }
+
+    @Override
+    public @NonNull String getJsonPathExpression(@NonNull String column) {
+        // Oracle 12c+: 使用绑定变量传入 JSON 路径
+        return "JSON_VALUE(" + column + ", ?)";
     }
 }

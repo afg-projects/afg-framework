@@ -14,6 +14,7 @@ dependencies {
 
     // Lombok
     compileOnly(libs.lombok)
+    compileOnly(libs.jakarta.validation.api)
     annotationProcessor(libs.lombok)
     testCompileOnly(libs.lombok)
     testAnnotationProcessor(libs.lombok)

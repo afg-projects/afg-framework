@@ -1,98 +1,106 @@
+/*
+ * Copyright 2024-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.github.afgprojects.framework.data.core.entity;
 
-import java.time.LocalDateTime;
-
-import org.jspecify.annotations.Nullable;
+import java.time.Instant;
 
 /**
- * 基础实体类
- * <p>
- * 所有实体的基类，包含通用字段：主键ID、创建时间、更新时间
+ * 实体基类，提供 ID 和时间戳字段。
  *
- * @param <ID> 主键类型
+ * <p>使用 {@link Instant} 替代 {@link java.time.LocalDateTime}，
+ * 以确保在分布式系统中时间戳的一致性（Instant 包含 UTC 时区信息）。
+ *
+ * <p>提供了基于 ID 的 {@link #equals(Object)} 和 {@link #hashCode()} 实现，
+ * 符合 JPA 实体的最佳实践：
+ * <ul>
+ *   <li>新建实体（id 为 null）使用对象身份判断相等性</li>
+ *   <li>已持久化实体使用 id 判断相等性</li>
+ * </ul>
  */
-public abstract class BaseEntity<ID> {
+public abstract class BaseEntity {
 
     /**
-     * 主键ID
+     * 实体 ID
      */
-    protected @Nullable ID id;
+    protected Long id;
 
     /**
-     * 创建时间
+     * 创建时间（UTC）
      */
-    protected @Nullable LocalDateTime createdAt;
+    protected Instant createdAt;
 
     /**
-     * 更新时间
+     * 更新时间（UTC）
      */
-    protected @Nullable LocalDateTime updatedAt;
+    protected Instant updatedAt;
 
-    /**
-     * 获取主键ID
-     *
-     * @return 主键ID
-     */
-    public @Nullable ID getId() {
+    public Long getId() {
         return id;
     }
 
-    /**
-     * 设置主键ID
-     *
-     * @param id 主键ID
-     */
-    public void setId(@Nullable ID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    /**
-     * 获取创建时间
-     *
-     * @return 创建时间
-     */
-    public @Nullable LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
-    /**
-     * 设置创建时间
-     *
-     * @param createdAt 创建时间
-     */
-    public void setCreatedAt(@Nullable LocalDateTime createdAt) {
+    public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
 
-    /**
-     * 获取更新时间
-     *
-     * @return 更新时间
-     */
-    public @Nullable LocalDateTime getUpdatedAt() {
+    public Instant getUpdatedAt() {
         return updatedAt;
     }
 
-    /**
-     * 设置更新时间
-     *
-     * @param updatedAt 更新时间
-     */
-    public void setUpdatedAt(@Nullable LocalDateTime updatedAt) {
+    public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
     }
 
     /**
-     * 判断是否为新建实体（未持久化）
+     * 基于 ID 的相等性判断。
      *
-     * @return true表示新建实体
+     * <p>如果两个实体的 ID 都不为 null 且相等，则认为它们相等。
+     * 如果两个实体的 ID 都为 null（新建实体），则使用对象身份（==）判断。
+     * 如果一个 ID 为 null 另一个不为 null，则不相等。
      */
-    public boolean isNew() {
-        return id == null;
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        BaseEntity that = (BaseEntity) obj;
+        // 新建实体（id 为 null）使用对象身份
+        if (this.id == null || that.id == null) return false;
+        return id.equals(that.id);
+    }
+
+    /**
+     * 基于 ID 的哈希码。
+     *
+     * <p>新建实体（id 为 null）使用 {@link System#identityHashCode(Object)}，
+     * 已持久化实体使用 id 的哈希码。
+     */
+    @Override
+    public int hashCode() {
+        return id == null ? System.identityHashCode(this) : id.hashCode();
     }
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "{id=" + id + '}';
+        return getClass().getSimpleName() + "(id=" + id + ")";
     }
 }

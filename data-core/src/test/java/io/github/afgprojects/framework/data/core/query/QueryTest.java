@@ -32,7 +32,7 @@ class QueryTest {
                     Operator.LT, Operator.LE, Operator.LIKE, Operator.LIKE_LEFT,
                     Operator.LIKE_RIGHT, Operator.NOT_LIKE, Operator.IN, Operator.NOT_IN,
                     Operator.IS_NULL, Operator.IS_NOT_NULL, Operator.BETWEEN, Operator.NOT_BETWEEN,
-                    Operator.NOT, Operator.JSON_CONTAINS, Operator.JSON_CONTAINED, Operator.JSON_PATH
+                    Operator.JSON_CONTAINS, Operator.JSON_CONTAINED, Operator.JSON_PATH
             );
         }
 
@@ -79,7 +79,6 @@ class QueryTest {
             assertThat(Operator.NOT_IN.requiresValue()).isTrue();
             assertThat(Operator.BETWEEN.requiresValue()).isTrue();
             assertThat(Operator.NOT_BETWEEN.requiresValue()).isTrue();
-            assertThat(Operator.NOT.requiresValue()).isTrue();
             assertThat(Operator.JSON_CONTAINS.requiresValue()).isTrue();
             assertThat(Operator.JSON_CONTAINED.requiresValue()).isTrue();
             assertThat(Operator.JSON_PATH.requiresValue()).isTrue();
@@ -113,7 +112,7 @@ class QueryTest {
         @DisplayName("应包含所有逻辑操作符")
         void shouldContainAllLogicalOperators() {
             assertThat(LogicalOperator.values()).containsExactly(
-                    LogicalOperator.AND, LogicalOperator.OR
+                    LogicalOperator.AND, LogicalOperator.OR, LogicalOperator.NOT
             );
         }
 
@@ -122,6 +121,7 @@ class QueryTest {
         void shouldReturnCorrectSymbol() {
             assertThat(LogicalOperator.AND.getSymbol()).isEqualTo("AND");
             assertThat(LogicalOperator.OR.getSymbol()).isEqualTo("OR");
+            assertThat(LogicalOperator.NOT.getSymbol()).isEqualTo("NOT");
         }
 
         @Test
@@ -129,6 +129,7 @@ class QueryTest {
         void shouldGetValueByName() {
             assertThat(LogicalOperator.valueOf("AND")).isEqualTo(LogicalOperator.AND);
             assertThat(LogicalOperator.valueOf("OR")).isEqualTo(LogicalOperator.OR);
+            assertThat(LogicalOperator.valueOf("NOT")).isEqualTo(LogicalOperator.NOT);
         }
     }
 

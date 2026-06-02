@@ -1,4 +1,4 @@
-package io.github.afgprojects.framework.ai.core.etl;
+package io.github.afgprojects.framework.ai.core.api.etl.
 
 import org.junit.jupiter.api.Test;
 

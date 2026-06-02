@@ -1,0 +1,16 @@
+io.github.afgprojects.framework.ai.core.autoconfigure.AiCoreAutoConfiguration
+io.github.afgprojects.framework.ai.core.autoconfigure.AiChatAutoConfiguration
+io.github.afgprojects.framework.ai.core.autoconfigure.AiAgentAutoConfiguration
+io.github.afgprojects.framework.ai.core.autoconfigure.AiModelAutoConfiguration
+io.github.afgprojects.framework.ai.core.autoconfigure.AiWorkflowAutoConfiguration
+io.github.afgprojects.framework.ai.core.autoconfigure.AiPipelineAutoConfiguration
+io.github.afgprojects.framework.ai.core.autoconfigure.AiPersistenceAutoConfiguration
+io.github.afgprojects.framework.ai.core.autoconfigure.AiResilienceAutoConfiguration
+io.github.afgprojects.framework.ai.core.autoconfigure.AiPerformanceAutoConfiguration
+io.github.afgprojects.framework.ai.core.autoconfigure.AiSecurityAutoConfiguration
+io.github.afgprojects.framework.ai.core.autoconfigure.AiObservabilityAutoConfiguration
+io.github.afgprojects.framework.ai.core.autoconfigure.AiRagAutoConfiguration
+io.github.afgprojects.framework.ai.core.autoconfigure.AiEtlAutoConfiguration
+io.github.afgprojects.framework.ai.core.autoconfigure.AiToolAutoConfiguration
+io.github.afgprojects.framework.ai.core.autoconfigure.AiSkillAutoConfiguration
+io.github.afgprojects.framework.ai.core.autoconfigure.AiEntityAutoConfiguration

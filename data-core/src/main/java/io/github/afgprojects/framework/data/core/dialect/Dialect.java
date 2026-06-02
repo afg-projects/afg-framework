@@ -46,6 +46,18 @@ public interface Dialect {
      */
     boolean supportsFetchFirst();
 
+    /**
+     * 生成限制行数 SQL（用于 one/first/exists 等场景）
+     * <p>
+     * 与 {@link #getPaginationSql} 不同，此方法只需限制行数，不需要偏移量。
+     * MySQL/PostgreSQL 使用 LIMIT，Oracle/SQL Server 使用 FETCH FIRST。
+     *
+     * @param sql   原始 SQL
+     * @param limit 限制行数
+     * @return 带 LIMIT 的 SQL
+     */
+    @NonNull String getLimitSql(@NonNull String sql, long limit);
+
     // ==================== 标识符 ====================
 
     /**

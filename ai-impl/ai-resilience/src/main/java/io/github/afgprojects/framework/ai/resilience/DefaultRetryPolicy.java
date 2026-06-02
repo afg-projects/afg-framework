@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.ai.resilience;
 
-import io.github.afgprojects.framework.ai.core.resilience.RetryPolicy;
+import io.github.afgprojects.framework.ai.core.api.resilience.RetryPolicy;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

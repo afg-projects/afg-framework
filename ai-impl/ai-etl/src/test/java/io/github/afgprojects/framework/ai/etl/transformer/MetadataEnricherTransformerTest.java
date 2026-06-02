@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.ai.etl.transformer;
 
-import io.github.afgprojects.framework.ai.core.rag.Document;
+import io.github.afgprojects.framework.ai.core.api.rag.Document;
 import io.github.afgprojects.framework.ai.etl.extractor.ContentMetadataExtractor;
 import io.github.afgprojects.framework.ai.etl.extractor.FileMetadataExtractor;
 import org.junit.jupiter.api.Test;

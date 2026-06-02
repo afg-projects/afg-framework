@@ -1,4 +1,4 @@
-package io.github.afgprojects.framework.ai.core.tool;
+package io.github.afgprojects.framework.ai.core.api.tool.
 
 import io.github.afgprojects.framework.core.invocation.BeanInvocationEngine;
 import io.github.afgprojects.framework.core.invocation.InvocationPlan;

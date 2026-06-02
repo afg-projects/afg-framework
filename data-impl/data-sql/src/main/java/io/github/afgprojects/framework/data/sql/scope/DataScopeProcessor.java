@@ -119,7 +119,8 @@ public class DataScopeProcessor {
     /**
      * 解析字符串中的所有占位符
      * <p>
-     * 将字符串中的占位符替换为实际值。
+     * 将字符串中的占位符替换为实际值。使用 {@link Matcher#quoteReplacement}
+     * 防止替换值中的特殊字符（如 {@code $}）被 {@link Matcher} 解释为替换模式。
      *
      * @param text 包含占位符的文本
      * @return 替换后的文本
@@ -133,7 +134,10 @@ public class DataScopeProcessor {
         while (matcher.find()) {
             String placeholderName = matcher.group(1);
             String replacement = resolvePlaceholderValue(placeholderName, context);
-            matcher.appendReplacement(result, replacement != null ? replacement : matcher.group(0));
+            // 使用 quoteReplacement 防止 replacement 中的 $ 被 Matcher 解释为替换模式
+            matcher.appendReplacement(result, replacement != null
+                    ? Matcher.quoteReplacement(replacement)
+                    : Matcher.quoteReplacement(matcher.group(0)));
         }
         matcher.appendTail(result);
 
@@ -182,13 +186,10 @@ public class DataScopeProcessor {
     }
 
     /**
-     * 获取用户上下文
-     *
-     * @return 用户上下文，如果无法获取则返回空上下文
+     * 获取用户上下文（内部使用，委托给 {@link #provideUserContext()}）
      */
     private DataScopeUserContext getUserContext() {
-        DataScopeUserContext context = contextProvider.provide();
-        return context != null ? context : DataScopeUserContext.empty();
+        return provideUserContext();
     }
 
     /**

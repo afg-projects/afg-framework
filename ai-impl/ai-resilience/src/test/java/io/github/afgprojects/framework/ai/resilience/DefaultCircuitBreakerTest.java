@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.ai.resilience;
 
-import io.github.afgprojects.framework.ai.core.resilience.CircuitBreaker;
+import io.github.afgprojects.framework.ai.core.api.resilience.CircuitBreaker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -150,7 +150,7 @@ class DefaultCircuitBreakerTest {
         circuitBreaker.forceOpen();
 
         assertThatThrownBy(() -> circuitBreaker.execute(() -> "success"))
-                .isInstanceOf(io.github.afgprojects.framework.ai.core.resilience.CircuitBreakerException.class);
+                .isInstanceOf(io.github.afgprojects.framework.ai.core.api.resilience.CircuitBreakerException.class);
     }
 
     @Test

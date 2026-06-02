@@ -5,7 +5,7 @@ plugins {
 dependencies {
     // 依赖 ai-core 接口
     api(project(":ai-core"))
-    api(project(":data-impl:data-jdbc"))
+    api(project(":data-core"))
 
     // Spring Boot AutoConfiguration
     api(libs.spring.boot.autoconfigure)

@@ -1,78 +1,45 @@
+/*
+ * Copyright 2024-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.github.afgprojects.framework.data.core.entity;
 
-import org.jspecify.annotations.Nullable;
-
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
- * 时间戳软删除实体类
- * <p>
- * 支持时间戳软删除的实体，继承 BaseEntity，使用 deletedAt 字段记录删除时间。
- * <ul>
- *   <li>deletedAt = null 表示未删除</li>
- *   <li>deletedAt != null 表示已删除，值为删除时间</li>
- * </ul>
- * <p>
- * 相比 boolean 类型的软删除，时间戳模式有以下优势：
- * <ul>
- *   <li>可追溯删除时间</li>
- *   <li>支持按删除时间范围查询</li>
- *   <li>支持自动清理过期已删除数据</li>
- * </ul>
+ * 时间戳型软删除实体，使用 {@code deletedAt} 字段标记删除状态。
  *
- * @param <ID> 主键类型
+ * <p>继承 {@link BaseEntity}（提供 id、createdAt、updatedAt），
+ * 同时实现 {@link TimestampSoftDeletable} 接口。
+ *
+ * @see TimestampSoftDeletable
+ * @see BaseEntity
  */
-public abstract class TimestampSoftDeleteEntity<ID> extends BaseEntity<ID> implements TimestampSoftDeletable {
+public class TimestampSoftDeleteEntity extends BaseEntity implements TimestampSoftDeletable {
 
     /**
-     * 删除时间（null 表示未删除）
+     * 删除时间（UTC），null 表示未删除
      */
-    protected @Nullable LocalDateTime deletedAt;
+    protected Instant deletedAt;
 
     @Override
-    public boolean isDeleted() {
-        return deletedAt != null;
-    }
-
-    @Override
-    public @Nullable LocalDateTime getDeletedAt() {
+    public Instant getDeletedAt() {
         return deletedAt;
     }
 
     @Override
-    public void setDeletedAt(@Nullable LocalDateTime deletedAt) {
+    public void setDeletedAt(Instant deletedAt) {
         this.deletedAt = deletedAt;
-    }
-
-    /**
-     * 标记为已删除
-     * <p>
-     * 设置当前时间为删除时间
-     */
-    public void markDeleted() {
-        this.deletedAt = LocalDateTime.now();
-    }
-
-    /**
-     * 标记为已删除，使用指定时间
-     *
-     * @param deletedAt 删除时间
-     */
-    public void markDeleted(LocalDateTime deletedAt) {
-        this.deletedAt = deletedAt;
-    }
-
-    /**
-     * 恢复删除
-     * <p>
-     * 将删除时间设置为 null
-     */
-    public void restore() {
-        this.deletedAt = null;
-    }
-
-    @Override
-    public String toString() {
-        return getClass().getSimpleName() + "{id=" + id + ", deletedAt=" + deletedAt + '}';
     }
 }

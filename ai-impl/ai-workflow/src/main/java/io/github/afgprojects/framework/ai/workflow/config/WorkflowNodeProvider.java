@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.ai.workflow.config;
 
-import io.github.afgprojects.framework.ai.core.workflow.engine.WorkflowNode;
+import io.github.afgprojects.framework.ai.core.api.workflow.engine.WorkflowNode;
 
 import java.util.List;
 

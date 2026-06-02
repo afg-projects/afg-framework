@@ -1,7 +1,7 @@
 package io.github.afgprojects.framework.ai.workflow.node;
 
-import io.github.afgprojects.framework.ai.core.workflow.definition.NodeDefinition;
-import io.github.afgprojects.framework.ai.core.workflow.node.NodeTypeRegistry;
+import io.github.afgprojects.framework.ai.core.api.workflow.definition.NodeDefinition;
+import io.github.afgprojects.framework.ai.core.api.workflow.node.NodeTypeRegistry;
 
 import java.util.Collection;
 import java.util.Collections;

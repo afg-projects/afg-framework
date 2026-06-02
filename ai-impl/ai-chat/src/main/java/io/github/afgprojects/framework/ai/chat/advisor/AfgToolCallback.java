@@ -2,9 +2,9 @@ package io.github.afgprojects.framework.ai.chat.advisor;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.afgprojects.framework.ai.core.tool.SecureTool;
-import io.github.afgprojects.framework.ai.core.tool.Tool;
-import io.github.afgprojects.framework.ai.core.tool.ToolRegistry;
+import io.github.afgprojects.framework.ai.core.api.tool.SecureTool;
+import io.github.afgprojects.framework.ai.core.api.tool.Tool;
+import io.github.afgprojects.framework.ai.core.api.tool.ToolRegistry;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -88,7 +88,7 @@ public class AfgToolCallback implements ToolCallback {
 
             Object result;
             if (targetTool instanceof SecureTool<Object, Object> secureTool) {
-                io.github.afgprojects.framework.ai.core.tool.ToolContext afgContext = convertToAfgToolContext(toolContext);
+                io.github.afgprojects.framework.ai.core.api.tool.ToolContext afgContext = convertToAfgToolContext(toolContext);
                 result = secureTool.execute(input, afgContext);
             } else {
                 result = targetTool.execute(input);
@@ -108,14 +108,14 @@ public class AfgToolCallback implements ToolCallback {
         }
     }
 
-    private io.github.afgprojects.framework.ai.core.tool.@NonNull ToolContext convertToAfgToolContext(
+    private io.github.afgprojects.framework.ai.core.api.tool.@NonNull ToolContext convertToAfgToolContext(
             @Nullable ToolContext springAiContext) {
         if (springAiContext == null) {
-            return io.github.afgprojects.framework.ai.core.tool.ToolContext.builder().build();
+            return io.github.afgprojects.framework.ai.core.api.tool.ToolContext.builder().build();
         }
 
-        io.github.afgprojects.framework.ai.core.tool.ToolContext.Builder builder =
-                io.github.afgprojects.framework.ai.core.tool.ToolContext.builder();
+        io.github.afgprojects.framework.ai.core.api.tool.ToolContext.Builder builder =
+                io.github.afgprojects.framework.ai.core.api.tool.ToolContext.builder();
 
         Object contextInfo = springAiContext.getContext();
         if (contextInfo instanceof Map) {

@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.ai.etl.extractor;
 
-import io.github.afgprojects.framework.ai.core.rag.Document;
+import io.github.afgprojects.framework.ai.core.api.rag.Document;
 import io.github.afgprojects.framework.ai.etl.transformer.MetadataExtractor;
 import org.jspecify.annotations.NonNull;
 

@@ -1,8 +1,8 @@
 package io.github.afgprojects.framework.ai.agent.communication;
 
-import io.github.afgprojects.framework.ai.core.multiagent.communication.AgentMessage;
-import io.github.afgprojects.framework.ai.core.multiagent.communication.CommunicationBus;
-import io.github.afgprojects.framework.ai.core.multiagent.communication.MessageHandler;
+import io.github.afgprojects.framework.ai.core.api.multiagent.communication.AgentMessage;
+import io.github.afgprojects.framework.ai.core.api.multiagent.communication.CommunicationBus;
+import io.github.afgprojects.framework.ai.core.api.multiagent.communication.MessageHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 

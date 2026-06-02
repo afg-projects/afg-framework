@@ -57,6 +57,11 @@ class TransactionAutoConfigurationTest {
                 .withBean(PlatformTransactionManager.class, TransactionAutoConfigurationTest::createTestTransactionManager)
                 .withBean(TransactionAdapter.class, () -> (TransactionAdapter) new TransactionAdapter() {
                     @Override
+                    public void executeInTransaction(Runnable action) {
+                        action.run();
+                    }
+
+                    @Override
                     public <T> T executeInTransaction(java.util.function.Supplier<T> action) {
                         return action.get();
                     }

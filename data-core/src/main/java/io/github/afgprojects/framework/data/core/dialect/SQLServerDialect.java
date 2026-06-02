@@ -33,6 +33,22 @@ public class SQLServerDialect extends AbstractDialect {
     }
 
     @Override
+    public @NonNull String getLimitSql(@NonNull String sql, long limit) {
+        // SQL Server 的 OFFSET...FETCH 语法需要 ORDER BY
+        // 简单检测：统计 SELECT 和 ORDER BY 的出现位置来避免误判子查询中的 ORDER BY
+        String upperSql = sql.toUpperCase();
+        int lastOrderBy = upperSql.lastIndexOf(" ORDER BY ");
+        int lastCloseParen = upperSql.lastIndexOf(')');
+
+        if (lastOrderBy > 0 && lastOrderBy > lastCloseParen) {
+            // ORDER BY 不在子查询中，直接追加
+            return sql + " OFFSET 0 ROWS FETCH NEXT " + limit + " ROWS ONLY";
+        }
+        // 无 ORDER BY 或 ORDER BY 在子查询中，包装子查询
+        return "SELECT * FROM (" + sql + ") AS _limited OFFSET 0 ROWS FETCH NEXT " + limit + " ROWS ONLY";
+    }
+
+    @Override
     public @NonNull String getPaginationSql(@NonNull String sql, long offset, long limit) {
         String upperSql = sql.toUpperCase().trim();
         if (!upperSql.contains("ORDER BY")) {
@@ -85,5 +101,25 @@ public class SQLServerDialect extends AbstractDialect {
         map.put(java.time.LocalDateTime.class, "DATETIME2");
         map.put(java.time.OffsetDateTime.class, "DATETIMEOFFSET");
         map.put(Object.class, "NVARCHAR(255)");
+    }
+
+    // ==================== JSON 支持（SQL Server 2016+） ====================
+
+    @Override
+    public @NonNull String getJsonContainsExpression(@NonNull String column) {
+        // SQL Server 无原生 JSON_CONTAINS，降级为 LIKE
+        return "(" + column + " LIKE '%' + ? + '%')";
+    }
+
+    @Override
+    public @NonNull String getJsonContainedExpression(@NonNull String column) {
+        // SQL Server 无原生 JSON_CONTAINED，降级为 LIKE 反向
+        return "(? LIKE '%' + " + column + " + '%')";
+    }
+
+    @Override
+    public @NonNull String getJsonPathExpression(@NonNull String column) {
+        // SQL Server 2016+: JSON_VALUE 使用绑定变量传入路径
+        return "JSON_VALUE(" + column + ", ?)";
     }
 }

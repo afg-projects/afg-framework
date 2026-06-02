@@ -1,4 +1,4 @@
-package io.github.afgprojects.framework.ai.core.rag;
+package io.github.afgprojects.framework.ai.core.api.rag.
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

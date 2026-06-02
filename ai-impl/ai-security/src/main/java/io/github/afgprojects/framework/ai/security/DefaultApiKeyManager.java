@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.ai.security;
 
-import io.github.afgprojects.framework.ai.core.security.ApiKeyManager;
+import io.github.afgprojects.framework.ai.core.api.security.ApiKeyManager;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;

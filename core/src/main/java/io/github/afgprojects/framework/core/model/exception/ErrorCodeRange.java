@@ -1,5 +1,7 @@
 package io.github.afgprojects.framework.core.model.exception;
 
+import lombok.Getter;
+
 /**
  * 错误码范围定义
  * <p>
@@ -27,6 +29,7 @@ package io.github.afgprojects.framework.core.model.exception;
  *     <li>19000-19999: 系统错误</li>
  * </ul>
  */
+@Getter
 public enum ErrorCodeRange {
 
     /**
@@ -59,18 +62,6 @@ public enum ErrorCodeRange {
         this.start = start;
         this.end = end;
         this.description = description;
-    }
-
-    public int getStart() {
-        return start;
-    }
-
-    public int getEnd() {
-        return end;
-    }
-
-    public String getDescription() {
-        return description;
     }
 
     /**

@@ -1,7 +1,7 @@
 package io.github.afgprojects.framework.ai.workflow.engine;
 
-import io.github.afgprojects.framework.ai.core.workflow.definition.EdgeDefinition;
-import io.github.afgprojects.framework.ai.core.workflow.definition.WorkflowDefinition;
+import io.github.afgprojects.framework.ai.core.api.workflow.definition.EdgeDefinition;
+import io.github.afgprojects.framework.ai.core.api.workflow.definition.WorkflowDefinition;
 
 import java.util.*;
 

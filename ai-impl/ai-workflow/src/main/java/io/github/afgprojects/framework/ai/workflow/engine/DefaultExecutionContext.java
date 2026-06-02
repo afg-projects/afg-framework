@@ -1,7 +1,7 @@
 package io.github.afgprojects.framework.ai.workflow.engine;
 
-import io.github.afgprojects.framework.ai.core.workflow.engine.ExecutionContext;
-import io.github.afgprojects.framework.ai.core.workflow.engine.NodeOutput;
+import io.github.afgprojects.framework.ai.core.api.workflow.engine.ExecutionContext;
+import io.github.afgprojects.framework.ai.core.api.workflow.engine.NodeOutput;
 import io.github.afgprojects.framework.ai.workflow.dsl.DefaultVariableResolver;
 
 import java.util.Collections;

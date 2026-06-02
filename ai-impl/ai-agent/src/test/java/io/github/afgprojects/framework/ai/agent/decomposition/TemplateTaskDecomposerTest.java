@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.ai.agent.decomposition;
 
-import io.github.afgprojects.framework.ai.core.multiagent.decomposition.*;
+import io.github.afgprojects.framework.ai.core.api.multiagent.decomposition.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

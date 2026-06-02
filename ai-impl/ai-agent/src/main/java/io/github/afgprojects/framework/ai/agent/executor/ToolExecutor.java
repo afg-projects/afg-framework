@@ -1,12 +1,12 @@
 package io.github.afgprojects.framework.ai.agent.executor;
 
-import io.github.afgprojects.framework.ai.core.chat.AfgChatClient;
-import io.github.afgprojects.framework.ai.core.chat.AiChatResponse;
-import io.github.afgprojects.framework.ai.core.chat.AiMessage;
-import io.github.afgprojects.framework.ai.core.exception.AiException;
-import io.github.afgprojects.framework.ai.core.exception.ToolException;
-import io.github.afgprojects.framework.ai.core.tool.Tool;
-import io.github.afgprojects.framework.ai.core.tool.ToolRegistry;
+import io.github.afgprojects.framework.ai.core.api.chat.AfgChatClient;
+import io.github.afgprojects.framework.ai.core.api.chat.AiChatResponse;
+import io.github.afgprojects.framework.ai.core.api.chat.AiMessage;
+import io.github.afgprojects.framework.ai.core.api.exception.AiException;
+import io.github.afgprojects.framework.ai.core.api.exception.ToolException;
+import io.github.afgprojects.framework.ai.core.api.tool.Tool;
+import io.github.afgprojects.framework.ai.core.api.tool.ToolRegistry;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;

@@ -2,11 +2,11 @@ package io.github.afgprojects.framework.ai.chat.autoconfigure;
 
 import io.github.afgprojects.framework.ai.chat.DefaultEmbeddingClientRegistry;
 import io.github.afgprojects.framework.ai.chat.SpringAiEmbeddingClient;
-import io.github.afgprojects.framework.ai.core.chat.AfgEmbeddingClient;
-import io.github.afgprojects.framework.ai.core.chat.EmbeddingClientRegistry;
-import io.github.afgprojects.framework.ai.core.model.DefaultModelInfo;
-import io.github.afgprojects.framework.ai.core.model.ModelRegistry;
-import io.github.afgprojects.framework.ai.core.model.ModelType;
+import io.github.afgprojects.framework.ai.core.api.chat.AfgEmbeddingClient;
+import io.github.afgprojects.framework.ai.core.api.chat.EmbeddingClientRegistry;
+import io.github.afgprojects.framework.ai.core.api.model.DefaultModelInfo;
+import io.github.afgprojects.framework.ai.core.api.model.ModelRegistry;
+import io.github.afgprojects.framework.ai.core.api.model.ModelType;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;

@@ -7,6 +7,7 @@ import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
 import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.scope.DataScopeType;
 import io.github.afgprojects.framework.data.core.scope.TenantScope;
+import io.github.afgprojects.framework.data.core.mapper.ResultMapper;
 import io.github.afgprojects.framework.data.core.sql.SqlDeleteBuilder;
 import io.github.afgprojects.framework.data.core.sql.SqlInsertBuilder;
 import io.github.afgprojects.framework.data.core.sql.SqlQueryBuilder;
@@ -16,6 +17,7 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -156,6 +158,68 @@ public interface DataManager {
      * @param adapter 事务适配器
      */
     void setTransactionAdapter(@NonNull TransactionAdapter adapter);
+
+    // ==================== 原始 SQL 操作 ====================
+
+    /**
+     * 执行原始 SQL 更新操作
+     *
+     * @param sql    SQL 语句
+     * @param params 参数列表
+     * @return 受影响的行数
+     */
+    int executeUpdate(@NonNull String sql, @NonNull List<Object> params);
+
+    /**
+     * 执行原始 SQL 更新操作（命名参数）
+     *
+     * @param sql    SQL 语句
+     * @param params 命名参数映射
+     * @return 受影响的行数
+     */
+    int executeUpdate(@NonNull String sql, @NonNull Map<String, Object> params);
+
+    /**
+     * 执行原始 SQL 查询并返回列表
+     *
+     * @param sql        SQL 语句
+     * @param params     参数列表
+     * @param rowMapper  行映射器
+     * @param <T>        结果类型
+     * @return 查询结果列表
+     */
+    <T> @NonNull List<T> queryForList(@NonNull String sql, @NonNull List<Object> params, @NonNull ResultMapper<T> rowMapper);
+
+    /**
+     * 执行原始 SQL 查询并返回单个结果
+     *
+     * @param sql        SQL 语句
+     * @param params     参数列表
+     * @param rowMapper  行映射器
+     * @param <T>        结果类型
+     * @return 查询结果，可能为 null
+     */
+    <T> @Nullable T queryForObject(@NonNull String sql, @NonNull List<Object> params, @NonNull ResultMapper<T> rowMapper);
+
+    /**
+     * 执行原始 SQL 查询并返回可选单个结果
+     *
+     * @param sql        SQL 语句
+     * @param params     参数列表
+     * @param rowMapper  行映射器
+     * @param <T>        结果类型
+     * @return 查询结果可选值
+     */
+    <T> @NonNull Optional<T> queryForOptional(@NonNull String sql, @NonNull List<Object> params, @NonNull ResultMapper<T> rowMapper);
+
+    /**
+     * 执行原始 SQL 查询并返回计数
+     *
+     * @param sql    SQL 语句
+     * @param params 参数列表
+     * @return 计数结果
+     */
+    long queryForCount(@NonNull String sql, @NonNull List<Object> params);
 
     // ==================== 快捷查询方法 ====================
 

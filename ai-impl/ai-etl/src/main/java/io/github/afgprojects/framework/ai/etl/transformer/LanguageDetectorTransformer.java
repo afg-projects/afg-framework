@@ -1,7 +1,7 @@
 package io.github.afgprojects.framework.ai.etl.transformer;
 
-import io.github.afgprojects.framework.ai.core.chat.AfgChatClient;
-import io.github.afgprojects.framework.ai.core.rag.Document;
+import io.github.afgprojects.framework.ai.core.api.chat.AfgChatClient;
+import io.github.afgprojects.framework.ai.core.api.rag.Document;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

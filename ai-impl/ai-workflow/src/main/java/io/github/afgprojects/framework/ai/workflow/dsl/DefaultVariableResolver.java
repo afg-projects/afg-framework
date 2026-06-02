@@ -1,7 +1,7 @@
 package io.github.afgprojects.framework.ai.workflow.dsl;
 
-import io.github.afgprojects.framework.ai.core.workflow.dsl.VariableResolver;
-import io.github.afgprojects.framework.ai.core.workflow.engine.NodeOutput;
+import io.github.afgprojects.framework.ai.core.api.workflow.dsl.VariableResolver;
+import io.github.afgprojects.framework.ai.core.api.workflow.engine.NodeOutput;
 
 import java.util.Map;
 import java.util.regex.Matcher;

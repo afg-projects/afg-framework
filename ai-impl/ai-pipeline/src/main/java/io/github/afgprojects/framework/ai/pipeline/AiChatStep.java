@@ -1,13 +1,13 @@
 package io.github.afgprojects.framework.ai.pipeline;
 
-import io.github.afgprojects.framework.ai.core.chat.AfgChatClient;
-import io.github.afgprojects.framework.ai.core.chat.AiChatResponse;
-import io.github.afgprojects.framework.ai.core.chat.ChatClientRegistry;
-import io.github.afgprojects.framework.ai.core.pipeline.ApplicationConfig;
-import io.github.afgprojects.framework.ai.core.pipeline.PipelineContext;
-import io.github.afgprojects.framework.ai.core.pipeline.PipelineStep;
-import io.github.afgprojects.framework.ai.core.pipeline.StepResult;
-import io.github.afgprojects.framework.ai.core.pipeline.TokenUsage;
+import io.github.afgprojects.framework.ai.core.api.chat.AfgChatClient;
+import io.github.afgprojects.framework.ai.core.api.chat.AiChatResponse;
+import io.github.afgprojects.framework.ai.core.api.chat.ChatClientRegistry;
+import io.github.afgprojects.framework.ai.core.api.pipeline.ApplicationConfig;
+import io.github.afgprojects.framework.ai.core.api.pipeline.PipelineContext;
+import io.github.afgprojects.framework.ai.core.api.pipeline.PipelineStep;
+import io.github.afgprojects.framework.ai.core.api.pipeline.StepResult;
+import io.github.afgprojects.framework.ai.core.api.pipeline.TokenUsage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;

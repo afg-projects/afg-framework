@@ -1,7 +1,7 @@
 package io.github.afgprojects.framework.ai.chat;
 
-import io.github.afgprojects.framework.ai.core.chat.AfgChatClient;
-import io.github.afgprojects.framework.ai.core.chat.ChatClientRegistry;
+import io.github.afgprojects.framework.ai.core.api.chat.AfgChatClient;
+import io.github.afgprojects.framework.ai.core.api.chat.ChatClientRegistry;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 

@@ -1,4 +1,4 @@
-package io.github.afgprojects.framework.ai.core.tool;
+package io.github.afgprojects.framework.ai.core.api.tool.
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;

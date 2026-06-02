@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.ai.performance;
 
-import io.github.afgprojects.framework.ai.core.performance.RateLimiter;
+import io.github.afgprojects.framework.ai.core.api.performance.RateLimiter;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;

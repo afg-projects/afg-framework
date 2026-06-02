@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.ai.etl.transformer;
 
-import io.github.afgprojects.framework.ai.core.rag.Document;
+import io.github.afgprojects.framework.ai.core.api.rag.Document;
 import io.github.afgprojects.framework.ai.etl.cleaner.ContentCleaner;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;

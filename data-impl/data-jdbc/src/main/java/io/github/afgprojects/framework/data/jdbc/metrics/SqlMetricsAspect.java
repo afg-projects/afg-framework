@@ -30,7 +30,7 @@ import java.util.List;
  *   <li>deleteById/delete/deleteAllById/deleteAll - DELETE</li>
  *   <li>findAll(Condition) - SELECT</li>
  *   <li>updateAll(Condition, Map) - UPDATE</li>
- *   <li>deleteAll(Condition) - DELETE</li>
+ *   <li>deleteByCondition(Condition) - DELETE</li>
  * </ul>
  *
  * @since 1.0.0
@@ -233,11 +233,11 @@ public class SqlMetricsAspect {
     }
 
     /**
-     * 拦截 deleteAll(Condition) 方法
+     * 拦截 deleteByCondition(Condition) 方法
      */
-    @Around("execution(* io.github.afgprojects.framework.data.jdbc.JdbcEntityProxy.deleteAll(io.github.afgprojects.framework.data.core.query.Condition))")
-    public @NonNull Object aroundDeleteAllByCondition(ProceedingJoinPoint pjp) throws Throwable {
-        return executeWithMetrics(pjp, SqlOperationType.DELETE, "deleteAll", true);
+    @Around("execution(* io.github.afgprojects.framework.data.jdbc.JdbcEntityProxy.deleteByCondition(io.github.afgprojects.framework.data.core.query.Condition))")
+    public @NonNull Object aroundDeleteByCondition(ProceedingJoinPoint pjp) throws Throwable {
+        return executeWithMetrics(pjp, SqlOperationType.DELETE, "deleteByCondition", true);
     }
 
     /**

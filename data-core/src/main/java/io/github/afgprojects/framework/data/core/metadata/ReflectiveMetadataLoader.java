@@ -2,6 +2,8 @@ package io.github.afgprojects.framework.data.core.metadata;
 
 import io.github.afgprojects.framework.data.core.exception.MetadataLoadException;
 
+import java.util.ServiceLoader;
+
 /**
  * 反射元数据加载器
  * <p>
@@ -10,8 +12,9 @@ import io.github.afgprojects.framework.data.core.exception.MetadataLoadException
  *
  * <p>优先级：最低（1000），仅在其他加载器都无法加载时使用。
  *
- * <p>注意：此加载器依赖 data-jdbc 模块中的 ReflectiveEntityMetadata 类。
- * 如果 data-jdbc 模块不在类路径中，此加载器将不可用。
+ * <p>此加载器通过 {@link MetadataProvider} SPI 接口获取元数据实例，
+ * 不直接依赖 data-jdbc 模块的类，遵循依赖方向原则。
+ * MetadataProvider 的实现由 data-jdbc 等具体模块通过 SPI 注册。
  *
  * <pre>
  * 示例：
@@ -23,50 +26,34 @@ import io.github.afgprojects.framework.data.core.exception.MetadataLoadException
  * }
  * </pre>
  *
- * @see io.github.afgprojects.framework.data.jdbc.metadata.ReflectiveEntityMetadata
+ * @see MetadataProvider
  */
 public class ReflectiveMetadataLoader implements EntityMetadataLoader {
 
-    private static final String REFLECTIVE_METADATA_CLASS =
-        "io.github.afgprojects.framework.data.jdbc.metadata.ReflectiveEntityMetadata";
-
-    private volatile boolean available;
-    private volatile boolean checked = false;
+    private volatile MetadataProvider provider;
+    private volatile boolean providerResolved = false;
 
     @Override
     @SuppressWarnings("unchecked")
     public <T> EntityMetadata<T> load(Class<T> entityClass) {
-        if (!isAvailable()) {
+        MetadataProvider resolvedProvider = resolveProvider();
+        if (resolvedProvider == null) {
             return null;
         }
 
         try {
-            Class<?> reflectiveClass = Class.forName(REFLECTIVE_METADATA_CLASS);
-            java.lang.reflect.Method createMethod = reflectiveClass.getMethod("create", Class.class);
-            return (EntityMetadata<T>) createMethod.invoke(null, entityClass);
-        } catch (ClassNotFoundException e) {
+            return resolvedProvider.createMetadata(entityClass);
+        } catch (Exception e) {
             throw new MetadataLoadException(
-                    "ReflectiveEntityMetadata class not found. Ensure data-jdbc module is on the classpath.",
-                    entityClass.getName(), e);
-        } catch (NoSuchMethodException e) {
-            throw new MetadataLoadException(
-                    "ReflectiveEntityMetadata.create method not found",
-                    entityClass.getName(), e);
-        } catch (java.lang.reflect.InvocationTargetException e) {
-            Throwable cause = e.getCause();
-            throw new MetadataLoadException(
-                    "Failed to create reflective metadata: " + (cause != null ? cause.getMessage() : e.getMessage()),
-                    entityClass.getName(), cause != null ? cause : e);
-        } catch (IllegalAccessException e) {
-            throw new MetadataLoadException(
-                    "Cannot access ReflectiveEntityMetadata.create method",
+                    "Failed to create reflective metadata via MetadataProvider: " + e.getMessage(),
                     entityClass.getName(), e);
         }
     }
 
     @Override
     public boolean supports(Class<?> entityClass) {
-        return isAvailable();
+        MetadataProvider resolvedProvider = resolveProvider();
+        return resolvedProvider != null && resolvedProvider.supports(entityClass);
     }
 
     @Override
@@ -80,22 +67,48 @@ public class ReflectiveMetadataLoader implements EntityMetadataLoader {
     }
 
     /**
-     * 检查 ReflectiveEntityMetadata 是否可用
+     * 设置 MetadataProvider（用于编程式注入，优先于 SPI 发现）
+     *
+     * @param provider 元数据提供者
      */
-    private boolean isAvailable() {
-        if (!checked) {
+    public void setMetadataProvider(MetadataProvider provider) {
+        this.provider = provider;
+        this.providerResolved = true;
+    }
+
+    /**
+     * 解析 MetadataProvider 实例
+     * <p>
+     * 优先使用编程式注入的 provider，否则通过 SPI 发现。
+     * 使用双重检查锁定保证线程安全。
+     */
+    private MetadataProvider resolveProvider() {
+        if (!providerResolved) {
             synchronized (this) {
-                if (!checked) {
-                    try {
-                        Class.forName(REFLECTIVE_METADATA_CLASS);
-                        available = true;
-                    } catch (ClassNotFoundException e) {
-                        available = false;
-                    }
-                    checked = true;
+                if (!providerResolved) {
+                    provider = discoverProvider();
+                    providerResolved = true;
                 }
             }
         }
-        return available;
+        return provider;
+    }
+
+    /**
+     * 通过 SPI 发现 MetadataProvider 实现
+     *
+     * @return 发现的 MetadataProvider，如果没有则返回 null
+     */
+    private MetadataProvider discoverProvider() {
+        ServiceLoader<MetadataProvider> providers = ServiceLoader.load(MetadataProvider.class);
+        MetadataProvider best = null;
+        int bestPriority = Integer.MAX_VALUE;
+        for (MetadataProvider p : providers) {
+            if (p.getPriority() < bestPriority) {
+                bestPriority = p.getPriority();
+                best = p;
+            }
+        }
+        return best;
     }
 }

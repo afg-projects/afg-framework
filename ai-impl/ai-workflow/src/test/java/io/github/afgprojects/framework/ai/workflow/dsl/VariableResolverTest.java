@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.ai.workflow.dsl;
 
-import io.github.afgprojects.framework.ai.core.workflow.engine.NodeOutput;
+import io.github.afgprojects.framework.ai.core.api.workflow.engine.NodeOutput;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;

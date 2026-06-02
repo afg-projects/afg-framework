@@ -1,7 +1,7 @@
 package io.github.afgprojects.framework.ai.chat;
 
-import io.github.afgprojects.framework.ai.core.chat.AfgEmbeddingClient;
-import io.github.afgprojects.framework.ai.core.chat.EmbeddingClientRegistry;
+import io.github.afgprojects.framework.ai.core.api.chat.AfgEmbeddingClient;
+import io.github.afgprojects.framework.ai.core.api.chat.EmbeddingClientRegistry;
 import org.jspecify.annotations.NonNull;
 
 import java.util.List;

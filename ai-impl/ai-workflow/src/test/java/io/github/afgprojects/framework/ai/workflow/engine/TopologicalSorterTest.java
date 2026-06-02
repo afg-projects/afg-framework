@@ -1,9 +1,9 @@
 package io.github.afgprojects.framework.ai.workflow.engine;
 
-import io.github.afgprojects.framework.ai.core.workflow.definition.EdgeDefinition;
-import io.github.afgprojects.framework.ai.core.workflow.definition.WorkflowDefinition;
-import io.github.afgprojects.framework.ai.core.workflow.definition.WorkflowDefinition.NodeInstance;
-import io.github.afgprojects.framework.ai.core.workflow.definition.WorkflowDefinition.Position;
+import io.github.afgprojects.framework.ai.core.api.workflow.definition.EdgeDefinition;
+import io.github.afgprojects.framework.ai.core.api.workflow.definition.WorkflowDefinition;
+import io.github.afgprojects.framework.ai.core.api.workflow.definition.WorkflowDefinition.NodeInstance;
+import io.github.afgprojects.framework.ai.core.api.workflow.definition.WorkflowDefinition.Position;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

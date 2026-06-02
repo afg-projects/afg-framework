@@ -315,8 +315,8 @@ public class JdbcEntityProxy<T> implements EntityProxy<T>, ProxyStateProvider {
     }
 
     @Override
-    public long deleteAll(@NonNull Condition condition) {
-        return conditionalHandler.deleteAll(condition);
+    public long deleteByCondition(@NonNull Condition condition) {
+        return conditionalHandler.deleteByCondition(condition);
     }
 
     // ==================== 企业级特性（内部状态，供 JdbcEntityQuery 使用） ====================
@@ -566,12 +566,34 @@ public class JdbcEntityProxy<T> implements EntityProxy<T>, ProxyStateProvider {
             case ONE_TO_ONE:
                 associationLoader.fetchAllOneToOne(entities, ids, relation, targetEntityClass, metadata);
                 break;
-            case ONE_TO_MANY:
-                associationLoader.fetchAllOneToMany(ids, relation, targetEntityClass);
+            case ONE_TO_MANY: {
+                Map<Object, List<Object>> foreignKeyToTargets =
+                        associationLoader.fetchAllOneToMany(ids, relation, targetEntityClass);
+                // 将关联数据设置回源实体
+                String fieldName = relation.getFieldName();
+                for (T entity : entities) {
+                    Object id = queryHelper.getIdValue(entity);
+                    if (id != null) {
+                        List<Object> targets = foreignKeyToTargets.get(id);
+                        associationLoader.setFieldValue(entity, fieldName, targets != null ? targets : new ArrayList<>());
+                    }
+                }
                 break;
-            case MANY_TO_MANY:
-                associationLoader.fetchAllManyToMany(ids, relation, targetEntityClass);
+            }
+            case MANY_TO_MANY: {
+                Map<Object, Set<Object>> sourceIdToTargets =
+                        associationLoader.fetchAllManyToMany(ids, relation, targetEntityClass);
+                // 将关联数据设置回源实体
+                String fieldName = relation.getFieldName();
+                for (T entity : entities) {
+                    Object id = queryHelper.getIdValue(entity);
+                    if (id != null) {
+                        Set<Object> targets = sourceIdToTargets.get(id);
+                        associationLoader.setFieldValue(entity, fieldName, targets != null ? targets : new LinkedHashSet<>());
+                    }
+                }
                 break;
+            }
         }
     }
 

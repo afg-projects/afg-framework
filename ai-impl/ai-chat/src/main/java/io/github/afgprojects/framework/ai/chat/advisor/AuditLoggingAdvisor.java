@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.ai.chat.advisor;
 
-import io.github.afgprojects.framework.ai.core.observability.AuditLogger;
+import io.github.afgprojects.framework.ai.core.api.observability.AuditLogger;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

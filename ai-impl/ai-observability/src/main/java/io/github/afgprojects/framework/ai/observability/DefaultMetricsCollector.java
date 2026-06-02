@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.ai.observability;
 
-import io.github.afgprojects.framework.ai.core.observability.MetricsCollector;
+import io.github.afgprojects.framework.ai.core.api.observability.MetricsCollector;
 import org.jspecify.annotations.NonNull;
 
 import java.time.Duration;

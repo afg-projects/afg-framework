@@ -128,16 +128,16 @@ public class ConditionToSqlConverter {
 
         // 处理嵌套条件
         if (criterion.isNested()) {
-            sql.append("(");
-            convertCondition(criterion.nestedCondition(), sql, parameters);
-            sql.append(")");
-            return;
-        }
-
-        // 处理 NOT 操作符
-        if (operator == Operator.NOT && value instanceof Condition notCondition) {
-            sql.append("NOT ");
-            convertCondition(notCondition, sql, parameters);
+            if (criterion.isNegated()) {
+                // NOT 嵌套条件
+                sql.append("NOT (");
+                convertCondition(criterion.nestedCondition(), sql, parameters);
+                sql.append(")");
+            } else {
+                sql.append("(");
+                convertCondition(criterion.nestedCondition(), sql, parameters);
+                sql.append(")");
+            }
             return;
         }
 
@@ -243,30 +243,6 @@ public class ConditionToSqlConverter {
             parameters.add(arr[0]);
             parameters.add(arr[1]);
         }
-    }
-
-    /**
-     * 处理 JSON 包含操作符（PostgreSQL）
-     */
-    private void handleJsonContains(StringBuilder sql, List<Object> parameters, Object value) {
-        sql.append(" @> ?::jsonb");
-        parameters.add(value);
-    }
-
-    /**
-     * 处理 JSON 被包含操作符（PostgreSQL）
-     */
-    private void handleJsonContained(StringBuilder sql, List<Object> parameters, Object value) {
-        sql.append(" <@ ?::jsonb");
-        parameters.add(value);
-    }
-
-    /**
-     * 处理 JSON 路径操作符（PostgreSQL）
-     */
-    private void handleJsonPath(StringBuilder sql, List<Object> parameters, Object value) {
-        sql.append(" ?? ?");
-        parameters.add(value);
     }
 
     /**

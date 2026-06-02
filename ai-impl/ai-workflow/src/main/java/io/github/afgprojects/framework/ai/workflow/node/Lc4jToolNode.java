@@ -1,9 +1,9 @@
 package io.github.afgprojects.framework.ai.workflow.node;
 
 import dev.langchain4j.agent.tool.ToolSpecification;
-import io.github.afgprojects.framework.ai.core.workflow.engine.ExecutionContext;
-import io.github.afgprojects.framework.ai.core.workflow.engine.NodeOutput;
-import io.github.afgprojects.framework.ai.core.workflow.engine.WorkflowNode;
+import io.github.afgprojects.framework.ai.core.api.workflow.engine.ExecutionContext;
+import io.github.afgprojects.framework.ai.core.api.workflow.engine.NodeOutput;
+import io.github.afgprojects.framework.ai.core.api.workflow.engine.WorkflowNode;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 

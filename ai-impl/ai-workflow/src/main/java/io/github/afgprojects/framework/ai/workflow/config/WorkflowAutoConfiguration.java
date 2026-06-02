@@ -1,11 +1,11 @@
 package io.github.afgprojects.framework.ai.workflow.config;
 
-import io.github.afgprojects.framework.ai.core.workflow.definition.NodeDefinition;
-import io.github.afgprojects.framework.ai.core.workflow.dsl.DslConverter;
-import io.github.afgprojects.framework.ai.core.workflow.dsl.DslValidator;
-import io.github.afgprojects.framework.ai.core.workflow.engine.DagEngine;
-import io.github.afgprojects.framework.ai.core.workflow.engine.WorkflowNode;
-import io.github.afgprojects.framework.ai.core.workflow.node.NodeTypeRegistry;
+import io.github.afgprojects.framework.ai.core.api.workflow.definition.NodeDefinition;
+import io.github.afgprojects.framework.ai.core.api.workflow.dsl.DslConverter;
+import io.github.afgprojects.framework.ai.core.api.workflow.dsl.DslValidator;
+import io.github.afgprojects.framework.ai.core.api.workflow.engine.DagEngine;
+import io.github.afgprojects.framework.ai.core.api.workflow.engine.WorkflowNode;
+import io.github.afgprojects.framework.ai.core.api.workflow.node.NodeTypeRegistry;
 import io.github.afgprojects.framework.ai.workflow.dsl.DefaultDslConverter;
 import io.github.afgprojects.framework.ai.workflow.dsl.DefaultDslValidator;
 import io.github.afgprojects.framework.ai.workflow.engine.DefaultDagEngine;

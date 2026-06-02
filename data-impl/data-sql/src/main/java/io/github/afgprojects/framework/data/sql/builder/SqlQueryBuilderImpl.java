@@ -628,12 +628,10 @@ public class SqlQueryBuilderImpl implements SqlQueryBuilder {
         // ORDER BY
         sql.append(orderByBuilder.build());
 
-        // LIMIT / OFFSET
+        // LIMIT / OFFSET（使用 Dialect 生成兼容 SQL）
         if (limitValue != null) {
-            sql.append(" LIMIT ").append(limitValue);
-        }
-        if (offsetValue != null) {
-            sql.append(" OFFSET ").append(offsetValue);
+            long offset = offsetValue != null ? offsetValue : 0;
+            sql = new StringBuilder(dialect.getPaginationSql(sql.toString(), offset, limitValue));
         }
 
         return sql.toString();

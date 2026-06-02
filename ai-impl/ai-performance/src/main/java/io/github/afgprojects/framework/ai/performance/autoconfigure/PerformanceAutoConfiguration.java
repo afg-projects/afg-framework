@@ -1,7 +1,7 @@
 package io.github.afgprojects.framework.ai.performance.autoconfigure;
 
-import io.github.afgprojects.framework.ai.core.performance.Cache;
-import io.github.afgprojects.framework.ai.core.performance.RateLimiter;
+import io.github.afgprojects.framework.ai.core.api.performance.Cache;
+import io.github.afgprojects.framework.ai.core.api.performance.RateLimiter;
 import io.github.afgprojects.framework.ai.performance.DefaultCache;
 import io.github.afgprojects.framework.ai.performance.DefaultRateLimiter;
 import lombok.extern.slf4j.Slf4j;

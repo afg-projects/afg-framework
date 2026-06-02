@@ -81,8 +81,7 @@ public final class ErrorCodeMessageSource {
      * @param locale 语言，为 null 时使用默认语言
      * @return 国际化消息
      */
-    @NonNull
-    public static String getMessage(
+    public static @Nullable String getMessage(
             @NonNull ErrorCode errorCode, @Nullable Object[] args, @Nullable Locale locale) {
         if (messageSource == null) {
             // MessageSource 未初始化时返回默认消息
@@ -106,7 +105,6 @@ public final class ErrorCodeMessageSource {
      */
     @NonNull
     private static Locale getCurrentLocale() {
-        Locale locale = LocaleContextHolder.getLocale();
-        return locale != null ? locale : Locale.getDefault();
+        return LocaleContextHolder.getLocale();
     }
 }

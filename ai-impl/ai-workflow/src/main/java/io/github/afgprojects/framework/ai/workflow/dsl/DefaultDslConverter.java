@@ -1,8 +1,8 @@
 package io.github.afgprojects.framework.ai.workflow.dsl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.afgprojects.framework.ai.core.workflow.dsl.DslConverter;
-import io.github.afgprojects.framework.ai.core.workflow.definition.WorkflowDefinition;
+import io.github.afgprojects.framework.ai.core.api.workflow.dsl.DslConverter;
+import io.github.afgprojects.framework.ai.core.api.workflow.definition.WorkflowDefinition;
 
 /**
  * Default implementation of DslConverter that composes JsonDslParser and JsonDslGenerator.

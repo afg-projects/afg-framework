@@ -2,7 +2,7 @@ package io.github.afgprojects.framework.ai.agent.autoconfigure;
 
 import io.github.afgprojects.framework.ai.agent.tool.remote.RemoteToolRegistry;
 import io.github.afgprojects.framework.ai.agent.tool.remote.StaticToolDiscoveryClient;
-import io.github.afgprojects.framework.ai.core.tool.remote.ToolDiscoveryClient;
+import io.github.afgprojects.framework.ai.core.api.tool.remote.ToolDiscoveryClient;
 import io.github.afgprojects.framework.core.api.registry.ServiceDiscovery;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -70,7 +70,7 @@ public class ToolDiscoveryAutoConfiguration {
         }
 
         // 转换配置
-        java.util.List<io.github.afgprojects.framework.ai.core.tool.remote.ToolServiceDefinition> tools =
+        java.util.List<io.github.afgprojects.framework.ai.core.api.tool.remote.ToolServiceDefinition> tools =
             toolConfigs.stream()
                 .map(this::toToolServiceDefinition)
                 .toList();
@@ -99,16 +99,16 @@ public class ToolDiscoveryAutoConfiguration {
     /**
      * 转换配置到 ToolServiceDefinition。
      */
-    private io.github.afgprojects.framework.ai.core.tool.remote.ToolServiceDefinition toToolServiceDefinition(
+    private io.github.afgprojects.framework.ai.core.api.tool.remote.ToolServiceDefinition toToolServiceDefinition(
             ToolDiscoveryProperties.ToolConfig config) {
-        io.github.afgprojects.framework.ai.core.tool.remote.ToolEndpoint endpoint =
-            io.github.afgprojects.framework.ai.core.tool.remote.ToolEndpoint.builder()
+        io.github.afgprojects.framework.ai.core.api.tool.remote.ToolEndpoint endpoint =
+            io.github.afgprojects.framework.ai.core.api.tool.remote.ToolEndpoint.builder()
                 .serviceId(config.getEndpoint().getServiceId())
                 .path(config.getEndpoint().getPath())
                 .method(config.getEndpoint().getMethod() != null ? config.getEndpoint().getMethod() : "POST")
                 .build();
 
-        return io.github.afgprojects.framework.ai.core.tool.remote.ToolServiceDefinition.builder()
+        return io.github.afgprojects.framework.ai.core.api.tool.remote.ToolServiceDefinition.builder()
             .name(config.getName())
             .description(config.getDescription() != null ? config.getDescription() : "")
             .inputSchema(config.getInputSchema() != null ? config.getInputSchema() : "{}")

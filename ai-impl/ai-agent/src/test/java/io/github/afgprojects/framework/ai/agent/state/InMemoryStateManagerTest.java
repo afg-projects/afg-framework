@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.ai.agent.state;
 
-import io.github.afgprojects.framework.ai.core.multiagent.state.*;
+import io.github.afgprojects.framework.ai.core.api.multiagent.state.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

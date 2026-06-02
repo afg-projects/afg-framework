@@ -5,7 +5,7 @@ import io.github.afgprojects.framework.ai.agent.skill.SkillContext;
 import io.github.afgprojects.framework.ai.agent.skill.SkillDefinition;
 import io.github.afgprojects.framework.ai.agent.skill.SkillDefinition.InputParameter;
 import io.github.afgprojects.framework.ai.agent.skill.SkillDefinition.ParameterType;
-import io.github.afgprojects.framework.ai.core.chat.AfgChatClient;
+import io.github.afgprojects.framework.ai.core.api.chat.AfgChatClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

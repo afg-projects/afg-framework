@@ -1,7 +1,7 @@
 package io.github.afgprojects.framework.ai.etl.reader;
 
-import io.github.afgprojects.framework.ai.core.rag.Document;
-import io.github.afgprojects.framework.ai.core.etl.Source;
+import io.github.afgprojects.framework.ai.core.api.rag.Document;
+import io.github.afgprojects.framework.ai.core.api.etl.Source;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 

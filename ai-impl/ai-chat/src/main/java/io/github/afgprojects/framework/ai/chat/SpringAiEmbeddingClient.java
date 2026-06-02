@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.ai.chat;
 
-import io.github.afgprojects.framework.ai.core.chat.AfgEmbeddingClient;
+import io.github.afgprojects.framework.ai.core.api.chat.AfgEmbeddingClient;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.ai.embedding.EmbeddingModel;

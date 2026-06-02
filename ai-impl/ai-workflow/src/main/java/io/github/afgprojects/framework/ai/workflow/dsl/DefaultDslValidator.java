@@ -1,9 +1,9 @@
 package io.github.afgprojects.framework.ai.workflow.dsl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.afgprojects.framework.ai.core.workflow.definition.EdgeDefinition;
-import io.github.afgprojects.framework.ai.core.workflow.definition.WorkflowDefinition;
-import io.github.afgprojects.framework.ai.core.workflow.dsl.DslValidator;
+import io.github.afgprojects.framework.ai.core.api.workflow.definition.EdgeDefinition;
+import io.github.afgprojects.framework.ai.core.api.workflow.definition.WorkflowDefinition;
+import io.github.afgprojects.framework.ai.core.api.workflow.dsl.DslValidator;
 
 import java.util.HashSet;
 import java.util.Set;

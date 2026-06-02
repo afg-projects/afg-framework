@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.ai.agent.skill;
 
-import io.github.afgprojects.framework.ai.core.chat.AiChatResponse;
+import io.github.afgprojects.framework.ai.core.api.chat.AiChatResponse;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;

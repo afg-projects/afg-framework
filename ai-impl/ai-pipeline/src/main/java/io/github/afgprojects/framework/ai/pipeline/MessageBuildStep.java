@@ -1,9 +1,9 @@
 package io.github.afgprojects.framework.ai.pipeline;
 
-import io.github.afgprojects.framework.ai.core.pipeline.ApplicationConfig;
-import io.github.afgprojects.framework.ai.core.pipeline.PipelineContext;
-import io.github.afgprojects.framework.ai.core.pipeline.PipelineStep;
-import io.github.afgprojects.framework.ai.core.pipeline.StepResult;
+import io.github.afgprojects.framework.ai.core.api.pipeline.ApplicationConfig;
+import io.github.afgprojects.framework.ai.core.api.pipeline.PipelineContext;
+import io.github.afgprojects.framework.ai.core.api.pipeline.PipelineStep;
+import io.github.afgprojects.framework.ai.core.api.pipeline.StepResult;
 
 import java.util.Map;
 

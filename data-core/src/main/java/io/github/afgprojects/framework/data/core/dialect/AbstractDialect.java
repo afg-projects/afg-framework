@@ -132,6 +132,14 @@ public abstract class AbstractDialect implements Dialect {
     }
 
     @Override
+    public @NonNull String getLimitSql(@NonNull String sql, long limit) {
+        if (supportsFetchFirst()) {
+            return "SELECT * FROM (" + sql + ") FETCH FIRST " + limit + " ROWS ONLY";
+        }
+        return sql + " LIMIT " + limit;
+    }
+
+    @Override
     public @NonNull String getAutoIncrementSyntax() {
         return "AUTO_INCREMENT";
     }

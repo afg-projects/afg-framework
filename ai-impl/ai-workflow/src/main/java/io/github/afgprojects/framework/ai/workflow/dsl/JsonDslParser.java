@@ -2,10 +2,10 @@ package io.github.afgprojects.framework.ai.workflow.dsl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.afgprojects.framework.ai.core.workflow.definition.EdgeDefinition;
-import io.github.afgprojects.framework.ai.core.workflow.definition.WorkflowDefinition;
-import io.github.afgprojects.framework.ai.core.workflow.definition.WorkflowDefinition.NodeInstance;
-import io.github.afgprojects.framework.ai.core.workflow.definition.WorkflowDefinition.Position;
+import io.github.afgprojects.framework.ai.core.api.workflow.definition.EdgeDefinition;
+import io.github.afgprojects.framework.ai.core.api.workflow.definition.WorkflowDefinition;
+import io.github.afgprojects.framework.ai.core.api.workflow.definition.WorkflowDefinition.NodeInstance;
+import io.github.afgprojects.framework.ai.core.api.workflow.definition.WorkflowDefinition.Position;
 
 import java.util.*;
 

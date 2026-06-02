@@ -310,12 +310,9 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
             sql += " ORDER BY " + buildOrderByClause();
         }
 
-        // 分页限制
+        // 分页限制（使用 Dialect 生成兼容 SQL）
         if (limit != null) {
-            sql += " LIMIT " + limit;
-            if (offset != null) {
-                sql += " OFFSET " + offset;
-            }
+            sql = dialect.getPaginationSql(sql, offset != null ? offset : 0, limit);
         }
 
         return jdbcClient.sql(sql)
@@ -387,7 +384,7 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
             sql = appendSoftDeleteFilter(sql, !condition.isEmpty());
         }
 
-        sql += " LIMIT 2";
+        sql = dialect.getLimitSql(sql, 2);
 
         List<T> results = jdbcClient.sql(sql)
                 .params(params)
@@ -420,7 +417,7 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
             sql = appendSoftDeleteFilter(sql, !condition.isEmpty());
         }
 
-        sql += " LIMIT 1";
+        sql = dialect.getLimitSql(sql, 1);
 
         return jdbcClient.sql(sql)
                 .params(params)
@@ -470,7 +467,7 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
             sql = appendSoftDeleteFilter(sql, !condition.isEmpty());
         }
 
-        sql += " LIMIT 1";
+        sql = dialect.getLimitSql(sql, 1);
 
         List<Integer> results = jdbcClient.sql(sql)
                 .params(params)

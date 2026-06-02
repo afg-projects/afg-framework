@@ -1,7 +1,7 @@
 package io.github.afgprojects.framework.ai.observability;
 
-import io.github.afgprojects.framework.ai.core.observability.MetricsCollector;
-import io.github.afgprojects.framework.ai.core.observability.Tracer;
+import io.github.afgprojects.framework.ai.core.api.observability.MetricsCollector;
+import io.github.afgprojects.framework.ai.core.api.observability.Tracer;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.core.instrument.MeterRegistry;

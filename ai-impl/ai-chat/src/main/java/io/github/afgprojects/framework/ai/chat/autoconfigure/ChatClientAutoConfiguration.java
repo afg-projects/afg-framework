@@ -4,11 +4,13 @@ import io.github.afgprojects.framework.ai.core.autoconfigure.AiConfigurationProp
 import io.github.afgprojects.framework.ai.chat.DefaultAfgChatClient;
 import io.github.afgprojects.framework.ai.chat.DefaultChatClientRegistry;
 import io.github.afgprojects.framework.ai.chat.model.DefaultModelRegistry;
-import io.github.afgprojects.framework.ai.core.chat.AfgChatClient;
-import io.github.afgprojects.framework.ai.core.chat.ChatClientRegistry;
-import io.github.afgprojects.framework.ai.core.model.DefaultModelInfo;
-import io.github.afgprojects.framework.ai.core.model.ModelRegistry;
-import io.github.afgprojects.framework.ai.core.model.ModelType;
+import io.github.afgprojects.framework.ai.chat.routing.DefaultModelRoutingService;
+import io.github.afgprojects.framework.ai.core.api.chat.AfgChatClient;
+import io.github.afgprojects.framework.ai.core.api.chat.ChatClientRegistry;
+import io.github.afgprojects.framework.ai.core.api.chat.EmbeddingClientRegistry;
+import io.github.afgprojects.framework.ai.core.api.model.DefaultModelInfo;
+import io.github.afgprojects.framework.ai.core.api.model.ModelRegistry;
+import io.github.afgprojects.framework.ai.core.api.model.ModelType;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.ObjectProvider;
@@ -87,6 +89,16 @@ public class ChatClientAutoConfiguration {
             ModelRegistry modelRegistry,
             ChatClientProperties properties) {
         return new ChatModelRegistrar(chatModel, registry, modelRegistry, properties);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(DefaultModelRoutingService.class)
+    @ConditionalOnBean({ChatClientRegistry.class, EmbeddingClientRegistry.class, ModelRegistry.class})
+    public DefaultModelRoutingService modelRoutingService(
+            ChatClientRegistry chatClientRegistry,
+            EmbeddingClientRegistry embeddingClientRegistry,
+            ModelRegistry modelRegistry) {
+        return new DefaultModelRoutingService(chatClientRegistry, embeddingClientRegistry, modelRegistry);
     }
 
     static class ChatModelRegistrar {

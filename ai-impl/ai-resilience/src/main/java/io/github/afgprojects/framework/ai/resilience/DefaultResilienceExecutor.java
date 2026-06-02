@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.ai.resilience;
 
-import io.github.afgprojects.framework.ai.core.resilience.*;
+import io.github.afgprojects.framework.ai.core.api.resilience.*;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;

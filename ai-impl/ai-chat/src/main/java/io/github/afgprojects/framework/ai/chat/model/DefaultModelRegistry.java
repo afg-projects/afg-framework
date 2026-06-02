@@ -1,9 +1,9 @@
 package io.github.afgprojects.framework.ai.chat.model;
 
-import io.github.afgprojects.framework.ai.core.model.DefaultModelInfo;
-import io.github.afgprojects.framework.ai.core.model.ModelInfo;
-import io.github.afgprojects.framework.ai.core.model.ModelRegistry;
-import io.github.afgprojects.framework.ai.core.model.ModelType;
+import io.github.afgprojects.framework.ai.core.api.model.DefaultModelInfo;
+import io.github.afgprojects.framework.ai.core.api.model.ModelInfo;
+import io.github.afgprojects.framework.ai.core.api.model.ModelRegistry;
+import io.github.afgprojects.framework.ai.core.api.model.ModelType;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 

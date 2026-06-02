@@ -13,7 +13,12 @@ public enum LogicalOperator {
     /**
      * OR 连接
      */
-    OR("OR");
+    OR("OR"),
+
+    /**
+     * NOT 取反
+     */
+    NOT("NOT");
 
     private final String symbol;
 

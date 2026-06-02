@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.ai.performance;
 
-import io.github.afgprojects.framework.ai.core.performance.RateLimiter;
+import io.github.afgprojects.framework.ai.core.api.performance.RateLimiter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

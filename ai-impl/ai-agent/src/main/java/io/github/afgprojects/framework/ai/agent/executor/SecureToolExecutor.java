@@ -1,18 +1,19 @@
 package io.github.afgprojects.framework.ai.agent.executor;
 
-import io.github.afgprojects.framework.ai.core.chat.AfgChatClient;
-import io.github.afgprojects.framework.ai.core.chat.AiChatResponse;
-import io.github.afgprojects.framework.ai.core.chat.AiMessage;
-import io.github.afgprojects.framework.ai.core.exception.ToolException;
-import io.github.afgprojects.framework.ai.core.security.ContentSafetyChecker;
-import io.github.afgprojects.framework.ai.core.tool.SecureTool;
-import io.github.afgprojects.framework.ai.core.tool.Tool;
-import io.github.afgprojects.framework.ai.core.tool.ToolAuditLogger;
-import io.github.afgprojects.framework.ai.core.tool.ToolContext;
-import io.github.afgprojects.framework.ai.core.tool.ToolContextProvider;
-import io.github.afgprojects.framework.ai.core.tool.ToolPermissionChecker;
-import io.github.afgprojects.framework.ai.core.tool.ToolPermissionChecker.PermissionResult;
-import io.github.afgprojects.framework.ai.core.tool.ToolRegistry;
+import io.github.afgprojects.framework.ai.core.api.chat.AfgChatClient;
+import io.github.afgprojects.framework.ai.core.api.chat.AiChatResponse;
+import io.github.afgprojects.framework.ai.core.api.chat.AiMessage;
+import io.github.afgprojects.framework.ai.core.api.exception.ToolException;
+import io.github.afgprojects.framework.ai.core.api.security.ContentSafetyChecker;
+import io.github.afgprojects.framework.ai.core.api.tool.SecureTool;
+import io.github.afgprojects.framework.ai.core.api.tool.Tool;
+import io.github.afgprojects.framework.ai.core.api.tool.ToolAuditLogger;
+import io.github.afgprojects.framework.ai.core.api.tool.ToolContext;
+import io.github.afgprojects.framework.ai.core.api.tool.ToolContextProvider;
+import io.github.afgprojects.framework.ai.core.api.tool.ToolExecutionRecorder;
+import io.github.afgprojects.framework.ai.core.api.tool.ToolPermissionChecker;
+import io.github.afgprojects.framework.ai.core.api.tool.ToolPermissionChecker.PermissionResult;
+import io.github.afgprojects.framework.ai.core.api.tool.ToolRegistry;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -53,6 +54,7 @@ public class SecureToolExecutor {
     private final ToolPermissionChecker permissionChecker;
     private final ToolAuditLogger auditLogger;
     private final ContentSafetyChecker contentSafetyChecker;
+    private final ToolExecutionRecorder executionRecorder;
 
     private final int maxIterations;
     private final long timeoutMs;
@@ -79,12 +81,40 @@ public class SecureToolExecutor {
             @Nullable ContentSafetyChecker contentSafetyChecker,
             int maxIterations,
             long timeoutMs) {
+        this(toolRegistry, chatClient, contextProvider, permissionChecker, auditLogger,
+            contentSafetyChecker, null, maxIterations, timeoutMs);
+    }
+
+    /**
+     * 创建安全工具执行器（带执行记录器）。
+     *
+     * @param toolRegistry         工具注册表
+     * @param chatClient           对话客户端
+     * @param contextProvider      上下文提供者
+     * @param permissionChecker    权限检查器（可选）
+     * @param auditLogger          审计日志器（可选）
+     * @param contentSafetyChecker 内容安全检查器（可选）
+     * @param executionRecorder    执行记录器（可选）
+     * @param maxIterations        最大迭代次数
+     * @param timeoutMs            执行超时（毫秒）
+     */
+    public SecureToolExecutor(
+            @NonNull ToolRegistry toolRegistry,
+            @NonNull AfgChatClient chatClient,
+            @NonNull ToolContextProvider contextProvider,
+            @Nullable ToolPermissionChecker permissionChecker,
+            @Nullable ToolAuditLogger auditLogger,
+            @Nullable ContentSafetyChecker contentSafetyChecker,
+            @Nullable ToolExecutionRecorder executionRecorder,
+            int maxIterations,
+            long timeoutMs) {
         this.toolRegistry = toolRegistry;
         this.chatClient = chatClient;
         this.contextProvider = contextProvider;
         this.permissionChecker = permissionChecker;
         this.auditLogger = auditLogger;
         this.contentSafetyChecker = contentSafetyChecker;
+        this.executionRecorder = executionRecorder;
         this.maxIterations = maxIterations;
         this.timeoutMs = timeoutMs;
         this.enableContentSafety = contentSafetyChecker != null;
@@ -249,12 +279,21 @@ public class SecureToolExecutor {
             }
         }
 
+        // 2.5 记录执行开始
+        String executionRecordId = null;
+        if (executionRecorder != null) {
+            executionRecordId = executionRecorder.recordStart(toolName, arguments, context);
+        }
+
         // 3. 内容安全检查（输入）
         if (enableContentSafety) {
             String inputContent = serializeArguments(arguments);
             var checkResult = contentSafetyChecker.checkInput(inputContent, buildSafetyContext(context));
             if (checkResult.isBlocked()) {
                 log.warn("Tool {} input blocked by content safety: {}", toolName, checkResult.getReason());
+                if (executionRecordId != null) {
+                    executionRecorder.recordFailure(executionRecordId, "Input blocked: " + checkResult.getReason(), Duration.ZERO);
+                }
                 return "Error: Content blocked: " + checkResult.getReason();
             }
         }
@@ -274,10 +313,13 @@ public class SecureToolExecutor {
             if (enableContentSafety && output != null) {
                 var checkResult = contentSafetyChecker.checkOutput(output.toString(), buildSafetyContext(context));
                 if (checkResult.isBlocked()) {
+                    Duration blockedDuration = Duration.between(start, Instant.now());
                     log.warn("Tool {} output blocked by content safety: {}", toolName, checkResult.getReason());
                     if (recordId != null) {
-                        auditLogger.logFailure(recordId, "Output blocked: " + checkResult.getReason(),
-                            Duration.between(start, Instant.now()));
+                        auditLogger.logFailure(recordId, "Output blocked: " + checkResult.getReason(), blockedDuration);
+                    }
+                    if (executionRecordId != null) {
+                        executionRecorder.recordFailure(executionRecordId, "Output blocked: " + checkResult.getReason(), blockedDuration);
                     }
                     return "Error: Output blocked: " + checkResult.getReason();
                 }
@@ -289,6 +331,11 @@ public class SecureToolExecutor {
                 auditLogger.logSuccess(recordId, output, duration);
             }
 
+            // 7.5 记录执行成功
+            if (executionRecordId != null) {
+                executionRecorder.recordSuccess(executionRecordId, output, duration);
+            }
+
             log.debug("Tool {} executed successfully in {}ms", toolName, duration.toMillis());
             return output != null ? output.toString() : "";
 
@@ -298,6 +345,9 @@ public class SecureToolExecutor {
             if (recordId != null) {
                 auditLogger.logTimeout(callId, toolName, context, Duration.ofMillis(timeoutMs));
             }
+            if (executionRecordId != null) {
+                executionRecorder.recordFailure(executionRecordId, "Timeout after " + timeoutMs + "ms", duration);
+            }
             return "Error: Tool execution timeout after " + timeoutMs + "ms";
 
         } catch (Exception e) {
@@ -305,6 +355,9 @@ public class SecureToolExecutor {
             log.error("Tool {} execution failed: {}", toolName, e.getMessage());
             if (recordId != null) {
                 auditLogger.logFailure(recordId, e.getMessage(), duration);
+            }
+            if (executionRecordId != null) {
+                executionRecorder.recordFailure(executionRecordId, e.getMessage(), duration);
             }
             return "Error: " + e.getMessage();
         }

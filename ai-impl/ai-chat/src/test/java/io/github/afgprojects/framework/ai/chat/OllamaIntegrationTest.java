@@ -1,8 +1,8 @@
 package io.github.afgprojects.framework.ai.chat;
 
-import io.github.afgprojects.framework.ai.core.chat.AfgChatClient;
-import io.github.afgprojects.framework.ai.core.chat.AiChatResponse;
-import io.github.afgprojects.framework.ai.core.chat.AiMessage;
+import io.github.afgprojects.framework.ai.core.api.chat.AfgChatClient;
+import io.github.afgprojects.framework.ai.core.api.chat.AiChatResponse;
+import io.github.afgprojects.framework.ai.core.api.chat.AiMessage;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.ai.chat.client.ChatClient;

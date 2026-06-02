@@ -1,7 +1,7 @@
 package io.github.afgprojects.framework.ai.agent.tool.data;
 
-import io.github.afgprojects.framework.ai.core.tool.SecureTool;
-import io.github.afgprojects.framework.ai.core.tool.ToolContext;
+import io.github.afgprojects.framework.ai.core.api.tool.SecureTool;
+import io.github.afgprojects.framework.ai.core.api.tool.ToolContext;
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.EntityQuery;
 import io.github.afgprojects.framework.data.core.query.Condition;

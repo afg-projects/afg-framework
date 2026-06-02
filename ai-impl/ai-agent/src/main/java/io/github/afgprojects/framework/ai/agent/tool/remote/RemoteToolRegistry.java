@@ -1,9 +1,9 @@
 package io.github.afgprojects.framework.ai.agent.tool.remote;
 
-import io.github.afgprojects.framework.ai.core.tool.Tool;
-import io.github.afgprojects.framework.ai.core.tool.ToolRegistry;
-import io.github.afgprojects.framework.ai.core.tool.remote.ToolDiscoveryClient;
-import io.github.afgprojects.framework.ai.core.tool.remote.ToolServiceDefinition;
+import io.github.afgprojects.framework.ai.core.api.tool.Tool;
+import io.github.afgprojects.framework.ai.core.api.tool.ToolRegistry;
+import io.github.afgprojects.framework.ai.core.api.tool.remote.ToolDiscoveryClient;
+import io.github.afgprojects.framework.ai.core.api.tool.remote.ToolServiceDefinition;
 import io.github.afgprojects.framework.core.api.registry.ServiceDiscovery;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;

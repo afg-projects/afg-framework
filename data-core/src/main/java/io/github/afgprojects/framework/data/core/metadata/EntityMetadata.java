@@ -1,83 +1,188 @@
+/*
+ * Copyright 2024-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.github.afgprojects.framework.data.core.metadata;
 
-import io.github.afgprojects.framework.data.core.relation.RelationMetadata;
-import org.jspecify.annotations.Nullable;
-
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
+import java.util.Set;
+
+import io.github.afgprojects.framework.data.core.query.Condition;
 
 /**
- * 实体元数据
+ * 实体元数据接口，描述实体的结构信息。
+ *
+ * <p>提供实体类、表名、字段、关联关系、软删除、多租户等元信息。
+ * 使用 {@link #hasTrait(EntityTrait)} 判断实体是否具有某种特征，遵循开闭原则（OCP），
+ * 新增特征只需添加枚举值，无需修改此接口。
  */
 public interface EntityMetadata<T> {
 
     /**
-     * 实体类型
+     * 获取实体类
+     *
+     * @return 实体类
      */
     Class<T> getEntityClass();
 
     /**
-     * 表名
+     * 获取表名
+     *
+     * @return 表名
      */
     String getTableName();
 
     /**
-     * 主键字段
+     * 获取所有字段元数据
+     *
+     * @return 字段元数据列表
+     */
+    List<? extends FieldMetadata> getFields();
+
+    /**
+     * 根据字段名获取字段元数据
+     *
+     * @param fieldName 字段名
+     * @return 字段元数据，不存在返回 null
+     */
+    FieldMetadata getField(String fieldName);
+
+    /**
+     * 获取主键字段元数据
+     *
+     * @return 主键字段元数据
      */
     FieldMetadata getIdField();
 
     /**
-     * 所有字段
-     */
-    List<FieldMetadata> getFields();
-
-    /**
-     * 根据属性名获取字段
-     */
-    @Nullable FieldMetadata getField(String propertyName);
-
-    /**
-     * 是否软删除实体
-     */
-    boolean isSoftDeletable();
-
-    /**
-     * 是否多租户实体
-     */
-    boolean isTenantAware();
-
-    /**
-     * 是否审计实体
-     */
-    boolean isAuditable();
-
-    /**
-     * 是否版本化实体
-     */
-    boolean isVersioned();
-
-    // ==================== 关联元数据 ====================
-
-    /**
-     * 获取所有关联元数据
+     * 获取主键字段名
      *
-     * @return 关联元数据列表
+     * @return 主键字段名
      */
-    List<RelationMetadata> getRelations();
+    String getIdFieldName();
 
     /**
-     * 根据字段名获取关联元数据
+     * 获取软删除字段元数据
+     *
+     * @return 软删除字段元数据，不存在返回 null
+     */
+    FieldMetadata getSoftDeleteField();
+
+    /**
+     * 获取租户字段元数据
+     *
+     * @return 租户字段元数据，不存在返回 null
+     */
+    FieldMetadata getTenantField();
+
+    /**
+     * 获取列名到字段名的映射
+     *
+     * @return 列名到字段名的映射
+     */
+    Map<String, String> getColumnToFieldMap();
+
+    /**
+     * 获取字段名到列名的映射
+     *
+     * @return 字段名到列名的映射
+     */
+    Map<String, String> getFieldToColumnMap();
+
+    /**
+     * 判断实体是否具有指定特征。
+     *
+     * <p>遵循开闭原则（OCP），新增特征只需添加 {@link EntityTrait} 枚举值，
+     * 无需修改此接口和所有实现类。
+     *
+     * @param trait 实体特征
+     * @return 是否具有该特征
+     * @see EntityTrait
+     */
+    boolean hasTrait(EntityTrait trait);
+
+    /**
+     * 获取实体的所有特征
+     *
+     * @return 特征集合
+     */
+    Set<EntityTrait> getTraits();
+
+    /**
+     * 判断实体是否支持软删除
+     *
+     * @return 是否支持软删除
+     * @deprecated 使用 {@link #hasTrait(EntityTrait)} 替代，如 {@code hasTrait(EntityTrait.SOFT_DELETABLE)}
+     */
+    @Deprecated
+    default boolean isSoftDeletable() {
+        return hasTrait(EntityTrait.SOFT_DELETABLE) || hasTrait(EntityTrait.TIMESTAMP_SOFT_DELETABLE);
+    }
+
+    /**
+     * 判断实体是否支持多租户
+     *
+     * @return 是否支持多租户
+     * @deprecated 使用 {@link #hasTrait(EntityTrait)} 替代，如 {@code hasTrait(EntityTrait.TENANT_AWARE)}
+     */
+    @Deprecated
+    default boolean isTenantAware() {
+        return hasTrait(EntityTrait.TENANT_AWARE);
+    }
+
+    /**
+     * 判断实体是否支持审计
+     *
+     * @return 是否支持审计
+     * @deprecated 使用 {@link #hasTrait(EntityTrait)} 替代，如 {@code hasTrait(EntityTrait.AUDITABLE)}
+     */
+    @Deprecated
+    default boolean isAuditable() {
+        return hasTrait(EntityTrait.AUDITABLE);
+    }
+
+    /**
+     * 判断实体是否支持乐观锁
+     *
+     * @return 是否支持乐观锁
+     * @deprecated 使用 {@link #hasTrait(EntityTrait)} 替代，如 {@code hasTrait(EntityTrait.VERSIONED)}
+     */
+    @Deprecated
+    default boolean isVersioned() {
+        return hasTrait(EntityTrait.VERSIONED);
+    }
+
+    /**
+     * 判断实体是否支持数据权限
+     *
+     * @return 是否支持数据权限
+     */
+    boolean isDataScopeAware();
+
+    /**
+     * 获取默认查询条件
+     *
+     * @return 默认查询条件
+     */
+    Condition getDefaultCondition();
+
+    /**
+     * 判断实体是否具有指定字段的关联关系
      *
      * @param fieldName 字段名
-     * @return 关联元数据，不存在则返回空
-     */
-    Optional<RelationMetadata> getRelation(String fieldName);
-
-    /**
-     * 是否有指定字段的关联
-     *
-     * @param fieldName 字段名
-     * @return 是否存在关联
+     * @return 是否具有关联关系
      */
     boolean hasRelation(String fieldName);
 }

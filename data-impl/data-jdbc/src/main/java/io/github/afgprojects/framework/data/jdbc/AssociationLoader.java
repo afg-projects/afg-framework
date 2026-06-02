@@ -299,7 +299,7 @@ class AssociationLoader {
         JdbcEntityProxy<?> targetProxy = (JdbcEntityProxy<?>) dataManager.entity(targetEntityClass);
 
         Map<Object, Set<Object>> result = new HashMap<>();
-        List<?> rows = targetProxy.dataManager.queryForList(sql, ids, (rs, rowNum) -> {
+        List<?> rows = targetProxy.dataManager.queryForList(sql, ids, (io.github.afgprojects.framework.data.core.mapper.ResultMapper<Object[]>) (rs, rowNum) -> {
             // 提取 source_id 和目标实体
             Object sourceId = rs.getObject("source_id");
             return new Object[]{sourceId, targetProxy.rowMapper.mapRow(rs, rowNum)};
@@ -407,9 +407,12 @@ class AssociationLoader {
      */
     private Object getIdValueFromEntity(Object entity, Class<?> entityClass) {
         try {
-            Field idField = entityClass.getDeclaredField("id");
-            idField.setAccessible(true);
-            return idField.get(entity);
+            Field idField = findDeclaredFieldCached(entityClass, "id");
+            if (idField != null) {
+                idField.setAccessible(true);
+                return idField.get(entity);
+            }
+            return null;
         } catch (Exception e) {
             return null;
         }

@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.ai.observability;
 
-import io.github.afgprojects.framework.ai.core.observability.Tracer;
+import io.github.afgprojects.framework.ai.core.api.observability.Tracer;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;

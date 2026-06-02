@@ -1,8 +1,8 @@
 package io.github.afgprojects.framework.ai.chat.memory;
 
-import io.github.afgprojects.framework.ai.core.chat.AiMedia;
-import io.github.afgprojects.framework.ai.core.chat.AiMessage;
-import io.github.afgprojects.framework.ai.core.chat.AiRole;
+import io.github.afgprojects.framework.ai.core.api.chat.AiMedia;
+import io.github.afgprojects.framework.ai.core.api.chat.AiMessage;
+import io.github.afgprojects.framework.ai.core.api.chat.AiRole;
 import org.jspecify.annotations.NonNull;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.MessageType;

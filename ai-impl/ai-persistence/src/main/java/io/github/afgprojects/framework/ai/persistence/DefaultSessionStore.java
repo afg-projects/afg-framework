@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.ai.persistence;
 
-import io.github.afgprojects.framework.ai.core.persistence.SessionStore;
+import io.github.afgprojects.framework.ai.core.api.persistence.SessionStore;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;

@@ -167,12 +167,22 @@ public class EntityDeleteHandler<T> {
 
     /**
      * 批量删除实体
+     * <p>
+     * 提取所有实体 ID 后委托给 {@link #deleteAllById} 批量处理，
+     * 避免逐条删除导致的多次数据库往返。
      *
      * @param entities 实体集合
      */
     public void deleteAll(@NonNull Iterable<? extends T> entities) {
+        List<Object> ids = new ArrayList<>();
         for (T entity : entities) {
-            delete(entity);
+            Object id = queryHelper.getIdValue(entity);
+            if (id != null) {
+                ids.add(id);
+            }
+        }
+        if (!ids.isEmpty()) {
+            deleteAllById(ids);
         }
     }
 }
