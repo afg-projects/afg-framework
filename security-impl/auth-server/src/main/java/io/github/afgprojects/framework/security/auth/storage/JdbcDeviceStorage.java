@@ -46,7 +46,7 @@ public class JdbcDeviceStorage implements AfgDeviceStorage {
         var existing = dataManager.findOneByField(AuthUserDevice.class,
                 AuthUserDevice::getDeviceId, deviceInfo.getDeviceId());
 
-        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        java.time.Instant now = java.time.Instant.now();
         AuthUserDevice entity;
         if (existing.isPresent()) {
             entity = existing.get();
@@ -56,8 +56,7 @@ public class JdbcDeviceStorage implements AfgDeviceStorage {
             entity.setDeviceType(deviceInfo.getDeviceType());
             entity.setLastLoginIp(deviceInfo.getLastLoginIp());
             if (deviceInfo.getLastLoginTime() != null) {
-                entity.setLastLoginTime(java.time.LocalDateTime.ofInstant(
-                        deviceInfo.getLastLoginTime(), java.time.ZoneId.systemDefault()));
+                entity.setLastLoginTime(deviceInfo.getLastLoginTime());
             }
             entity.setActive(deviceInfo.isActive());
             entity.setUpdatedAt(now);
@@ -70,8 +69,7 @@ public class JdbcDeviceStorage implements AfgDeviceStorage {
             entity.setDeviceType(deviceInfo.getDeviceType());
             entity.setLastLoginIp(deviceInfo.getLastLoginIp());
             if (deviceInfo.getLastLoginTime() != null) {
-                entity.setLastLoginTime(java.time.LocalDateTime.ofInstant(
-                        deviceInfo.getLastLoginTime(), java.time.ZoneId.systemDefault()));
+                entity.setLastLoginTime(deviceInfo.getLastLoginTime());
             }
             entity.setActive(deviceInfo.isActive());
             entity.setFirstLoginTime(now);
@@ -156,8 +154,7 @@ public class JdbcDeviceStorage implements AfgDeviceStorage {
         info.setDeviceType(entity.getDeviceType());
         info.setLastLoginIp(entity.getLastLoginIp());
         if (entity.getLastLoginTime() != null) {
-            info.setLastLoginTime(entity.getLastLoginTime()
-                    .atZone(java.time.ZoneId.systemDefault()).toInstant());
+            info.setLastLoginTime(entity.getLastLoginTime());
         }
         info.setActive(entity.isActive());
         return info;

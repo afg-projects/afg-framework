@@ -1,7 +1,9 @@
 package io.github.afgprojects.framework.data.core.event;
 
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
+import io.github.afgprojects.framework.data.core.metadata.EntityTrait;
 import io.github.afgprojects.framework.data.core.metadata.FieldMetadata;
+import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.relation.RelationMetadata;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -9,7 +11,9 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -24,63 +28,83 @@ class EventTest {
         @Override
         public Class<TestEntity> getEntityClass() {
             return TestEntity.class;
-        }
+        )
 
         @Override
         public String getTableName() {
             return "test_entity";
-        }
+        )
 
         @Override
         public FieldMetadata getIdField() {
             return null;
-        }
+        )
+
+        @Override
+        public String getIdFieldName() {
+            return "id";
+        )
+
+        @Override
+        public FieldMetadata getSoftDeleteField() {
+            return null;
+        )
+
+        @Override
+        public FieldMetadata getTenantField() {
+            return null;
+        )
+
+        @Override
+        public Map<String, String> getColumnToFieldMap() {
+            return Map.of();
+        )
+
+        @Override
+        public Map<String, String> getFieldToColumnMap() {
+            return Map.of();
+        )
+
+        @Override
+        public boolean hasTrait(EntityTrait trait) {
+            return false;
+        )
+
+        @Override
+        public Set<EntityTrait> getTraits() {
+            return Set.of();
+        )
+
+        @Override
+        public boolean isDataScopeAware() {
+            return false;
+        )
+
+        @Override
+        public Condition getDefaultCondition() {
+            return Condition.empty();
+        )
 
         @Override
         public List<FieldMetadata> getFields() {
             return List.of();
-        }
+        )
 
         @Override
         public FieldMetadata getField(String propertyName) {
             return null;
-        }
-
-        @Override
-        public boolean isSoftDeletable() {
-            return false;
-        }
-
-        @Override
-        public boolean isTenantAware() {
-            return false;
-        }
-
-        @Override
-        public boolean isAuditable() {
-            return false;
-        }
-
-        @Override
-        public boolean isVersioned() {
-            return false;
-        }
+        )
 
         @Override
         public List<RelationMetadata> getRelations() {
             return List.of();
-        }
-
-        @Override
-        public Optional<RelationMetadata> getRelation(String fieldName) {
-            return Optional.empty();
-        }
+        )
 
         @Override
         public boolean hasRelation(String fieldName) {
             return false;
-        }
-    }
+        )
+    )
 
     // 测试实体类
     private static class TestEntity {
@@ -90,16 +114,16 @@ class EventTest {
         public TestEntity(Long id, String name) {
             this.id = id;
             this.name = name;
-        }
+        )
 
         public Long getId() {
             return id;
-        }
+        )
 
         public String getName() {
             return name;
-        }
-    }
+        )
+    )
 
     // ==================== EntityCreatedEvent 测试 ====================
 
@@ -120,8 +144,8 @@ class EventTest {
             assertThat(event.getMetadata()).isEqualTo(metadata);
             assertThat(event.getOccurredAt()).isEqualTo(timestamp);
             assertThat(event.getSource()).isEqualTo(entity);
-        }
-    }
+        )
+    )
 
     // ==================== EntityUpdatedEvent 测试 ====================
 
@@ -141,8 +165,8 @@ class EventTest {
             assertThat(event.getEntity()).isEqualTo(entity);
             assertThat(event.getMetadata()).isEqualTo(metadata);
             assertThat(event.getOccurredAt()).isEqualTo(timestamp);
-        }
-    }
+        )
+    )
 
     // ==================== EntityDeletedEvent 测试 ====================
 
@@ -162,8 +186,8 @@ class EventTest {
             assertThat(event.getEntity()).isEqualTo(entity);
             assertThat(event.getMetadata()).isEqualTo(metadata);
             assertThat(event.getOccurredAt()).isEqualTo(timestamp);
-        }
-    }
+        )
+    )
 
     // ==================== EntityBatchCreatedEvent 测试 ====================
 
@@ -190,8 +214,8 @@ class EventTest {
             assertThat(event.getOccurredAt()).isEqualTo(timestamp);
             assertThat(event.getEntities()).isEqualTo(entities);
             assertThat(event.getEntities()).hasSize(3);
-        }
-    }
+        )
+    )
 
     // ==================== EntityBatchUpdatedEvent 测试 ====================
 
@@ -217,8 +241,8 @@ class EventTest {
             assertThat(event.getOccurredAt()).isEqualTo(timestamp);
             assertThat(event.getEntities()).isEqualTo(entities);
             assertThat(event.getEntities()).hasSize(2);
-        }
-    }
+        )
+    )
 
     // ==================== EntityBatchDeletedEvent 测试 ====================
 
@@ -244,8 +268,8 @@ class EventTest {
             assertThat(event.getOccurredAt()).isEqualTo(timestamp);
             assertThat(event.getEntities()).isEqualTo(entities);
             assertThat(event.getEntities()).hasSize(2);
-        }
-    }
+        )
+    )
 
     // ==================== EntityEvent 基类测试 ====================
 
@@ -262,19 +286,19 @@ class EventTest {
             assertThat(EntityBatchCreatedEvent.class).isAssignableTo(EntityEvent.class);
             assertThat(EntityBatchUpdatedEvent.class).isAssignableTo(EntityEvent.class);
             assertThat(EntityBatchDeletedEvent.class).isAssignableTo(EntityEvent.class);
-        }
+        )
 
         @Test
         @DisplayName("所有事件类应继承 ApplicationEvent")
         void allEventsShouldExtendApplicationEvent() {
             // EntityEvent 继承 ApplicationEvent
             assertThat(EntityEvent.class).isAssignableTo(org.springframework.context.ApplicationEvent.class);
-        }
+        )
 
         @Test
         @DisplayName("事件应使用 sealed 类限制子类")
         void entityEventShouldBeSealed() {
             assertThat(EntityEvent.class).isSealed();
-        }
-    }
-}
+        )
+    )
+)

@@ -14,7 +14,7 @@ class ScopeTest {
         assertThat(scope.table()).isEqualTo("sys_user");
         assertThat(scope.column()).isEqualTo("dept_id");
         assertThat(scope.scopeType()).isEqualTo(DataScopeType.DEPT_AND_CHILD);
-    }
+    )
 
     @Test
     void shouldCreateDataScopeWithBuilder() {
@@ -27,7 +27,7 @@ class ScopeTest {
 
         assertThat(scope.table()).isEqualTo("sys_user");
         assertThat(scope.aliasPrefix()).isEqualTo("u");
-    }
+    )
 
     @Test
     void shouldManageTenantContext() {
@@ -38,7 +38,7 @@ class ScopeTest {
 
         holder.clear();
         assertThat(holder.getTenantId()).isNull();
-    }
+    )
 
     @Test
     void shouldUseTenantScopeWithTryWithResources() {
@@ -46,10 +46,10 @@ class ScopeTest {
 
         try (TenantScope scope = holder.scope("tenant-002")) {
             assertThat(holder.getTenantId()).isEqualTo("tenant-002");
-        }
+        )
 
         assertThat(holder.getTenantId()).isNull();
-    }
+    )
 
     @Test
     void shouldRestorePreviousTenantOnClose() {
@@ -58,8 +58,8 @@ class ScopeTest {
 
         try (TenantScope scope = holder.scope("tenant-002")) {
             assertThat(holder.getTenantId()).isEqualTo("tenant-002");
-        }
+        )
 
         assertThat(holder.getTenantId()).isEqualTo("tenant-001");
-    }
-}
+    )
+)

@@ -30,7 +30,7 @@ class TypedConditionBuilderTest {
         private Integer age;
         private LocalDateTime createdAt;
         private Boolean active;
-    }
+    )
 
     @Nested
     @DisplayName("字段名提取测试")
@@ -43,14 +43,14 @@ class TypedConditionBuilderTest {
             assertThat(Conditions.getFieldName(User::getName)).isEqualTo("name");
             assertThat(Conditions.getFieldName(User::getEmail)).isEqualTo("email");
             assertThat(Conditions.getFieldName(User::getStatus)).isEqualTo("status");
-        }
+        )
 
         @Test
         @DisplayName("应该从 is 前缀的布尔 getter 提取字段名")
         void shouldExtractFieldNameFromBooleanGetter() {
             assertThat(Conditions.getFieldName(User::getActive)).isEqualTo("active");
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("类型化条件构建测试")
@@ -61,7 +61,7 @@ class TypedConditionBuilderTest {
         void shouldCreateEmptyCondition() {
             Condition condition = Conditions.builder(User.class).build();
             assertThat(condition.isEmpty()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("应该构建等于条件")
@@ -74,7 +74,7 @@ class TypedConditionBuilderTest {
             assertThat(condition.getCriteria()).hasSize(1);
             assertThat(condition.getCriteria().get(0).field()).isEqualTo("name");
             assertThat(condition.getCriteria().get(0).value()).isEqualTo("admin");
-        }
+        )
 
         @Test
         @DisplayName("应该构建不等于条件")
@@ -85,7 +85,7 @@ class TypedConditionBuilderTest {
 
             assertThat(condition.getCriteria().get(0).field()).isEqualTo("status");
             assertThat(condition.getCriteria().get(0).value()).isEqualTo(0);
-        }
+        )
 
         @Test
         @DisplayName("应该构建比较条件")
@@ -98,7 +98,7 @@ class TypedConditionBuilderTest {
                 .build();
 
             assertThat(condition.getCriteria()).hasSize(4);
-        }
+        )
 
         @Test
         @DisplayName("应该构建 LIKE 条件")
@@ -114,7 +114,7 @@ class TypedConditionBuilderTest {
             assertThat(condition.getCriteria().get(0).value()).isEqualTo("%张%");
             assertThat(condition.getCriteria().get(1).value()).isEqualTo("test@%");
             assertThat(condition.getCriteria().get(2).value()).isEqualTo("%@example.com");
-        }
+        )
 
         @Test
         @DisplayName("应该构建 IN 条件")
@@ -126,7 +126,7 @@ class TypedConditionBuilderTest {
                 .build();
 
             assertThat(condition.getCriteria()).hasSize(2);
-        }
+        )
 
         @Test
         @DisplayName("应该构建 NULL 条件")
@@ -137,7 +137,7 @@ class TypedConditionBuilderTest {
                 .build();
 
             assertThat(condition.getCriteria()).hasSize(2);
-        }
+        )
 
         @Test
         @DisplayName("应该构建 BETWEEN 条件")
@@ -148,7 +148,7 @@ class TypedConditionBuilderTest {
                 .build();
 
             assertThat(condition.getCriteria()).hasSize(2);
-        }
+        )
 
         @Test
         @DisplayName("应该构建复合条件")
@@ -162,8 +162,8 @@ class TypedConditionBuilderTest {
 
             assertThat(condition.getCriteria()).hasSize(4);
             assertThat(condition.getOperator()).isEqualTo(LogicalOperator.AND);
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("条件组合测试")
@@ -182,7 +182,7 @@ class TypedConditionBuilderTest {
             Condition combined = c1.and(c2);
 
             assertThat(combined.getOperator()).isEqualTo(LogicalOperator.AND);
-        }
+        )
 
         @Test
         @DisplayName("应该使用 OR 组合条件")
@@ -197,7 +197,7 @@ class TypedConditionBuilderTest {
             Condition combined = c1.or(c2);
 
             assertThat(combined.getOperator()).isEqualTo(LogicalOperator.OR);
-        }
+        )
 
         @Test
         @DisplayName("应该在构建器中使用 AND 嵌套条件")
@@ -212,7 +212,7 @@ class TypedConditionBuilderTest {
                 .build();
 
             assertThat(condition.getCriteria()).hasSize(2);
-        }
+        )
 
         @Test
         @DisplayName("应该在构建器中使用 OR 嵌套条件")
@@ -227,8 +227,8 @@ class TypedConditionBuilderTest {
                 .build();
 
             assertThat(condition.getCriteria()).hasSize(2);
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("类型安全测试")
@@ -252,6 +252,6 @@ class TypedConditionBuilderTest {
                 .isEqualTo(stringCondition.getCriteria().get(0).field());
             assertThat(lambdaCondition.getCriteria().get(1).field())
                 .isEqualTo(stringCondition.getCriteria().get(1).field());
-        }
-    }
-}
+        )
+    )
+)

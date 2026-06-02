@@ -34,8 +34,8 @@ class AutoconfigureTest {
             contextRunner.run(context -> {
                 assertThat(context).hasSingleBean(TenantContextHolder.class);
                 assertThat(context.getBean(TenantContextHolder.class)).isNotNull();
-            });
-        }
+            ));
+        )
 
         @Test
         @DisplayName("应自动配置 TenantContextTaskDecorator（默认启用）")
@@ -44,8 +44,8 @@ class AutoconfigureTest {
                 assertThat(context).hasBean("tenantContextTaskDecorator");
                 assertThat(context.getBean("tenantContextTaskDecorator")).isInstanceOf(TaskDecorator.class);
                 assertThat(context.getBean("tenantContextTaskDecorator")).isInstanceOf(TenantContextTaskDecorator.class);
-            });
-        }
+            ));
+        )
 
         @Test
         @DisplayName("配置禁用后不应创建 TenantContextTaskDecorator")
@@ -56,8 +56,8 @@ class AutoconfigureTest {
                         assertThat(context).doesNotHaveBean("tenantContextTaskDecorator");
                         // TenantContextHolder 仍应创建
                         assertThat(context).hasSingleBean(TenantContextHolder.class);
-                    });
-        }
+                    ));
+        )
 
         @Test
         @DisplayName("显式启用应创建 TenantContextTaskDecorator")
@@ -67,8 +67,8 @@ class AutoconfigureTest {
                     .run(context -> {
                         assertThat(context).hasBean("tenantContextTaskDecorator");
                         assertThat(context.getBean("tenantContextTaskDecorator")).isInstanceOf(TenantContextTaskDecorator.class);
-                    });
-        }
+                    ));
+        )
 
         @Test
         @DisplayName("TenantContextTaskDecorator 应依赖 TenantContextHolder")
@@ -79,8 +79,8 @@ class AutoconfigureTest {
 
                 // 验证 decorator 使用了正确的 holder
                 assertThat(decorator).isNotNull();
-            });
-        }
+            ));
+        )
 
         @Test
         @DisplayName("用户自定义 TenantContextHolder 应覆盖自动配置")
@@ -92,8 +92,8 @@ class AutoconfigureTest {
                     .run(context -> {
                         assertThat(context).hasSingleBean(TenantContextHolder.class);
                         assertThat(context.getBean(TenantContextHolder.class)).isSameAs(customHolder);
-                    });
-        }
+                    ));
+        )
 
         @Test
         @DisplayName("用户自定义 TaskDecorator 应覆盖自动配置")
@@ -105,7 +105,7 @@ class AutoconfigureTest {
                     .run(context -> {
                         assertThat(context).hasBean("tenantContextTaskDecorator");
                         assertThat(context.getBean("tenantContextTaskDecorator")).isSameAs(customDecorator);
-                    });
-        }
-    }
-}
+                    ));
+        )
+    )
+)

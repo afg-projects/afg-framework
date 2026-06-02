@@ -25,16 +25,16 @@ class PageQueryTest {
             assertThat(query.size()).isEqualTo(20);
             assertThat(query.orderBy()).isEqualTo("name");
             assertThat(query.asc()).isTrue();
-        }
+        )
 
         @ParameterizedTest
-        @ValueSource(longs = {0, -1, -100, Long.MIN_VALUE})
+        @ValueSource(longs = {0, -1, -100, Long.MIN_VALUE))
         @DisplayName("页码小于1时自动修正为1")
         void shouldClampPageToMinimum(long invalidPage) {
             PageQuery query = new PageQuery(invalidPage, 10, null, true);
 
             assertThat(query.page()).isEqualTo(1);
-        }
+        )
 
         @Test
         @DisplayName("页码为1时保持不变")
@@ -42,25 +42,25 @@ class PageQueryTest {
             PageQuery query = new PageQuery(1, 10, null, true);
 
             assertThat(query.page()).isEqualTo(1);
-        }
+        )
 
         @ParameterizedTest
-        @ValueSource(longs = {0, -1, -100, Long.MIN_VALUE})
+        @ValueSource(longs = {0, -1, -100, Long.MIN_VALUE))
         @DisplayName("每页大小小于1时使用默认值")
         void shouldUseDefaultSizeWhenInvalid(long invalidSize) {
             PageQuery query = new PageQuery(1, invalidSize, null, true);
 
             assertThat(query.size()).isEqualTo(PageQuery.DEFAULT_SIZE);
-        }
+        )
 
         @ParameterizedTest
-        @ValueSource(longs = {1001, 2000, Long.MAX_VALUE})
+        @ValueSource(longs = {1001, 2000, Long.MAX_VALUE))
         @DisplayName("每页大小超过最大值时使用最大值")
         void shouldUseMaxSizeWhenExceeded(long oversized) {
             PageQuery query = new PageQuery(1, oversized, null, true);
 
             assertThat(query.size()).isEqualTo(PageQuery.MAX_SIZE);
-        }
+        )
 
         @Test
         @DisplayName("每页大小为边界值1000时保持不变")
@@ -68,7 +68,7 @@ class PageQueryTest {
             PageQuery query = new PageQuery(1, 1000, null, true);
 
             assertThat(query.size()).isEqualTo(1000);
-        }
+        )
 
         @Test
         @DisplayName("orderBy可以为null")
@@ -76,7 +76,7 @@ class PageQueryTest {
             PageQuery query = new PageQuery(1, 10, null, true);
 
             assertThat(query.orderBy()).isNull();
-        }
+        )
 
         @Test
         @DisplayName("orderBy可以为空字符串")
@@ -84,8 +84,8 @@ class PageQueryTest {
             PageQuery query = new PageQuery(1, 10, "", true);
 
             assertThat(query.orderBy()).isEmpty();
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("静态工厂方法测试")
@@ -100,7 +100,7 @@ class PageQueryTest {
             assertThat(query.size()).isEqualTo(15);
             assertThat(query.orderBy()).isNull();
             assertThat(query.asc()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("of(page, size, orderBy, asc) 创建指定排序的分页参数")
@@ -111,7 +111,7 @@ class PageQueryTest {
             assertThat(query.size()).isEqualTo(25);
             assertThat(query.orderBy()).isEqualTo("create_time");
             assertThat(query.asc()).isFalse();
-        }
+        )
 
         @Test
         @DisplayName("defaultPage() 创建默认分页参数")
@@ -122,15 +122,15 @@ class PageQueryTest {
             assertThat(query.size()).isEqualTo(PageQuery.DEFAULT_SIZE);
             assertThat(query.orderBy()).isNull();
             assertThat(query.asc()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("常量值验证")
         void shouldVerifyConstants() {
             assertThat(PageQuery.DEFAULT_SIZE).isEqualTo(10);
             assertThat(PageQuery.MAX_SIZE).isEqualTo(1000);
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("偏移量计算测试")
@@ -143,13 +143,13 @@ class PageQueryTest {
             "3, 20, 40",   // 第3页，每页20条，偏移量40
             "10, 5, 45",   // 第10页，每页5条，偏移量45
             "100, 100, 9900" // 第100页，每页100条
-        })
+        ))
         @DisplayName("偏移量计算正确")
         void shouldCalculateOffsetCorrectly(long page, long size, long expectedOffset) {
             PageQuery query = new PageQuery(page, size, null, true);
 
             assertThat(query.offset()).isEqualTo(expectedOffset);
-        }
+        )
 
         @Test
         @DisplayName("大页码和大页数的偏移量计算（避免溢出）")
@@ -158,7 +158,7 @@ class PageQueryTest {
             PageQuery query = new PageQuery(10000, 100, null, true);
 
             assertThat(query.offset()).isEqualTo(999900L);
-        }
+        )
 
         @Test
         @DisplayName("修正后页码的偏移量计算")
@@ -168,7 +168,7 @@ class PageQueryTest {
 
             assertThat(query.page()).isEqualTo(1);
             assertThat(query.offset()).isEqualTo(0);
-        }
+        )
 
         @Test
         @DisplayName("修正后大小的偏移量计算")
@@ -178,8 +178,8 @@ class PageQueryTest {
 
             assertThat(query.size()).isEqualTo(PageQuery.DEFAULT_SIZE);
             assertThat(query.offset()).isEqualTo(20); // (3-1) * 10 = 20
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("排序相关方法测试")
@@ -191,7 +191,7 @@ class PageQueryTest {
             PageQuery query = new PageQuery(1, 10, "name", true);
 
             assertThat(query.hasOrder()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("hasOrder() - orderBy为null时返回false")
@@ -199,7 +199,7 @@ class PageQueryTest {
             PageQuery query = new PageQuery(1, 10, null, true);
 
             assertThat(query.hasOrder()).isFalse();
-        }
+        )
 
         @Test
         @DisplayName("hasOrder() - orderBy为空字符串时返回false")
@@ -207,7 +207,7 @@ class PageQueryTest {
             PageQuery query = new PageQuery(1, 10, "", true);
 
             assertThat(query.hasOrder()).isFalse();
-        }
+        )
 
         @Test
         @DisplayName("hasOrder() - orderBy为空白字符串时返回true（按业务逻辑，空白不是空字符串）")
@@ -216,7 +216,7 @@ class PageQueryTest {
 
             // 空白字符串不是null也不是empty，所以返回true
             assertThat(query.hasOrder()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("orderDirection() - 升序时返回ASC")
@@ -224,7 +224,7 @@ class PageQueryTest {
             PageQuery query = new PageQuery(1, 10, "name", true);
 
             assertThat(query.orderDirection()).isEqualTo("ASC");
-        }
+        )
 
         @Test
         @DisplayName("orderDirection() - 降序时返回DESC")
@@ -232,7 +232,7 @@ class PageQueryTest {
             PageQuery query = new PageQuery(1, 10, "name", false);
 
             assertThat(query.orderDirection()).isEqualTo("DESC");
-        }
+        )
 
         @Test
         @DisplayName("即使没有排序字段，orderDirection()也能正确返回")
@@ -242,8 +242,8 @@ class PageQueryTest {
 
             assertThat(queryNoOrder.orderDirection()).isEqualTo("ASC");
             assertThat(queryAscFalse.orderDirection()).isEqualTo("DESC");
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("边界和特殊场景测试")
@@ -255,7 +255,7 @@ class PageQueryTest {
             PageQuery query = new PageQuery(Long.MIN_VALUE, 10, null, true);
 
             assertThat(query.page()).isEqualTo(1);
-        }
+        )
 
         @Test
         @DisplayName("极大页码保持不变")
@@ -263,7 +263,7 @@ class PageQueryTest {
             PageQuery query = new PageQuery(Long.MAX_VALUE, 10, null, true);
 
             assertThat(query.page()).isEqualTo(Long.MAX_VALUE);
-        }
+        )
 
         @Test
         @DisplayName("极大每页大小修正")
@@ -271,7 +271,7 @@ class PageQueryTest {
             PageQuery query = new PageQuery(1, Long.MAX_VALUE, null, true);
 
             assertThat(query.size()).isEqualTo(PageQuery.MAX_SIZE);
-        }
+        )
 
         @Test
         @DisplayName("完整参数组合测试")
@@ -289,7 +289,7 @@ class PageQueryTest {
             assertThat(q3.orderDirection()).isEqualTo("DESC");
             assertThat(q4.page()).isEqualTo(1);
             assertThat(q4.size()).isEqualTo(10);
-        }
+        )
 
         @Test
         @DisplayName("链式边界修正测试")
@@ -300,7 +300,7 @@ class PageQueryTest {
             assertThat(query.page()).isEqualTo(1);
             assertThat(query.size()).isEqualTo(PageQuery.DEFAULT_SIZE);
             assertThat(query.offset()).isEqualTo(0);
-        }
+        )
 
         @Test
         @DisplayName("参数恰好等于边界值")
@@ -312,8 +312,8 @@ class PageQueryTest {
             assertThat(queryMinPage.page()).isEqualTo(1);
             assertThat(queryMinSize.size()).isEqualTo(1);
             assertThat(queryMaxSize.size()).isEqualTo(1000);
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("Record特性测试")
@@ -329,7 +329,7 @@ class PageQueryTest {
             assertThat(q1).isEqualTo(q2);
             assertThat(q1.hashCode()).isEqualTo(q2.hashCode());
             assertThat(q1).isNotEqualTo(q3);
-        }
+        )
 
         @Test
         @DisplayName("toString包含关键字段")
@@ -340,6 +340,6 @@ class PageQueryTest {
             assertThat(str).contains("3");
             assertThat(str).contains("25");
             assertThat(str).contains("create_time");
-        }
-    }
-}
+        )
+    )
+)

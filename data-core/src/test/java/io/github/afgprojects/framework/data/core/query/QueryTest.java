@@ -35,7 +35,7 @@ class QueryTest {
                     Operator.IS_NULL, Operator.IS_NOT_NULL, Operator.BETWEEN, Operator.NOT_BETWEEN,
                     Operator.JSON_CONTAINS, Operator.JSON_CONTAINED, Operator.JSON_PATH
             );
-        }
+        )
 
         @Test
         @DisplayName("应返回正确的符号")
@@ -56,7 +56,7 @@ class QueryTest {
             assertThat(Operator.IS_NOT_NULL.getSymbol()).isEqualTo("IS NOT NULL");
             assertThat(Operator.BETWEEN.getSymbol()).isEqualTo("BETWEEN");
             assertThat(Operator.NOT_BETWEEN.getSymbol()).isEqualTo("NOT BETWEEN");
-        }
+        )
 
         @Test
         @DisplayName("requiresValue 应正确判断是否需要值")
@@ -83,7 +83,7 @@ class QueryTest {
             assertThat(Operator.JSON_CONTAINS.requiresValue()).isTrue();
             assertThat(Operator.JSON_CONTAINED.requiresValue()).isTrue();
             assertThat(Operator.JSON_PATH.requiresValue()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("应能通过名称获取枚举值")
@@ -93,15 +93,15 @@ class QueryTest {
             assertThat(Operator.valueOf("GT")).isEqualTo(Operator.GT);
             assertThat(Operator.valueOf("IS_NULL")).isEqualTo(Operator.IS_NULL);
             assertThat(Operator.valueOf("BETWEEN")).isEqualTo(Operator.BETWEEN);
-        }
+        )
 
         @Test
         @DisplayName("LIKE 相关操作符应返回相同符号")
         void shouldReturnSameSymbolForLikeOperators() {
             assertThat(Operator.LIKE.getSymbol()).isEqualTo(Operator.LIKE_LEFT.getSymbol());
             assertThat(Operator.LIKE.getSymbol()).isEqualTo(Operator.LIKE_RIGHT.getSymbol());
-        }
-    }
+        )
+    )
 
     // ==================== LogicalOperator 枚举测试 ====================
 
@@ -115,7 +115,7 @@ class QueryTest {
             assertThat(LogicalOperator.values()).containsExactly(
                     LogicalOperator.AND, LogicalOperator.OR, LogicalOperator.NOT
             );
-        }
+        )
 
         @Test
         @DisplayName("应返回正确的符号")
@@ -123,7 +123,7 @@ class QueryTest {
             assertThat(LogicalOperator.AND.getSymbol()).isEqualTo("AND");
             assertThat(LogicalOperator.OR.getSymbol()).isEqualTo("OR");
             assertThat(LogicalOperator.NOT.getSymbol()).isEqualTo("NOT");
-        }
+        )
 
         @Test
         @DisplayName("应能通过名称获取枚举值")
@@ -131,8 +131,8 @@ class QueryTest {
             assertThat(LogicalOperator.valueOf("AND")).isEqualTo(LogicalOperator.AND);
             assertThat(LogicalOperator.valueOf("OR")).isEqualTo(LogicalOperator.OR);
             assertThat(LogicalOperator.valueOf("NOT")).isEqualTo(LogicalOperator.NOT);
-        }
-    }
+        )
+    )
 
     // ==================== Criterion 测试 ====================
 
@@ -149,7 +149,7 @@ class QueryTest {
             assertThat(criterion.operator()).isEqualTo(Operator.EQ);
             assertThat(criterion.value()).isEqualTo("test");
             assertThat(criterion.nextOperator()).isEqualTo(LogicalOperator.AND);
-        }
+        )
 
         @Test
         @DisplayName("应正确创建条件项 - 兼容构造")
@@ -160,7 +160,7 @@ class QueryTest {
             assertThat(criterion.operator()).isEqualTo(Operator.GT);
             assertThat(criterion.value()).isEqualTo(18);
             assertThat(criterion.nextOperator()).isNull();
-        }
+        )
 
         @Test
         @DisplayName("of 静态方法应正确创建条件项")
@@ -171,7 +171,7 @@ class QueryTest {
             assertThat(criterion.operator()).isEqualTo(Operator.EQ);
             assertThat(criterion.value()).isEqualTo("active");
             assertThat(criterion.nextOperator()).isNull();
-        }
+        )
 
         @Test
         @DisplayName("应支持 null 值")
@@ -179,7 +179,7 @@ class QueryTest {
             Criterion criterion = Criterion.of("deleted_at", Operator.IS_NULL, null);
 
             assertThat(criterion.value()).isNull();
-        }
+        )
 
         @Test
         @DisplayName("isUnary 应正确判断一元操作符")
@@ -188,16 +188,16 @@ class QueryTest {
             assertThat(Criterion.of("col", Operator.IS_NOT_NULL, null).isUnary()).isTrue();
             assertThat(Criterion.of("col", Operator.EQ, "value").isUnary()).isFalse();
             assertThat(Criterion.of("col", Operator.IN, List.of(1, 2, 3)).isUnary()).isFalse();
-        }
+        )
 
         @Test
         @DisplayName("isRange 应正确判断范围操作符")
         void shouldCheckRangeOperator() {
-            assertThat(Criterion.of("age", Operator.BETWEEN, new Object[]{1, 100}).isRange()).isTrue();
-            assertThat(Criterion.of("age", Operator.NOT_BETWEEN, new Object[]{1, 100}).isRange()).isTrue();
+            assertThat(Criterion.of("age", Operator.BETWEEN, new Object[]{1, 100)).isRange()).isTrue();
+            assertThat(Criterion.of("age", Operator.NOT_BETWEEN, new Object[]{1, 100)).isRange()).isTrue();
             assertThat(Criterion.of("age", Operator.EQ, 18).isRange()).isFalse();
             assertThat(Criterion.of("age", Operator.GT, 18).isRange()).isFalse();
-        }
+        )
 
         @Test
         @DisplayName("isCollection 应正确判断集合操作符")
@@ -205,8 +205,8 @@ class QueryTest {
             assertThat(Criterion.of("id", Operator.IN, List.of(1, 2, 3)).isCollection()).isTrue();
             assertThat(Criterion.of("id", Operator.NOT_IN, List.of(1, 2, 3)).isCollection()).isTrue();
             assertThat(Criterion.of("id", Operator.EQ, 1).isCollection()).isFalse();
-            assertThat(Criterion.of("id", Operator.BETWEEN, new Object[]{1, 100}).isCollection()).isFalse();
-        }
+            assertThat(Criterion.of("id", Operator.BETWEEN, new Object[]{1, 100)).isCollection()).isFalse();
+        )
 
         @Test
         @DisplayName("应支持各种类型的值")
@@ -228,9 +228,9 @@ class QueryTest {
             assertThat(listCriterion.value()).isInstanceOf(List.class);
 
             // 数组
-            Criterion arrayCriterion = Criterion.of("range", Operator.BETWEEN, new Object[]{1, 100});
+            Criterion arrayCriterion = Criterion.of("range", Operator.BETWEEN, new Object[]{1, 100));
             assertThat(arrayCriterion.value()).isInstanceOf(Object[].class);
-        }
+        )
 
         @Test
         @DisplayName("record 应正确实现 equals 和 hashCode")
@@ -242,7 +242,7 @@ class QueryTest {
             assertThat(c1).isEqualTo(c2);
             assertThat(c1).isNotEqualTo(c3);
             assertThat(c1.hashCode()).isEqualTo(c2.hashCode());
-        }
+        )
 
         @Test
         @DisplayName("record 应正确实现 toString")
@@ -252,8 +252,8 @@ class QueryTest {
             assertThat(criterion.toString()).contains("name");
             assertThat(criterion.toString()).contains("EQ");
             assertThat(criterion.toString()).contains("test");
-        }
-    }
+        )
+    )
 
     // ==================== Condition 接口测试 ====================
 
@@ -269,8 +269,8 @@ class QueryTest {
             assertThat(empty.isEmpty()).isTrue();
             assertThat(empty.getCriteria()).isEmpty();
             assertThat(empty.getOperator()).isEqualTo(LogicalOperator.AND);
-        }
-    }
+        )
+    )
 
     // ==================== ConditionImpl 测试 ====================
 
@@ -289,7 +289,7 @@ class QueryTest {
             assertThat(condition.isEmpty()).isFalse();
             assertThat(condition.getCriteria()).hasSize(2);
             assertThat(condition.getOperator()).isEqualTo(LogicalOperator.AND);
-        }
+        )
 
         @Test
         @DisplayName("应正确创建 OR 条件")
@@ -300,7 +300,7 @@ class QueryTest {
             Condition condition = new ConditionImpl(LogicalOperator.OR, List.of(c1, c2));
 
             assertThat(condition.getOperator()).isEqualTo(LogicalOperator.OR);
-        }
+        )
 
         @Test
         @DisplayName("空条件列表应返回 isEmpty=true")
@@ -308,7 +308,7 @@ class QueryTest {
             Condition condition = new ConditionImpl(LogicalOperator.AND, Collections.emptyList());
 
             assertThat(condition.isEmpty()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("add 应返回新条件对象（不可变）")
@@ -324,7 +324,7 @@ class QueryTest {
             // 新对象包含两个条件
             assertThat(updated.getCriteria()).hasSize(2);
             assertThat(updated.getCriteria()).containsExactly(c1, c2);
-        }
+        )
 
         @Test
         @DisplayName("and 应正确合并条件")
@@ -340,7 +340,7 @@ class QueryTest {
             assertThat(combined.getOperator()).isEqualTo(LogicalOperator.AND);
             assertThat(combined.getCriteria()).hasSize(2);
             assertThat(combined.getCriteria()).containsExactly(c1, c2);
-        }
+        )
 
         @Test
         @DisplayName("or 应正确合并条件")
@@ -355,7 +355,7 @@ class QueryTest {
 
             assertThat(combined.getOperator()).isEqualTo(LogicalOperator.OR);
             assertThat(combined.getCriteria()).hasSize(2);
-        }
+        )
 
         @Test
         @DisplayName("and 合并时空条件应返回另一条件")
@@ -371,7 +371,7 @@ class QueryTest {
             // 非空 + 空 = 非空
             Condition result2 = cond1.and(empty);
             assertThat(result2).isEqualTo(cond1);
-        }
+        )
 
         @Test
         @DisplayName("or 合并时空条件应返回另一条件")
@@ -387,21 +387,21 @@ class QueryTest {
             // 非空 + 空 = 非空
             Condition result2 = cond1.or(empty);
             assertThat(result2).isEqualTo(cond1);
-        }
+        )
 
         @Test
         @DisplayName("空条件 and 空条件应返回空条件")
         void shouldReturnEmptyWhenAndTwoEmpty() {
             Condition result = Condition.empty().and(Condition.empty());
             assertThat(result.isEmpty()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("空条件 or 空条件应返回空条件")
         void shouldReturnEmptyWhenOrTwoEmpty() {
             Condition result = Condition.empty().or(Condition.empty());
             assertThat(result.isEmpty()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("getCriteria 应返回不可变列表")
@@ -413,7 +413,7 @@ class QueryTest {
 
             assertThatThrownBy(() -> criteria.add(Criterion.of("other", Operator.EQ, "value")))
                     .isInstanceOf(UnsupportedOperationException.class);
-        }
+        )
 
         @Test
         @DisplayName("toString 应包含操作符和条件")
@@ -426,15 +426,15 @@ class QueryTest {
             assertThat(str).contains("AND");
             assertThat(str).contains("name");
             assertThat(str).contains("EQ");
-        }
+        )
 
         @Test
         @DisplayName("EMPTY 常量应为空条件")
         void shouldHaveEmptyConstant() {
             assertThat(ConditionImpl.EMPTY.isEmpty()).isTrue();
             assertThat(ConditionImpl.EMPTY.getOperator()).isEqualTo(LogicalOperator.AND);
-        }
-    }
+        )
+    )
 
     // ==================== Sort 测试 ====================
 
@@ -451,7 +451,7 @@ class QueryTest {
             assertThat(sort.isSorted()).isTrue();
             assertThat(sort.isUnsorted()).isFalse();
             assertThat(sort.getOrders()).hasSize(1);
-        }
+        )
 
         @Test
         @DisplayName("unsorted 应返回空排序")
@@ -461,14 +461,14 @@ class QueryTest {
             assertThat(sort.isUnsorted()).isTrue();
             assertThat(sort.isSorted()).isFalse();
             assertThat(sort.getOrders()).isEmpty();
-        }
+        )
 
         @Test
         @DisplayName("UNSORTED 常量应为空排序")
         void shouldHaveUnsortedConstant() {
             assertThat(Sort.UNSORTED.isUnsorted()).isTrue();
             assertThat(Sort.UNSORTED.isSorted()).isFalse();
-        }
+        )
 
         @Test
         @DisplayName("asc 应创建升序排序")
@@ -481,7 +481,7 @@ class QueryTest {
             assertThat(sort.getOrders().get(0).isAscending()).isTrue();
             assertThat(sort.getOrders().get(1).getProperty()).isEqualTo("created_at");
             assertThat(sort.getOrders().get(1).isAscending()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("desc 应创建降序排序")
@@ -492,7 +492,7 @@ class QueryTest {
             assertThat(sort.getOrders()).hasSize(2);
             assertThat(sort.getOrders().get(0).isDescending()).isTrue();
             assertThat(sort.getOrders().get(1).isDescending()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("by(Direction, String...) 应创建指定方向排序")
@@ -502,7 +502,7 @@ class QueryTest {
             assertThat(sort.getOrders()).hasSize(2);
             assertThat(sort.getOrders().get(0).getDirection()).isEqualTo(Sort.Direction.DESC);
             assertThat(sort.getOrders().get(1).getDirection()).isEqualTo(Sort.Direction.DESC);
-        }
+        )
 
         @Test
         @DisplayName("by(Order...) 应创建排序")
@@ -515,7 +515,7 @@ class QueryTest {
             assertThat(sort.getOrders()).hasSize(2);
             assertThat(sort.getOrders().get(0).isAscending()).isTrue();
             assertThat(sort.getOrders().get(1).isDescending()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("and 应正确合并排序")
@@ -528,7 +528,7 @@ class QueryTest {
             assertThat(combined.getOrders()).hasSize(2);
             assertThat(combined.getOrders().get(0).getProperty()).isEqualTo("name");
             assertThat(combined.getOrders().get(1).getProperty()).isEqualTo("created_at");
-        }
+        )
 
         @Test
         @DisplayName("and 合并时空排序应返回原排序")
@@ -540,14 +540,14 @@ class QueryTest {
             assertThat(sorted.and(unsorted)).isEqualTo(sorted);
             // 空排序 + 已排序 = 已排序
             assertThat(unsorted.and(sorted)).isEqualTo(sorted);
-        }
+        )
 
         @Test
         @DisplayName("两个空排序合并应返回空排序")
         void shouldReturnUnsortedWhenCombineTwoUnsorted() {
             Sort result = Sort.unsorted().and(Sort.unsorted());
             assertThat(result.isUnsorted()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("getOrders 应返回不可变列表")
@@ -556,7 +556,7 @@ class QueryTest {
 
             assertThatThrownBy(() -> sort.getOrders().add(Sort.Order.asc("other")))
                     .isInstanceOf(UnsupportedOperationException.class);
-        }
+        )
 
         @Test
         @DisplayName("toString 应正确格式化")
@@ -567,13 +567,13 @@ class QueryTest {
 
             assertThat(str).contains("name ASC");
             assertThat(str).contains("age ASC");
-        }
+        )
 
         @Test
         @DisplayName("空排序 toString 应返回 UNSORTED")
         void shouldReturnUnsortedInToString() {
             assertThat(Sort.unsorted().toString()).isEqualTo("UNSORTED");
-        }
+        )
 
         // ==================== Sort.Order 测试 ====================
 
@@ -591,7 +591,7 @@ class QueryTest {
                 assertThat(order.isAscending()).isTrue();
                 assertThat(order.isDescending()).isFalse();
                 assertThat(order.isIgnoreCase()).isFalse();
-            }
+            )
 
             @Test
             @DisplayName("应支持忽略大小写")
@@ -599,7 +599,7 @@ class QueryTest {
                 Sort.Order order = new Sort.Order("name", Sort.Direction.ASC, true);
 
                 assertThat(order.isIgnoreCase()).isTrue();
-            }
+            )
 
             @Test
             @DisplayName("asc 静态方法应创建升序排序项")
@@ -608,7 +608,7 @@ class QueryTest {
 
                 assertThat(order.getProperty()).isEqualTo("name");
                 assertThat(order.isAscending()).isTrue();
-            }
+            )
 
             @Test
             @DisplayName("desc 静态方法应创建降序排序项")
@@ -617,7 +617,7 @@ class QueryTest {
 
                 assertThat(order.getProperty()).isEqualTo("created_at");
                 assertThat(order.isDescending()).isTrue();
-            }
+            )
 
             @Test
             @DisplayName("ignoreCase 应创建忽略大小写的排序项")
@@ -629,7 +629,7 @@ class QueryTest {
                 assertThat(ignoreCase.isIgnoreCase()).isTrue();
                 assertThat(ignoreCase.getProperty()).isEqualTo("name");
                 assertThat(ignoreCase.getDirection()).isEqualTo(Sort.Direction.ASC);
-            }
+            )
 
             @Test
             @DisplayName("toString 应正确格式化")
@@ -639,7 +639,7 @@ class QueryTest {
 
                 Sort.Order order2 = new Sort.Order("name", Sort.Direction.ASC, true);
                 assertThat(order2.toString()).isEqualTo("name ASC IGNORE CASE");
-            }
+            )
 
             // ==================== 属性名验证测试 ====================
 
@@ -663,7 +663,7 @@ class QueryTest {
 
                 // 复杂嵌套属性
                 assertThat(Sort.Order.asc("user.profile.name").getProperty()).isEqualTo("user.profile.name");
-            }
+            )
 
             @Test
             @DisplayName("应拒绝空属性名")
@@ -671,7 +671,7 @@ class QueryTest {
                 assertThatThrownBy(() -> Sort.Order.asc(""))
                         .isInstanceOf(IllegalArgumentException.class)
                         .hasMessageContaining("Property name must not be empty");
-            }
+            )
 
             @Test
             @DisplayName("应拒绝包含非法字符的属性名")
@@ -705,7 +705,7 @@ class QueryTest {
                 assertThatThrownBy(() -> Sort.Order.asc("field'"))
                         .isInstanceOf(IllegalArgumentException.class)
                         .hasMessageContaining("Invalid property name");
-            }
+            )
 
             @Test
             @DisplayName("应拒绝 null 属性名")
@@ -713,8 +713,8 @@ class QueryTest {
                 assertThatThrownBy(() -> Sort.Order.asc(null))
                         .isInstanceOf(NullPointerException.class)
                         .hasMessageContaining("property must not be null");
-            }
-        }
+            )
+        )
 
         // ==================== Sort.Direction 测试 ====================
 
@@ -728,22 +728,22 @@ class QueryTest {
                 assertThat(Sort.Direction.values()).containsExactly(
                         Sort.Direction.ASC, Sort.Direction.DESC
                 );
-            }
+            )
 
             @Test
             @DisplayName("应返回正确的符号")
             void shouldReturnCorrectSymbol() {
                 assertThat(Sort.Direction.ASC.getSymbol()).isEqualTo("ASC");
                 assertThat(Sort.Direction.DESC.getSymbol()).isEqualTo("DESC");
-            }
+            )
 
             @Test
             @DisplayName("应能通过名称获取枚举值")
             void shouldGetValueByName() {
                 assertThat(Sort.Direction.valueOf("ASC")).isEqualTo(Sort.Direction.ASC);
                 assertThat(Sort.Direction.valueOf("DESC")).isEqualTo(Sort.Direction.DESC);
-            }
-        }
+            )
+        )
 
         // ==================== Lambda 排序测试 ====================
 
@@ -759,7 +759,7 @@ class QueryTest {
                 private Integer age;
                 private Boolean active;
                 private String createTime;
-            }
+            )
 
             @Test
             @DisplayName("asc(Lambda) 应创建升序排序")
@@ -770,7 +770,7 @@ class QueryTest {
                 assertThat(sort.getOrders()).hasSize(1);
                 assertThat(sort.getOrders().get(0).getProperty()).isEqualTo("name");
                 assertThat(sort.getOrders().get(0).isAscending()).isTrue();
-            }
+            )
 
             @Test
             @DisplayName("desc(Lambda) 应创建降序排序")
@@ -781,7 +781,7 @@ class QueryTest {
                 assertThat(sort.getOrders()).hasSize(1);
                 assertThat(sort.getOrders().get(0).getProperty()).isEqualTo("createTime");
                 assertThat(sort.getOrders().get(0).isDescending()).isTrue();
-            }
+            )
 
             @Test
             @DisplayName("by(Direction, Lambda...) 应创建多字段排序")
@@ -793,7 +793,7 @@ class QueryTest {
                 assertThat(sort.getOrders().get(0).isAscending()).isTrue();
                 assertThat(sort.getOrders().get(1).getProperty()).isEqualTo("age");
                 assertThat(sort.getOrders().get(1).isAscending()).isTrue();
-            }
+            )
 
             @Test
             @DisplayName("builder(Class) 应创建类型化排序构建器")
@@ -808,7 +808,7 @@ class QueryTest {
                 assertThat(sort.getOrders().get(0).isAscending()).isTrue();
                 assertThat(sort.getOrders().get(1).getProperty()).isEqualTo("createTime");
                 assertThat(sort.getOrders().get(1).isDescending()).isTrue();
-            }
+            )
 
             @Test
             @DisplayName("空构建器应返回 UNSORTED")
@@ -816,7 +816,7 @@ class QueryTest {
                 Sort sort = Sort.builder(TestEntity.class).build();
 
                 assertThat(sort.isUnsorted()).isTrue();
-            }
+            )
 
             @Test
             @DisplayName("Lambda 排序应正确解析 is 前缀的 getter")
@@ -824,7 +824,7 @@ class QueryTest {
                 Sort sort = Sort.asc(TestEntity::getActive);
 
                 assertThat(sort.getOrders().get(0).getProperty()).isEqualTo("active");
-            }
+            )
 
             @Test
             @DisplayName("Lambda 排序应支持链式组合")
@@ -837,9 +837,9 @@ class QueryTest {
                 assertThat(combined.getOrders()).hasSize(2);
                 assertThat(combined.getOrders().get(0).getProperty()).isEqualTo("name");
                 assertThat(combined.getOrders().get(1).getProperty()).isEqualTo("age");
-            }
-        }
-    }
+            )
+        )
+    )
 
     // ==================== Page 测试 ====================
 
@@ -857,7 +857,7 @@ class QueryTest {
             assertThat(page.getTotal()).isEqualTo(100);
             assertThat(page.getPage()).isEqualTo(2);
             assertThat(page.getSize()).isEqualTo(10);
-        }
+        )
 
         @Test
         @DisplayName("应正确计算总页数")
@@ -877,7 +877,7 @@ class QueryTest {
             // 1 条记录
             Page<String> page4 = new Page<>(List.of("a"), 1, 1, 10);
             assertThat(page4.getTotalPages()).isEqualTo(1);
-        }
+        )
 
         @Test
         @DisplayName("应正确计算偏移量")
@@ -890,7 +890,7 @@ class QueryTest {
 
             Page<String> page3 = new Page<>(List.of("a"), 100, 5, 20);
             assertThat(page3.getOffset()).isEqualTo(80);
-        }
+        )
 
         @Test
         @DisplayName("应正确判断页面位置")
@@ -922,7 +922,7 @@ class QueryTest {
             assertThat(singlePage.isLast()).isTrue();
             assertThat(singlePage.hasPrevious()).isFalse();
             assertThat(singlePage.hasNext()).isFalse();
-        }
+        )
 
         @Test
         @DisplayName("应正确判断内容")
@@ -936,7 +936,7 @@ class QueryTest {
             Page<String> emptyContent = new Page<>(Collections.emptyList(), 0, 1, 10);
             assertThat(emptyContent.hasContent()).isFalse();
             assertThat(emptyContent.getNumberOfElements()).isEqualTo(0);
-        }
+        )
 
         @Test
         @DisplayName("应正确处理负数参数")
@@ -952,7 +952,7 @@ class QueryTest {
             // 负 size 应变为 1
             Page<String> page3 = new Page<>(List.of("a"), 10, 1, -10);
             assertThat(page3.getSize()).isEqualTo(1);
-        }
+        )
 
         @Test
         @DisplayName("应正确处理 0 参数")
@@ -968,7 +968,7 @@ class QueryTest {
             // 0 size 应变为 1
             Page<String> page3 = new Page<>(List.of("a"), 10, 1, 0);
             assertThat(page3.getSize()).isEqualTo(1);
-        }
+        )
 
         @Test
         @DisplayName("getContent 应返回不可变列表")
@@ -977,7 +977,7 @@ class QueryTest {
 
             assertThatThrownBy(() -> page.getContent().add("c"))
                     .isInstanceOf(UnsupportedOperationException.class);
-        }
+        )
 
         @Test
         @DisplayName("map 应正确转换数据类型")
@@ -991,7 +991,7 @@ class QueryTest {
             assertThat(intPage.getTotal()).isEqualTo(100);
             assertThat(intPage.getPage()).isEqualTo(2);
             assertThat(intPage.getSize()).isEqualTo(10);
-        }
+        )
 
         @Test
         @DisplayName("map 应保留分页信息")
@@ -1003,7 +1003,7 @@ class QueryTest {
             assertThat(mapped.getTotal()).isEqualTo(original.getTotal());
             assertThat(mapped.getPage()).isEqualTo(original.getPage());
             assertThat(mapped.getSize()).isEqualTo(original.getSize());
-        }
+        )
 
         @Test
         @DisplayName("empty() 应创建空分页")
@@ -1014,7 +1014,7 @@ class QueryTest {
             assertThat(empty.getTotal()).isEqualTo(0);
             assertThat(empty.getPage()).isEqualTo(1);
             assertThat(empty.getSize()).isEqualTo(10);
-        }
+        )
 
         @Test
         @DisplayName("empty(page, size) 应创建指定分页参数的空分页")
@@ -1025,7 +1025,7 @@ class QueryTest {
             assertThat(empty.getTotal()).isEqualTo(0);
             assertThat(empty.getPage()).isEqualTo(2);
             assertThat(empty.getSize()).isEqualTo(20);
-        }
+        )
 
         @Test
         @DisplayName("of 应创建分页")
@@ -1037,7 +1037,7 @@ class QueryTest {
             assertThat(page.getTotal()).isEqualTo(100);
             assertThat(page.getPage()).isEqualTo(2);
             assertThat(page.getSize()).isEqualTo(10);
-        }
+        )
 
         @Test
         @DisplayName("singlePage 应创建单页分页")
@@ -1051,7 +1051,7 @@ class QueryTest {
             assertThat(page.getSize()).isEqualTo(5);
             assertThat(page.isFirst()).isTrue();
             assertThat(page.isLast()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("singlePage 空列表应正确处理")
@@ -1064,7 +1064,7 @@ class QueryTest {
             assertThat(page.getSize()).isEqualTo(1);
             // total=0, size=1 -> (0 + 1 - 1) / 1 = 0
             assertThat(page.getTotalPages()).isEqualTo(0);
-        }
+        )
 
         @Test
         @DisplayName("toString 应包含所有信息")
@@ -1077,14 +1077,14 @@ class QueryTest {
             assertThat(str).contains("total=100");
             assertThat(str).contains("page=2");
             assertThat(str).contains("size=10");
-        }
+        )
 
         @Test
         @DisplayName("构造函数应拒绝 null content")
         void shouldRejectNullContent() {
             assertThatThrownBy(() -> new Page<>(null, 100, 1, 10))
                     .isInstanceOf(NullPointerException.class);
-        }
+        )
 
         @Test
         @DisplayName("map 应拒绝 null mapper")
@@ -1093,7 +1093,7 @@ class QueryTest {
 
             assertThatThrownBy(() -> page.map(null))
                     .isInstanceOf(NullPointerException.class);
-        }
+        )
 
         @Test
         @DisplayName("应正确处理大数据量分页")
@@ -1105,7 +1105,7 @@ class QueryTest {
             assertThat(page.getOffset()).isEqualTo(9_999_900L);
             assertThat(page.getTotalPages()).isEqualTo(10_000_000);
             assertThat(page.hasNext()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("应正确处理边界页码")
@@ -1119,6 +1119,6 @@ class QueryTest {
             Page<String> overPage = new Page<>(List.of("a"), 100, 20, 10);
             assertThat(overPage.isLast()).isTrue(); // 页码 >= 总页数
             assertThat(overPage.hasNext()).isFalse();
-        }
-    }
-}
+        )
+    )
+)

@@ -35,7 +35,7 @@ class DialectTest {
             String paged = dialect.getPaginationSql(sql, 20, 10);
 
             assertThat(paged).isEqualTo("SELECT * FROM user LIMIT 10 OFFSET 20");
-        }
+        )
 
         @Test
         @DisplayName("应使用 PageRequest 生成分页 SQL")
@@ -44,20 +44,20 @@ class DialectTest {
             String paged = dialect.getPaginationSql(sql, PageRequest.of(3, 20));
 
             assertThat(paged).isEqualTo("SELECT * FROM user LIMIT 20 OFFSET 40");
-        }
+        )
 
         @Test
         @DisplayName("应正确引用标识符")
         void shouldQuoteIdentifier() {
             assertThat(dialect.quoteIdentifier("name")).isEqualTo("`name`");
             assertThat(dialect.quoteIdentifier("user_name")).isEqualTo("`user_name`");
-        }
+        )
 
         @Test
         @DisplayName("应返回正确的标识符引用字符")
         void shouldReturnIdentifierQuote() {
             assertThat(dialect.getIdentifierQuote()).isEqualTo("`");
-        }
+        )
 
         @Test
         @DisplayName("应返回正确的时间函数")
@@ -65,20 +65,20 @@ class DialectTest {
             assertThat(dialect.getCurrentTimeFunction()).isEqualTo("NOW()");
             assertThat(dialect.getCurrentDateFunction()).isEqualTo("CURDATE()");
             assertThat(dialect.getCurrentTimestampFunction()).isEqualTo("NOW()");
-        }
+        )
 
 
         @Test
         @DisplayName("应返回自增语法")
         void shouldReturnAutoIncrementSyntax() {
             assertThat(dialect.getAutoIncrementSyntax()).isEqualTo("AUTO_INCREMENT");
-        }
+        )
 
         @Test
         @DisplayName("应生成序列查询 SQL")
         void shouldGetMySQLSequenceNextValue() {
             assertThat(dialect.getSequenceNextValueSql("user_seq")).isEqualTo("SELECT NEXTVAL(`user_seq`)");
-        }
+        )
 
         @Test
         @DisplayName("应正确映射所有 Java 类型到 SQL 类型")
@@ -111,21 +111,21 @@ class DialectTest {
 
             // 未知类型
             assertThat(dialect.getSqlType(Object.class)).isEqualTo("VARCHAR(255)");
-        }
+        )
 
         @Test
         @DisplayName("应支持 FOR UPDATE")
         void shouldSupportForUpdate() {
             assertThat(dialect.getForUpdateSyntax()).isEqualTo("FOR UPDATE");
-        }
+        )
 
         @Test
         @DisplayName("分页能力测试")
         void shouldCheckPaginationCapabilities() {
             assertThat(dialect.supportsLimitOffset()).isTrue();
             assertThat(dialect.supportsFetchFirst()).isFalse();
-        }
-    }
+        )
+    )
 
     // ==================== PostgreSQL 方言测试 ====================
 
@@ -142,14 +142,14 @@ class DialectTest {
             String paged = dialect.getPaginationSql(sql, PageRequest.of(3, 20));
 
             assertThat(paged).isEqualTo("SELECT * FROM user LIMIT 20 OFFSET 40");
-        }
+        )
 
         @Test
         @DisplayName("应正确引用标识符")
         void shouldQuoteIdentifier() {
             assertThat(dialect.quoteIdentifier("name")).isEqualTo("\"name\"");
             assertThat(dialect.getIdentifierQuote()).isEqualTo("\"");
-        }
+        )
 
         @Test
         @DisplayName("应返回正确的时间函数")
@@ -157,20 +157,20 @@ class DialectTest {
             assertThat(dialect.getCurrentTimeFunction()).isEqualTo("CURRENT_TIME");
             assertThat(dialect.getCurrentDateFunction()).isEqualTo("CURRENT_DATE");
             assertThat(dialect.getCurrentTimestampFunction()).isEqualTo("CURRENT_TIMESTAMP");
-        }
+        )
 
 
         @Test
         @DisplayName("应返回自增语法")
         void shouldReturnAutoIncrementSyntax() {
             assertThat(dialect.getAutoIncrementSyntax()).isEqualTo("GENERATED ALWAYS AS IDENTITY");
-        }
+        )
 
         @Test
         @DisplayName("应生成序列查询 SQL")
         void shouldGetSequenceNextValue() {
             assertThat(dialect.getSequenceNextValueSql("user_seq")).isEqualTo("SELECT nextval('user_seq')");
-        }
+        )
 
         @Test
         @DisplayName("应正确映射所有 Java 类型到 SQL 类型")
@@ -199,27 +199,27 @@ class DialectTest {
             assertThat(dialect.getSqlType(BigDecimal.class)).isEqualTo("NUMERIC(19,4)");
             assertThat(dialect.getSqlType(byte[].class)).isEqualTo("BYTEA");
             assertThat(dialect.getSqlType(Object.class)).isEqualTo("VARCHAR(255)");
-        }
+        )
 
         @Test
         @DisplayName("应支持 FOR UPDATE")
         void shouldSupportForUpdate() {
             assertThat(dialect.getForUpdateSyntax()).isEqualTo("FOR UPDATE");
-        }
+        )
 
         @Test
         @DisplayName("分页能力测试")
         void shouldCheckPaginationCapabilities() {
             assertThat(dialect.supportsLimitOffset()).isTrue();
             assertThat(dialect.supportsFetchFirst()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("应返回 PostgreSQL 数据库类型")
         void shouldReturnDatabaseType() {
             assertThat(dialect.getDatabaseType()).isEqualTo(DatabaseType.POSTGRESQL);
-        }
-    }
+        )
+    )
 
     // ==================== Oracle 方言测试 ====================
 
@@ -236,7 +236,7 @@ class DialectTest {
             String paged = dialect.getPaginationSql(sql, 20, 10);
 
             assertThat(paged).isEqualTo("SELECT * FROM (SELECT * FROM user) OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY");
-        }
+        )
 
         @Test
         @DisplayName("应使用 PageRequest 生成分页 SQL")
@@ -245,14 +245,14 @@ class DialectTest {
             String paged = dialect.getPaginationSql(sql, PageRequest.of(2, 15));
 
             assertThat(paged).isEqualTo("SELECT * FROM (SELECT * FROM user ORDER BY id) OFFSET 15 ROWS FETCH NEXT 15 ROWS ONLY");
-        }
+        )
 
         @Test
         @DisplayName("应正确引用标识符")
         void shouldQuoteIdentifier() {
             assertThat(dialect.quoteIdentifier("name")).isEqualTo("\"name\"");
             assertThat(dialect.getIdentifierQuote()).isEqualTo("\"");
-        }
+        )
 
         @Test
         @DisplayName("应返回正确的时间函数")
@@ -260,19 +260,19 @@ class DialectTest {
             assertThat(dialect.getCurrentTimeFunction()).isEqualTo("SYSDATE");
             assertThat(dialect.getCurrentDateFunction()).isEqualTo("SYSDATE");
             assertThat(dialect.getCurrentTimestampFunction()).isEqualTo("SYSTIMESTAMP");
-        }
+        )
 
         @Test
         @DisplayName("应返回自增语法")
         void shouldReturnAutoIncrementSyntax() {
             assertThat(dialect.getAutoIncrementSyntax()).isEqualTo("GENERATED BY DEFAULT AS IDENTITY");
-        }
+        )
 
         @Test
         @DisplayName("应生成序列查询 SQL")
         void shouldGetSequenceNextValue() {
             assertThat(dialect.getSequenceNextValueSql("user_seq")).isEqualTo("SELECT user_seq.NEXTVAL FROM DUAL");
-        }
+        )
 
         @Test
         @DisplayName("应正确映射所有 Java 类型到 SQL 类型")
@@ -301,27 +301,27 @@ class DialectTest {
             assertThat(dialect.getSqlType(BigDecimal.class)).isEqualTo("NUMBER(19,4)");
             assertThat(dialect.getSqlType(byte[].class)).isEqualTo("BLOB");
             assertThat(dialect.getSqlType(Object.class)).isEqualTo("VARCHAR2(255)");
-        }
+        )
 
         @Test
         @DisplayName("应支持 FOR UPDATE")
         void shouldSupportForUpdate() {
             assertThat(dialect.getForUpdateSyntax()).isEqualTo("FOR UPDATE");
-        }
+        )
 
         @Test
         @DisplayName("分页能力测试")
         void shouldCheckPaginationCapabilities() {
             assertThat(dialect.supportsLimitOffset()).isFalse();
             assertThat(dialect.supportsFetchFirst()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("应返回 Oracle 数据库类型")
         void shouldReturnDatabaseType() {
             assertThat(dialect.getDatabaseType()).isEqualTo(DatabaseType.ORACLE);
-        }
-    }
+        )
+    )
 
     // ==================== SQL Server 方言测试 ====================
 
@@ -338,7 +338,7 @@ class DialectTest {
             String paged = dialect.getPaginationSql(sql, 20, 10);
 
             assertThat(paged).isEqualTo("SELECT * FROM user ORDER BY id OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY");
-        }
+        )
 
         @Test
         @DisplayName("应生成不带 ORDER BY 的分页 SQL（包装子查询）")
@@ -347,7 +347,7 @@ class DialectTest {
             String paged = dialect.getPaginationSql(sql, 0, 10);
 
             assertThat(paged).isEqualTo("SELECT * FROM (SELECT * FROM user) AS _paged OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY");
-        }
+        )
 
         @Test
         @DisplayName("应使用 PageRequest 生成分页 SQL")
@@ -356,7 +356,7 @@ class DialectTest {
             String paged = dialect.getPaginationSql(sql, PageRequest.of(3, 20));
 
             assertThat(paged).isEqualTo("SELECT * FROM user ORDER BY name OFFSET 40 ROWS FETCH NEXT 20 ROWS ONLY");
-        }
+        )
 
         @Test
         @DisplayName("应正确引用标识符（处理右括号转义）")
@@ -365,7 +365,7 @@ class DialectTest {
             assertThat(dialect.quoteIdentifier("column]name")).isEqualTo("[column]]name]");
             assertThat(dialect.quoteIdentifier("]column")).isEqualTo("[]]column]");
             assertThat(dialect.getIdentifierQuote()).isEqualTo("[");
-        }
+        )
 
         @Test
         @DisplayName("应返回正确的时间函数")
@@ -373,19 +373,19 @@ class DialectTest {
             assertThat(dialect.getCurrentTimeFunction()).isEqualTo("CONVERT(TIME, GETDATE())");
             assertThat(dialect.getCurrentDateFunction()).isEqualTo("CONVERT(DATE, GETDATE())");
             assertThat(dialect.getCurrentTimestampFunction()).isEqualTo("GETDATE()");
-        }
+        )
 
         @Test
         @DisplayName("应返回自增语法")
         void shouldReturnAutoIncrementSyntax() {
             assertThat(dialect.getAutoIncrementSyntax()).isEqualTo("IDENTITY(1,1)");
-        }
+        )
 
         @Test
         @DisplayName("应生成序列查询 SQL")
         void shouldGetSQLServerSequenceNextValue() {
             assertThat(dialect.getSequenceNextValueSql("user_seq")).isEqualTo("SELECT NEXT VALUE FOR [user_seq]");
-        }
+        )
 
         @Test
         @DisplayName("应正确映射所有 Java 类型到 SQL 类型")
@@ -414,27 +414,27 @@ class DialectTest {
             assertThat(dialect.getSqlType(BigDecimal.class)).isEqualTo("DECIMAL(19,4)");
             assertThat(dialect.getSqlType(byte[].class)).isEqualTo("VARBINARY(MAX)");
             assertThat(dialect.getSqlType(Object.class)).isEqualTo("NVARCHAR(255)");
-        }
+        )
 
         @Test
         @DisplayName("应支持 FOR UPDATE")
         void shouldGetSQLServerForUpdateSyntax() {
             assertThat(dialect.getForUpdateSyntax()).isEqualTo("WITH (UPDLOCK, ROWLOCK)");
-        }
+        )
 
         @Test
         @DisplayName("分页能力测试")
         void shouldSQLServerSupportFetchFirst() {
             assertThat(dialect.supportsFetchFirst()).isTrue();
             assertThat(dialect.supportsLimitOffset()).isFalse();
-        }
+        )
 
         @Test
         @DisplayName("应返回 SQL Server 数据库类型")
         void shouldReturnDatabaseType() {
             assertThat(dialect.getDatabaseType()).isEqualTo(DatabaseType.SQLSERVER);
-        }
-    }
+        )
+    )
 
     // ==================== 达梦（DM）方言测试 ====================
 
@@ -450,7 +450,7 @@ class DialectTest {
             assertThat(dialect.getDatabaseType()).isEqualTo(DatabaseType.DM);
             assertThat(dialect.supportsFetchFirst()).isTrue();
             assertThat(dialect.quoteIdentifier("name")).isEqualTo("\"name\"");
-        }
+        )
 
         @Test
         @DisplayName("应生成达梦分页 SQL")
@@ -459,7 +459,7 @@ class DialectTest {
             String paged = dialect.getPaginationSql(sql, 20, 10);
 
             assertThat(paged).isEqualTo("SELECT * FROM (SELECT * FROM user) OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY");
-        }
+        )
 
         @Test
         @DisplayName("应使用 PageRequest 生成分页 SQL")
@@ -468,7 +468,7 @@ class DialectTest {
             String paged = dialect.getPaginationSql(sql, PageRequest.of(3, 20));
 
             assertThat(paged).isEqualTo("SELECT * FROM (SELECT * FROM user) OFFSET 40 ROWS FETCH NEXT 20 ROWS ONLY");
-        }
+        )
 
         @Test
         @DisplayName("应返回正确的时间函数")
@@ -476,19 +476,19 @@ class DialectTest {
             assertThat(dialect.getCurrentTimeFunction()).isEqualTo("SYSDATE");
             assertThat(dialect.getCurrentDateFunction()).isEqualTo("SYSDATE");
             assertThat(dialect.getCurrentTimestampFunction()).isEqualTo("SYSTIMESTAMP");
-        }
+        )
 
         @Test
         @DisplayName("应返回自增语法")
         void shouldReturnAutoIncrementSyntax() {
             assertThat(dialect.getAutoIncrementSyntax()).isEqualTo("IDENTITY");
-        }
+        )
 
         @Test
         @DisplayName("应生成序列查询 SQL")
         void shouldGetDmSequenceNextValue() {
             assertThat(dialect.getSequenceNextValueSql("user_seq")).isEqualTo("SELECT user_seq.NEXTVAL FROM DUAL");
-        }
+        )
 
         @Test
         @DisplayName("应正确映射所有 Java 类型到 SQL 类型")
@@ -517,27 +517,27 @@ class DialectTest {
             assertThat(dialect.getSqlType(BigDecimal.class)).isEqualTo("DECIMAL(19,4)");
             assertThat(dialect.getSqlType(byte[].class)).isEqualTo("BLOB");
             assertThat(dialect.getSqlType(Object.class)).isEqualTo("VARCHAR2(255)");
-        }
+        )
 
         @Test
         @DisplayName("应支持 FOR UPDATE")
         void shouldSupportForUpdate() {
             assertThat(dialect.getForUpdateSyntax()).isEqualTo("FOR UPDATE");
-        }
+        )
 
         @Test
         @DisplayName("分页能力测试")
         void shouldCheckPaginationCapabilities() {
             assertThat(dialect.supportsLimitOffset()).isFalse();
             assertThat(dialect.supportsFetchFirst()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("应返回标识符引用字符")
         void shouldReturnIdentifierQuote() {
             assertThat(dialect.getIdentifierQuote()).isEqualTo("\"");
-        }
-    }
+        )
+    )
 
     // ==================== 金仓（Kingbase）方言测试 ====================
 
@@ -553,7 +553,7 @@ class DialectTest {
             assertThat(dialect.getDatabaseType()).isEqualTo(DatabaseType.KINGBASE);
             assertThat(dialect.supportsLimitOffset()).isTrue();
             assertThat(dialect.quoteIdentifier("name")).isEqualTo("\"name\"");
-        }
+        )
 
         @Test
         @DisplayName("应生成金仓分页 SQL")
@@ -562,7 +562,7 @@ class DialectTest {
             String paged = dialect.getPaginationSql(sql, 20, 10);
 
             assertThat(paged).isEqualTo("SELECT * FROM user LIMIT 10 OFFSET 20");
-        }
+        )
 
         @Test
         @DisplayName("应使用 PageRequest 生成分页 SQL")
@@ -571,14 +571,14 @@ class DialectTest {
             String paged = dialect.getPaginationSql(sql, PageRequest.of(2, 15));
 
             assertThat(paged).isEqualTo("SELECT * FROM user LIMIT 15 OFFSET 15");
-        }
+        )
 
         @Test
         @DisplayName("应返回正确的时间函数")
         void shouldGetKingbaseTimeFunction() {
             assertThat(dialect.getCurrentTimeFunction()).isEqualTo("CURRENT_TIME");
             assertThat(dialect.getCurrentTimestampFunction()).isEqualTo("CURRENT_TIMESTAMP");
-        }
+        )
 
         @Test
         @DisplayName("应正确映射所有 Java 类型到 SQL 类型")
@@ -600,21 +600,21 @@ class DialectTest {
             assertThat(dialect.getSqlType(LocalTime.class)).isEqualTo("TIME");
             assertThat(dialect.getSqlType(BigDecimal.class)).isEqualTo("NUMERIC(19,4)");
             assertThat(dialect.getSqlType(byte[].class)).isEqualTo("BYTEA");
-        }
+        )
 
         @Test
         @DisplayName("应支持 FOR UPDATE")
         void shouldSupportForUpdate() {
             assertThat(dialect.getForUpdateSyntax()).isEqualTo("FOR UPDATE");
-        }
+        )
 
         @Test
         @DisplayName("分页能力测试")
         void shouldCheckPaginationCapabilities() {
             assertThat(dialect.supportsLimitOffset()).isTrue();
             assertThat(dialect.supportsFetchFirst()).isTrue();
-        }
-    }
+        )
+    )
 
     // ==================== GaussDB 方言测试 ====================
 
@@ -630,7 +630,7 @@ class DialectTest {
             assertThat(dialect.getDatabaseType()).isEqualTo(DatabaseType.GAUSSDB);
             assertThat(dialect.supportsLimitOffset()).isTrue();
             assertThat(dialect.quoteIdentifier("name")).isEqualTo("\"name\"");
-        }
+        )
 
         @Test
         @DisplayName("应生成 GaussDB 分页 SQL")
@@ -639,7 +639,7 @@ class DialectTest {
             String paged = dialect.getPaginationSql(sql, 20, 10);
 
             assertThat(paged).isEqualTo("SELECT * FROM user LIMIT 10 OFFSET 20");
-        }
+        )
 
         @Test
         @DisplayName("应使用 PageRequest 生成分页 SQL")
@@ -648,7 +648,7 @@ class DialectTest {
             String paged = dialect.getPaginationSql(sql, PageRequest.of(5, 25));
 
             assertThat(paged).isEqualTo("SELECT * FROM user LIMIT 25 OFFSET 100");
-        }
+        )
 
         @Test
         @DisplayName("应正确映射所有 Java 类型到 SQL 类型")
@@ -678,7 +678,7 @@ class DialectTest {
             assertThat(dialect.getSqlType(BigDecimal.class)).isEqualTo("NUMERIC(19,4)");
             assertThat(dialect.getSqlType(byte[].class)).isEqualTo("BYTEA");
             assertThat(dialect.getSqlType(Object.class)).isEqualTo("VARCHAR2(255)");
-        }
+        )
 
         @Test
         @DisplayName("应返回正确的时间函数")
@@ -686,21 +686,21 @@ class DialectTest {
             assertThat(dialect.getCurrentTimeFunction()).isEqualTo("CURRENT_TIME");
             assertThat(dialect.getCurrentDateFunction()).isEqualTo("CURRENT_DATE");
             assertThat(dialect.getCurrentTimestampFunction()).isEqualTo("CURRENT_TIMESTAMP");
-        }
+        )
 
         @Test
         @DisplayName("应支持 FOR UPDATE")
         void shouldSupportForUpdate() {
             assertThat(dialect.getForUpdateSyntax()).isEqualTo("FOR UPDATE");
-        }
+        )
 
         @Test
         @DisplayName("分页能力测试")
         void shouldCheckPaginationCapabilities() {
             assertThat(dialect.supportsLimitOffset()).isTrue();
             assertThat(dialect.supportsFetchFirst()).isTrue();
-        }
-    }
+        )
+    )
 
     // ==================== OceanBase 方言测试 ====================
 
@@ -716,7 +716,7 @@ class DialectTest {
             assertThat(dialect.getDatabaseType()).isEqualTo(DatabaseType.OCEANBASE);
             assertThat(dialect.supportsLimitOffset()).isTrue();
             assertThat(dialect.quoteIdentifier("name")).isEqualTo("`name`");
-        }
+        )
 
         @Test
         @DisplayName("应生成 OceanBase 分页 SQL")
@@ -725,7 +725,7 @@ class DialectTest {
             String paged = dialect.getPaginationSql(sql, 20, 10);
 
             assertThat(paged).isEqualTo("SELECT * FROM user LIMIT 10 OFFSET 20");
-        }
+        )
 
         @Test
         @DisplayName("应使用 PageRequest 生成分页 SQL")
@@ -734,7 +734,7 @@ class DialectTest {
             String paged = dialect.getPaginationSql(sql, PageRequest.of(2, 15));
 
             assertThat(paged).isEqualTo("SELECT * FROM user LIMIT 15 OFFSET 15");
-        }
+        )
 
         @Test
         @DisplayName("应返回正确的时间函数")
@@ -743,27 +743,27 @@ class DialectTest {
             assertThat(dialect.getCurrentTimestampFunction()).isEqualTo("NOW(6)");
             // 继承自 MySQL
             assertThat(dialect.getCurrentDateFunction()).isEqualTo("CURDATE()");
-        }
+        )
 
         @Test
         @DisplayName("应返回自增语法")
         void shouldReturnAutoIncrementSyntax() {
             assertThat(dialect.getAutoIncrementSyntax()).isEqualTo("AUTO_INCREMENT");
-        }
+        )
 
         @Test
         @DisplayName("应支持 FOR UPDATE")
         void shouldSupportForUpdate() {
             assertThat(dialect.getForUpdateSyntax()).isEqualTo("FOR UPDATE");
-        }
+        )
 
         @Test
         @DisplayName("分页能力测试")
         void shouldCheckPaginationCapabilities() {
             assertThat(dialect.supportsLimitOffset()).isTrue();
             assertThat(dialect.supportsFetchFirst()).isFalse();
-        }
-    }
+        )
+    )
 
     // ==================== openGauss 方言测试 ====================
 
@@ -778,7 +778,7 @@ class DialectTest {
         void shouldOpenGaussExtendPostgreSQL() {
             assertThat(dialect.getDatabaseType()).isEqualTo(DatabaseType.OPENGAUSS);
             assertThat(dialect.quoteIdentifier("name")).isEqualTo("\"name\"");
-        }
+        )
 
         @Test
         @DisplayName("应生成 openGauss 分页 SQL")
@@ -787,7 +787,7 @@ class DialectTest {
             String paged = dialect.getPaginationSql(sql, 20, 10);
 
             assertThat(paged).isEqualTo("SELECT * FROM user LIMIT 10 OFFSET 20");
-        }
+        )
 
         @Test
         @DisplayName("应使用 PageRequest 生成分页 SQL")
@@ -796,7 +796,7 @@ class DialectTest {
             String paged = dialect.getPaginationSql(sql, PageRequest.of(3, 20));
 
             assertThat(paged).isEqualTo("SELECT * FROM user LIMIT 20 OFFSET 40");
-        }
+        )
 
         @Test
         @DisplayName("应返回正确的时间函数")
@@ -805,7 +805,7 @@ class DialectTest {
             assertThat(dialect.getCurrentTimestampFunction()).isEqualTo("CURRENT_TIMESTAMP");
             // 继承自 PostgreSQL
             assertThat(dialect.getCurrentDateFunction()).isEqualTo("CURRENT_DATE");
-        }
+        )
 
         @Test
         @DisplayName("应正确映射所有 Java 类型到 SQL 类型")
@@ -827,21 +827,21 @@ class DialectTest {
             assertThat(dialect.getSqlType(LocalTime.class)).isEqualTo("TIME");
             assertThat(dialect.getSqlType(BigDecimal.class)).isEqualTo("NUMERIC(19,4)");
             assertThat(dialect.getSqlType(byte[].class)).isEqualTo("BYTEA");
-        }
+        )
 
         @Test
         @DisplayName("应支持 FOR UPDATE")
         void shouldSupportForUpdate() {
             assertThat(dialect.getForUpdateSyntax()).isEqualTo("FOR UPDATE");
-        }
+        )
 
         @Test
         @DisplayName("分页能力测试")
         void shouldCheckPaginationCapabilities() {
             assertThat(dialect.supportsLimitOffset()).isTrue();
             assertThat(dialect.supportsFetchFirst()).isTrue();
-        }
-    }
+        )
+    )
 
     // ==================== DatabaseType 枚举测试 ====================
 
@@ -866,13 +866,13 @@ class DialectTest {
             assertThat(DatabaseType.fromCode("kingbase")).isEqualTo(DatabaseType.KINGBASE);
             assertThat(DatabaseType.fromCode("gaussdb")).isEqualTo(DatabaseType.GAUSSDB);
             assertThat(DatabaseType.fromCode("unknown")).isEqualTo(DatabaseType.UNKNOWN);
-        }
+        )
 
         @Test
         @DisplayName("null 代码应返回 UNKNOWN")
         void shouldReturnUnknownForNullCode() {
             assertThat(DatabaseType.fromCode(null)).isEqualTo(DatabaseType.UNKNOWN);
-        }
+        )
 
         @Test
         @DisplayName("无效代码应返回 UNKNOWN")
@@ -880,7 +880,7 @@ class DialectTest {
             assertThat(DatabaseType.fromCode("invalid")).isEqualTo(DatabaseType.UNKNOWN);
             assertThat(DatabaseType.fromCode("")).isEqualTo(DatabaseType.UNKNOWN);
             assertThat(DatabaseType.fromCode("nosql")).isEqualTo(DatabaseType.UNKNOWN);
-        }
+        )
 
         @Test
         @DisplayName("应检查 MySQL 系列")
@@ -890,7 +890,7 @@ class DialectTest {
             assertThat(DatabaseType.POSTGRESQL.isMySQLFamily()).isFalse();
             assertThat(DatabaseType.ORACLE.isMySQLFamily()).isFalse();
             assertThat(DatabaseType.DM.isMySQLFamily()).isFalse();
-        }
+        )
 
         @Test
         @DisplayName("应检查 PostgreSQL 系列")
@@ -901,7 +901,7 @@ class DialectTest {
             assertThat(DatabaseType.MYSQL.isPostgreSQLFamily()).isFalse();
             assertThat(DatabaseType.DM.isPostgreSQLFamily()).isFalse();
             assertThat(DatabaseType.KINGBASE.isPostgreSQLFamily()).isFalse();
-        }
+        )
 
         @Test
         @DisplayName("应检查国产数据库")
@@ -918,7 +918,7 @@ class DialectTest {
             assertThat(DatabaseType.H2.isChineseDatabase()).isFalse();
             assertThat(DatabaseType.SQLITE.isChineseDatabase()).isFalse();
             assertThat(DatabaseType.UNKNOWN.isChineseDatabase()).isFalse();
-        }
+        )
 
         @Test
         @DisplayName("应返回正确的代码和名称")
@@ -931,6 +931,6 @@ class DialectTest {
             assertThat(DatabaseType.DM.getName()).isEqualTo("DM Database");
             assertThat(DatabaseType.KINGBASE.getCode()).isEqualTo("kingbase");
             assertThat(DatabaseType.KINGBASE.getName()).isEqualTo("KingbaseES");
-        }
-    }
-}
+        )
+    )
+)

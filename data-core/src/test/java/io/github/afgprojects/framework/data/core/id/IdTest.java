@@ -34,7 +34,7 @@ class IdTest {
                     IdType.UUID, IdType.UUID_HEX,
                     IdType.SNOWFLAKE, IdType.TIMESTAMP
             );
-        }
+        )
 
         @Test
         @DisplayName("应正确返回描述信息")
@@ -45,7 +45,7 @@ class IdTest {
             assertThat(IdType.SNOWFLAKE.getDescription()).isEqualTo("雪花算法");
             assertThat(IdType.UUID.getDescription()).isEqualTo("UUID");
             assertThat(IdType.TIMESTAMP.getDescription()).isEqualTo("时间戳ID");
-        }
+        )
 
         @Test
         @DisplayName("isDbGenerated 应正确判断")
@@ -54,7 +54,7 @@ class IdTest {
             assertThat(IdType.NONE.isDbGenerated()).isFalse();
             assertThat(IdType.SNOWFLAKE.isDbGenerated()).isFalse();
             assertThat(IdType.UUID.isDbGenerated()).isFalse();
-        }
+        )
 
         @Test
         @DisplayName("isAppGenerated 应正确判断")
@@ -71,8 +71,8 @@ class IdTest {
             assertThat(IdType.ID_WORKER.isAppGenerated()).isTrue();
             assertThat(IdType.ID_WORKER_STR.isAppGenerated()).isTrue();
             assertThat(IdType.TIMESTAMP.isAppGenerated()).isTrue();
-        }
-    }
+        )
+    )
 
     // ==================== SnowflakeConfig 测试 ====================
 
@@ -91,7 +91,7 @@ class IdTest {
             assertThat(config.getSequenceBits()).isEqualTo(12);
             assertThat(config.getWorkerIdBits()).isEqualTo(5);
             assertThat(config.getDatacenterIdBits()).isEqualTo(5);
-        }
+        )
 
         @Test
         @DisplayName("应使用指定 workerId 构造")
@@ -100,7 +100,7 @@ class IdTest {
 
             assertThat(config.getWorkerId()).isEqualTo(1L);
             assertThat(config.getDatacenterId()).isEqualTo(0L);
-        }
+        )
 
         @Test
         @DisplayName("应使用完整参数构造")
@@ -110,7 +110,7 @@ class IdTest {
             assertThat(config.getWorkerId()).isEqualTo(1L);
             assertThat(config.getDatacenterId()).isEqualTo(2L);
             assertThat(config.getEpoch()).isEqualTo(1704038400000L);
-        }
+        )
 
         @Test
         @DisplayName("应正确计算最大值")
@@ -121,7 +121,7 @@ class IdTest {
             assertThat(config.getMaxWorkerId()).isEqualTo(31L);
             // datacenterIdBits = 5, maxDatacenterId = 31
             assertThat(config.getMaxDatacenterId()).isEqualTo(31L);
-        }
+        )
 
         @Test
         @DisplayName("应正确计算位移量")
@@ -134,7 +134,7 @@ class IdTest {
             assertThat(config.getDatacenterIdShift()).isEqualTo(17L);
             // timestampLeftShift = sequenceBits + workerIdBits + datacenterIdBits = 12 + 5 + 5 = 22
             assertThat(config.getTimestampLeftShift()).isEqualTo(22L);
-        }
+        )
 
         @Test
         @DisplayName("应正确计算序列号掩码")
@@ -143,7 +143,7 @@ class IdTest {
 
             // sequenceBits = 12, sequenceMask = 4095
             assertThat(config.getSequenceMask()).isEqualTo(4095L);
-        }
+        )
 
         @Test
         @DisplayName("无效 workerId 应抛出异常")
@@ -155,7 +155,7 @@ class IdTest {
             assertThatThrownBy(() -> new SnowflakeConfig(-1L, 0L))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("worker Id");
-        }
+        )
 
         @Test
         @DisplayName("无效 datacenterId 应抛出异常")
@@ -167,8 +167,8 @@ class IdTest {
             assertThatThrownBy(() -> new SnowflakeConfig(0L, -1L))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("datacenter Id");
-        }
-    }
+        )
+    )
 
     // ==================== SnowflakeIdGenerator 测试 ====================
 
@@ -184,7 +184,7 @@ class IdTest {
             assertThat(generator.getIdType()).isEqualTo(IdType.SNOWFLAKE);
             assertThat(generator.getConfig()).isNotNull();
             assertThat(generator.getConfig().getWorkerId()).isEqualTo(0L);
-        }
+        )
 
         @Test
         @DisplayName("应使用指定 workerId 构造")
@@ -192,7 +192,7 @@ class IdTest {
             SnowflakeIdGenerator generator = new SnowflakeIdGenerator(1L);
 
             assertThat(generator.getConfig().getWorkerId()).isEqualTo(1L);
-        }
+        )
 
         @Test
         @DisplayName("应使用指定 workerId 和 datacenterId 构造")
@@ -201,7 +201,7 @@ class IdTest {
 
             assertThat(generator.getConfig().getWorkerId()).isEqualTo(1L);
             assertThat(generator.getConfig().getDatacenterId()).isEqualTo(2L);
-        }
+        )
 
         @Test
         @DisplayName("应使用 SnowflakeConfig 构造")
@@ -212,7 +212,7 @@ class IdTest {
             assertThat(generator.getConfig()).isSameAs(config);
             assertThat(generator.getConfig().getWorkerId()).isEqualTo(5L);
             assertThat(generator.getConfig().getDatacenterId()).isEqualTo(3L);
-        }
+        )
 
         @Test
         @DisplayName("应使用最大 workerId 构造")
@@ -222,7 +222,7 @@ class IdTest {
 
             assertThat(generator.getConfig().getWorkerId()).isEqualTo(31L);
             assertThat(generator.generateLong()).isPositive();
-        }
+        )
 
         @Test
         @DisplayName("应使用最大 datacenterId 构造")
@@ -232,7 +232,7 @@ class IdTest {
 
             assertThat(generator.getConfig().getDatacenterId()).isEqualTo(31L);
             assertThat(generator.generateLong()).isPositive();
-        }
+        )
 
         @Test
         @DisplayName("应生成唯一的 Long 类型 ID")
@@ -244,10 +244,10 @@ class IdTest {
                 long id = generator.generateLong();
                 assertThat(ids).doesNotContain(id);
                 ids.add(id);
-            }
+            )
 
             assertThat(ids).hasSize(10000);
-        }
+        )
 
         @Test
         @DisplayName("应生成正数 ID")
@@ -257,8 +257,8 @@ class IdTest {
             for (int i = 0; i < 100; i++) {
                 long id = generator.generateLong();
                 assertThat(id).isPositive();
-            }
-        }
+            )
+        )
 
         @Test
         @DisplayName("generate 应返回 Long 类型")
@@ -267,7 +267,7 @@ class IdTest {
 
             Object id = generator.generate();
             assertThat(id).isInstanceOf(Long.class);
-        }
+        )
 
         @Test
         @DisplayName("generateString 应返回字符串")
@@ -277,7 +277,7 @@ class IdTest {
             String id = generator.generateString();
             assertThat(id).isNotEmpty();
             assertThat(Long.parseLong(id)).isPositive();
-        }
+        )
 
         @Test
         @DisplayName("应支持时间戳解析")
@@ -285,7 +285,7 @@ class IdTest {
             SnowflakeIdGenerator generator = new SnowflakeIdGenerator();
 
             assertThat(generator.supportsTimestampParsing()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("应正确解析 ID 中的时间戳")
@@ -300,7 +300,7 @@ class IdTest {
 
             // 解析的时间戳应在生成时间附近（允许一定误差）
             assertThat(parsedTimestamp).isBetween(beforeGenerate - 1000, afterGenerate + 1000);
-        }
+        )
 
         @Test
         @DisplayName("应正确解析字符串 ID 中的时间戳")
@@ -314,7 +314,7 @@ class IdTest {
             long parsedTimestamp = generator.parseTimestamp(id);
 
             assertThat(parsedTimestamp).isBetween(beforeGenerate - 1000, afterGenerate + 1000);
-        }
+        )
 
         @Test
         @DisplayName("解析无效 ID 应返回 -1")
@@ -322,7 +322,7 @@ class IdTest {
             SnowflakeIdGenerator generator = new SnowflakeIdGenerator();
 
             assertThat(generator.parseTimestamp("invalid")).isEqualTo(-1L);
-        }
+        )
 
         @Test
         @DisplayName("parseTimestamp 应解析 Long 类型 ID")
@@ -335,7 +335,7 @@ class IdTest {
             long parsedTimestamp = generator.parseTimestamp(idObj);
 
             assertThat(parsedTimestamp).isPositive();
-        }
+        )
 
         @Test
         @DisplayName("parseTimestamp 应解析 Integer 类型 ID")
@@ -350,7 +350,7 @@ class IdTest {
 
             // 由于截断，结果可能不正确，但不应抛异常
             assertThat(parsedTimestamp).isNotNegative();
-        }
+        )
 
         @Test
         @DisplayName("parseTimestamp 应解析 Double 类型 ID")
@@ -363,7 +363,7 @@ class IdTest {
             long parsedTimestamp = generator.parseTimestamp(idAsDouble);
 
             assertThat(parsedTimestamp).isPositive();
-        }
+        )
 
         @Test
         @DisplayName("parseTimestamp 对不支持类型应返回 -1")
@@ -374,7 +374,7 @@ class IdTest {
             assertThat(generator.parseTimestamp(new Object())).isEqualTo(-1L);
             assertThat(generator.parseTimestamp(List.of("test"))).isEqualTo(-1L);
             assertThat(generator.parseTimestamp(Map.of())).isEqualTo(-1L);
-        }
+        )
 
         @Test
         @DisplayName("parseTimestamp 对空字符串应返回 -1")
@@ -382,7 +382,7 @@ class IdTest {
             SnowflakeIdGenerator generator = new SnowflakeIdGenerator();
 
             assertThat(generator.parseTimestamp("")).isEqualTo(-1L);
-        }
+        )
 
         @Test
         @DisplayName("parseTimestamp 对 null 字符串格式应返回 -1")
@@ -393,7 +393,7 @@ class IdTest {
             assertThat(generator.parseTimestamp("  ")).isEqualTo(-1L);
             assertThat(generator.parseTimestamp("abc123")).isEqualTo(-1L);
             assertThat(generator.parseTimestamp("123abc")).isEqualTo(-1L);
-        }
+        )
 
         @Test
         @DisplayName("时钟回拨时应抛出 IllegalStateException")
@@ -411,7 +411,7 @@ class IdTest {
             assertThatThrownBy(generator::generateLong)
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessageContaining("Clock moved backwards");
-        }
+        )
 
         @Test
         @DisplayName("同一毫秒内序列号溢出时应等待下一毫秒")
@@ -429,17 +429,17 @@ class IdTest {
                 // 保持时间不变，直到序列溢出
                 if (i < 4096) {
                     generator.setCurrentTime(1000L);
-                } else {
+                ) else {
                     // 序列溢出后，时间应该前进
                     generator.setCurrentTime(1001L);
-                }
+                )
                 long id = generator.generateLong();
                 ids.add(id);
-            }
+            )
 
             // 所有 ID 应唯一
             assertThat(ids).hasSize(5000);
-        }
+        )
 
         @Test
         @DisplayName("ID 应包含正确的工作节点ID信息")
@@ -453,7 +453,7 @@ class IdTest {
             // 提取 workerId 部分
             long extractedWorkerId = (id >> config.getWorkerIdShift()) & config.getMaxWorkerId();
             assertThat(extractedWorkerId).isEqualTo(workerId);
-        }
+        )
 
         @Test
         @DisplayName("ID 应包含正确的数据中心ID信息")
@@ -467,7 +467,7 @@ class IdTest {
             // 提取 datacenterId 部分
             long extractedDatacenterId = (id >> config.getDatacenterIdShift()) & config.getMaxDatacenterId();
             assertThat(extractedDatacenterId).isEqualTo(datacenterId);
-        }
+        )
 
         @Test
         @DisplayName("多线程环境下应生成唯一 ID")
@@ -481,15 +481,15 @@ class IdTest {
                     for (int i = 0; i < 1000; i++) {
                         long id = generator.generateLong();
                         ids.add(id);
-                    }
+                    )
                     latch.countDown();
-                }).start();
-            }
+                )).start();
+            )
 
             latch.await();
             assertThat(ids).hasSize(10000);
-        }
-    }
+        )
+    )
 
     /**
      * 可测试的雪花算法生成器，允许控制时间
@@ -499,13 +499,13 @@ class IdTest {
 
         public void setCurrentTime(long time) {
             this.currentTime = time;
-        }
+        )
 
         @Override
         protected long currentTimeMillis() {
             return currentTime;
-        }
-    }
+        )
+    )
 
     // ==================== UuidGenerator 测试 ====================
 
@@ -525,7 +525,7 @@ class IdTest {
             assertThat(uuid).hasSize(36);
             assertThat(uuid).contains("-");
             assertThat(uuid.chars().filter(ch -> ch == '-').count()).isEqualTo(4);
-        }
+        )
 
         @Test
         @DisplayName("应生成无连字符的 UUID")
@@ -538,7 +538,7 @@ class IdTest {
             String uuid = (String) id;
             assertThat(uuid).hasSize(32);
             assertThat(uuid).doesNotContain("-");
-        }
+        )
 
         @Test
         @DisplayName("应生成唯一的 UUID")
@@ -550,10 +550,10 @@ class IdTest {
                 String id = generator.generateString();
                 assertThat(ids).doesNotContain(id);
                 ids.add(id);
-            }
+            )
 
             assertThat(ids).hasSize(10000);
-        }
+        )
 
         @Test
         @DisplayName("generateString 应返回相同结果")
@@ -565,7 +565,7 @@ class IdTest {
 
             assertThat(id1).isInstanceOf(String.class);
             assertThat(id2).isInstanceOf(String.class);
-        }
+        )
 
         @Test
         @DisplayName("应返回正确的 ID 类型")
@@ -575,7 +575,7 @@ class IdTest {
 
             assertThat(withHyphens.getIdType()).isEqualTo(IdType.UUID);
             assertThat(withoutHyphens.getIdType()).isEqualTo(IdType.UUID_HEX);
-        }
+        )
 
         @Test
         @DisplayName("不应支持时间戳解析")
@@ -584,8 +584,8 @@ class IdTest {
 
             assertThat(generator.supportsTimestampParsing()).isFalse();
             assertThat(generator.parseTimestamp("any-id")).isEqualTo(-1L);
-        }
-    }
+        )
+    )
 
     // ==================== TimestampIdGenerator 测试 ====================
 
@@ -604,8 +604,8 @@ class IdTest {
             String timestampId = (String) id;
             // 格式：yyyyMMddHHmmssSSS + 3位序号 = 17 + 3 = 20 位
             assertThat(timestampId).hasSize(20);
-            assertThat(timestampId).matches("\\d{20}");
-        }
+            assertThat(timestampId).matches("\\d{20)");
+        )
 
         @Test
         @DisplayName("应生成唯一的 ID")
@@ -617,10 +617,10 @@ class IdTest {
                 String id = generator.generateString();
                 assertThat(ids).doesNotContain(id);
                 ids.add(id);
-            }
+            )
 
             assertThat(ids).hasSize(1000);
-        }
+        )
 
         @Test
         @DisplayName("应返回正确的 ID 类型")
@@ -628,7 +628,7 @@ class IdTest {
             TimestampIdGenerator generator = new TimestampIdGenerator();
 
             assertThat(generator.getIdType()).isEqualTo(IdType.TIMESTAMP);
-        }
+        )
 
         @Test
         @DisplayName("应支持时间戳解析")
@@ -636,7 +636,7 @@ class IdTest {
             TimestampIdGenerator generator = new TimestampIdGenerator();
 
             assertThat(generator.supportsTimestampParsing()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("应正确解析 ID 中的时间戳")
@@ -651,7 +651,7 @@ class IdTest {
 
             // 解析的时间戳应在生成时间附近（允许一定误差）
             assertThat(parsedTimestamp).isBetween(beforeGenerate - 60000, afterGenerate + 60000);
-        }
+        )
 
         @Test
         @DisplayName("解析无效 ID 应返回 -1")
@@ -660,7 +660,7 @@ class IdTest {
 
             assertThat(generator.parseTimestamp("invalid")).isEqualTo(-1L);
             assertThat(generator.parseTimestamp("short")).isEqualTo(-1L);
-        }
+        )
 
         @Test
         @DisplayName("generateString 应返回相同结果")
@@ -672,7 +672,7 @@ class IdTest {
 
             assertThat(id1).isInstanceOf(String.class);
             assertThat(id2).isInstanceOf(String.class);
-        }
+        )
 
         @Test
         @DisplayName("parseTimestamp 应处理边界长度")
@@ -687,7 +687,7 @@ class IdTest {
 
             // 长度大于 17 位（正常 ID）
             assertThat(generator.parseTimestamp("20240101120000000123")).isNotNegative();
-        }
+        )
 
         @Test
         @DisplayName("parseTimestamp 应处理无效日期格式")
@@ -702,7 +702,7 @@ class IdTest {
 
             // 非数字字符
             assertThat(generator.parseTimestamp("20240101abc000000")).isEqualTo(-1L);
-        }
+        )
 
         @Test
         @DisplayName("parseTimestamp 应处理非字符串类型")
@@ -714,7 +714,7 @@ class IdTest {
 
             // null 类型（通过 Object 参数）
             assertThat(generator.parseTimestamp(new Object())).isEqualTo(-1L);
-        }
+        )
 
         @Test
         @DisplayName("同一毫秒内应递增序号")
@@ -734,9 +734,9 @@ class IdTest {
             // 如果时间相同，序号应递增
             if (timestampPart.equals(secondTimestampPart)) {
                 assertThat(secondSeq).isEqualTo(firstSeq + 1);
-            }
-        }
-    }
+            )
+        )
+    )
 
     // ==================== IdentifierGenerator 接口测试 ====================
 
@@ -753,7 +753,7 @@ class IdTest {
             assertThat(generator.generateString()).isNotNull();
             assertThat(generator.generateLong()).isPositive();
             assertThat(generator.getIdType()).isEqualTo(IdType.SNOWFLAKE);
-        }
+        )
 
         @Test
         @DisplayName("UuidGenerator 应实现 IdentifierGenerator")
@@ -763,7 +763,7 @@ class IdTest {
             assertThat(generator.generate()).isNotNull();
             assertThat(generator.generateString()).isNotNull();
             assertThat(generator.getIdType()).isEqualTo(IdType.UUID);
-        }
+        )
 
         @Test
         @DisplayName("TimestampIdGenerator 应实现 IdentifierGenerator")
@@ -773,7 +773,7 @@ class IdTest {
             assertThat(generator.generate()).isNotNull();
             assertThat(generator.generateString()).isNotNull();
             assertThat(generator.getIdType()).isEqualTo(IdType.TIMESTAMP);
-        }
+        )
 
         @Test
         @DisplayName("UuidGenerator generateLong 应抛出异常")
@@ -783,6 +783,6 @@ class IdTest {
             assertThatThrownBy(generator::generateLong)
                     .isInstanceOf(UnsupportedOperationException.class)
                     .hasMessageContaining("does not support Long type");
-        }
-    }
-}
+        )
+    )
+)

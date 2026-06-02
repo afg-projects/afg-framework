@@ -27,7 +27,7 @@ class LimitSqlTest {
         void shouldGenerateLimitSql() {
             String result = dialect.getLimitSql("SELECT * FROM t", 10);
             assertThat(result).isEqualTo("SELECT * FROM t LIMIT 10");
-        }
+        )
 
         @Test
         @DisplayName("应支持复杂 SQL")
@@ -35,8 +35,8 @@ class LimitSqlTest {
             String sql = "SELECT u.id, u.name FROM user u WHERE u.status = 1 ORDER BY u.id";
             String result = dialect.getLimitSql(sql, 5);
             assertThat(result).isEqualTo(sql + " LIMIT 5");
-        }
-    }
+        )
+    )
 
     // ==================== PostgreSQL ====================
 
@@ -52,8 +52,8 @@ class LimitSqlTest {
             // PostgreSQL supportsFetchFirst() = true, 所以 AbstractDialect.getLimitSql 走 FETCH FIRST 分支
             String result = dialect.getLimitSql("SELECT * FROM t", 10);
             assertThat(result).isEqualTo("SELECT * FROM (SELECT * FROM t) FETCH FIRST 10 ROWS ONLY");
-        }
-    }
+        )
+    )
 
     // ==================== Oracle ====================
 
@@ -68,7 +68,7 @@ class LimitSqlTest {
         void shouldGenerateFetchFirstSql() {
             String result = dialect.getLimitSql("SELECT * FROM t", 10);
             assertThat(result).isEqualTo("SELECT * FROM (SELECT * FROM t) FETCH FIRST 10 ROWS ONLY");
-        }
+        )
 
         @Test
         @DisplayName("应支持复杂 SQL")
@@ -76,8 +76,8 @@ class LimitSqlTest {
             String sql = "SELECT id, name FROM user WHERE status = 1 ORDER BY id";
             String result = dialect.getLimitSql(sql, 5);
             assertThat(result).isEqualTo("SELECT * FROM (" + sql + ") FETCH FIRST 5 ROWS ONLY");
-        }
-    }
+        )
+    )
 
     // ==================== SQL Server ====================
 
@@ -93,7 +93,7 @@ class LimitSqlTest {
             String sql = "SELECT * FROM t ORDER BY id";
             String result = dialect.getLimitSql(sql, 10);
             assertThat(result).isEqualTo("SELECT * FROM t ORDER BY id OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY");
-        }
+        )
 
         @Test
         @DisplayName("无 ORDER BY 时应包装子查询")
@@ -101,7 +101,7 @@ class LimitSqlTest {
             String sql = "SELECT * FROM t";
             String result = dialect.getLimitSql(sql, 10);
             assertThat(result).isEqualTo("SELECT * FROM (SELECT * FROM t) AS _limited OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY");
-        }
+        )
 
         @Test
         @DisplayName("ORDER BY 大小写不敏感应识别")
@@ -109,7 +109,7 @@ class LimitSqlTest {
             String sql = "SELECT * FROM t order by id";
             String result = dialect.getLimitSql(sql, 10);
             assertThat(result).isEqualTo("SELECT * FROM t order by id OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY");
-        }
+        )
 
         @Test
         @DisplayName("ORDER BY 在子查询中不应误判")
@@ -120,8 +120,8 @@ class LimitSqlTest {
             String result = dialect.getLimitSql(sql, 10);
             // 包含 ORDER BY，所以直接追加
             assertThat(result).isEqualTo(sql + " OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY");
-        }
-    }
+        )
+    )
 
     // ==================== DmDialect ====================
 
@@ -136,8 +136,8 @@ class LimitSqlTest {
         void shouldInheritOracleFetchFirst() {
             String result = dialect.getLimitSql("SELECT * FROM t", 10);
             assertThat(result).isEqualTo("SELECT * FROM (SELECT * FROM t) FETCH FIRST 10 ROWS ONLY");
-        }
-    }
+        )
+    )
 
     // ==================== H2 ====================
 
@@ -152,7 +152,7 @@ class LimitSqlTest {
         void shouldGenerateLimitSql() {
             String result = dialect.getLimitSql("SELECT * FROM t", 10);
             assertThat(result).isEqualTo("SELECT * FROM t LIMIT 10");
-        }
+        )
 
         @Test
         @DisplayName("应支持复杂 SQL")
@@ -160,6 +160,6 @@ class LimitSqlTest {
             String sql = "SELECT id, name FROM user WHERE status = 1";
             String result = dialect.getLimitSql(sql, 5);
             assertThat(result).isEqualTo(sql + " LIMIT 5");
-        }
-    }
-}
+        )
+    )
+)

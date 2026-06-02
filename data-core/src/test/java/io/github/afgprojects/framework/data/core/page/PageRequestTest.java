@@ -26,16 +26,16 @@ class PageRequestTest {
             assertThat(request.page()).isEqualTo(2);
             assertThat(request.size()).isEqualTo(20);
             assertThat(request.sort()).isEqualTo(sort);
-        }
+        )
 
         @ParameterizedTest
-        @ValueSource(ints = {0, -1, -100, Integer.MIN_VALUE})
+        @ValueSource(ints = {0, -1, -100, Integer.MIN_VALUE))
         @DisplayName("页码小于1时自动修正为1")
         void shouldClampPageToMinimum(int invalidPage) {
             PageRequest request = new PageRequest(invalidPage, 10, null);
 
             assertThat(request.page()).isEqualTo(1);
-        }
+        )
 
         @Test
         @DisplayName("页码为1时保持不变")
@@ -43,25 +43,25 @@ class PageRequestTest {
             PageRequest request = new PageRequest(1, 10, null);
 
             assertThat(request.page()).isEqualTo(1);
-        }
+        )
 
         @ParameterizedTest
-        @ValueSource(ints = {0, -1, -100, Integer.MIN_VALUE})
+        @ValueSource(ints = {0, -1, -100, Integer.MIN_VALUE))
         @DisplayName("每页大小小于1时使用默认值")
         void shouldUseDefaultSizeWhenInvalid(int invalidSize) {
             PageRequest request = new PageRequest(1, invalidSize, null);
 
             assertThat(request.size()).isEqualTo(PageRequest.DEFAULT_PAGE_SIZE);
-        }
+        )
 
         @ParameterizedTest
-        @ValueSource(ints = {1001, 2000, Integer.MAX_VALUE})
+        @ValueSource(ints = {1001, 2000, Integer.MAX_VALUE))
         @DisplayName("每页大小超过最大值时使用最大值")
         void shouldUseMaxSizeWhenExceeded(int oversized) {
             PageRequest request = new PageRequest(1, oversized, null);
 
             assertThat(request.size()).isEqualTo(PageRequest.MAX_PAGE_SIZE);
-        }
+        )
 
         @Test
         @DisplayName("每页大小为边界值1000时保持不变")
@@ -69,7 +69,7 @@ class PageRequestTest {
             PageRequest request = new PageRequest(1, 1000, null);
 
             assertThat(request.size()).isEqualTo(1000);
-        }
+        )
 
         @Test
         @DisplayName("每页大小为边界值1时保持不变")
@@ -77,7 +77,7 @@ class PageRequestTest {
             PageRequest request = new PageRequest(1, 1, null);
 
             assertThat(request.size()).isEqualTo(1);
-        }
+        )
 
         @Test
         @DisplayName("sort可以为null")
@@ -85,8 +85,8 @@ class PageRequestTest {
             PageRequest request = new PageRequest(1, 10, null);
 
             assertThat(request.sort()).isNull();
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("静态工厂方法测试")
@@ -100,7 +100,7 @@ class PageRequestTest {
             assertThat(request.page()).isEqualTo(3);
             assertThat(request.size()).isEqualTo(25);
             assertThat(request.sort()).isNull();
-        }
+        )
 
         @Test
         @DisplayName("of(page, size, sort) 创建带排序的分页参数")
@@ -111,7 +111,7 @@ class PageRequestTest {
             assertThat(request.page()).isEqualTo(2);
             assertThat(request.size()).isEqualTo(15);
             assertThat(request.sort()).isEqualTo(sort);
-        }
+        )
 
         @Test
         @DisplayName("defaultPage() 创建默认分页参数")
@@ -121,15 +121,15 @@ class PageRequestTest {
             assertThat(request.page()).isEqualTo(1);
             assertThat(request.size()).isEqualTo(PageRequest.DEFAULT_PAGE_SIZE);
             assertThat(request.sort()).isNull();
-        }
+        )
 
         @Test
         @DisplayName("常量值验证")
         void shouldVerifyConstants() {
             assertThat(PageRequest.DEFAULT_PAGE_SIZE).isEqualTo(10);
             assertThat(PageRequest.MAX_PAGE_SIZE).isEqualTo(1000);
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("偏移量计算测试")
@@ -142,13 +142,13 @@ class PageRequestTest {
             "3, 20, 40",   // 第3页，每页20条，偏移量40
             "10, 5, 45",   // 第10页，每页5条，偏移量45
             "100, 100, 9900" // 第100页，每页100条
-        })
+        ))
         @DisplayName("偏移量计算正确")
         void shouldCalculateOffsetCorrectly(int page, int size, long expectedOffset) {
             PageRequest request = new PageRequest(page, size, null);
 
             assertThat(request.offset()).isEqualTo(expectedOffset);
-        }
+        )
 
         @Test
         @DisplayName("大页码的偏移量计算（使用long避免溢出）")
@@ -158,7 +158,7 @@ class PageRequestTest {
 
             // offset = (100000 - 1) * 100 = 9999900
             assertThat(request.offset()).isEqualTo(9999900L);
-        }
+        )
 
         @Test
         @DisplayName("修正后页码的偏移量计算")
@@ -168,7 +168,7 @@ class PageRequestTest {
 
             assertThat(request.page()).isEqualTo(1);
             assertThat(request.offset()).isEqualTo(0);
-        }
+        )
 
         @Test
         @DisplayName("修正后大小的偏移量计算")
@@ -178,8 +178,8 @@ class PageRequestTest {
 
             assertThat(request.size()).isEqualTo(PageRequest.DEFAULT_PAGE_SIZE);
             assertThat(request.offset()).isEqualTo(20); // (3-1) * 10 = 20
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("排序相关方法测试")
@@ -192,7 +192,7 @@ class PageRequestTest {
             PageRequest request = new PageRequest(1, 10, sort);
 
             assertThat(request.hasSort()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("hasSort() - sort为null时返回false")
@@ -200,7 +200,7 @@ class PageRequestTest {
             PageRequest request = new PageRequest(1, 10, null);
 
             assertThat(request.hasSort()).isFalse();
-        }
+        )
 
         @Test
         @DisplayName("hasSort() - sort为UNSORTED时返回false")
@@ -208,7 +208,7 @@ class PageRequestTest {
             PageRequest request = new PageRequest(1, 10, Sort.unsorted());
 
             assertThat(request.hasSort()).isFalse();
-        }
+        )
 
         @Test
         @DisplayName("多字段排序")
@@ -221,7 +221,7 @@ class PageRequestTest {
 
             assertThat(request.hasSort()).isTrue();
             assertThat(request.sort().getOrders()).hasSize(2);
-        }
+        )
 
         @Test
         @DisplayName("降序排序")
@@ -231,7 +231,7 @@ class PageRequestTest {
 
             assertThat(request.hasSort()).isTrue();
             assertThat(request.sort().getOrders().get(0).isDescending()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("升序排序")
@@ -241,8 +241,8 @@ class PageRequestTest {
 
             assertThat(request.hasSort()).isTrue();
             assertThat(request.sort().getOrders().get(0).isAscending()).isTrue();
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("边界和特殊场景测试")
@@ -254,7 +254,7 @@ class PageRequestTest {
             PageRequest request = new PageRequest(Integer.MIN_VALUE, 10, null);
 
             assertThat(request.page()).isEqualTo(1);
-        }
+        )
 
         @Test
         @DisplayName("极大页码保持不变")
@@ -262,7 +262,7 @@ class PageRequestTest {
             PageRequest request = new PageRequest(Integer.MAX_VALUE, 10, null);
 
             assertThat(request.page()).isEqualTo(Integer.MAX_VALUE);
-        }
+        )
 
         @Test
         @DisplayName("极大每页大小修正")
@@ -270,7 +270,7 @@ class PageRequestTest {
             PageRequest request = new PageRequest(1, Integer.MAX_VALUE, null);
 
             assertThat(request.size()).isEqualTo(PageRequest.MAX_PAGE_SIZE);
-        }
+        )
 
         @Test
         @DisplayName("完整参数组合测试")
@@ -284,7 +284,7 @@ class PageRequestTest {
             assertThat(r2.hasSort()).isTrue();
             assertThat(r3.page()).isEqualTo(1);
             assertThat(r3.size()).isEqualTo(10);
-        }
+        )
 
         @Test
         @DisplayName("链式边界修正测试")
@@ -295,7 +295,7 @@ class PageRequestTest {
             assertThat(request.page()).isEqualTo(1);
             assertThat(request.size()).isEqualTo(PageRequest.DEFAULT_PAGE_SIZE);
             assertThat(request.offset()).isEqualTo(0);
-        }
+        )
 
         @Test
         @DisplayName("所有参数同时修正")
@@ -304,8 +304,8 @@ class PageRequestTest {
 
             assertThat(request.page()).isEqualTo(1);
             assertThat(request.size()).isEqualTo(PageRequest.MAX_PAGE_SIZE);
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("Record特性测试")
@@ -322,7 +322,7 @@ class PageRequestTest {
             assertThat(r1).isEqualTo(r2);
             assertThat(r1.hashCode()).isEqualTo(r2.hashCode());
             assertThat(r1).isNotEqualTo(r3);
-        }
+        )
 
         @Test
         @DisplayName("toString包含关键字段")
@@ -332,7 +332,7 @@ class PageRequestTest {
 
             assertThat(str).contains("3");
             assertThat(str).contains("25");
-        }
+        )
 
         @Test
         @DisplayName("无排序时的toString")
@@ -342,6 +342,6 @@ class PageRequestTest {
 
             assertThat(str).contains("1");
             assertThat(str).contains("10");
-        }
-    }
-}
+        )
+    )
+)

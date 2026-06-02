@@ -25,7 +25,7 @@ class SoftDeleteStrategyTest {
             // Then
             assertThat(strategies).hasSize(2);
             assertThat(strategies).contains(SoftDeleteStrategy.BOOLEAN, SoftDeleteStrategy.TIMESTAMP);
-        }
+        )
 
         @Test
         @DisplayName("BOOLEAN 策略应该存在")
@@ -33,7 +33,7 @@ class SoftDeleteStrategyTest {
             // When & Then
             assertThat(SoftDeleteStrategy.BOOLEAN).isNotNull();
             assertThat(SoftDeleteStrategy.BOOLEAN.name()).isEqualTo("BOOLEAN");
-        }
+        )
 
         @Test
         @DisplayName("TIMESTAMP 策略应该存在")
@@ -41,6 +41,6 @@ class SoftDeleteStrategyTest {
             // When & Then
             assertThat(SoftDeleteStrategy.TIMESTAMP).isNotNull();
             assertThat(SoftDeleteStrategy.TIMESTAMP.name()).isEqualTo("TIMESTAMP");
-        }
-    }
-}
+        )
+    )
+)

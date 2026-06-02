@@ -306,20 +306,15 @@ class EntitySoftDeleteHandlerTest {
     static class TimestampSoftDeleteEntity implements TimestampSoftDeletable {
         private Long id;
         private String name;
-        private java.time.LocalDateTime deletedAt;
+        private java.time.Instant deletedAt;
 
         @Override
-        public boolean isDeleted() {
-            return deletedAt != null;
-        }
-
-        @Override
-        public java.time.LocalDateTime getDeletedAt() {
+        public java.time.Instant getDeletedAt() {
             return deletedAt;
         }
 
         @Override
-        public void setDeletedAt(java.time.LocalDateTime deletedAt) {
+        public void setDeletedAt(java.time.Instant deletedAt) {
             this.deletedAt = deletedAt;
         }
     }
@@ -330,15 +325,15 @@ class EntitySoftDeleteHandlerTest {
     static class BooleanSoftDeleteEntity implements SoftDeletable {
         private Long id;
         private String name;
-        private boolean deleted;
+        private Boolean deleted = false;
 
         @Override
-        public boolean isDeleted() {
+        public Boolean getDeleted() {
             return deleted;
         }
 
         @Override
-        public void setDeleted(boolean deleted) {
+        public void setDeleted(Boolean deleted) {
             this.deleted = deleted;
         }
     }

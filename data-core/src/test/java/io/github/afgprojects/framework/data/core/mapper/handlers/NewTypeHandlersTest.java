@@ -33,7 +33,7 @@ class NewTypeHandlersTest {
         @DisplayName("应返回 OffsetDateTime 类型")
         void shouldReturnType() {
             assertThat(handler.getType()).isEqualTo(OffsetDateTime.class);
-        }
+        )
 
         @Test
         @DisplayName("应从 Timestamp 转换为 OffsetDateTime")
@@ -47,7 +47,7 @@ class NewTypeHandlersTest {
             assertThat(result.getDayOfMonth()).isEqualTo(15);
             assertThat(result.getHour()).isEqualTo(10);
             assertThat(result.getMinute()).isEqualTo(30);
-        }
+        )
 
         @Test
         @DisplayName("应从 ZonedDateTime 转换为 OffsetDateTime")
@@ -57,7 +57,7 @@ class NewTypeHandlersTest {
 
             assertThat(result).isNotNull();
             assertThat(zdt.toOffsetDateTime()).isEqualTo(result);
-        }
+        )
 
         @Test
         @DisplayName("应从 LocalDateTime 转换为 OffsetDateTime")
@@ -71,7 +71,7 @@ class NewTypeHandlersTest {
             assertThat(result.getDayOfMonth()).isEqualTo(15);
             assertThat(result.getHour()).isEqualTo(10);
             assertThat(result.getMinute()).isEqualTo(30);
-        }
+        )
 
         @Test
         @DisplayName("OffsetDateTime 输入应直接返回")
@@ -79,21 +79,21 @@ class NewTypeHandlersTest {
             OffsetDateTime odt = OffsetDateTime.of(2024, 6, 15, 10, 30, 0, 0, ZoneOffset.ofHours(8));
             OffsetDateTime result = handler.convert(odt, OffsetDateTime.class);
             assertThat(result).isSameAs(odt);
-        }
+        )
 
         @Test
         @DisplayName("null 输入应返回 null")
         void shouldReturnNullForNullInput() {
             assertThat(handler.convert(null, OffsetDateTime.class)).isNull();
-        }
+        )
 
         @Test
         @DisplayName("不支持的输入类型应返回 null")
         void shouldReturnNullForUnsupportedType() {
             assertThat(handler.convert("2024-06-15", OffsetDateTime.class)).isNull();
             assertThat(handler.convert(12345, OffsetDateTime.class)).isNull();
-        }
-    }
+        )
+    )
 
     // ==================== InstantTypeHandler ====================
 
@@ -107,7 +107,7 @@ class NewTypeHandlersTest {
         @DisplayName("应返回 Instant 类型")
         void shouldReturnType() {
             assertThat(handler.getType()).isEqualTo(Instant.class);
-        }
+        )
 
         @Test
         @DisplayName("应从 Timestamp 转换为 Instant")
@@ -117,7 +117,7 @@ class NewTypeHandlersTest {
 
             assertThat(result).isNotNull();
             assertThat(result).isEqualTo(ts.toInstant());
-        }
+        )
 
         @Test
         @DisplayName("应从 Date 转换为 Instant")
@@ -127,7 +127,7 @@ class NewTypeHandlersTest {
 
             assertThat(result).isNotNull();
             assertThat(result).isEqualTo(date.toInstant());
-        }
+        )
 
         @Test
         @DisplayName("应从 OffsetDateTime 转换为 Instant")
@@ -137,7 +137,7 @@ class NewTypeHandlersTest {
 
             assertThat(result).isNotNull();
             assertThat(result).isEqualTo(odt.toInstant());
-        }
+        )
 
         @Test
         @DisplayName("Instant 输入应直接返回")
@@ -145,21 +145,21 @@ class NewTypeHandlersTest {
             Instant instant = Instant.now();
             Instant result = handler.convert(instant, Instant.class);
             assertThat(result).isSameAs(instant);
-        }
+        )
 
         @Test
         @DisplayName("null 输入应返回 null")
         void shouldReturnNullForNullInput() {
             assertThat(handler.convert(null, Instant.class)).isNull();
-        }
+        )
 
         @Test
         @DisplayName("不支持的输入类型应返回 null")
         void shouldReturnNullForUnsupportedType() {
             assertThat(handler.convert("2024-06-15T10:30:00Z", Instant.class)).isNull();
             assertThat(handler.convert(12345L, Instant.class)).isNull();
-        }
-    }
+        )
+    )
 
     // ==================== LocalTimeTypeHandler ====================
 
@@ -173,7 +173,7 @@ class NewTypeHandlersTest {
         @DisplayName("应返回 LocalTime 类型")
         void shouldReturnType() {
             assertThat(handler.getType()).isEqualTo(LocalTime.class);
-        }
+        )
 
         @Test
         @DisplayName("应从 Time 转换为 LocalTime")
@@ -182,7 +182,7 @@ class NewTypeHandlersTest {
             LocalTime result = handler.convert(time, LocalTime.class);
 
             assertThat(result).isEqualTo(LocalTime.of(10, 30, 45));
-        }
+        )
 
         @Test
         @DisplayName("应从 Timestamp 转换为 LocalTime")
@@ -191,14 +191,14 @@ class NewTypeHandlersTest {
             LocalTime result = handler.convert(ts, LocalTime.class);
 
             assertThat(result).isEqualTo(LocalTime.of(10, 30, 45));
-        }
+        )
 
         @Test
         @DisplayName("应从 String 转换为 LocalTime")
         void shouldConvertFromString() {
             LocalTime result = handler.convert("10:30:45", LocalTime.class);
             assertThat(result).isEqualTo(LocalTime.of(10, 30, 45));
-        }
+        )
 
         @Test
         @DisplayName("LocalTime 输入应直接返回")
@@ -206,26 +206,26 @@ class NewTypeHandlersTest {
             LocalTime lt = LocalTime.of(10, 30, 45);
             LocalTime result = handler.convert(lt, LocalTime.class);
             assertThat(result).isSameAs(lt);
-        }
+        )
 
         @Test
         @DisplayName("null 输入应返回 null")
         void shouldReturnNullForNullInput() {
             assertThat(handler.convert(null, LocalTime.class)).isNull();
-        }
+        )
 
         @Test
         @DisplayName("不支持的输入类型应返回 null")
         void shouldReturnNullForUnsupportedType() {
             assertThat(handler.convert(12345, LocalTime.class)).isNull();
-        }
+        )
 
         @Test
         @DisplayName("无效字符串应返回 null")
         void shouldReturnNullForInvalidString() {
             assertThat(handler.convert("not-a-time", LocalTime.class)).isNull();
-        }
-    }
+        )
+    )
 
     // ==================== UUIDTypeHandler ====================
 
@@ -239,7 +239,7 @@ class NewTypeHandlersTest {
         @DisplayName("应返回 UUID 类型")
         void shouldReturnType() {
             assertThat(handler.getType()).isEqualTo(UUID.class);
-        }
+        )
 
         @Test
         @DisplayName("应从 String 转换为 UUID")
@@ -248,7 +248,7 @@ class NewTypeHandlersTest {
             UUID result = handler.convert(uuidStr, UUID.class);
 
             assertThat(result).isEqualTo(UUID.fromString(uuidStr));
-        }
+        )
 
         @Test
         @DisplayName("应从 byte[] 转换为 UUID")
@@ -261,7 +261,7 @@ class NewTypeHandlersTest {
 
             UUID result = handler.convert(bytes, UUID.class);
             assertThat(result).isEqualTo(original);
-        }
+        )
 
         @Test
         @DisplayName("UUID 输入应直接返回")
@@ -269,39 +269,39 @@ class NewTypeHandlersTest {
             UUID uuid = UUID.randomUUID();
             UUID result = handler.convert(uuid, UUID.class);
             assertThat(result).isSameAs(uuid);
-        }
+        )
 
         @Test
         @DisplayName("null 输入应返回 null")
         void shouldReturnNullForNullInput() {
             assertThat(handler.convert(null, UUID.class)).isNull();
-        }
+        )
 
         @Test
         @DisplayName("不支持的输入类型应返回 null")
         void shouldReturnNullForUnsupportedType() {
             assertThat(handler.convert(12345, UUID.class)).isNull();
-        }
+        )
 
         @Test
         @DisplayName("无效 UUID 字符串应返回 null")
         void shouldReturnNullForInvalidString() {
             assertThat(handler.convert("not-a-uuid", UUID.class)).isNull();
-        }
+        )
 
         @Test
         @DisplayName("长度不为 16 的 byte[] 应返回 null")
         void shouldReturnNullForShortByteArray() {
             assertThat(handler.convert(new byte[8], UUID.class)).isNull();
             assertThat(handler.convert(new byte[32], UUID.class)).isNull();
-        }
+        )
 
         @Test
         @DisplayName("应返回优先级 5")
         void shouldReturnPriority() {
             assertThat(handler.priority()).isEqualTo(5);
-        }
-    }
+        )
+    )
 
     // ==================== ZonedDateTimeTypeHandler ====================
 
@@ -315,7 +315,7 @@ class NewTypeHandlersTest {
         @DisplayName("应返回 ZonedDateTime 类型")
         void shouldReturnType() {
             assertThat(handler.getType()).isEqualTo(ZonedDateTime.class);
-        }
+        )
 
         @Test
         @DisplayName("应从 OffsetDateTime 转换为 ZonedDateTime")
@@ -325,7 +325,7 @@ class NewTypeHandlersTest {
 
             assertThat(result).isNotNull();
             assertThat(result).isEqualTo(odt.toZonedDateTime());
-        }
+        )
 
         @Test
         @DisplayName("应从 Timestamp 转换为 ZonedDateTime")
@@ -335,7 +335,7 @@ class NewTypeHandlersTest {
 
             assertThat(result).isNotNull();
             assertThat(result).isEqualTo(ts.toInstant().atZone(ZoneId.systemDefault()));
-        }
+        )
 
         @Test
         @DisplayName("ZonedDateTime 输入应直接返回")
@@ -343,21 +343,21 @@ class NewTypeHandlersTest {
             ZonedDateTime zdt = ZonedDateTime.of(2024, 6, 15, 10, 30, 0, 0, ZoneId.of("Asia/Shanghai"));
             ZonedDateTime result = handler.convert(zdt, ZonedDateTime.class);
             assertThat(result).isSameAs(zdt);
-        }
+        )
 
         @Test
         @DisplayName("null 输入应返回 null")
         void shouldReturnNullForNullInput() {
             assertThat(handler.convert(null, ZonedDateTime.class)).isNull();
-        }
+        )
 
         @Test
         @DisplayName("不支持的输入类型应返回 null")
         void shouldReturnNullForUnsupportedType() {
             assertThat(handler.convert("2024-06-15", ZonedDateTime.class)).isNull();
             assertThat(handler.convert(12345, ZonedDateTime.class)).isNull();
-        }
-    }
+        )
+    )
 
     // ==================== YearTypeHandler ====================
 
@@ -371,7 +371,7 @@ class NewTypeHandlersTest {
         @DisplayName("应返回 Year 类型")
         void shouldReturnType() {
             assertThat(handler.getType()).isEqualTo(Year.class);
-        }
+        )
 
         @Test
         @DisplayName("应从 Number 转换为 Year")
@@ -379,13 +379,13 @@ class NewTypeHandlersTest {
             assertThat(handler.convert(2024, Year.class)).isEqualTo(Year.of(2024));
             assertThat(handler.convert(2024L, Year.class)).isEqualTo(Year.of(2024));
             assertThat(handler.convert((short) 2024, Year.class)).isEqualTo(Year.of(2024));
-        }
+        )
 
         @Test
         @DisplayName("应从 String 转换为 Year")
         void shouldConvertFromString() {
             assertThat(handler.convert("2024", Year.class)).isEqualTo(Year.of(2024));
-        }
+        )
 
         @Test
         @DisplayName("Year 输入应直接返回")
@@ -393,13 +393,13 @@ class NewTypeHandlersTest {
             Year year = Year.of(2024);
             Year result = handler.convert(year, Year.class);
             assertThat(result).isSameAs(year);
-        }
+        )
 
         @Test
         @DisplayName("null 输入应返回 null")
         void shouldReturnNullForNullInput() {
             assertThat(handler.convert(null, Year.class)).isNull();
-        }
+        )
 
         @Test
         @DisplayName("不支持的输入类型应返回 null")
@@ -408,14 +408,14 @@ class NewTypeHandlersTest {
             // Use a truly unsupported type instead
             assertThat(handler.convert(LocalDateTime.now(), Year.class)).isNull();
             assertThat(handler.convert(new Object(), Year.class)).isNull();
-        }
+        )
 
         @Test
         @DisplayName("无效字符串应返回 null")
         void shouldReturnNullForInvalidString() {
             assertThat(handler.convert("not-a-year", Year.class)).isNull();
-        }
-    }
+        )
+    )
 
     // ==================== YearMonthTypeHandler ====================
 
@@ -429,13 +429,13 @@ class NewTypeHandlersTest {
         @DisplayName("应返回 YearMonth 类型")
         void shouldReturnType() {
             assertThat(handler.getType()).isEqualTo(YearMonth.class);
-        }
+        )
 
         @Test
         @DisplayName("应从 String 转换为 YearMonth")
         void shouldConvertFromString() {
             assertThat(handler.convert("2024-06", YearMonth.class)).isEqualTo(YearMonth.of(2024, 6));
-        }
+        )
 
         @Test
         @DisplayName("应从 Date 转换为 YearMonth")
@@ -444,7 +444,7 @@ class NewTypeHandlersTest {
             YearMonth result = handler.convert(date, YearMonth.class);
 
             assertThat(result).isEqualTo(YearMonth.of(2024, 6));
-        }
+        )
 
         @Test
         @DisplayName("YearMonth 输入应直接返回")
@@ -452,25 +452,25 @@ class NewTypeHandlersTest {
             YearMonth ym = YearMonth.of(2024, 6);
             YearMonth result = handler.convert(ym, YearMonth.class);
             assertThat(result).isSameAs(ym);
-        }
+        )
 
         @Test
         @DisplayName("null 输入应返回 null")
         void shouldReturnNullForNullInput() {
             assertThat(handler.convert(null, YearMonth.class)).isNull();
-        }
+        )
 
         @Test
         @DisplayName("不支持的输入类型应返回 null")
         void shouldReturnNullForUnsupportedType() {
             assertThat(handler.convert(2024, YearMonth.class)).isNull();
             assertThat(handler.convert(LocalDateTime.now(), YearMonth.class)).isNull();
-        }
+        )
 
         @Test
         @DisplayName("无效字符串应返回 null")
         void shouldReturnNullForInvalidString() {
             assertThat(handler.convert("not-a-yearmonth", YearMonth.class)).isNull();
-        }
-    }
-}
+        )
+    )
+)

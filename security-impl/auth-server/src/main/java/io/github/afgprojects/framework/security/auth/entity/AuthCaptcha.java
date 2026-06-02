@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.jspecify.annotations.Nullable;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * 验证码实体。
@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = true)
 @AfEntity
 @Table(name = "auth_captcha")
-public class AuthCaptcha extends BaseEntity<Long> {
+public class AuthCaptcha extends BaseEntity {
 
     /**
      * 验证码 Key（用于客户端查询）
@@ -45,5 +45,5 @@ public class AuthCaptcha extends BaseEntity<Long> {
     /**
      * 过期时间
      */
-    private LocalDateTime expiresAt;
+    private Instant expiresAt;
 }

@@ -27,7 +27,7 @@ class SoftDeleteConfigTest {
             assertThat(config.isEnabled()).isTrue();
             assertThat(config.getStrategy()).isEqualTo(SoftDeleteStrategy.BOOLEAN);
             assertThat(config.isAutoFilterDeleted()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("booleanStrategy 应该返回 Boolean 模式配置")
@@ -38,7 +38,7 @@ class SoftDeleteConfigTest {
             // Then
             assertThat(config.getStrategy()).isEqualTo(SoftDeleteStrategy.BOOLEAN);
             assertThat(config.getFieldName()).isEqualTo("deleted");
-        }
+        )
 
         @Test
         @DisplayName("timestampStrategy 应该返回时间戳模式配置")
@@ -49,8 +49,8 @@ class SoftDeleteConfigTest {
             // Then
             assertThat(config.getStrategy()).isEqualTo(SoftDeleteStrategy.TIMESTAMP);
             assertThat(config.getFieldName()).isEqualTo("deletedAt");
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("字段名测试")
@@ -64,7 +64,7 @@ class SoftDeleteConfigTest {
 
             // When & Then
             assertThat(config.getFieldName()).isEqualTo("deleted");
-        }
+        )
 
         @Test
         @DisplayName("时间戳模式应该返回 deletedAt 字段名")
@@ -74,7 +74,7 @@ class SoftDeleteConfigTest {
 
             // When & Then
             assertThat(config.getFieldName()).isEqualTo("deletedAt");
-        }
+        )
 
         @Test
         @DisplayName("应该支持自定义字段名")
@@ -90,8 +90,8 @@ class SoftDeleteConfigTest {
 
             config.setStrategy(SoftDeleteStrategy.TIMESTAMP);
             assertThat(config.getFieldName()).isEqualTo("deleted_time");
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("配置属性测试")
@@ -106,7 +106,7 @@ class SoftDeleteConfigTest {
 
             // When & Then
             assertThat(config.isEnabled()).isFalse();
-        }
+        )
 
         @Test
         @DisplayName("应该支持禁用自动过滤")
@@ -117,8 +117,8 @@ class SoftDeleteConfigTest {
 
             // When & Then
             assertThat(config.isAutoFilterDeleted()).isFalse();
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("toString 测试")
@@ -137,8 +137,8 @@ class SoftDeleteConfigTest {
             assertThat(result).contains("enabled=true");
             assertThat(result).contains("strategy=TIMESTAMP");
             assertThat(result).contains("fieldName='deletedAt'");
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("默认值测试")
@@ -151,6 +151,6 @@ class SoftDeleteConfigTest {
             assertThat(SoftDeleteConfig.DEFAULT_STRATEGY).isEqualTo(SoftDeleteStrategy.BOOLEAN);
             assertThat(SoftDeleteConfig.DEFAULT_DELETED_VALUE).isTrue();
             assertThat(SoftDeleteConfig.DEFAULT_NOT_DELETED_VALUE).isFalse();
-        }
-    }
-}
+        )
+    )
+)

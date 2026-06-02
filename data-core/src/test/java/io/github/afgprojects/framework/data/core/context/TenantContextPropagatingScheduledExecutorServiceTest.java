@@ -32,15 +32,15 @@ class TenantContextPropagatingScheduledExecutorServiceTest {
         holder = new TenantContextHolder();
         originalScheduler = Executors.newScheduledThreadPool(2);
         wrappedScheduler = TenantContextPropagatingExecutorService.wrap(originalScheduler, holder);
-    }
+    )
 
     @AfterEach
     void tearDown() {
         holder.clear();
         if (wrappedScheduler != null && !wrappedScheduler.isShutdown()) {
             wrappedScheduler.shutdown();
-        }
-    }
+        )
+    )
 
     // ==================== schedule(Runnable) tests ====================
 
@@ -53,13 +53,13 @@ class TenantContextPropagatingScheduledExecutorServiceTest {
         ScheduledFuture<?> future = wrappedScheduler.schedule(() -> {
             capturedTenantId.set(holder.getTenantId());
             latch.countDown();
-        }, 50, TimeUnit.MILLISECONDS);
+        ), 50, TimeUnit.MILLISECONDS);
 
         latch.await(1, TimeUnit.SECONDS);
         future.get(1, TimeUnit.SECONDS);
 
         assertThat(capturedTenantId.get()).isEqualTo("tenant-schedule");
-    }
+    )
 
     @Test
     void shouldScheduleRunnableWithZeroDelay() throws Exception {
@@ -70,12 +70,12 @@ class TenantContextPropagatingScheduledExecutorServiceTest {
         ScheduledFuture<?> future = wrappedScheduler.schedule(() -> {
             capturedTenantId.set(holder.getTenantId());
             latch.countDown();
-        }, 0, TimeUnit.MILLISECONDS);
+        ), 0, TimeUnit.MILLISECONDS);
 
         latch.await(1, TimeUnit.SECONDS);
 
         assertThat(capturedTenantId.get()).isEqualTo("tenant-immediate");
-    }
+    )
 
     @Test
     void shouldScheduleRunnableNotPropagateWhenNoTenant() throws Exception {
@@ -85,12 +85,12 @@ class TenantContextPropagatingScheduledExecutorServiceTest {
         ScheduledFuture<?> future = wrappedScheduler.schedule(() -> {
             capturedTenantId.set(holder.getTenantId());
             latch.countDown();
-        }, 50, TimeUnit.MILLISECONDS);
+        ), 50, TimeUnit.MILLISECONDS);
 
         latch.await(1, TimeUnit.SECONDS);
 
         assertThat(capturedTenantId.get()).isNull();
-    }
+    )
 
     @Test
     void shouldScheduleRunnableCancelBeforeExecution() throws Exception {
@@ -98,7 +98,7 @@ class TenantContextPropagatingScheduledExecutorServiceTest {
 
         ScheduledFuture<?> future = wrappedScheduler.schedule(() -> {
             executed.set(true);
-        }, 10, TimeUnit.SECONDS);  // Long delay
+        ), 10, TimeUnit.SECONDS);  // Long delay
 
         boolean cancelled = future.cancel(false);
 
@@ -108,7 +108,7 @@ class TenantContextPropagatingScheduledExecutorServiceTest {
         // Wait a bit to ensure it doesn't execute
         Thread.sleep(100);
         assertThat(executed.get()).isFalse();
-    }
+    )
 
     // ==================== schedule(Callable) tests ====================
 
@@ -124,7 +124,7 @@ class TenantContextPropagatingScheduledExecutorServiceTest {
         String result = future.get(1, TimeUnit.SECONDS);
 
         assertThat(result).isEqualTo("tenant-schedule-callable");
-    }
+    )
 
     @Test
     void shouldScheduleCallableWithResult() throws Exception {
@@ -134,14 +134,14 @@ class TenantContextPropagatingScheduledExecutorServiceTest {
                 () -> {
                     String tenant = holder.getTenantId();
                     return "result-" + tenant;
-                },
+                ),
                 10, TimeUnit.MILLISECONDS
         );
 
         String result = future.get(1, TimeUnit.SECONDS);
 
         assertThat(result).isEqualTo("result-tenant-result");
-    }
+    )
 
     @Test
     void shouldScheduleCallableGetDelay() throws Exception {
@@ -156,7 +156,7 @@ class TenantContextPropagatingScheduledExecutorServiceTest {
         assertThat(delay).isLessThanOrEqualTo(500);
 
         future.cancel(true);
-    }
+    )
 
     // ==================== scheduleAtFixedRate tests ====================
 
@@ -171,14 +171,14 @@ class TenantContextPropagatingScheduledExecutorServiceTest {
             lastCapturedTenantId.set(holder.getTenantId());
             executionCount.incrementAndGet();
             latch.countDown();
-        }, 0, 50, TimeUnit.MILLISECONDS);
+        ), 0, 50, TimeUnit.MILLISECONDS);
 
         latch.await(2, TimeUnit.SECONDS);
         future.cancel(false);
 
         assertThat(executionCount.get()).isGreaterThanOrEqualTo(3);
         assertThat(lastCapturedTenantId.get()).isEqualTo("tenant-fixed-rate");
-    }
+    )
 
     @Test
     void shouldScheduleAtFixedRateContinueWithInitialDelay() throws Exception {
@@ -191,7 +191,7 @@ class TenantContextPropagatingScheduledExecutorServiceTest {
         ScheduledFuture<?> future = wrappedScheduler.scheduleAtFixedRate(() -> {
             executionCount.incrementAndGet();
             latch.countDown();
-        }, 100, 50, TimeUnit.MILLISECONDS);
+        ), 100, 50, TimeUnit.MILLISECONDS);
 
         latch.await(2, TimeUnit.SECONDS);
         future.cancel(false);
@@ -199,7 +199,7 @@ class TenantContextPropagatingScheduledExecutorServiceTest {
         long elapsed = System.currentTimeMillis() - startTime;
         // Should have waited at least the initial delay
         assertThat(elapsed).isGreaterThanOrEqualTo(100);
-    }
+    )
 
     @Test
     void shouldScheduleAtFixedRateStopOnException() throws Exception {
@@ -211,8 +211,8 @@ class TenantContextPropagatingScheduledExecutorServiceTest {
             latch.countDown();
             if (executionCount.get() == 2) {
                 throw new RuntimeException("Intentional test exception");
-            }
-        }, 0, 50, TimeUnit.MILLISECONDS);
+            )
+        ), 0, 50, TimeUnit.MILLISECONDS);
 
         latch.await(1, TimeUnit.SECONDS);
 
@@ -224,7 +224,7 @@ class TenantContextPropagatingScheduledExecutorServiceTest {
         assertThat(executionCount.get()).isGreaterThanOrEqualTo(2);
 
         future.cancel(false);
-    }
+    )
 
     // ==================== scheduleWithFixedDelay tests ====================
 
@@ -239,14 +239,14 @@ class TenantContextPropagatingScheduledExecutorServiceTest {
             lastCapturedTenantId.set(holder.getTenantId());
             executionCount.incrementAndGet();
             latch.countDown();
-        }, 0, 50, TimeUnit.MILLISECONDS);
+        ), 0, 50, TimeUnit.MILLISECONDS);
 
         latch.await(2, TimeUnit.SECONDS);
         future.cancel(false);
 
         assertThat(executionCount.get()).isGreaterThanOrEqualTo(3);
         assertThat(lastCapturedTenantId.get()).isEqualTo("tenant-fixed-delay");
-    }
+    )
 
     @Test
     void shouldScheduleWithFixedDelayIncludesExecutionTime() throws Exception {
@@ -260,16 +260,16 @@ class TenantContextPropagatingScheduledExecutorServiceTest {
             // Simulate some work
             try {
                 Thread.sleep(20);
-            } catch (InterruptedException e) {
+            ) catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-            }
-        }, 0, 50, TimeUnit.MILLISECONDS);
+            )
+        ), 0, 50, TimeUnit.MILLISECONDS);
 
         latch.await(2, TimeUnit.SECONDS);
         future.cancel(false);
 
         assertThat(executionCount.get()).isGreaterThanOrEqualTo(3);
-    }
+    )
 
     // ==================== Mixed operations tests ====================
 
@@ -285,20 +285,20 @@ class TenantContextPropagatingScheduledExecutorServiceTest {
         wrappedScheduler.schedule(() -> {
             scheduledTenant.set(holder.getTenantId());
             latch1.countDown();
-        }, 10, TimeUnit.MILLISECONDS);
+        ), 10, TimeUnit.MILLISECONDS);
 
         // Submit a task
         wrappedScheduler.submit(() -> {
             submittedTenant.set(holder.getTenantId());
             latch2.countDown();
-        });
+        ));
 
         latch1.await(1, TimeUnit.SECONDS);
         latch2.await(1, TimeUnit.SECONDS);
 
         assertThat(scheduledTenant.get()).isEqualTo("tenant-mixed");
         assertThat(submittedTenant.get()).isEqualTo("tenant-mixed");
-    }
+    )
 
     @Test
     void shouldDifferentScheduledTasksHaveDifferentCapturedContexts() throws Exception {
@@ -311,19 +311,19 @@ class TenantContextPropagatingScheduledExecutorServiceTest {
         wrappedScheduler.schedule(() -> {
             task1Tenant.set(holder.getTenantId());
             latch1.countDown();
-        }, 10, TimeUnit.MILLISECONDS);
+        ), 10, TimeUnit.MILLISECONDS);
         latch1.await(1, TimeUnit.SECONDS);
 
         holder.setTenantId("tenant-task2");
         wrappedScheduler.schedule(() -> {
             task2Tenant.set(holder.getTenantId());
             latch2.countDown();
-        }, 10, TimeUnit.MILLISECONDS);
+        ), 10, TimeUnit.MILLISECONDS);
         latch2.await(1, TimeUnit.SECONDS);
 
         assertThat(task1Tenant.get()).isEqualTo("tenant-task1");
         assertThat(task2Tenant.get()).isEqualTo("tenant-task2");
-    }
+    )
 
     // ==================== Shutdown tests ====================
 
@@ -333,7 +333,7 @@ class TenantContextPropagatingScheduledExecutorServiceTest {
 
         wrappedScheduler.schedule(() -> {
             executed.set(true);
-        }, 10, TimeUnit.SECONDS);  // Far future
+        ), 10, TimeUnit.SECONDS);  // Far future
 
         wrappedScheduler.shutdown();
 
@@ -341,22 +341,22 @@ class TenantContextPropagatingScheduledExecutorServiceTest {
         Thread.sleep(100);
 
         assertThat(executed.get()).isFalse();
-    }
+    )
 
     @Test
     void shouldShutdownNowReturnPendingTasks() throws Exception {
         // Schedule a task far in the future
-        wrappedScheduler.schedule(() -> {}, 10, TimeUnit.SECONDS);
+        wrappedScheduler.schedule(() -> {), 10, TimeUnit.SECONDS);
 
         // Some implementations may return pending tasks
         wrappedScheduler.shutdownNow();
 
         assertThat(wrappedScheduler.isShutdown()).isTrue();
-    }
+    )
 
     @Test
     void shouldAwaitTerminationWithScheduledTasks() throws Exception {
-        wrappedScheduler.schedule(() -> {}, 10, TimeUnit.MILLISECONDS);
+        wrappedScheduler.schedule(() -> {), 10, TimeUnit.MILLISECONDS);
 
         Thread.sleep(50);  // Let task complete
 
@@ -365,7 +365,7 @@ class TenantContextPropagatingScheduledExecutorServiceTest {
         boolean terminated = wrappedScheduler.awaitTermination(1, TimeUnit.SECONDS);
 
         assertThat(terminated).isTrue();
-    }
+    )
 
     // ==================== Edge cases ====================
 
@@ -378,21 +378,21 @@ class TenantContextPropagatingScheduledExecutorServiceTest {
         wrappedScheduler.schedule(() -> {
             capturedTenantId.set(holder.getTenantId());
             latch.countDown();
-        }, 1, TimeUnit.MILLISECONDS);
+        ), 1, TimeUnit.MILLISECONDS);
 
         latch.await(1, TimeUnit.SECONDS);
 
         assertThat(capturedTenantId.get()).isEqualTo("tenant-short-delay");
-    }
+    )
 
     @Test
     void shouldScheduleAtFixedRateRejectZeroPeriod() throws Exception {
         // Zero period is rejected by ScheduledThreadPoolExecutor with IllegalArgumentException
         assertThatThrownBy(() -> {
             wrappedScheduler.scheduleAtFixedRate(
-                    () -> {}, 0, 0, TimeUnit.MILLISECONDS);
-        }).isInstanceOf(IllegalArgumentException.class);
-    }
+                    () -> {), 0, 0, TimeUnit.MILLISECONDS);
+        )).isInstanceOf(IllegalArgumentException.class);
+    )
 
     @Test
     void shouldScheduleCallableReturnCorrectResult() throws Exception {
@@ -402,10 +402,10 @@ class TenantContextPropagatingScheduledExecutorServiceTest {
                 () -> {
                     assertThat(holder.getTenantId()).isEqualTo("tenant-return");
                     return "success";
-                },
+                ),
                 10, TimeUnit.MILLISECONDS
         );
 
         assertThat(future.get(1, TimeUnit.SECONDS)).isEqualTo("success");
-    }
-}
+    )
+)

@@ -16,7 +16,7 @@ class FieldNameResolverTest {
     @BeforeEach
     void setUp() {
         resolver = new FieldNameResolver(new EntityMetadataCache());
-    }
+    )
 
     @Nested
     @DisplayName("camelCase 转 snake_case")
@@ -28,29 +28,29 @@ class FieldNameResolverTest {
             // 无元数据时，降级到 snake_case 转换
             String result = resolver.resolveColumnName(TestEntity.class, TestEntity::getUserName);
             assertThat(result).isEqualTo("user_name");
-        }
+        )
 
         @Test
         @DisplayName("应该处理单个单词属性名")
         void shouldHandleSingleWordPropertyName() {
             String result = resolver.resolveColumnName(TestEntity.class, TestEntity::getId);
             assertThat(result).isEqualTo("id");
-        }
+        )
 
         @Test
         @DisplayName("应该处理连续大写字母")
         void shouldHandleConsecutiveUppercase() {
             String result = resolver.resolveColumnName(TestEntity.class, TestEntity::getURL);
             assertThat(result).isEqualTo("u_r_l");
-        }
+        )
 
         @Test
         @DisplayName("应该处理多个单词组合")
         void shouldHandleMultipleWords() {
             String result = resolver.resolveColumnName(TestEntity.class, TestEntity::getUserEmailAddress);
             assertThat(result).isEqualTo("user_email_address");
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("Boolean 字段处理")
@@ -62,7 +62,7 @@ class FieldNameResolverTest {
             // getActive() 方法提取属性名 "active"，转换为 "active"
             String result = resolver.resolveColumnName(TestEntity.class, TestEntity::getActive);
             assertThat(result).isEqualTo("active");
-        }
+        )
 
         @Test
         @DisplayName("应该正确处理 Boolean 类型字段的 get 前缀方法")
@@ -70,8 +70,8 @@ class FieldNameResolverTest {
             // getDeleted() 方法提取属性名 "deleted"，转换为 "deleted"
             String result = resolver.resolveColumnName(TestEntity.class, TestEntity::getDeleted);
             assertThat(result).isEqualTo("deleted");
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("边界场景")
@@ -84,15 +84,15 @@ class FieldNameResolverTest {
             // 这里验证单字符属性名
             String result = resolver.resolveColumnName(TestEntity.class, TestEntity::getX);
             assertThat(result).isEqualTo("x");
-        }
+        )
 
         @Test
         @DisplayName("应该处理全大写属性名")
         void shouldHandleAllUppercasePropertyName() {
             String result = resolver.resolveColumnName(TestEntity.class, TestEntity::getURL);
             assertThat(result).isEqualTo("u_r_l");
-        }
-    }
+        )
+    )
 
     // 测试用内部类
     static class TestEntity {
@@ -107,30 +107,30 @@ class FieldNameResolverTest {
 
         public Long getId() {
             return id;
-        }
+        )
 
         public String getUserName() {
             return userName;
-        }
+        )
 
         public String getURL() {
             return URL;
-        }
+        )
 
         public String getUserEmailAddress() {
             return userEmailAddress;
-        }
+        )
 
         public Boolean getActive() {
             return active;
-        }
+        )
 
         public Boolean getDeleted() {
             return deleted;
-        }
+        )
 
         public Integer getX() {
             return x;
-        }
-    }
-}
+        )
+    )
+)

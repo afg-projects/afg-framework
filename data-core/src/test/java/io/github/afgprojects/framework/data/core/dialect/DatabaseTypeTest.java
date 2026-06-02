@@ -13,14 +13,14 @@ class DatabaseTypeTest {
         assertThat(DatabaseType.fromCode("oceanbase")).isEqualTo(DatabaseType.OCEANBASE);
         assertThat(DatabaseType.fromCode("unknown")).isEqualTo(DatabaseType.UNKNOWN);
         assertThat(DatabaseType.fromCode(null)).isEqualTo(DatabaseType.UNKNOWN);
-    }
+    )
 
     @Test
     void shouldCheckMySQLFamily() {
         assertThat(DatabaseType.MYSQL.isMySQLFamily()).isTrue();
         assertThat(DatabaseType.OCEANBASE.isMySQLFamily()).isTrue();
         assertThat(DatabaseType.POSTGRESQL.isMySQLFamily()).isFalse();
-    }
+    )
 
     @Test
     void shouldCheckPostgreSQLFamily() {
@@ -28,7 +28,7 @@ class DatabaseTypeTest {
         assertThat(DatabaseType.OPENGAUSS.isPostgreSQLFamily()).isTrue();
         assertThat(DatabaseType.GAUSSDB.isPostgreSQLFamily()).isTrue();
         assertThat(DatabaseType.MYSQL.isPostgreSQLFamily()).isFalse();
-    }
+    )
 
     @Test
     void shouldCheckChineseDatabase() {
@@ -38,5 +38,5 @@ class DatabaseTypeTest {
         assertThat(DatabaseType.KINGBASE.isChineseDatabase()).isTrue();
         assertThat(DatabaseType.GAUSSDB.isChineseDatabase()).isTrue();
         assertThat(DatabaseType.MYSQL.isChineseDatabase()).isFalse();
-    }
-}
+    )
+)

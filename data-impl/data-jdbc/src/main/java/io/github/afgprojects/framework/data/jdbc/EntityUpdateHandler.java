@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.data.jdbc;
 
+import io.github.afgprojects.framework.data.core.entity.LifecycleCallbacks;
 import io.github.afgprojects.framework.data.core.entity.Versioned;
 import io.github.afgprojects.framework.data.core.exception.OptimisticLockException;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;

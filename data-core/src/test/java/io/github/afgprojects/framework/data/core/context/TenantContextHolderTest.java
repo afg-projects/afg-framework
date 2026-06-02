@@ -35,59 +35,59 @@ class TenantContextHolderTest {
     @BeforeEach
     void setUp() {
         holder = new TenantContextHolder();
-    }
+    )
 
     @AfterEach
     void tearDown() {
         holder.clear();
-    }
+    )
 
     // ==================== Basic get/set/clear tests ====================
 
     @Test
     void shouldReturnNullWhenNoTenantSet() {
         assertThat(holder.getTenantId()).isNull();
-    }
+    )
 
     @Test
     void shouldSetAndGetTenantId() {
         holder.setTenantId("tenant-001");
         assertThat(holder.getTenantId()).isEqualTo("tenant-001");
-    }
+    )
 
     @Test
     void shouldClearTenantId() {
         holder.setTenantId("tenant-001");
         holder.clear();
         assertThat(holder.getTenantId()).isNull();
-    }
+    )
 
     @Test
     void shouldClearWhenSetTenantIdToNull() {
         holder.setTenantId("tenant-001");
         holder.setTenantId(null);
         assertThat(holder.getTenantId()).isNull();
-    }
+    )
 
     @Test
     void shouldOverwriteExistingTenantId() {
         holder.setTenantId("tenant-001");
         holder.setTenantId("tenant-002");
         assertThat(holder.getTenantId()).isEqualTo("tenant-002");
-    }
+    )
 
     @Test
     void shouldAllowMultipleClears() {
         holder.clear();
         holder.clear();
         assertThat(holder.getTenantId()).isNull();
-    }
+    )
 
     @Test
     void shouldSupportEmptyTenantId() {
         holder.setTenantId("");
         assertThat(holder.getTenantId()).isEqualTo("");
-    }
+    )
 
     // ==================== Snapshot tests ====================
 
@@ -95,7 +95,7 @@ class TenantContextHolderTest {
     void shouldSnapshotReturnNullWhenNoTenantSet() {
         TenantContextHolder.TenantContextSnapshot snapshot = holder.snapshot();
         assertThat(snapshot).isNull();
-    }
+    )
 
     @Test
     void shouldSnapshotCaptureTenantId() {
@@ -104,7 +104,7 @@ class TenantContextHolderTest {
 
         assertThat(snapshot).isNotNull();
         assertThat(snapshot.tenantId()).isEqualTo("tenant-snapshot");
-    }
+    )
 
     @Test
     void shouldSnapshotNotChangeWhenOriginalChanges() {
@@ -114,7 +114,7 @@ class TenantContextHolderTest {
         holder.setTenantId("tenant-changed");
 
         assertThat(snapshot.tenantId()).isEqualTo("tenant-original");
-    }
+    )
 
     @Test
     void shouldSnapshotIsValidReturnTrueWhenTenantSet() {
@@ -122,7 +122,7 @@ class TenantContextHolderTest {
         TenantContextHolder.TenantContextSnapshot snapshot = holder.snapshot();
 
         assertThat(snapshot.isValid()).isTrue();
-    }
+    )
 
     @Test
     void shouldSnapshotIsValidReturnFalseWhenEmptyString() {
@@ -131,7 +131,7 @@ class TenantContextHolderTest {
 
         // Empty string is not null, so it should be valid
         assertThat(snapshot.isValid()).isTrue();
-    }
+    )
 
     @Test
     void shouldSnapshotIsValidReturnFalseWhenNull() {
@@ -139,7 +139,7 @@ class TenantContextHolderTest {
                 new TenantContextHolder.TenantContextSnapshot(null);
 
         assertThat(snapshot.isValid()).isFalse();
-    }
+    )
 
     // ==================== Restore tests ====================
 
@@ -151,7 +151,7 @@ class TenantContextHolderTest {
         holder.restore(snapshot);
 
         assertThat(holder.getTenantId()).isEqualTo("tenant-restore");
-    }
+    )
 
     @Test
     void shouldRestoreClearContextWhenSnapshotIsNull() {
@@ -160,7 +160,7 @@ class TenantContextHolderTest {
         holder.restore(null);
 
         assertThat(holder.getTenantId()).isNull();
-    }
+    )
 
     @Test
     void shouldRestoreOverwriteExistingContext() {
@@ -171,7 +171,7 @@ class TenantContextHolderTest {
         holder.restore(snapshot);
 
         assertThat(holder.getTenantId()).isEqualTo("tenant-new");
-    }
+    )
 
     // ==================== runWithSnapshot tests ====================
 
@@ -184,7 +184,7 @@ class TenantContextHolderTest {
         holder.runWithSnapshot(snapshot, () -> capturedTenantId.set(holder.getTenantId()));
 
         assertThat(capturedTenantId.get()).isEqualTo("tenant-run");
-    }
+    )
 
     @Test
     void shouldRunWithSnapshotRestoreOriginalValueAfterExecution() {
@@ -192,20 +192,20 @@ class TenantContextHolderTest {
         TenantContextHolder.TenantContextSnapshot snapshot =
                 new TenantContextHolder.TenantContextSnapshot("tenant-temp");
 
-        holder.runWithSnapshot(snapshot, () -> {});
+        holder.runWithSnapshot(snapshot, () -> {));
 
         assertThat(holder.getTenantId()).isEqualTo("tenant-original");
-    }
+    )
 
     @Test
     void shouldRunWithSnapshotRestoreToNullWhenNoOriginalValue() {
         TenantContextHolder.TenantContextSnapshot snapshot =
                 new TenantContextHolder.TenantContextSnapshot("tenant-temp");
 
-        holder.runWithSnapshot(snapshot, () -> {});
+        holder.runWithSnapshot(snapshot, () -> {));
 
         assertThat(holder.getTenantId()).isNull();
-    }
+    )
 
     @Test
     void shouldRunWithSnapshotHandleNullSnapshot() {
@@ -214,16 +214,16 @@ class TenantContextHolderTest {
         holder.runWithSnapshot(null, () -> capturedTenantId.set(holder.getTenantId()));
 
         assertThat(capturedTenantId.get()).isNull();
-    }
+    )
 
     @Test
     void shouldRunWithSnapshotRestoreOriginalValueWhenNullSnapshot() {
         holder.setTenantId("tenant-original");
 
-        holder.runWithSnapshot(null, () -> {});
+        holder.runWithSnapshot(null, () -> {));
 
         assertThat(holder.getTenantId()).isEqualTo("tenant-original");
-    }
+    )
 
     @Test
     void shouldRunWithSnapshotRestoreOriginalValueOnException() {
@@ -234,12 +234,12 @@ class TenantContextHolderTest {
         assertThatThrownBy(() ->
                 holder.runWithSnapshot(snapshot, () -> {
                     throw new RuntimeException("Test exception");
-                }))
+                )))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Test exception");
 
         assertThat(holder.getTenantId()).isEqualTo("tenant-original");
-    }
+    )
 
     @Test
     void shouldRunWithSnapshotRestoreToNullOnException() {
@@ -249,11 +249,11 @@ class TenantContextHolderTest {
         assertThatThrownBy(() ->
                 holder.runWithSnapshot(snapshot, () -> {
                     throw new RuntimeException("Test exception");
-                }))
+                )))
                 .isInstanceOf(RuntimeException.class);
 
         assertThat(holder.getTenantId()).isNull();
-    }
+    )
 
     @Test
     void shouldRunWithNestedSnapshotsWorkCorrectly() {
@@ -268,12 +268,12 @@ class TenantContextHolderTest {
         outerCapture.set(holder.getTenantId());
         holder.runWithSnapshot(innerSnapshot, () -> {
             innerCapture.set(holder.getTenantId());
-        });
+        ));
 
         assertThat(outerCapture.get()).isEqualTo("tenant-outer");
         assertThat(innerCapture.get()).isEqualTo("tenant-inner");
         assertThat(holder.getTenantId()).isEqualTo("tenant-outer");
-    }
+    )
 
     // ==================== Scope tests ====================
 
@@ -282,8 +282,8 @@ class TenantContextHolderTest {
         try (TenantScope scope = holder.scope("tenant-scope")) {
             assertThat(holder.getTenantId()).isEqualTo("tenant-scope");
             assertThat(scope.getTenantId()).isEqualTo("tenant-scope");
-        }
-    }
+        )
+    )
 
     @Test
     void shouldScopeRestorePreviousTenantIdOnClose() {
@@ -291,19 +291,19 @@ class TenantContextHolderTest {
 
         try (TenantScope scope = holder.scope("tenant-scope")) {
             assertThat(holder.getTenantId()).isEqualTo("tenant-scope");
-        }
+        )
 
         assertThat(holder.getTenantId()).isEqualTo("tenant-previous");
-    }
+    )
 
     @Test
     void shouldScopeRestoreToNullWhenNoPreviousTenant() {
         try (TenantScope scope = holder.scope("tenant-scope")) {
             assertThat(holder.getTenantId()).isEqualTo("tenant-scope");
-        }
+        )
 
         assertThat(holder.getTenantId()).isNull();
-    }
+    )
 
     @Test
     void shouldNestedScopesWorkCorrectly() {
@@ -314,13 +314,13 @@ class TenantContextHolderTest {
 
             try (TenantScope scope2 = holder.scope("tenant-inner2")) {
                 assertThat(holder.getTenantId()).isEqualTo("tenant-inner2");
-            }
+            )
 
             assertThat(holder.getTenantId()).isEqualTo("tenant-inner1");
-        }
+        )
 
         assertThat(holder.getTenantId()).isEqualTo("tenant-outer");
-    }
+    )
 
     @Test
     void shouldScopeRestoreOnException() {
@@ -329,11 +329,11 @@ class TenantContextHolderTest {
         assertThatThrownBy(() -> {
             try (TenantScope scope = holder.scope("tenant-scope")) {
                 throw new RuntimeException("Test exception");
-            }
-        }).isInstanceOf(RuntimeException.class);
+            )
+        )).isInstanceOf(RuntimeException.class);
 
         assertThat(holder.getTenantId()).isEqualTo("tenant-previous");
-    }
+    )
 
     @Test
     void shouldMultipleScopesWorkCorrectly() {
@@ -341,16 +341,16 @@ class TenantContextHolderTest {
 
         try (TenantScope scope1 = holder.scope("tenant-1")) {
             assertThat(holder.getTenantId()).isEqualTo("tenant-1");
-        }
+        )
 
         assertThat(holder.getTenantId()).isEqualTo("tenant-0");
 
         try (TenantScope scope2 = holder.scope("tenant-2")) {
             assertThat(holder.getTenantId()).isEqualTo("tenant-2");
-        }
+        )
 
         assertThat(holder.getTenantId()).isEqualTo("tenant-0");
-    }
+    )
 
     // ==================== Thread isolation tests ====================
 
@@ -365,14 +365,14 @@ class TenantContextHolderTest {
             // Should not see main thread's tenant
             threadTenantId.set(holder.getTenantId());
             latch.countDown();
-        });
+        ));
 
         thread.start();
         latch.await(1, TimeUnit.SECONDS);
 
         assertThat(threadTenantId.get()).isNull();
         assertThat(holder.getTenantId()).isEqualTo("tenant-main");
-    }
+    )
 
     @Test
     void shouldEachThreadHaveItsOwnTenantContext() throws Exception {
@@ -386,13 +386,13 @@ class TenantContextHolderTest {
                 String tenantId = holder.getTenantId();
                 synchronized (results) {
                     results.add(Thread.currentThread().getName() + ":" + tenantId);
-                }
-            } catch (InterruptedException e) {
+                )
+            ) catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-            } finally {
+            ) finally {
                 endLatch.countDown();
-            }
-        };
+            )
+        );
 
         Thread t1 = new Thread(task, "thread-1");
         Thread t2 = new Thread(task, "thread-2");
@@ -414,7 +414,7 @@ class TenantContextHolderTest {
         // All threads should have seen null (no tenant set in their context)
         assertThat(results).hasSize(3);
         assertThat(results).allMatch(s -> s.endsWith(":null"));
-    }
+    )
 
     // ==================== Edge cases ====================
 
@@ -424,20 +424,20 @@ class TenantContextHolderTest {
         holder.setTenantId(specialTenantId);
 
         assertThat(holder.getTenantId()).isEqualTo(specialTenantId);
-    }
+    )
 
     @Test
     void shouldHandleVeryLongTenantId() {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < 1000; i++) {
             sb.append("a");
-        }
+        )
         String longTenantId = sb.toString();
 
         holder.setTenantId(longTenantId);
 
         assertThat(holder.getTenantId()).isEqualTo(longTenantId);
-    }
+    )
 
     @Test
     void shouldHandleWhitespaceInTenantId() {
@@ -445,7 +445,7 @@ class TenantContextHolderTest {
         holder.setTenantId(whitespaceTenantId);
 
         assertThat(holder.getTenantId()).isEqualTo(whitespaceTenantId);
-    }
+    )
 
     @Test
     void shouldClearWorkAfterMultipleOperations() {
@@ -456,5 +456,5 @@ class TenantContextHolderTest {
         holder.clear();
 
         assertThat(holder.getTenantId()).isNull();
-    }
-}
+    )
+)

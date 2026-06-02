@@ -2,6 +2,7 @@ package io.github.afgprojects.framework.data.jdbc;
 
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.dialect.DatabaseType;
+import io.github.afgprojects.framework.data.core.mapper.ResultMapper;
 import io.github.afgprojects.framework.data.core.sql.SqlQueryBuilder;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheManager;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheProperties;
@@ -386,7 +387,7 @@ class JdbcDataManagerTest {
             java.util.Optional<String> result = dataManager.queryForOptional(
                 "SELECT col_data FROM test_optional WHERE id = ?",
                 List.of(1),
-                (rs, rowNum) -> rs.getString("col_data")
+                (ResultMapper<String>) (rs, rowNum) -> rs.getString("col_data")
             );
 
             assertThat(result).isPresent().contains("optional_value");
@@ -394,7 +395,7 @@ class JdbcDataManagerTest {
             java.util.Optional<String> emptyResult = dataManager.queryForOptional(
                 "SELECT col_data FROM test_optional WHERE id = ?",
                 List.of(999),
-                (rs, rowNum) -> rs.getString("col_data")
+                (ResultMapper<String>) (rs, rowNum) -> rs.getString("col_data")
             );
 
             assertThat(emptyResult).isEmpty();

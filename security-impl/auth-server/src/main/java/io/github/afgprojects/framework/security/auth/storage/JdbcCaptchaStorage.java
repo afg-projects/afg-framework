@@ -10,7 +10,7 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import static io.github.afgprojects.framework.data.core.condition.Conditions.*;
 
@@ -42,8 +42,8 @@ public class JdbcCaptchaStorage implements AfgCaptchaStorage {
 
     @Override
     public void save(@NonNull String key, @NonNull String value, @NonNull Duration ttl) {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime expiresAt = now.plus(ttl);
+        Instant now = Instant.now();
+        Instant expiresAt = now.plus(ttl);
 
         var existing = dataManager.findOneByField(AuthCaptcha.class,
                 AuthCaptcha::getCaptchaKey, key);
@@ -75,7 +75,7 @@ public class JdbcCaptchaStorage implements AfgCaptchaStorage {
         return dataManager.findOne(AuthCaptcha.class,
                 builder(AuthCaptcha.class)
                         .eq(AuthCaptcha::getCaptchaKey, key)
-                        .gt(AuthCaptcha::getExpiresAt, LocalDateTime.now())
+                        .gt(AuthCaptcha::getExpiresAt, Instant.now())
                         .build())
                 .map(AuthCaptcha::getCaptchaValue)
                 .orElse(null);
@@ -97,7 +97,7 @@ public class JdbcCaptchaStorage implements AfgCaptchaStorage {
         return dataManager.existsByCondition(AuthCaptcha.class,
                 builder(AuthCaptcha.class)
                         .eq(AuthCaptcha::getCaptchaKey, key)
-                        .gt(AuthCaptcha::getExpiresAt, LocalDateTime.now())
+                        .gt(AuthCaptcha::getExpiresAt, Instant.now())
                         .build());
     }
 
@@ -107,7 +107,7 @@ public class JdbcCaptchaStorage implements AfgCaptchaStorage {
      * @return 删除的记录数
      */
     public int deleteExpired() {
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         var entities = dataManager.findList(AuthCaptcha.class,
                 builder(AuthCaptcha.class)
                         .lt(AuthCaptcha::getExpiresAt, now)

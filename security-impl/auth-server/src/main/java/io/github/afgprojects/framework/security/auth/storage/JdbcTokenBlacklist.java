@@ -9,7 +9,7 @@ import io.github.afgprojects.framework.security.core.storage.AfgTokenBlacklist;
 import org.jspecify.annotations.NonNull;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import static io.github.afgprojects.framework.data.core.condition.Conditions.*;
 
@@ -47,8 +47,8 @@ public class JdbcTokenBlacklist implements AfgTokenBlacklist {
             @NonNull String reason,
             @NonNull Duration ttl
     ) {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime expiresAt = now.plus(ttl);
+        Instant now = Instant.now();
+        Instant expiresAt = now.plus(ttl);
 
         var existing = dataManager.findOneByField(AuthTokenBlacklist.class,
                 AuthTokenBlacklist::getTokenHash, tokenHash);
@@ -83,8 +83,8 @@ public class JdbcTokenBlacklist implements AfgTokenBlacklist {
 
     @Override
     public void blacklistAllUserTokens(@NonNull String userId, @NonNull Duration ttl) {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime expiresAt = now.plus(ttl);
+        Instant now = Instant.now();
+        Instant expiresAt = now.plus(ttl);
         String reason = "user_logout_all";
 
         String userBlacklistTokenHash = "user_all:" + userId;
@@ -115,7 +115,7 @@ public class JdbcTokenBlacklist implements AfgTokenBlacklist {
      * @return 删除的记录数
      */
     public int deleteExpired() {
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         var entities = dataManager.findList(AuthTokenBlacklist.class,
                 builder(AuthTokenBlacklist.class)
                         .lt(AuthTokenBlacklist::getExpiresAt, now)
@@ -144,7 +144,7 @@ public class JdbcTokenBlacklist implements AfgTokenBlacklist {
                 builder(AuthTokenBlacklist.class)
                         .eq(AuthTokenBlacklist::getUserId, userId)
                         .eq(AuthTokenBlacklist::getTokenHash, userBlacklistTokenHash)
-                        .gt(AuthTokenBlacklist::getExpiresAt, LocalDateTime.now())
+                        .gt(AuthTokenBlacklist::getExpiresAt, Instant.now())
                         .build());
     }
 

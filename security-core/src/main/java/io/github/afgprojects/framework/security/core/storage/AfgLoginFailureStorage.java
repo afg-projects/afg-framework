@@ -3,7 +3,7 @@ package io.github.afgprojects.framework.security.core.storage;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * 登录失败存储接口。
@@ -73,7 +73,7 @@ public interface AfgLoginFailureStorage {
      * @return 锁定截止时间，如果未锁定则返回 null
      */
     @Nullable
-    LocalDateTime getLockedUntil(@NonNull String userId);
+    Instant getLockedUntil(@NonNull String userId);
 
     /**
      * 解锁账户。
@@ -104,7 +104,7 @@ public interface AfgLoginFailureStorage {
      */
     record FailureRecord(
             int count,
-            @Nullable LocalDateTime lockedUntil,
+            @Nullable Instant lockedUntil,
             @Nullable String lastIp
     ) {
     }

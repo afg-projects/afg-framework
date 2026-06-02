@@ -10,7 +10,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Optional;
 
 import static io.github.afgprojects.framework.data.core.condition.Conditions.*;
@@ -147,7 +147,7 @@ class JdbcLoginFailureStorageTest {
                     .one();
             assertThat(entity).isPresent();
             assertThat(entity.get().getLockedUntil()).isNotNull();
-            assertThat(entity.get().getLockedUntil()).isAfter(LocalDateTime.now());
+            assertThat(entity.get().getLockedUntil()).isAfter(Instant.now());
         }
 
         @Test

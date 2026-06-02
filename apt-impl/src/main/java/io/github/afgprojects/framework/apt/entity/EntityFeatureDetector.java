@@ -20,9 +20,11 @@ class EntityFeatureDetector {
      */
     record FeatureDetectionResult(
         boolean softDeletable,
+        boolean timestampSoftDeletable,
         boolean tenantAware,
         boolean auditable,
-        boolean versioned
+        boolean versioned,
+        boolean dataScopeAware
     ) {
         /**
          * 执行所有特性检测（单次遍历优化）
@@ -53,10 +55,12 @@ class EntityFeatureDetector {
             }
 
             return new FeatureDetectionResult(
-                hasDeleted || hasDeletedAt,  // softDeletable
+                hasDeleted,                   // softDeletable (Boolean deleted)
+                hasDeletedAt,                 // timestampSoftDeletable (Instant deletedAt)
                 hasTenantId,                  // tenantAware
-                hasCreatedAt && hasUpdatedAt, // auditable
-                hasVersion                    // versioned
+                hasCreatedAt && hasUpdatedAt,  // auditable
+                hasVersion,                   // versioned
+                false                         // dataScopeAware (需要注解配置，默认 false)
             );
         }
     }

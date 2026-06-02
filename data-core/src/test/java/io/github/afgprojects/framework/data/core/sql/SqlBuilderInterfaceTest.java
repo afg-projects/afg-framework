@@ -9,27 +9,27 @@ class SqlBuilderInterfaceTest {
     @Test
     void shouldDefineSqlQueryBuilder() {
         assertThat(SqlQueryBuilder.class).isInterface();
-    }
+    )
 
     @Test
     void shouldDefineSqlInsertBuilder() {
         assertThat(SqlInsertBuilder.class).isInterface();
-    }
+    )
 
     @Test
     void shouldDefineSqlUpdateBuilder() {
         assertThat(SqlUpdateBuilder.class).isInterface();
-    }
+    )
 
     @Test
     void shouldDefineSqlDeleteBuilder() {
         assertThat(SqlDeleteBuilder.class).isInterface();
-    }
+    )
 
     @Test
     void shouldDefineSqlParser() {
         assertThat(SqlParser.class).isInterface();
-    }
+    )
 
     @Test
     void shouldDefineSqlStatement() {
@@ -40,10 +40,10 @@ class SqlBuilderInterfaceTest {
             SqlStatement.SqlType.UPDATE,
             SqlStatement.SqlType.DELETE
         );
-    }
+    )
 
     @Test
     void shouldDefineSqlRewriteContext() {
         assertThat(SqlRewriteContext.class).isInterface();
-    }
-}
+    )
+)

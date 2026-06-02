@@ -441,7 +441,7 @@ class SqlMetricsAspectTest {
             ProceedingJoinPoint pjp = createBasicMockJoinPoint();
             when(pjp.proceed()).thenReturn(5L);
 
-            Object result = aspect.aroundDeleteAllByCondition(pjp);
+            Object result = aspect.aroundDeleteByCondition(pjp);
 
             assertThat(result).isEqualTo(5L);
             assertCounterRecorded();

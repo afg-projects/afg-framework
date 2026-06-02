@@ -26,7 +26,7 @@ class SchemaTest {
             assertThat(DiffType.values()).containsExactly(
                     DiffType.NONE, DiffType.ADD, DiffType.DROP, DiffType.MODIFY
             );
-        }
+        )
 
         @Test
         @DisplayName("应能通过名称获取枚举值")
@@ -35,8 +35,8 @@ class SchemaTest {
             assertThat(DiffType.valueOf("DROP")).isEqualTo(DiffType.DROP);
             assertThat(DiffType.valueOf("MODIFY")).isEqualTo(DiffType.MODIFY);
             assertThat(DiffType.valueOf("NONE")).isEqualTo(DiffType.NONE);
-        }
-    }
+        )
+    )
 
     // ==================== ColumnMetadataImpl 测试 ====================
 
@@ -59,7 +59,7 @@ class SchemaTest {
             assertThat(column.isUnique()).isTrue();
             assertThat(column.isPrimaryKey()).isTrue();
             assertThat(column.isAutoIncrement()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("Builder 应正确构建列元数据")
@@ -83,7 +83,7 @@ class SchemaTest {
             assertThat(column.isUnique()).isFalse();
             assertThat(column.isPrimaryKey()).isFalse();
             assertThat(column.isAutoIncrement()).isFalse();
-        }
+        )
 
         @Test
         @DisplayName("Builder 应使用默认值")
@@ -99,8 +99,8 @@ class SchemaTest {
             assertThat(column.isUnique()).isFalse();
             assertThat(column.isPrimaryKey()).isFalse();
             assertThat(column.isAutoIncrement()).isFalse();
-        }
-    }
+        )
+    )
 
     // ==================== IndexMetadataImpl 测试 ====================
 
@@ -119,7 +119,7 @@ class SchemaTest {
             assertThat(index.getColumnNames()).containsExactly("name", "email");
             assertThat(index.isUnique()).isTrue();
             assertThat(index.getIndexType()).isEqualTo("BTREE");
-        }
+        )
 
         @Test
         @DisplayName("Builder 应正确构建索引元数据")
@@ -135,7 +135,7 @@ class SchemaTest {
             assertThat(index.getColumnNames()).containsExactly("email");
             assertThat(index.isUnique()).isTrue();
             assertThat(index.getIndexType()).isEqualTo("HASH");
-        }
+        )
 
         @Test
         @DisplayName("Builder 应使用默认值")
@@ -147,8 +147,8 @@ class SchemaTest {
             assertThat(index.getColumnNames()).isEmpty();
             assertThat(index.isUnique()).isFalse();
             assertThat(index.getIndexType()).isEqualTo("BTREE"); // 默认 BTREE
-        }
-    }
+        )
+    )
 
     // ==================== ForeignKeyMetadataImpl 测试 ====================
 
@@ -174,7 +174,7 @@ class SchemaTest {
             assertThat(fk.getReferencedColumnNames()).containsExactly("id");
             assertThat(fk.getUpdateRule()).isEqualTo("CASCADE");
             assertThat(fk.getDeleteRule()).isEqualTo("RESTRICT");
-        }
+        )
 
         @Test
         @DisplayName("Builder 应正确构建外键元数据")
@@ -194,7 +194,7 @@ class SchemaTest {
             assertThat(fk.getReferencedColumnNames()).containsExactly("id");
             assertThat(fk.getUpdateRule()).isEqualTo("NO ACTION");
             assertThat(fk.getDeleteRule()).isEqualTo("CASCADE");
-        }
+        )
 
         @Test
         @DisplayName("Builder 应使用默认值")
@@ -208,8 +208,8 @@ class SchemaTest {
             assertThat(fk.getReferencedColumnNames()).isEmpty();
             assertThat(fk.getUpdateRule()).isEqualTo("NO ACTION");
             assertThat(fk.getDeleteRule()).isEqualTo("NO ACTION");
-        }
-    }
+        )
+    )
 
     // ==================== PrimaryKeyMetadataImpl 测试 ====================
 
@@ -226,7 +226,7 @@ class SchemaTest {
 
             assertThat(pk.getConstraintName()).isEqualTo("pk_user");
             assertThat(pk.getColumnNames()).containsExactly("id");
-        }
+        )
 
         @Test
         @DisplayName("应支持复合主键")
@@ -236,7 +236,7 @@ class SchemaTest {
             );
 
             assertThat(pk.getColumnNames()).containsExactly("order_id", "item_id");
-        }
+        )
 
         @Test
         @DisplayName("Builder 应正确构建主键元数据")
@@ -248,8 +248,8 @@ class SchemaTest {
 
             assertThat(pk.getConstraintName()).isEqualTo("pk_test");
             assertThat(pk.getColumnNames()).containsExactly("id");
-        }
-    }
+        )
+    )
 
     // ==================== SchemaMetadataImpl 测试 ====================
 
@@ -283,7 +283,7 @@ class SchemaTest {
             assertThat(schema.getPrimaryKey()).isNotNull();
             assertThat(schema.getIndexes()).isEmpty();
             assertThat(schema.getForeignKeys()).isEmpty();
-        }
+        )
 
         @Test
         @DisplayName("Builder 应正确构建 Schema 元数据")
@@ -313,7 +313,7 @@ class SchemaTest {
             assertThat(schema.getColumns()).hasSize(1);
             assertThat(schema.getIndexes()).hasSize(1);
             assertThat(schema.getForeignKeys()).hasSize(1);
-        }
+        )
 
         @Test
         @DisplayName("getColumn 应返回指定列")
@@ -331,7 +331,7 @@ class SchemaTest {
             assertThat(schema.getColumn("id")).isNotNull();
             assertThat(schema.getColumn("name")).isNotNull();
             assertThat(schema.getColumn("not_exist")).isNull();
-        }
+        )
 
         @Test
         @DisplayName("hasColumn 应正确判断列是否存在")
@@ -346,8 +346,8 @@ class SchemaTest {
 
             assertThat(schema.hasColumn("id")).isTrue();
             assertThat(schema.hasColumn("name")).isFalse();
-        }
-    }
+        )
+    )
 
     // ==================== ColumnDiff 测试 ====================
 
@@ -370,7 +370,7 @@ class SchemaTest {
             assertThat(diff.targetColumn()).isNull();
             assertThat(diff.differences()).containsExactly("Column not exists in target");
             assertThat(diff.getDescription()).isEqualTo("Column will be added: email");
-        }
+        )
 
         @Test
         @DisplayName("应正确创建列差异 - 删除")
@@ -383,7 +383,7 @@ class SchemaTest {
 
             assertThat(diff.diffType()).isEqualTo(DiffType.DROP);
             assertThat(diff.getDescription()).isEqualTo("Column will be dropped: old_col");
-        }
+        )
 
         @Test
         @DisplayName("应正确创建列差异 - 修改")
@@ -398,7 +398,7 @@ class SchemaTest {
 
             assertThat(diff.diffType()).isEqualTo(DiffType.MODIFY);
             assertThat(diff.getDescription()).isEqualTo("Type: VARCHAR(255) → VARCHAR(500)");
-        }
+        )
 
         @Test
         @DisplayName("应正确创建列差异 - 无差异")
@@ -407,8 +407,8 @@ class SchemaTest {
 
             assertThat(diff.diffType()).isEqualTo(DiffType.NONE);
             assertThat(diff.getDescription()).isEqualTo("No difference");
-        }
-    }
+        )
+    )
 
     // ==================== IndexDiff 测试 ====================
 
@@ -432,7 +432,7 @@ class SchemaTest {
             assertThat(diff.droppedIndexes()).hasSize(1);
             assertThat(diff.modifiedIndexes()).hasSize(1);
             assertThat(diff.hasDifferences()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("无差异时应返回 false")
@@ -440,8 +440,8 @@ class SchemaTest {
             IndexDiff diff = new IndexDiff(List.of(), List.of(), List.of());
 
             assertThat(diff.hasDifferences()).isFalse();
-        }
-    }
+        )
+    )
 
     // ==================== ForeignKeyDiff 测试 ====================
 
@@ -463,7 +463,7 @@ class SchemaTest {
             assertThat(diff.droppedForeignKeys()).hasSize(1);
             assertThat(diff.modifiedForeignKeys()).isEmpty();
             assertThat(diff.hasDifferences()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("无差异时应返回 false")
@@ -471,8 +471,8 @@ class SchemaTest {
             ForeignKeyDiff diff = new ForeignKeyDiff(List.of(), List.of(), List.of());
 
             assertThat(diff.hasDifferences()).isFalse();
-        }
-    }
+        )
+    )
 
     // ==================== SchemaDiff 测试 ====================
 
@@ -498,7 +498,7 @@ class SchemaTest {
             assertThat(diff.indexDiff()).isNotNull();
             assertThat(diff.foreignKeyDiff()).isNull();
             assertThat(diff.hasDifferences()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("hasAddedColumns 应正确判断")
@@ -511,7 +511,7 @@ class SchemaTest {
             assertThat(diff.hasAddedColumns()).isTrue();
             assertThat(diff.hasDroppedColumns()).isFalse();
             assertThat(diff.hasModifiedColumns()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("hasDroppedColumns 应正确判断")
@@ -522,7 +522,7 @@ class SchemaTest {
 
             assertThat(diff.hasDroppedColumns()).isTrue();
             assertThat(diff.hasAddedColumns()).isFalse();
-        }
+        )
 
         @Test
         @DisplayName("无差异时 hasDifferences 应返回 false")
@@ -530,8 +530,8 @@ class SchemaTest {
             SchemaDiff diff = new SchemaDiff("test", true, List.of(), null, null);
 
             assertThat(diff.hasDifferences()).isFalse();
-        }
-    }
+        )
+    )
 
     // ==================== ThreeWayDiff 测试 ====================
 
@@ -554,7 +554,7 @@ class SchemaTest {
             assertThat(diff.entityVsChangeLog()).isNull();
             assertThat(diff.databaseVsChangeLog()).isNull();
             assertThat(diff.conflicts()).isEqualTo(conflicts);
-        }
+        )
 
         @Test
         @DisplayName("hasAnyDifferences 应正确判断 - 有差异")
@@ -565,7 +565,7 @@ class SchemaTest {
             ThreeWayDiff diff = new ThreeWayDiff("test", schemaDiff, null, null, ConflictAnalysis.noConflicts());
 
             assertThat(diff.hasAnyDifferences()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("hasAnyDifferences 应正确判断 - 无差异")
@@ -575,7 +575,7 @@ class SchemaTest {
             ThreeWayDiff diff = new ThreeWayDiff("test", schemaDiff, null, null, ConflictAnalysis.noConflicts());
 
             assertThat(diff.hasAnyDifferences()).isFalse();
-        }
+        )
 
         @Test
         @DisplayName("hasAnyDifferences - entityVsChangeLog 有差异")
@@ -586,7 +586,7 @@ class SchemaTest {
             ThreeWayDiff diff = new ThreeWayDiff("test", null, schemaDiff, null, ConflictAnalysis.noConflicts());
 
             assertThat(diff.hasAnyDifferences()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("hasAnyDifferences - databaseVsChangeLog 有差异")
@@ -597,7 +597,7 @@ class SchemaTest {
             ThreeWayDiff diff = new ThreeWayDiff("test", null, null, schemaDiff, ConflictAnalysis.noConflicts());
 
             assertThat(diff.hasAnyDifferences()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("hasAnyDifferences - 所有差异都为 null")
@@ -605,7 +605,7 @@ class SchemaTest {
             ThreeWayDiff diff = new ThreeWayDiff("test", null, null, null, ConflictAnalysis.noConflicts());
 
             assertThat(diff.hasAnyDifferences()).isFalse();
-        }
+        )
 
         @Test
         @DisplayName("hasConflicts 应正确判断 - 有冲突")
@@ -619,7 +619,7 @@ class SchemaTest {
             ThreeWayDiff diff = new ThreeWayDiff("test", null, null, null, conflicts);
 
             assertThat(diff.hasConflicts()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("hasConflicts 应正确判断 - 无冲突")
@@ -627,7 +627,7 @@ class SchemaTest {
             ThreeWayDiff diff = new ThreeWayDiff("test", null, null, null, ConflictAnalysis.noConflicts());
 
             assertThat(diff.hasConflicts()).isFalse();
-        }
+        )
 
         @Test
         @DisplayName("hasConflicts - conflicts 为 null")
@@ -635,8 +635,8 @@ class SchemaTest {
             ThreeWayDiff diff = new ThreeWayDiff("test", null, null, null, null);
 
             assertThat(diff.hasConflicts()).isFalse();
-        }
-    }
+        )
+    )
 
     // ==================== ConflictAnalysis 测试 ====================
 
@@ -651,7 +651,7 @@ class SchemaTest {
 
             assertThat(analysis.hasConflicts()).isFalse();
             assertThat(analysis.conflicts()).isEmpty();
-        }
+        )
 
         @Test
         @DisplayName("of 应创建有冲突结果")
@@ -667,7 +667,7 @@ class SchemaTest {
 
             assertThat(analysis.hasConflicts()).isTrue();
             assertThat(analysis.conflicts()).hasSize(1);
-        }
+        )
 
         @Test
         @DisplayName("Builder 应正确构建冲突分析")
@@ -683,7 +683,7 @@ class SchemaTest {
 
             assertThat(analysis.hasConflicts()).isTrue();
             assertThat(analysis.conflicts()).hasSize(2);
-        }
+        )
 
         @Test
         @DisplayName("应包含所有冲突类型")
@@ -694,7 +694,7 @@ class SchemaTest {
                     ConflictAnalysis.ConflictType.COLUMN_EXISTENCE,
                     ConflictAnalysis.ConflictType.DEFAULT_VALUE_MISMATCH
             );
-        }
+        )
 
         @Test
         @DisplayName("应包含所有冲突解决方案")
@@ -705,8 +705,8 @@ class SchemaTest {
                     ConflictAnalysis.ConflictResolution.USE_CHANGELOG,
                     ConflictAnalysis.ConflictResolution.MANUAL_RESOLUTION
             );
-        }
-    }
+        )
+    )
 
     // ==================== DefaultSchemaComparator 测试 ====================
 
@@ -738,7 +738,7 @@ class SchemaTest {
             assertThat(diff.columnDiffs()).hasSize(1);
             assertThat(diff.columnDiffs().get(0).columnName()).isEqualTo("email");
             assertThat(diff.columnDiffs().get(0).diffType()).isEqualTo(DiffType.ADD);
-        }
+        )
 
         @Test
         @DisplayName("应检测删除列")
@@ -760,7 +760,7 @@ class SchemaTest {
             assertThat(diff.columnDiffs()).hasSize(1);
             assertThat(diff.columnDiffs().get(0).columnName()).isEqualTo("old_col");
             assertThat(diff.columnDiffs().get(0).diffType()).isEqualTo(DiffType.DROP);
-        }
+        )
 
         @Test
         @DisplayName("应检测修改列 - 数据类型变化")
@@ -780,7 +780,7 @@ class SchemaTest {
 
             assertThat(diff.hasModifiedColumns()).isTrue();
             assertThat(diff.columnDiffs()).hasSize(1);
-        }
+        )
 
         @Test
         @DisplayName("应检测修改列 - 可空性变化")
@@ -800,7 +800,7 @@ class SchemaTest {
             SchemaDiff diff = comparator.compare(source, target);
 
             assertThat(diff.hasModifiedColumns()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("应检测修改列 - 默认值变化")
@@ -820,7 +820,7 @@ class SchemaTest {
             SchemaDiff diff = comparator.compare(source, target);
 
             assertThat(diff.hasModifiedColumns()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("应检测修改列 - 唯一性变化")
@@ -840,7 +840,7 @@ class SchemaTest {
             SchemaDiff diff = comparator.compare(source, target);
 
             assertThat(diff.hasModifiedColumns()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("应检测新增索引")
@@ -861,7 +861,7 @@ class SchemaTest {
 
             assertThat(diff.indexDiff()).isNotNull();
             assertThat(diff.indexDiff().addedIndexes()).hasSize(1);
-        }
+        )
 
         @Test
         @DisplayName("应检测删除索引")
@@ -882,7 +882,7 @@ class SchemaTest {
 
             assertThat(diff.indexDiff()).isNotNull();
             assertThat(diff.indexDiff().droppedIndexes()).hasSize(1);
-        }
+        )
 
         @Test
         @DisplayName("应检测修改索引")
@@ -905,7 +905,7 @@ class SchemaTest {
 
             assertThat(diff.indexDiff()).isNotNull();
             assertThat(diff.indexDiff().modifiedIndexes()).hasSize(1);
-        }
+        )
 
         @Test
         @DisplayName("应检测新增外键")
@@ -928,7 +928,7 @@ class SchemaTest {
 
             assertThat(diff.foreignKeyDiff()).isNotNull();
             assertThat(diff.foreignKeyDiff().addedForeignKeys()).hasSize(1);
-        }
+        )
 
         @Test
         @DisplayName("应检测删除外键")
@@ -951,7 +951,7 @@ class SchemaTest {
 
             assertThat(diff.foreignKeyDiff()).isNotNull();
             assertThat(diff.foreignKeyDiff().droppedForeignKeys()).hasSize(1);
-        }
+        )
 
         @Test
         @DisplayName("应检测修改外键")
@@ -980,7 +980,7 @@ class SchemaTest {
 
             assertThat(diff.foreignKeyDiff()).isNotNull();
             assertThat(diff.foreignKeyDiff().modifiedForeignKeys()).hasSize(1);
-        }
+        )
 
         @Test
         @DisplayName("相同 Schema 应无差异")
@@ -1000,7 +1000,7 @@ class SchemaTest {
             SchemaDiff diff = comparator.compare(source, target);
 
             assertThat(diff.hasDifferences()).isFalse();
-        }
+        )
 
         @Test
         @DisplayName("应正确进行三向比较")
@@ -1036,7 +1036,7 @@ class SchemaTest {
             assertThat(diff.entityVsDatabase()).isNotNull();
             assertThat(diff.entityVsChangeLog()).isNotNull();
             assertThat(diff.databaseVsChangeLog()).isNotNull();
-        }
+        )
 
         @Test
         @DisplayName("三向比较 - 数据库为 null")
@@ -1057,7 +1057,7 @@ class SchemaTest {
 
             assertThat(diff.entityVsDatabase()).isNull();
             assertThat(diff.entityVsChangeLog()).isNotNull();
-        }
+        )
 
         @Test
         @DisplayName("三向比较 - 检测冲突")
@@ -1094,7 +1094,7 @@ class SchemaTest {
             // 三方都有差异，应检测到冲突
             assertThat(diff.hasConflicts()).isTrue();
             assertThat(diff.conflicts().hasConflicts()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("应正确规范化数据类型")
@@ -1117,7 +1117,7 @@ class SchemaTest {
 
             // 数据类型基础部分相同（VARCHAR），规范化后无差异
             assertThat(diff.hasDifferences()).isFalse();
-        }
+        )
 
         @Test
         @DisplayName("应检测修改列 - 默认值从 null 到非 null")
@@ -1137,7 +1137,7 @@ class SchemaTest {
             SchemaDiff diff = comparator.compare(source, target);
 
             assertThat(diff.hasModifiedColumns()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("应检测修改列 - 默认值从非 null 到 null")
@@ -1157,7 +1157,7 @@ class SchemaTest {
             SchemaDiff diff = comparator.compare(source, target);
 
             assertThat(diff.hasModifiedColumns()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("三向比较 - ChangeLog 为 null")
@@ -1179,7 +1179,7 @@ class SchemaTest {
             assertThat(diff.entityVsDatabase()).isNotNull();
             assertThat(diff.entityVsChangeLog()).isNull();
             assertThat(diff.databaseVsChangeLog()).isNull();
-        }
+        )
 
         @Test
         @DisplayName("三向比较 - 检测删除冲突")
@@ -1213,7 +1213,7 @@ class SchemaTest {
 
             // 应检测到冲突：实体要删除 age，但数据库有修改
             assertThat(diff.hasConflicts()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("索引比较 - 索引类型不同")
@@ -1236,7 +1236,7 @@ class SchemaTest {
 
             // 索引类型不同但列相同，不视为修改（当前实现只比较 unique 和 columns）
             assertThat(diff.indexDiff()).isNull();
-        }
+        )
 
         @Test
         @DisplayName("外键比较 - 外键列不同")
@@ -1265,7 +1265,7 @@ class SchemaTest {
 
             assertThat(diff.foreignKeyDiff()).isNotNull();
             assertThat(diff.foreignKeyDiff().modifiedForeignKeys()).hasSize(1);
-        }
+        )
 
         @Test
         @DisplayName("外键比较 - 引用表不同")
@@ -1294,7 +1294,7 @@ class SchemaTest {
 
             assertThat(diff.foreignKeyDiff()).isNotNull();
             assertThat(diff.foreignKeyDiff().modifiedForeignKeys()).hasSize(1);
-        }
+        )
 
         @Test
         @DisplayName("外键比较 - 引用列不同")
@@ -1325,6 +1325,6 @@ class SchemaTest {
 
             assertThat(diff.foreignKeyDiff()).isNotNull();
             assertThat(diff.foreignKeyDiff().modifiedForeignKeys()).hasSize(1);
-        }
-    }
-}
+        )
+    )
+)

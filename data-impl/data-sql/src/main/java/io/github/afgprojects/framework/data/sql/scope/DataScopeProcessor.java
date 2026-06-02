@@ -122,6 +122,10 @@ public class DataScopeProcessor {
      * 将字符串中的占位符替换为实际值。使用 {@link Matcher#quoteReplacement}
      * 防止替换值中的特殊字符（如 {@code $}）被 {@link Matcher} 解释为替换模式。
      *
+     * <p><strong>安全性说明：</strong>此方法将上下文值（Long 类型的用户ID、部门ID、租户ID）
+     * 直接拼接到 SQL 字符串中。由于所有值均为 Long 类型，不存在 SQL 注入风险。
+     * 如果未来需要支持字符串类型的上下文值，应改为参数化查询模式。
+     *
      * @param text 包含占位符的文本
      * @return 替换后的文本
      */

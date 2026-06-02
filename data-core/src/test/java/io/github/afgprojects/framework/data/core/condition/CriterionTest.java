@@ -19,20 +19,20 @@ class CriterionTest {
         assertThat(criterion.operator()).isEqualTo(Operator.EQ);
         assertThat(criterion.value()).isEqualTo("test");
         assertThat(criterion.nextOperator()).isNull();
-    }
+    )
 
     @Test
     void shouldCreateCriterionWithNextOperator() {
         Criterion criterion = Criterion.of("name", Operator.EQ, "test", LogicalOperator.AND);
         assertThat(criterion.nextOperator()).isEqualTo(LogicalOperator.AND);
-    }
+    )
 
     @Test
     void shouldCreateInCriterion() {
         Criterion criterion = Criterion.of("status", Operator.IN, List.of(1, 2, 3));
         assertThat(criterion.operator()).isEqualTo(Operator.IN);
         assertThat(criterion.value()).isInstanceOf(List.class);
-    }
+    )
 
     @Test
     void shouldCheckUnaryOperator() {
@@ -41,26 +41,26 @@ class CriterionTest {
 
         Criterion eq = Criterion.of("name", Operator.EQ, "test");
         assertThat(eq.isUnary()).isFalse();
-    }
+    )
 
     @Test
     void shouldCheckRangeOperator() {
-        Criterion between = Criterion.of("age", Operator.BETWEEN, new Comparable<?>[]{18, 60});
+        Criterion between = Criterion.of("age", Operator.BETWEEN, new Comparable<?>[]{18, 60));
         assertThat(between.isRange()).isTrue();
-    }
+    )
 
     @Test
     void shouldCheckCollectionOperator() {
         Criterion in = Criterion.of("status", Operator.IN, List.of(1, 2));
         assertThat(in.isCollection()).isTrue();
-    }
+    )
 
     @Test
     void shouldCreateCriterionWithStaticFactory() {
         Criterion criterion = Criterion.of("name", Operator.EQ, "test");
         assertThat(criterion.field()).isEqualTo("name");
         assertThat(criterion.nextOperator()).isNull();
-    }
+    )
 
     @Test
     void shouldCreateNestedCriterion() {
@@ -69,5 +69,5 @@ class CriterionTest {
         assertThat(criterion.isNested()).isTrue();
         assertThat(criterion.field()).isNull();
         assertThat(criterion.nestedCondition()).isSameAs(nested);
-    }
-}
+    )
+)

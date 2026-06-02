@@ -77,6 +77,17 @@ public class JdbcDataManager implements DataManager {
     private volatile @Nullable PlatformTransactionManager transactionManager;
 
     /**
+     * 缓存的 TransactionTemplate 实例，避免每次调用 executeInTransaction 时重复创建。
+     * 当 transactionManager 变更时，通过 setTransactionManager() 清除缓存。
+     */
+    private volatile @Nullable TransactionTemplate cachedTransactionTemplate;
+
+    /**
+     * 缓存的只读 TransactionTemplate 实例
+     */
+    private volatile @Nullable TransactionTemplate cachedReadOnlyTransactionTemplate;
+
+    /**
      * 实体缓存管理器（可选）
      */
     private volatile @Nullable EntityCacheManager cacheManager;
@@ -119,6 +130,9 @@ public class JdbcDataManager implements DataManager {
      */
     public void setTransactionManager(@Nullable PlatformTransactionManager transactionManager) {
         this.transactionManager = transactionManager;
+        // 清除缓存的 TransactionTemplate，下次使用时重新创建
+        this.cachedTransactionTemplate = null;
+        this.cachedReadOnlyTransactionTemplate = null;
     }
 
     /**
@@ -171,31 +185,63 @@ public class JdbcDataManager implements DataManager {
 
     @Override
     public void executeInTransaction(@NonNull Runnable action) {
-        if (transactionManager == null) {
-            throw new TransactionException("TransactionManager not configured. " +
-                "Please call setTransactionManager() first.");
-        }
-        new TransactionTemplate(transactionManager).executeWithoutResult(status -> action.run());
+        TransactionTemplate template = getOrCreateTransactionTemplate();
+        template.executeWithoutResult(status -> action.run());
     }
 
     @Override
     public <T> T executeInTransaction(@NonNull Supplier<T> action) {
-        if (transactionManager == null) {
-            throw new TransactionException("TransactionManager not configured. " +
-                "Please call setTransactionManager() first.");
-        }
-        return new TransactionTemplate(transactionManager).execute(status -> action.get());
+        TransactionTemplate template = getOrCreateTransactionTemplate();
+        return template.execute(status -> action.get());
     }
 
     @Override
     public <T> T executeInReadOnly(@NonNull Supplier<T> action) {
+        TransactionTemplate template = getOrCreateReadOnlyTransactionTemplate();
+        return template.execute(status -> action.get());
+    }
+
+    /**
+     * 获取或创建 TransactionTemplate 实例（双重检查锁定）
+     */
+    private TransactionTemplate getOrCreateTransactionTemplate() {
         if (transactionManager == null) {
             throw new TransactionException("TransactionManager not configured. " +
                 "Please call setTransactionManager() first.");
         }
-        TransactionTemplate template = new TransactionTemplate(transactionManager);
-        template.setReadOnly(true);
-        return template.execute(status -> action.get());
+        TransactionTemplate template = cachedTransactionTemplate;
+        if (template == null) {
+            synchronized (this) {
+                template = cachedTransactionTemplate;
+                if (template == null) {
+                    template = new TransactionTemplate(transactionManager);
+                    cachedTransactionTemplate = template;
+                }
+            }
+        }
+        return template;
+    }
+
+    /**
+     * 获取或创建只读 TransactionTemplate 实例（双重检查锁定）
+     */
+    private TransactionTemplate getOrCreateReadOnlyTransactionTemplate() {
+        if (transactionManager == null) {
+            throw new TransactionException("TransactionManager not configured. " +
+                "Please call setTransactionManager() first.");
+        }
+        TransactionTemplate template = cachedReadOnlyTransactionTemplate;
+        if (template == null) {
+            synchronized (this) {
+                template = cachedReadOnlyTransactionTemplate;
+                if (template == null) {
+                    template = new TransactionTemplate(transactionManager);
+                    template.setReadOnly(true);
+                    cachedReadOnlyTransactionTemplate = template;
+                }
+            }
+        }
+        return template;
     }
 
     @Override

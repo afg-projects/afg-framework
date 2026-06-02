@@ -40,15 +40,15 @@ class TenantContextPropagatingExecutorServiceTest {
         holder = new TenantContextHolder();
         originalExecutor = Executors.newFixedThreadPool(2);
         wrappedExecutor = TenantContextPropagatingExecutorService.wrap(originalExecutor, holder);
-    }
+    )
 
     @AfterEach
     void tearDown() {
         holder.clear();
         if (wrappedExecutor != null && !wrappedExecutor.isShutdown()) {
             wrappedExecutor.shutdown();
-        }
-    }
+        )
+    )
 
     // ==================== wrap() factory method tests ====================
 
@@ -57,7 +57,7 @@ class TenantContextPropagatingExecutorServiceTest {
         ExecutorService wrapped = TenantContextPropagatingExecutorService.wrap(originalExecutor, holder);
         assertThat(wrapped).isNotNull();
         assertThat(wrapped).isInstanceOf(TenantContextPropagatingExecutorService.class);
-    }
+    )
 
     @Test
     void shouldWrapScheduledExecutorService() {
@@ -69,7 +69,7 @@ class TenantContextPropagatingExecutorServiceTest {
         assertThat(wrapped).isInstanceOf(ScheduledExecutorService.class);
 
         scheduledExecutor.shutdown();
-    }
+    )
 
     // ==================== execute() tests ====================
 
@@ -82,12 +82,12 @@ class TenantContextPropagatingExecutorServiceTest {
         wrappedExecutor.execute(() -> {
             capturedTenantId.set(holder.getTenantId());
             latch.countDown();
-        });
+        ));
 
         latch.await(1, TimeUnit.SECONDS);
 
         assertThat(capturedTenantId.get()).isEqualTo("tenant-execute");
-    }
+    )
 
     @Test
     void shouldExecuteNotPropagateWhenNoTenantSet() throws Exception {
@@ -97,12 +97,12 @@ class TenantContextPropagatingExecutorServiceTest {
         wrappedExecutor.execute(() -> {
             capturedTenantId.set(holder.getTenantId());
             latch.countDown();
-        });
+        ));
 
         latch.await(1, TimeUnit.SECONDS);
 
         assertThat(capturedTenantId.get()).isNull();
-    }
+    )
 
     @Test
     void shouldExecuteClearTenantContextAfterExecution() throws Exception {
@@ -112,7 +112,7 @@ class TenantContextPropagatingExecutorServiceTest {
         wrappedExecutor.execute(() -> {
             // Task runs with tenant context
             latch.countDown();
-        });
+        ));
 
         latch.await(1, TimeUnit.SECONDS);
 
@@ -123,13 +123,13 @@ class TenantContextPropagatingExecutorServiceTest {
         wrappedExecutor.execute(() -> {
             capturedTenantId.set(holder.getTenantId());
             latch2.countDown();
-        });
+        ));
 
         latch2.await(1, TimeUnit.SECONDS);
 
         // Should not have leaked the previous tenant
         assertThat(capturedTenantId.get()).isNull();
-    }
+    )
 
     // ==================== submit(Runnable) tests ====================
 
@@ -140,12 +140,12 @@ class TenantContextPropagatingExecutorServiceTest {
 
         Future<?> future = wrappedExecutor.submit(() -> {
             capturedTenantId.set(holder.getTenantId());
-        });
+        ));
 
         future.get(1, TimeUnit.SECONDS);
 
         assertThat(capturedTenantId.get()).isEqualTo("tenant-submit");
-    }
+    )
 
     // ==================== submit(Runnable, T result) tests ====================
 
@@ -157,24 +157,24 @@ class TenantContextPropagatingExecutorServiceTest {
 
         Future<String> future = wrappedExecutor.submit(() -> {
             capturedTenantId.set(holder.getTenantId());
-        }, expectedResult);
+        ), expectedResult);
 
         String result = future.get(1, TimeUnit.SECONDS);
 
         assertThat(result).isEqualTo(expectedResult);
         assertThat(capturedTenantId.get()).isEqualTo("tenant-submit-result");
-    }
+    )
 
     @Test
     void shouldSubmitRunnableWithNullResult() throws Exception {
         holder.setTenantId("tenant-submit-null");
 
-        Future<String> future = wrappedExecutor.submit(() -> {}, (String) null);
+        Future<String> future = wrappedExecutor.submit(() -> {), (String) null);
 
         String result = future.get(1, TimeUnit.SECONDS);
 
         assertThat(result).isNull();
-    }
+    )
 
     // ==================== submit(Callable) tests ====================
 
@@ -187,7 +187,7 @@ class TenantContextPropagatingExecutorServiceTest {
         String result = future.get(1, TimeUnit.SECONDS);
 
         assertThat(result).isEqualTo("tenant-callable");
-    }
+    )
 
     @Test
     void shouldSubmitCallableClearContextAfterExecution() throws Exception {
@@ -195,7 +195,7 @@ class TenantContextPropagatingExecutorServiceTest {
 
         Future<String> future = wrappedExecutor.submit(() -> {
             return holder.getTenantId();
-        });
+        ));
 
         future.get(1, TimeUnit.SECONDS);
 
@@ -205,7 +205,7 @@ class TenantContextPropagatingExecutorServiceTest {
         String result2 = future2.get(1, TimeUnit.SECONDS);
 
         assertThat(result2).isNull();
-    }
+    )
 
     @Test
     void shouldSubmitCallablePropagateException() throws Exception {
@@ -213,13 +213,13 @@ class TenantContextPropagatingExecutorServiceTest {
 
         Future<String> future = wrappedExecutor.submit(() -> {
             throw new RuntimeException("Test exception");
-        });
+        ));
 
         assertThatThrownBy(() -> future.get(1, TimeUnit.SECONDS))
                 .isInstanceOf(ExecutionException.class)
                 .hasCauseInstanceOf(RuntimeException.class)
                 .hasRootCauseMessage("Test exception");
-    }
+    )
 
     // ==================== invokeAll tests ====================
 
@@ -239,7 +239,7 @@ class TenantContextPropagatingExecutorServiceTest {
         assertThat(futures.get(0).get()).isEqualTo("tenant-invokeAll-1");
         assertThat(futures.get(1).get()).isEqualTo("tenant-invokeAll-2");
         assertThat(futures.get(2).get()).isEqualTo("tenant-invokeAll-3");
-    }
+    )
 
     @Test
     void shouldInvokeAllWithTimeoutPropagateTenantContext() throws Exception {
@@ -255,8 +255,8 @@ class TenantContextPropagatingExecutorServiceTest {
         assertThat(futures).hasSize(2);
         for (Future<String> future : futures) {
             assertThat(future.get()).isEqualTo("tenant-invokeAll-timeout");
-        }
-    }
+        )
+    )
 
     @Test
     void shouldInvokeAllWithEmptyCollection() throws Exception {
@@ -265,7 +265,7 @@ class TenantContextPropagatingExecutorServiceTest {
         List<Future<String>> futures = wrappedExecutor.invokeAll(new ArrayList<>());
 
         assertThat(futures).isEmpty();
-    }
+    )
 
     // ==================== invokeAny tests ====================
 
@@ -281,7 +281,7 @@ class TenantContextPropagatingExecutorServiceTest {
         String result = wrappedExecutor.invokeAny(tasks);
 
         assertThat(result).startsWith("tenant-invokeAny-");
-    }
+    )
 
     @Test
     void shouldInvokeAnyWithTimeoutPropagateTenantContext() throws Exception {
@@ -291,13 +291,13 @@ class TenantContextPropagatingExecutorServiceTest {
                 () -> {
                     Thread.sleep(10);
                     return holder.getTenantId();
-                }
+                )
         );
 
         String result = wrappedExecutor.invokeAny(tasks, 1, TimeUnit.SECONDS);
 
         assertThat(result).isEqualTo("tenant-invokeAny-timeout");
-    }
+    )
 
     // ==================== shutdown tests ====================
 
@@ -309,7 +309,7 @@ class TenantContextPropagatingExecutorServiceTest {
 
         assertThat(wrappedExecutor.isShutdown()).isTrue();
         assertThat(originalExecutor.isShutdown()).isTrue();
-    }
+    )
 
     @Test
     void shouldShutdownNowReturnTasks() {
@@ -321,24 +321,24 @@ class TenantContextPropagatingExecutorServiceTest {
         wrapped.submit(() -> {
             try {
                 Thread.sleep(10000);
-            } catch (InterruptedException e) {
+            ) catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-            }
-        });
+            )
+        ));
 
         // Wait a bit for task to start
         try {
             Thread.sleep(50);
-        } catch (InterruptedException e) {
+        ) catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-        }
+        )
 
         List<Runnable> notExecuted = wrapped.shutdownNow();
 
         assertThat(wrapped.isShutdown()).isTrue();
 
         executor.shutdown();
-    }
+    )
 
     @Test
     void shouldIsShutdownReflectState() {
@@ -347,7 +347,7 @@ class TenantContextPropagatingExecutorServiceTest {
         wrappedExecutor.shutdown();
 
         assertThat(wrappedExecutor.isShutdown()).isTrue();
-    }
+    )
 
     @Test
     void shouldIsTerminatedReflectState() throws Exception {
@@ -357,7 +357,7 @@ class TenantContextPropagatingExecutorServiceTest {
         wrappedExecutor.awaitTermination(1, TimeUnit.SECONDS);
 
         assertThat(wrappedExecutor.isTerminated()).isTrue();
-    }
+    )
 
     @Test
     void shouldAwaitTerminationReturnTrue() throws Exception {
@@ -366,7 +366,7 @@ class TenantContextPropagatingExecutorServiceTest {
         boolean terminated = wrappedExecutor.awaitTermination(1, TimeUnit.SECONDS);
 
         assertThat(terminated).isTrue();
-    }
+    )
 
     @Test
     void shouldAwaitTerminationTimeout() throws Exception {
@@ -379,7 +379,7 @@ class TenantContextPropagatingExecutorServiceTest {
         assertThat(terminated).isFalse();
 
         executor.shutdown();
-    }
+    )
 
     // ==================== Complex scenarios ====================
 
@@ -394,19 +394,19 @@ class TenantContextPropagatingExecutorServiceTest {
         Future<?> f1 = wrappedExecutor.submit(() -> {
             task1Tenant.set(holder.getTenantId());
             latch1.countDown();
-        });
+        ));
         latch1.await(1, TimeUnit.SECONDS);
 
         holder.setTenantId("tenant-2");
         Future<?> f2 = wrappedExecutor.submit(() -> {
             task2Tenant.set(holder.getTenantId());
             latch2.countDown();
-        });
+        ));
         latch2.await(1, TimeUnit.SECONDS);
 
         assertThat(task1Tenant.get()).isEqualTo("tenant-1");
         assertThat(task2Tenant.get()).isEqualTo("tenant-2");
-    }
+    )
 
     @Test
     void shouldHandleConcurrentSubmissions() throws Exception {
@@ -425,16 +425,16 @@ class TenantContextPropagatingExecutorServiceTest {
                 String captured = holder.getTenantId();
                 if (captured != null && captured.startsWith("tenant-")) {
                     successCount.incrementAndGet();
-                }
+                )
                 endLatch.countDown();
-            }));
-        }
+            )));
+        )
 
         endLatch.await(5, TimeUnit.SECONDS);
 
         // All tasks should have some tenant context propagated
         assertThat(successCount.get()).isEqualTo(taskCount);
-    }
+    )
 
     @Test
     void shouldWrappedCallableHandleExceptionGracefully() throws Exception {
@@ -442,12 +442,12 @@ class TenantContextPropagatingExecutorServiceTest {
 
         Future<String> future = wrappedExecutor.submit(() -> {
             throw new IllegalArgumentException("Intentional test exception");
-        });
+        ));
 
         assertThatThrownBy(() -> future.get(1, TimeUnit.SECONDS))
                 .isInstanceOf(ExecutionException.class)
                 .hasCauseInstanceOf(IllegalArgumentException.class);
-    }
+    )
 
     @Test
     void shouldNotModifyCallerThreadContext() throws Exception {
@@ -457,7 +457,7 @@ class TenantContextPropagatingExecutorServiceTest {
         wrappedExecutor.submit(() -> holder.getTenantId()).get(1, TimeUnit.SECONDS);
 
         assertThat(holder.getTenantId()).isEqualTo(originalTenantId);
-    }
+    )
 
     @Test
     void shouldPropagateTenantContextWithCompletableFutureAsync() throws Exception {
@@ -472,5 +472,5 @@ class TenantContextPropagatingExecutorServiceTest {
         String result = future.get(1, TimeUnit.SECONDS);
 
         assertThat(result).isEqualTo("tenant-completable");
-    }
-}
+    )
+)

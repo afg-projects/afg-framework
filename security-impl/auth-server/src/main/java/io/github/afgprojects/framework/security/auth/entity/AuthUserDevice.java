@@ -8,7 +8,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.jspecify.annotations.Nullable;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * 用户设备绑定实体。
@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = true)
 @AfEntity
 @Table(name = "auth_user_device")
-public class AuthUserDevice extends BaseEntity<Long> {
+public class AuthUserDevice extends BaseEntity {
 
     /**
      * 设备唯一标识
@@ -66,12 +66,12 @@ public class AuthUserDevice extends BaseEntity<Long> {
     /**
      * 最后登录时间
      */
-    private @Nullable LocalDateTime lastLoginTime;
+    private @Nullable Instant lastLoginTime;
 
     /**
      * 首次登录时间
      */
-    private @Nullable LocalDateTime firstLoginTime;
+    private @Nullable Instant firstLoginTime;
 
     /**
      * 活跃状态

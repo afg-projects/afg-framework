@@ -3,7 +3,7 @@ package io.github.afgprojects.framework.security.core.storage;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Optional;
 
 /**
@@ -43,7 +43,7 @@ public interface AfgRefreshTokenStorage {
             @Nullable String tenantId,
             @Nullable String clientId,
             @Nullable String deviceId,
-            @NonNull LocalDateTime expiresAt
+            @NonNull Instant expiresAt
     );
 
     /**
@@ -110,8 +110,8 @@ public interface AfgRefreshTokenStorage {
             @Nullable String tenantId,
             @Nullable String clientId,
             @Nullable String deviceId,
-            @NonNull LocalDateTime expiresAt,
-            @NonNull LocalDateTime createdAt
+            @NonNull Instant expiresAt,
+            @NonNull Instant createdAt
     ) {
     }
 }

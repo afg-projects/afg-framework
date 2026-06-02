@@ -15,6 +15,8 @@
  */
 package io.github.afgprojects.framework.data.core.entity;
 
+import java.util.function.Consumer;
+
 /**
  * 实体生命周期回调接口，类似 JPA 的 {@code @PrePersist}、{@code @PreUpdate}、
  * {@code @PostLoad} 等回调。
@@ -64,5 +66,27 @@ public interface LifecycleCallbacks {
      */
     default void beforeDelete() {
         // 默认空实现
+    }
+
+    /**
+     * 如果实体实现了 {@link LifecycleCallbacks} 接口，则执行给定的回调操作。
+     *
+     * <p>此方法提供了一种类型安全的方式来触发生命周期回调，
+     * 避免在业务代码中重复 {@code instanceof} 检查和类型转换。
+     *
+     * <p>使用示例：
+     * <pre>{@code
+     * LifecycleCallbacks.ifCallback(entity, LifecycleCallbacks::beforeCreate);
+     * LifecycleCallbacks.ifCallback(entity, LifecycleCallbacks::afterLoad);
+     * }</pre>
+     *
+     * @param entity   实体对象，可能为 null
+     * @param action   当实体实现 LifecycleCallbacks 时要执行的操作
+     * @param <T>      实体类型
+     */
+    static <T> void ifCallback(T entity, Consumer<LifecycleCallbacks> action) {
+        if (entity instanceof LifecycleCallbacks callbacks) {
+            action.accept(callbacks);
+        }
     }
 }

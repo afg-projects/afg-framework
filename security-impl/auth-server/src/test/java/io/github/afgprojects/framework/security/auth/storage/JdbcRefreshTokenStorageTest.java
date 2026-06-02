@@ -10,7 +10,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.time.LocalDateTime;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -89,7 +90,7 @@ class JdbcRefreshTokenStorageTest {
             String tokenId = UUID.randomUUID().toString();
             String tokenHash = "hash-" + UUID.randomUUID();
             String userId = "user-123";
-            LocalDateTime expiresAt = LocalDateTime.now().plusDays(7);
+            Instant expiresAt = Instant.now().plus(Duration.ofDays(7));
 
             // when
             storage.save(tokenId, tokenHash, userId, null, null, null, expiresAt);
@@ -114,7 +115,7 @@ class JdbcRefreshTokenStorageTest {
             String tenantId = "tenant-001";
             String clientId = "client-app";
             String deviceId = "device-123";
-            LocalDateTime expiresAt = LocalDateTime.now().plusDays(7);
+            Instant expiresAt = Instant.now().plus(Duration.ofDays(7));
 
             // when
             storage.save(tokenId, tokenHash, userId, tenantId, clientId, deviceId, expiresAt);
@@ -148,7 +149,7 @@ class JdbcRefreshTokenStorageTest {
             String tokenId = UUID.randomUUID().toString();
             String tokenHash = "hash-" + UUID.randomUUID();
             String userId = "user-123";
-            LocalDateTime expiresAt = LocalDateTime.now().plusDays(7);
+            Instant expiresAt = Instant.now().plus(Duration.ofDays(7));
             storage.save(tokenId, tokenHash, userId, null, null, null, expiresAt);
 
             // when
@@ -184,7 +185,7 @@ class JdbcRefreshTokenStorageTest {
             String tokenId = UUID.randomUUID().toString();
             String tokenHash = "hash-" + UUID.randomUUID();
             String userId = "user-123";
-            LocalDateTime expiresAt = LocalDateTime.now().plusDays(7);
+            Instant expiresAt = Instant.now().plus(Duration.ofDays(7));
             storage.save(tokenId, tokenHash, userId, null, null, null, expiresAt);
 
             // when
@@ -220,7 +221,7 @@ class JdbcRefreshTokenStorageTest {
             String tokenId = UUID.randomUUID().toString();
             String tokenHash = "hash-" + UUID.randomUUID();
             String userId = "user-123";
-            LocalDateTime expiresAt = LocalDateTime.now().plusDays(7);
+            Instant expiresAt = Instant.now().plus(Duration.ofDays(7));
             storage.save(tokenId, tokenHash, userId, null, null, null, expiresAt);
 
             // when
@@ -257,7 +258,7 @@ class JdbcRefreshTokenStorageTest {
             for (int i = 0; i < 3; i++) {
                 String tokenId = UUID.randomUUID().toString();
                 String tokenHash = "hash-" + UUID.randomUUID();
-                LocalDateTime expiresAt = LocalDateTime.now().plusDays(7);
+                Instant expiresAt = Instant.now().plus(Duration.ofDays(7));
                 storage.save(tokenId, tokenHash, userId, null, null, null, expiresAt);
             }
 
@@ -265,7 +266,7 @@ class JdbcRefreshTokenStorageTest {
             String otherUserId = "user-456";
             String otherTokenId = UUID.randomUUID().toString();
             String otherTokenHash = "hash-other-" + UUID.randomUUID();
-            storage.save(otherTokenId, otherTokenHash, otherUserId, null, null, null, LocalDateTime.now().plusDays(7));
+            storage.save(otherTokenId, otherTokenHash, otherUserId, null, null, null, Instant.now().plus(Duration.ofDays(7)));
 
             // when
             storage.deleteByUserId(userId);
@@ -301,13 +302,13 @@ class JdbcRefreshTokenStorageTest {
             // 保存过期的 token
             String expiredTokenId = UUID.randomUUID().toString();
             String expiredTokenHash = "hash-expired-" + UUID.randomUUID();
-            LocalDateTime expiredAt = LocalDateTime.now().minusDays(1);
+            Instant expiredAt = Instant.now().minus(Duration.ofDays(1));
             storage.save(expiredTokenId, expiredTokenHash, "user-123", null, null, null, expiredAt);
 
             // 保存有效的 token
             String validTokenId = UUID.randomUUID().toString();
             String validTokenHash = "hash-valid-" + UUID.randomUUID();
-            LocalDateTime validExpiresAt = LocalDateTime.now().plusDays(7);
+            Instant validExpiresAt = Instant.now().plus(Duration.ofDays(7));
             storage.save(validTokenId, validTokenHash, "user-456", null, null, null, validExpiresAt);
 
             // when
@@ -341,7 +342,7 @@ class JdbcRefreshTokenStorageTest {
             // given
             String tokenId = UUID.randomUUID().toString();
             String tokenHash = "hash-" + UUID.randomUUID();
-            LocalDateTime expiresAt = LocalDateTime.now().plusDays(7);
+            Instant expiresAt = Instant.now().plus(Duration.ofDays(7));
             storage.save(tokenId, tokenHash, "user-123", null, null, null, expiresAt);
 
             // when
@@ -367,7 +368,7 @@ class JdbcRefreshTokenStorageTest {
                 String tokenId = UUID.randomUUID().toString();
                 String tokenHash = "hash-" + i + "-" + UUID.randomUUID();
                 String userId = "user-" + i;
-                LocalDateTime expiresAt = LocalDateTime.now().plusDays(7);
+                Instant expiresAt = Instant.now().plus(Duration.ofDays(7));
                 storage.save(tokenId, tokenHash, userId, null, null, null, expiresAt);
             }
 

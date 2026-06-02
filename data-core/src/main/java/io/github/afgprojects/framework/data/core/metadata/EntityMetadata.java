@@ -17,9 +17,11 @@ package io.github.afgprojects.framework.data.core.metadata;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import io.github.afgprojects.framework.data.core.query.Condition;
+import io.github.afgprojects.framework.data.core.relation.RelationMetadata;
 
 /**
  * 实体元数据接口，描述实体的结构信息。
@@ -185,4 +187,23 @@ public interface EntityMetadata<T> {
      * @return 是否具有关联关系
      */
     boolean hasRelation(String fieldName);
+
+    /**
+     * 获取所有关联关系元数据
+     *
+     * @return 关联关系元数据列表
+     */
+    List<RelationMetadata> getRelations();
+
+    /**
+     * 根据字段名获取关联关系元数据
+     *
+     * @param fieldName 字段名
+     * @return 关联关系元数据
+     */
+    default Optional<RelationMetadata> getRelation(String fieldName) {
+        return getRelations().stream()
+            .filter(r -> r.getFieldName().equals(fieldName))
+            .findFirst();
+    }
 }

@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.data.jdbc;
 
+import io.github.afgprojects.framework.data.core.entity.LifecycleCallbacks;
 import io.github.afgprojects.framework.data.core.exception.EntityMappingException;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
 import io.github.afgprojects.framework.data.core.metadata.FieldAccessor;
@@ -112,6 +113,8 @@ public class EntityMapper<T> extends AbstractResultSetMapper<T> {
                     }
                 }
             }
+            // 触发 afterLoad 生命周期回调（类似 JPA @PostLoad）
+            LifecycleCallbacks.ifCallback(entity, LifecycleCallbacks::afterLoad);
             return entity;
         } catch (SQLException e) {
             throw e;
@@ -157,17 +160,6 @@ public class EntityMapper<T> extends AbstractResultSetMapper<T> {
             }
             return map;
         });
-    }
-
-    /**
-     * 获取列标签（优先使用别名）
-     */
-    private String getColumnLabel(ResultSetMetaData metaData, int columnIndex) throws SQLException {
-        try {
-            return metaData.getColumnLabel(columnIndex);
-        } catch (Exception e) {
-            return metaData.getColumnName(columnIndex);
-        }
     }
 
     /**

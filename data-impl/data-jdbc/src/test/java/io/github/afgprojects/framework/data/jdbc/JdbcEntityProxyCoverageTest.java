@@ -685,7 +685,7 @@ class JdbcEntityProxyCoverageTest {
 
             // When - 条件删除
             Condition condition = Conditions.eq("name", "cache-delete");
-            long affected = proxy.deleteAll(condition);
+            long affected = proxy.deleteByCondition(condition);
 
             // Then
             assertThat(affected).isGreaterThan(0);
@@ -908,7 +908,7 @@ class JdbcEntityProxyCoverageTest {
 
             // When - 条件删除（affected = 0）
             Condition condition = Conditions.eq("name", "non-existent-for-delete");
-            long affected = proxy.deleteAll(condition);
+            long affected = proxy.deleteByCondition(condition);
 
             // Then
             assertThat(affected).isEqualTo(0);
@@ -953,7 +953,7 @@ class JdbcEntityProxyCoverageTest {
 
             // When - 条件删除
             Condition condition = Conditions.eq("name", "no-cache-delete");
-            long affected = proxy.deleteAll(condition);
+            long affected = proxy.deleteByCondition(condition);
 
             // Then
             assertThat(affected).isEqualTo(1);
@@ -1321,15 +1321,15 @@ class JdbcEntityProxyCoverageTest {
         private Long id;
         private String name;
         private String email;
-        private boolean deleted;
+        private Boolean deleted = false;
 
         @Override
-        public boolean isDeleted() {
+        public Boolean getDeleted() {
             return deleted;
         }
 
         @Override
-        public void setDeleted(boolean deleted) {
+        public void setDeleted(Boolean deleted) {
             this.deleted = deleted;
         }
     }
@@ -1424,21 +1424,16 @@ class JdbcEntityProxyCoverageTest {
         private Long id;
         private String name;
         private String email;
-        private java.time.LocalDateTime deletedAt;
+        private java.time.Instant deletedAt;
 
         @Override
-        public java.time.LocalDateTime getDeletedAt() {
+        public java.time.Instant getDeletedAt() {
             return deletedAt;
         }
 
         @Override
-        public void setDeletedAt(java.time.LocalDateTime deletedAt) {
+        public void setDeletedAt(java.time.Instant deletedAt) {
             this.deletedAt = deletedAt;
-        }
-
-        @Override
-        public boolean isDeleted() {
-            return deletedAt != null;
         }
     }
 }

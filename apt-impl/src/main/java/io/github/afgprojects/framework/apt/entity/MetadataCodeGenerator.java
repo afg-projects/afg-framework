@@ -21,9 +21,11 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * 元数据类代码生成器
@@ -55,6 +57,9 @@ class MetadataCodeGenerator {
     private static final ClassName RELATION_METADATA_IMPL = ClassName.get("io.github.afgprojects.framework.data.core.relation", "RelationMetadataImpl");
     private static final ClassName CASCADE_TYPE = ClassName.get("jakarta.persistence", "CascadeType");
     private static final ClassName FETCH_TYPE = ClassName.get("jakarta.persistence", "FetchType");
+    private static final ClassName ENTITY_TRAIT = ClassName.get("io.github.afgprojects.framework.data.core.metadata", "EntityTrait");
+    private static final ClassName CONDITION = ClassName.get("io.github.afgprojects.framework.data.core.query", "Condition");
+    private static final ClassName NO_CONDITION = ClassName.get("io.github.afgprojects.framework.data.core.query", "NoCondition");
 
     MetadataCodeGenerator(ProcessingEnvironment processingEnv,
                           CommonFieldRegistry commonFieldRegistry) {
@@ -358,6 +363,106 @@ class MetadataCodeGenerator {
             .returns(boolean.class)
             .addStatement("return RELATIONS.stream()\n" +
                 "    .anyMatch(r -> r.getFieldName().equals(fieldName))")
+            .build());
+
+        // getIdFieldName
+        classBuilder.addMethod(MethodSpec.methodBuilder("getIdFieldName")
+            .addAnnotation(Override.class)
+            .addModifiers(Modifier.PUBLIC)
+            .returns(String.class)
+            .addStatement("$T idField = getIdField()", FIELD_METADATA)
+            .addStatement("return idField != null ? idField.getPropertyName() : \"id\"")
+            .build());
+
+        // getSoftDeleteField
+        classBuilder.addMethod(MethodSpec.methodBuilder("getSoftDeleteField")
+            .addAnnotation(Override.class)
+            .addModifiers(Modifier.PUBLIC)
+            .returns(FIELD_METADATA)
+            .addStatement("$T deleted = getField(\"deleted\")", FIELD_METADATA)
+            .addStatement("return deleted != null ? deleted : getField(\"deletedAt\")")
+            .build());
+
+        // getTenantField
+        classBuilder.addMethod(MethodSpec.methodBuilder("getTenantField")
+            .addAnnotation(Override.class)
+            .addModifiers(Modifier.PUBLIC)
+            .returns(FIELD_METADATA)
+            .addStatement("return getField(\"tenantId\")")
+            .build());
+
+        // getColumnToFieldMap
+        classBuilder.addMethod(MethodSpec.methodBuilder("getColumnToFieldMap")
+            .addAnnotation(Override.class)
+            .addModifiers(Modifier.PUBLIC)
+            .returns(ParameterizedTypeName.get(ClassName.get(Map.class), ClassName.get(String.class), ClassName.get(String.class)))
+            .addStatement("$T<String, String> map = new $T<>()", ClassName.get(Map.class), ClassName.get(HashMap.class))
+            .beginControlFlow("for ($T field : FIELDS)", FIELD_METADATA)
+            .addStatement("map.put(field.getColumnName(), field.getPropertyName())")
+            .endControlFlow()
+            .addStatement("return map")
+            .build());
+
+        // getFieldToColumnMap
+        classBuilder.addMethod(MethodSpec.methodBuilder("getFieldToColumnMap")
+            .addAnnotation(Override.class)
+            .addModifiers(Modifier.PUBLIC)
+            .returns(ParameterizedTypeName.get(ClassName.get(Map.class), ClassName.get(String.class), ClassName.get(String.class)))
+            .addStatement("$T<String, String> map = new $T<>()", ClassName.get(Map.class), ClassName.get(HashMap.class))
+            .beginControlFlow("for ($T field : FIELDS)", FIELD_METADATA)
+            .addStatement("map.put(field.getPropertyName(), field.getColumnName())")
+            .endControlFlow()
+            .addStatement("return map")
+            .build());
+
+        // hasTrait
+        classBuilder.addMethod(MethodSpec.methodBuilder("hasTrait")
+            .addAnnotation(Override.class)
+            .addModifiers(Modifier.PUBLIC)
+            .addParameter(ENTITY_TRAIT, "trait")
+            .returns(boolean.class)
+            .addStatement("return getTraits().contains(trait)")
+            .build());
+
+        // getTraits
+        classBuilder.addMethod(MethodSpec.methodBuilder("getTraits")
+            .addAnnotation(Override.class)
+            .addModifiers(Modifier.PUBLIC)
+            .returns(ParameterizedTypeName.get(ClassName.get(Set.class), ENTITY_TRAIT))
+            .addStatement("$T<$T> traits = $T.noneOf($T.class)", ClassName.get(EnumSet.class), ENTITY_TRAIT, ClassName.get(EnumSet.class), ENTITY_TRAIT)
+            .beginControlFlow("if (isSoftDeletable())")
+            .beginControlFlow("if (getField(\"deletedAt\") != null)")
+            .addStatement("traits.add($T.TIMESTAMP_SOFT_DELETABLE)", ENTITY_TRAIT)
+            .nextControlFlow("else")
+            .addStatement("traits.add($T.SOFT_DELETABLE)", ENTITY_TRAIT)
+            .endControlFlow()
+            .endControlFlow()
+            .beginControlFlow("if (isTenantAware())")
+            .addStatement("traits.add($T.TENANT_AWARE)", ENTITY_TRAIT)
+            .endControlFlow()
+            .beginControlFlow("if (isAuditable())")
+            .addStatement("traits.add($T.AUDITABLE)", ENTITY_TRAIT)
+            .endControlFlow()
+            .beginControlFlow("if (isVersioned())")
+            .addStatement("traits.add($T.VERSIONED)", ENTITY_TRAIT)
+            .endControlFlow()
+            .addStatement("return traits")
+            .build());
+
+        // isDataScopeAware
+        classBuilder.addMethod(MethodSpec.methodBuilder("isDataScopeAware")
+            .addAnnotation(Override.class)
+            .addModifiers(Modifier.PUBLIC)
+            .returns(boolean.class)
+            .addStatement("return false")
+            .build());
+
+        // getDefaultCondition
+        classBuilder.addMethod(MethodSpec.methodBuilder("getDefaultCondition")
+            .addAnnotation(Override.class)
+            .addModifiers(Modifier.PUBLIC)
+            .returns(CONDITION)
+            .addStatement("return $T.empty()", CONDITION)
             .build());
     }
 

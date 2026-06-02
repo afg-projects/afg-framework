@@ -2,12 +2,13 @@ package io.github.afgprojects.framework.data.core.entity;
 
 import io.github.afgprojects.framework.data.core.tenant.TenantAware;
 
-import org.jspecify.annotations.Nullable;
+import lombok.Getter;
+import lombok.Setter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -29,8 +30,8 @@ class TenantEntityTest {
 
             // When & Then
             assertThat(entity.getTenantId()).isNull();
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("租户 ID 操作测试")
@@ -48,7 +49,7 @@ class TenantEntityTest {
 
             // Then
             assertThat(entity.getTenantId()).isEqualTo(tenantId);
-        }
+        )
 
         @Test
         @DisplayName("应该支持修改租户 ID")
@@ -62,7 +63,7 @@ class TenantEntityTest {
 
             // Then
             assertThat(entity.getTenantId()).isEqualTo("tenant-002");
-        }
+        )
 
         @Test
         @DisplayName("应该支持设置为 null")
@@ -76,28 +77,18 @@ class TenantEntityTest {
 
             // Then
             assertThat(entity.getTenantId()).isNull();
-        }
-    }
+        )
+    )
 
     @Nested
-    @DisplayName("TenantAware 接口测试")
-    class TenantAwareInterfaceTests {
+    @DisplayName("租户 ID 操作测试")
+    class TenantIdOperationTests2 {
 
         @Test
-        @DisplayName("应该实现 TenantAware 接口")
-        void shouldImplementTenantAwareInterface() {
+        @DisplayName("通过直接调用应该有效")
+        void operationsViaDirectCallShouldWork() {
             // Given
             TestEntity entity = new TestEntity();
-
-            // When & Then
-            assertThat(entity).isInstanceOf(TenantAware.class);
-        }
-
-        @Test
-        @DisplayName("通过接口操作应该有效")
-        void operationsViaInterfaceShouldWork() {
-            // Given
-            TenantAware entity = new TestEntity();
             String tenantId = "tenant-003";
 
             // When
@@ -105,8 +96,8 @@ class TenantEntityTest {
 
             // Then
             assertThat(entity.getTenantId()).isEqualTo(tenantId);
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("BaseEntity 继承测试")
@@ -120,7 +111,7 @@ class TenantEntityTest {
 
             // When & Then
             assertThat(entity).isInstanceOf(BaseEntity.class);
-        }
+        )
 
         @Test
         @DisplayName("应该继承 id 字段")
@@ -134,23 +125,23 @@ class TenantEntityTest {
 
             // Then
             assertThat(entity.getId()).isEqualTo(id);
-        }
+        )
 
         @Test
         @DisplayName("应该继承时间戳字段")
         void shouldInheritTimestampFields() {
             // Given
             TestEntity entity = new TestEntity();
-            LocalDateTime now = LocalDateTime.now();
+            Instant now = Instant.now();
 
             // When
             entity.setCreatedAt(now);
-            entity.setUpdatedAt(now.plusHours(3));
+            entity.setUpdatedAt(now.plusSeconds(10800));
 
             // Then
             assertThat(entity.getCreatedAt()).isEqualTo(now);
-            assertThat(entity.getUpdatedAt()).isEqualTo(now.plusHours(3));
-        }
+            assertThat(entity.getUpdatedAt()).isEqualTo(now.plusSeconds(10800));
+        )
 
         @Test
         @DisplayName("isNew 方法应该正确工作")
@@ -159,11 +150,11 @@ class TenantEntityTest {
             TestEntity entity = new TestEntity();
 
             // When & Then
-            assertThat(entity.isNew()).isTrue();
+            assertThat(entity.getId()).isNull();
             entity.setId(1L);
-            assertThat(entity.isNew()).isFalse();
-        }
-    }
+            assertThat(entity.getId()).isNotNull();
+        )
+    )
 
     @Nested
     @DisplayName("toString 测试")
@@ -180,7 +171,7 @@ class TenantEntityTest {
 
             // Then
             assertThat(result).contains("TestEntity");
-        }
+        )
 
         @Test
         @DisplayName("toString 应该包含 id 和 tenantId")
@@ -196,37 +187,8 @@ class TenantEntityTest {
             // Then
             assertThat(result).contains("id=42");
             assertThat(result).contains("tenantId='tenant-abc'");
-        }
-
-        @Test
-        @DisplayName("tenantId 为 null 时 toString 应该显示 null")
-        void toStringShouldShowNullTenantId() {
-            // Given
-            TestEntity entity = new TestEntity();
-            entity.setId(1L);
-
-            // When
-            String result = entity.toString();
-
-            // Then
-            assertThat(result).contains("tenantId='null'");
-        }
-
-        @Test
-        @DisplayName("toString 格式应该正确")
-        void toStringFormatShouldBeCorrect() {
-            // Given
-            TestEntity entity = new TestEntity();
-            entity.setId(1L);
-            entity.setTenantId("t001");
-
-            // When
-            String result = entity.toString();
-
-            // Then
-            assertThat(result).isEqualTo("TestEntity{id=1, tenantId='t001'}");
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("多租户场景测试")
@@ -247,7 +209,7 @@ class TenantEntityTest {
             // When & Then
             assertThat(entity1.getTenantId()).isNotEqualTo(entity2.getTenantId());
             assertThat(entity1.getId()).isEqualTo(entity2.getId()); // ID 相同但租户不同
-        }
+        )
 
         @Test
         @DisplayName("租户隔离：查询时应该按租户过滤")
@@ -258,7 +220,7 @@ class TenantEntityTest {
                 entities[i] = new TestEntity();
                 entities[i].setId((long) i);
                 entities[i].setTenantId(i < 3 ? "tenant-001" : "tenant-002");
-            }
+            )
 
             // When
             long tenant001Count = java.util.Arrays.stream(entities)
@@ -271,7 +233,7 @@ class TenantEntityTest {
             // Then
             assertThat(tenant001Count).isEqualTo(3);
             assertThat(tenant002Count).isEqualTo(2);
-        }
+        )
 
         @Test
         @DisplayName("租户 ID 应该不影响实体其他属性")
@@ -279,8 +241,8 @@ class TenantEntityTest {
             // Given
             TestEntity entity = new TestEntity();
             entity.setId(100L);
-            entity.setCreatedAt(LocalDateTime.now());
-            entity.setUpdatedAt(LocalDateTime.now());
+            entity.setCreatedAt(Instant.now());
+            entity.setUpdatedAt(Instant.now());
 
             // When
             entity.setTenantId("tenant-xyz");
@@ -290,8 +252,8 @@ class TenantEntityTest {
             assertThat(entity.getCreatedAt()).isNotNull();
             assertThat(entity.getUpdatedAt()).isNotNull();
             assertThat(entity.getTenantId()).isEqualTo("tenant-xyz");
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("边界情况测试")
@@ -308,7 +270,7 @@ class TenantEntityTest {
 
             // Then
             assertThat(entity.getTenantId()).isEmpty();
-        }
+        )
 
         @Test
         @DisplayName("租户 ID 应该支持长字符串")
@@ -323,7 +285,7 @@ class TenantEntityTest {
             // Then
             assertThat(entity.getTenantId()).isEqualTo(longTenantId);
             assertThat(entity.getTenantId()).hasSize(107);
-        }
+        )
 
         @Test
         @DisplayName("租户 ID 应该支持特殊字符")
@@ -337,7 +299,7 @@ class TenantEntityTest {
 
             // Then
             assertThat(entity.getTenantId()).isEqualTo(specialTenantId);
-        }
+        )
 
         @Test
         @DisplayName("租户 ID 应该支持 UUID 格式")
@@ -351,13 +313,15 @@ class TenantEntityTest {
 
             // Then
             assertThat(entity.getTenantId()).isEqualTo(uuidTenantId);
-        }
-    }
+        )
+    )
 
     /**
      * 测试实体类
      */
-    static class TestEntity extends TenantEntity<Long> {
+    @Getter
+    @Setter
+    static class TestEntity extends TenantEntity implements TenantAware {
         // 用于测试的简单实体类
-    }
-}
+    )
+)

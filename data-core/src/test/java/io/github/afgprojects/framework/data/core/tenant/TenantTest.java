@@ -26,12 +26,12 @@ class TenantTest {
     @BeforeEach
     void setUp() {
         tenantContext = new ThreadLocalTenantContext();
-    }
+    )
 
     @AfterEach
     void tearDown() {
         tenantContext.clear();
-    }
+    )
 
     // ==================== ThreadLocalTenantContext 测试 ====================
 
@@ -49,7 +49,7 @@ class TenantTest {
 
             tenantContext.setTenantId("tenant-002");
             assertThat(tenantContext.getTenantId()).isEqualTo("tenant-002");
-        }
+        )
 
         @Test
         @DisplayName("设置 null 应清除租户ID")
@@ -59,7 +59,7 @@ class TenantTest {
 
             tenantContext.setTenantId(null);
             assertThat(tenantContext.getTenantId()).isNull();
-        }
+        )
 
         @Test
         @DisplayName("clear 应清除租户ID和忽略标记")
@@ -71,7 +71,7 @@ class TenantTest {
 
             assertThat(tenantContext.getTenantId()).isNull();
             assertThat(tenantContext.isIgnoreTenant()).isFalse();
-        }
+        )
 
         @Test
         @DisplayName("应正确设置和获取忽略租户标记")
@@ -83,7 +83,7 @@ class TenantTest {
 
             tenantContext.setIgnoreTenant(false);
             assertThat(tenantContext.isIgnoreTenant()).isFalse();
-        }
+        )
 
         @Test
         @DisplayName("runWithoutTenant 应临时忽略租户隔离")
@@ -93,11 +93,11 @@ class TenantTest {
             // 在忽略租户的上下文中执行
             tenantContext.runWithoutTenant(() -> {
                 assertThat(tenantContext.isIgnoreTenant()).isTrue();
-            });
+            ));
 
             // 执行后应恢复原状态
             assertThat(tenantContext.isIgnoreTenant()).isFalse();
-        }
+        )
 
         @Test
         @DisplayName("runWithoutTenant 应恢复原有的忽略状态")
@@ -107,11 +107,11 @@ class TenantTest {
             tenantContext.runWithoutTenant(() -> {
                 // 已经是忽略状态，执行中仍为 true
                 assertThat(tenantContext.isIgnoreTenant()).isTrue();
-            });
+            ));
 
             // 应恢复原有的 true 状态
             assertThat(tenantContext.isIgnoreTenant()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("runWithoutTenant 异常时应恢复状态")
@@ -121,14 +121,14 @@ class TenantTest {
             try {
                 tenantContext.runWithoutTenant(() -> {
                     throw new RuntimeException("Test exception");
-                });
-            } catch (RuntimeException e) {
+                ));
+            ) catch (RuntimeException e) {
                 // 忽略异常
-            }
+            )
 
             // 即使异常也应恢复状态
             assertThat(tenantContext.isIgnoreTenant()).isFalse();
-        }
+        )
 
         @Test
         @DisplayName("不同线程应隔离租户ID")
@@ -145,7 +145,7 @@ class TenantTest {
                 otherContext.setTenantId("sub-tenant");
                 otherThreadTenantId.set(otherContext.getTenantId());
                 latch.countDown();
-            });
+            ));
 
             latch.await();
             executor.shutdown();
@@ -153,7 +153,7 @@ class TenantTest {
             // 主线程的租户ID不受影响
             assertThat(tenantContext.getTenantId()).isEqualTo("main-tenant");
             assertThat(otherThreadTenantId.get()).isEqualTo("sub-tenant");
-        }
+        )
 
         @Test
         @DisplayName("多线程并发设置租户ID应互不干扰")
@@ -173,13 +173,13 @@ class TenantTest {
                         ThreadLocalTenantContext ctx = new ThreadLocalTenantContext();
                         ctx.setTenantId("tenant-" + threadIndex);
                         results[threadIndex].set(ctx.getTenantId());
-                    } catch (InterruptedException e) {
+                    ) catch (InterruptedException e) {
                         results[threadIndex].set("error");
-                    } finally {
+                    ) finally {
                         endLatch.countDown();
-                    }
-                });
-            }
+                    )
+                ));
+            )
 
             startLatch.countDown(); // 启动所有线程
             endLatch.await(); // 等待所有线程完成
@@ -188,9 +188,9 @@ class TenantTest {
             // 每个线程应获取到自己设置的租户ID
             for (int i = 0; i < threadCount; i++) {
                 assertThat(results[i].get()).isEqualTo("tenant-" + i);
-            }
-        }
-    }
+            )
+        )
+    )
 
     // ==================== TenantAware 接口测试 ====================
 
@@ -209,14 +209,14 @@ class TenantTest {
 
             entity.setTenantId(null);
             assertThat(entity.getTenantId()).isNull();
-        }
+        )
 
         @Test
         @DisplayName("TenantAware 应作为接口标记")
         void tenantAwareShouldBeInterface() {
             assertThat(TenantAware.class).isInterface();
-        }
-    }
+        )
+    )
 
     // ==================== TenantContext 接口测试 ====================
 
@@ -228,7 +228,7 @@ class TenantTest {
         @DisplayName("ThreadLocalTenantContext 应实现 TenantContext")
         void shouldImplementTenantContext() {
             assertThat(tenantContext).isInstanceOf(TenantContext.class);
-        }
+        )
 
         @Test
         @DisplayName("TenantContext 应定义所有必要方法")
@@ -240,8 +240,8 @@ class TenantTest {
             assertThat(TenantContext.class.getMethod("isIgnoreTenant")).isNotNull();
             assertThat(TenantContext.class.getMethod("setIgnoreTenant", boolean.class)).isNotNull();
             assertThat(TenantContext.class.getMethod("runWithoutTenant", Runnable.class)).isNotNull();
-        }
-    }
+        )
+    )
 
     // 测试用的 TenantAware 实现类
     private static class TestTenantEntity implements TenantAware {
@@ -250,11 +250,11 @@ class TenantTest {
         @Override
         public String getTenantId() {
             return tenantId;
-        }
+        )
 
         @Override
         public void setTenantId(String tenantId) {
             this.tenantId = tenantId;
-        }
-    }
-}
+        )
+    )
+)

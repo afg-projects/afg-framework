@@ -23,27 +23,27 @@ class RelationTest {
 
         @ManyToMany
         java.util.Set<Role> roles;
-    }
+    )
 
     static class UserProfile {
         @OneToOne(mappedBy = "profile")
         User user;
-    }
+    )
 
     static class Order {
         @ManyToOne
         User user;
-    }
+    )
 
     static class Department {
         @OneToMany(mappedBy = "department")
         java.util.List<User> users;
-    }
+    )
 
     static class Role {
         @ManyToMany(mappedBy = "roles")
         java.util.Set<User> users;
-    }
+    )
 
     // ==================== 注解测试 ====================
 
@@ -51,25 +51,25 @@ class RelationTest {
     void shouldDefineOneToOneAnnotation() {
         assertThat(OneToOne.class).isAnnotation();
         assertThat(OneToOne.class.isAnnotationPresent(java.lang.annotation.Retention.class)).isTrue();
-    }
+    )
 
     @Test
     void shouldDefineOneToManyAnnotation() {
         assertThat(OneToMany.class).isAnnotation();
         assertThat(OneToMany.class.isAnnotationPresent(java.lang.annotation.Retention.class)).isTrue();
-    }
+    )
 
     @Test
     void shouldDefineManyToOneAnnotation() {
         assertThat(ManyToOne.class).isAnnotation();
         assertThat(ManyToOne.class.isAnnotationPresent(java.lang.annotation.Retention.class)).isTrue();
-    }
+    )
 
     @Test
     void shouldDefineManyToManyAnnotation() {
         assertThat(ManyToMany.class).isAnnotation();
         assertThat(ManyToMany.class.isAnnotationPresent(java.lang.annotation.Retention.class)).isTrue();
-    }
+    )
 
     @Test
     void shouldReadOneToOneAnnotation() throws NoSuchFieldException {
@@ -77,7 +77,7 @@ class RelationTest {
         assertThat(annotation).isNotNull();
         assertThat(annotation.mappedBy()).isEmpty();
         assertThat(annotation.fetch()).isEqualTo(FetchType.LAZY);
-    }
+    )
 
     @Test
     void shouldReadOneToManyAnnotation() throws NoSuchFieldException {
@@ -85,7 +85,7 @@ class RelationTest {
         assertThat(annotation).isNotNull();
         assertThat(annotation.mappedBy()).isEqualTo("user");
         assertThat(annotation.orphanRemoval()).isFalse();
-    }
+    )
 
     @Test
     void shouldReadManyToOneAnnotation() throws NoSuchFieldException {
@@ -93,14 +93,14 @@ class RelationTest {
         assertThat(annotation).isNotNull();
         assertThat(annotation.fetch()).isEqualTo(FetchType.EAGER);
         assertThat(annotation.optional()).isTrue();
-    }
+    )
 
     @Test
     void shouldReadManyToManyAnnotation() throws NoSuchFieldException {
         ManyToMany annotation = User.class.getDeclaredField("roles").getAnnotation(ManyToMany.class);
         assertThat(annotation).isNotNull();
         assertThat(annotation.mappedBy()).isEmpty();
-    }
+    )
 
     // ==================== CascadeType 测试 ====================
 
@@ -112,7 +112,7 @@ class RelationTest {
         assertThat(CascadeType.REFRESH).isNotNull();
         assertThat(CascadeType.DETACH).isNotNull();
         assertThat(CascadeType.ALL).isNotNull();
-    }
+    )
 
     // ==================== FetchType 测试 ====================
 
@@ -120,7 +120,7 @@ class RelationTest {
     void shouldDefineFetchTypes() {
         assertThat(FetchType.LAZY).isNotNull();
         assertThat(FetchType.EAGER).isNotNull();
-    }
+    )
 
     // ==================== RelationType 测试 ====================
 
@@ -130,7 +130,7 @@ class RelationTest {
         assertThat(RelationType.ONE_TO_MANY).isNotNull();
         assertThat(RelationType.MANY_TO_ONE).isNotNull();
         assertThat(RelationType.MANY_TO_MANY).isNotNull();
-    }
+    )
 
     // ==================== RelationMetadata 测试 ====================
 
@@ -160,7 +160,7 @@ class RelationTest {
         assertThat(metadata.getCascadeTypes()).containsExactlyInAnyOrder(CascadeType.PERSIST, CascadeType.MERGE);
         assertThat(metadata.isOwningSide()).isFalse();
         assertThat(metadata.isOrphanRemoval()).isTrue();
-    }
+    )
 
     @Test
     void shouldIdentifyOwningSide() {
@@ -184,7 +184,7 @@ class RelationTest {
                 .foreignKeyColumn("user_id")
                 .build();
         assertThat(inverse.isOwningSide()).isFalse();
-    }
+    )
 
     @Test
     void shouldBuildManyToManyMetadata() {
@@ -203,7 +203,7 @@ class RelationTest {
         assertThat(metadata.getJoinTable()).isEqualTo("user_role");
         assertThat(metadata.getJoinColumn()).isEqualTo("user_id");
         assertThat(metadata.getInverseJoinColumn()).isEqualTo("role_id");
-    }
+    )
 
     @Test
     void shouldReturnImmutableCascadeTypes() {
@@ -218,5 +218,5 @@ class RelationTest {
                 .build();
 
         assertThat(metadata.getCascadeTypes()).isUnmodifiable();
-    }
-}
+    )
+)

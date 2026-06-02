@@ -9,7 +9,7 @@ import io.github.afgprojects.framework.security.core.storage.AfgLoginFailureStor
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Optional;
 
 import static io.github.afgprojects.framework.data.core.condition.Conditions.*;
@@ -72,7 +72,7 @@ public class JdbcLoginFailureStorage implements AfgLoginFailureStorage {
             @Nullable String tenantId,
             @Nullable String ip
     ) {
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
 
         var existing = dataManager.findOneByField(AuthLoginFailure.class,
                 AuthLoginFailure::getUserId, userId);
@@ -99,7 +99,7 @@ public class JdbcLoginFailureStorage implements AfgLoginFailureStorage {
         // 检查是否需要锁定
         int failureCount = entity.getFailureCount();
         if (failureCount >= lockThreshold) {
-            LocalDateTime lockedUntil = now.plusMinutes(lockDurationMinutes);
+            Instant lockedUntil = now.plus(java.time.Duration.ofMinutes(lockDurationMinutes));
             entity.setLockedUntil(lockedUntil);
             dataManager.save(AuthLoginFailure.class, entity);
             log.info("Account locked: userId={}, failureCount={}, lockedUntil={}", userId, failureCount, lockedUntil);
@@ -121,19 +121,19 @@ public class JdbcLoginFailureStorage implements AfgLoginFailureStorage {
         return dataManager.findOneByField(AuthLoginFailure.class,
                 AuthLoginFailure::getUserId, userId)
                 .map(entity -> {
-                    LocalDateTime lockedUntil = entity.getLockedUntil();
-                    return lockedUntil != null && lockedUntil.isAfter(LocalDateTime.now());
+                    Instant lockedUntil = entity.getLockedUntil();
+                    return lockedUntil != null && lockedUntil.isAfter(Instant.now());
                 })
                 .orElse(false);
     }
 
     @Override
     @Nullable
-    public LocalDateTime getLockedUntil(@NonNull String userId) {
+    public Instant getLockedUntil(@NonNull String userId) {
         return dataManager.findOneByField(AuthLoginFailure.class,
                 AuthLoginFailure::getUserId, userId)
                 .map(AuthLoginFailure::getLockedUntil)
-                .filter(lockedUntil -> lockedUntil != null && lockedUntil.isAfter(LocalDateTime.now()))
+                .filter(lockedUntil -> lockedUntil != null && lockedUntil.isAfter(Instant.now()))
                 .orElse(null);
     }
 
@@ -200,7 +200,7 @@ public class JdbcLoginFailureStorage implements AfgLoginFailureStorage {
      * @return 更新的记录数
      */
     public int clearExpiredLocks() {
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         var expiredRecords = dataManager.entity(AuthLoginFailure.class)
                 .query()
                 .where(builder(AuthLoginFailure.class)

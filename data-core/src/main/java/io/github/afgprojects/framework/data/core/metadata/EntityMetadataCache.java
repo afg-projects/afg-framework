@@ -243,5 +243,10 @@ public class EntityMetadataCache {
         public boolean hasRelation(String fieldName) {
             return false;
         }
+
+        @Override
+        public List<RelationMetadata> getRelations() {
+            return List.of();
+        }
     }
 }

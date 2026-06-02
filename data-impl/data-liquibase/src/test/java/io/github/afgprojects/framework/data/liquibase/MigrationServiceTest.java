@@ -2,7 +2,9 @@ package io.github.afgprojects.framework.data.liquibase;
 
 import io.github.afgprojects.framework.data.core.dialect.H2Dialect;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
+import io.github.afgprojects.framework.data.core.metadata.EntityTrait;
 import io.github.afgprojects.framework.data.core.metadata.FieldMetadata;
+import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.relation.RelationMetadata;
 import io.github.afgprojects.framework.data.core.schema.SchemaDiff;
 import io.github.afgprojects.framework.data.core.schema.ThreeWayDiff;
@@ -22,8 +24,10 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
@@ -776,6 +780,11 @@ class MigrationServiceTest {
         }
 
         @Override
+        public String getIdFieldName() {
+            return "id";
+        }
+
+        @Override
         public List<FieldMetadata> getFields() {
             return List.of(
                     getIdField(),
@@ -793,33 +802,48 @@ class MigrationServiceTest {
         }
 
         @Override
-        public boolean isSoftDeletable() {
+        public FieldMetadata getSoftDeleteField() {
+            return null;
+        }
+
+        @Override
+        public FieldMetadata getTenantField() {
+            return null;
+        }
+
+        @Override
+        public Map<String, String> getColumnToFieldMap() {
+            return Collections.emptyMap();
+        }
+
+        @Override
+        public Map<String, String> getFieldToColumnMap() {
+            return Collections.emptyMap();
+        }
+
+        @Override
+        public boolean hasTrait(EntityTrait trait) {
             return false;
         }
 
         @Override
-        public boolean isTenantAware() {
+        public Set<EntityTrait> getTraits() {
+            return Set.of();
+        }
+
+        @Override
+        public boolean isDataScopeAware() {
             return false;
         }
 
         @Override
-        public boolean isAuditable() {
-            return false;
-        }
-
-        @Override
-        public boolean isVersioned() {
-            return false;
+        public Condition getDefaultCondition() {
+            return null;
         }
 
         @Override
         public List<RelationMetadata> getRelations() {
             return List.of();
-        }
-
-        @Override
-        public Optional<RelationMetadata> getRelation(String fieldName) {
-            return Optional.empty();
         }
 
         @Override

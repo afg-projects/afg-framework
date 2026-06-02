@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.jspecify.annotations.Nullable;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * 登录失败记录实体。
@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = true)
 @AfEntity
 @Table(name = "auth_login_failure")
-public class AuthLoginFailure extends BaseEntity<Long> {
+public class AuthLoginFailure extends BaseEntity {
 
     /**
      * 用户 ID
@@ -50,10 +50,10 @@ public class AuthLoginFailure extends BaseEntity<Long> {
     /**
      * 最后失败时间
      */
-    private @Nullable LocalDateTime lastFailureTime;
+    private @Nullable Instant lastFailureTime;
 
     /**
      * 锁定截止时间
      */
-    private @Nullable LocalDateTime lockedUntil;
+    private @Nullable Instant lockedUntil;
 }

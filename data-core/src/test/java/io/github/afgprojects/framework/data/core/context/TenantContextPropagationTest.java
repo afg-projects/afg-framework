@@ -25,7 +25,7 @@ class TenantContextPropagationTest {
         assertThat(snapshot.isValid()).isTrue();
 
         holder.clear();
-    }
+    )
 
     @Test
     void shouldReturnNullSnapshotWhenNoTenantSet() {
@@ -34,7 +34,7 @@ class TenantContextPropagationTest {
         TenantContextHolder.TenantContextSnapshot snapshot = holder.snapshot();
 
         assertThat(snapshot).isNull();
-    }
+    )
 
     @Test
     void shouldRestoreFromSnapshot() {
@@ -46,7 +46,7 @@ class TenantContextPropagationTest {
         assertThat(holder.getTenantId()).isEqualTo("tenant-002");
 
         holder.clear();
-    }
+    )
 
     @Test
     void shouldClearWhenRestoreNullSnapshot() {
@@ -56,7 +56,7 @@ class TenantContextPropagationTest {
         holder.restore(null);
 
         assertThat(holder.getTenantId()).isNull();
-    }
+    )
 
     @Test
     void shouldRunWithSnapshot() {
@@ -68,7 +68,7 @@ class TenantContextPropagationTest {
 
         assertThat(capturedTenantId.get()).isEqualTo("tenant-003");
         assertThat(holder.getTenantId()).isNull(); // 恢复为原始值（null）
-    }
+    )
 
     @Test
     void shouldRestorePreviousTenantAfterRunWithSnapshot() {
@@ -76,12 +76,12 @@ class TenantContextPropagationTest {
         holder.setTenantId("tenant-original");
         TenantContextHolder.TenantContextSnapshot snapshot = new TenantContextHolder.TenantContextSnapshot("tenant-temp");
 
-        holder.runWithSnapshot(snapshot, () -> {});
+        holder.runWithSnapshot(snapshot, () -> {));
 
         assertThat(holder.getTenantId()).isEqualTo("tenant-original");
 
         holder.clear();
-    }
+    )
 
     @Test
     void shouldPropagateTenantContextViaTaskDecorator() throws InterruptedException {
@@ -96,7 +96,7 @@ class TenantContextPropagationTest {
         Runnable decoratedTask = decorator.decorate(() -> {
             capturedTenantId.set(holder.getTenantId());
             latch.countDown();
-        });
+        ));
 
         executor.submit(decoratedTask);
         latch.await(1, TimeUnit.SECONDS);
@@ -105,7 +105,7 @@ class TenantContextPropagationTest {
         assertThat(capturedTenantId.get()).isEqualTo("tenant-async");
 
         holder.clear();
-    }
+    )
 
     @Test
     void shouldNotPropagateWhenNoTenantSet() throws InterruptedException {
@@ -118,14 +118,14 @@ class TenantContextPropagationTest {
         Runnable decoratedTask = decorator.decorate(() -> {
             capturedTenantId.set(holder.getTenantId());
             latch.countDown();
-        });
+        ));
 
         executor.submit(decoratedTask);
         latch.await(1, TimeUnit.SECONDS);
         executor.shutdown();
 
         assertThat(capturedTenantId.get()).isNull();
-    }
+    )
 
     @Test
     void shouldPropagateTenantContextViaWrappedExecutorService() throws Exception {
@@ -141,7 +141,7 @@ class TenantContextPropagationTest {
         wrappedExecutor.submit(() -> {
             capturedTenantId.set(holder.getTenantId());
             latch.countDown();
-        });
+        ));
 
         latch.await(1, TimeUnit.SECONDS);
         wrappedExecutor.shutdown();
@@ -149,7 +149,7 @@ class TenantContextPropagationTest {
         assertThat(capturedTenantId.get()).isEqualTo("tenant-executor");
 
         holder.clear();
-    }
+    )
 
     @Test
     void shouldPropagateTenantContextViaCompletableFuture() throws Exception {
@@ -161,7 +161,7 @@ class TenantContextPropagationTest {
 
         CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
             return holder.getTenantId();
-        }, wrappedExecutor);
+        ), wrappedExecutor);
 
         String result = future.get(1, TimeUnit.SECONDS);
         wrappedExecutor.shutdown();
@@ -169,7 +169,7 @@ class TenantContextPropagationTest {
         assertThat(result).isEqualTo("tenant-future");
 
         holder.clear();
-    }
+    )
 
     @Test
     void shouldPropagateTenantContextWithCallable() throws Exception {
@@ -185,7 +185,7 @@ class TenantContextPropagationTest {
         assertThat(result).isEqualTo("tenant-callable");
 
         holder.clear();
-    }
+    )
 
     @Test
     void shouldNotLeakTenantContextBetweenTasks() throws Exception {
@@ -203,7 +203,7 @@ class TenantContextPropagationTest {
         wrappedExecutor.submit(() -> {
             firstTaskTenantId.set(holder.getTenantId());
             firstLatch.countDown();
-        });
+        ));
         firstLatch.await(1, TimeUnit.SECONDS);
 
         // 清除当前线程的租户，提交第二个任务
@@ -211,7 +211,7 @@ class TenantContextPropagationTest {
         wrappedExecutor.submit(() -> {
             secondTaskTenantId.set(holder.getTenantId());
             secondLatch.countDown();
-        });
+        ));
         secondLatch.await(1, TimeUnit.SECONDS);
 
         wrappedExecutor.shutdown();
@@ -219,5 +219,5 @@ class TenantContextPropagationTest {
         // 验证第一个任务有正确的租户，第二个任务没有（因为提交时没有租户）
         assertThat(firstTaskTenantId.get()).isEqualTo("tenant-first");
         assertThat(secondTaskTenantId.get()).isNull();
-    }
-}
+    )
+)

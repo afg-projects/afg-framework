@@ -146,7 +146,7 @@ class AuditLogSecurityTest extends SecurityTestBase {
             long initialCount = userProxy.count();
 
             // 只删除 tenant-b 的数据
-            long deleted = userProxy.deleteAll(Conditions.eq("tenant_id", "tenant-b"));
+            long deleted = userProxy.deleteByCondition(Conditions.eq("tenant_id", "tenant-b"));
 
             assertThat(deleted).isEqualTo(1);
             assertThat(userProxy.count()).isEqualTo(initialCount - 1);

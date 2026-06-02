@@ -515,7 +515,7 @@ class EntityCacheTest {
             assertThat(cache.containsKey(cacheKey)).isTrue();
 
             // When - 条件删除（注意：条件删除可能不会自动失效缓存，取决于实现）
-            long deleted = userProxy.deleteAll(Conditions.eq("id", user.getId()));
+            long deleted = userProxy.deleteByCondition(Conditions.eq("id", user.getId()));
 
             // Then - 如果删除成功，缓存应被失效
             if (deleted > 0) {

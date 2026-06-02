@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.data.jdbc;
 
+import io.github.afgprojects.framework.data.core.entity.LifecycleCallbacks;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheHandler;
@@ -53,6 +54,9 @@ public class EntityInsertHandler<T> {
      * @return 插入后的实体（包含生成的主键）
      */
     public @NonNull T insert(@NonNull T entity) {
+        // 触发 beforeCreate 生命周期回调（类似 JPA @PrePersist）
+        LifecycleCallbacks.ifCallback(entity, LifecycleCallbacks::beforeCreate);
+
         // 检查实体是否已有ID（应用主动传入）
         Object existingId = queryHelper.getIdValue(entity);
         if (existingId != null) {

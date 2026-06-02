@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.jspecify.annotations.Nullable;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Token 黑名单实体。
@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = true)
 @AfEntity
 @Table(name = "auth_token_blacklist")
-public class AuthTokenBlacklist extends BaseEntity<Long> {
+public class AuthTokenBlacklist extends BaseEntity {
 
     /**
      * Token 哈希值（SHA-256）
@@ -40,5 +40,5 @@ public class AuthTokenBlacklist extends BaseEntity<Long> {
     /**
      * 过期时间（Token 的原始过期时间）
      */
-    private LocalDateTime expiresAt;
+    private Instant expiresAt;
 }

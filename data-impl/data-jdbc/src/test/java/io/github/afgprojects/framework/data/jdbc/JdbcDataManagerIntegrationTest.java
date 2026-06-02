@@ -1148,7 +1148,7 @@ class JdbcDataManagerIntegrationTest {
             List<TestUser> users = dataManager.queryForList(
                 "SELECT * FROM test_user",
                 List.of(),
-                (rs, rowNum) -> {
+                (org.springframework.jdbc.core.RowMapper<TestUser>) (rs, rowNum) -> {
                     TestUser u = new TestUser();
                     u.setId(rs.getLong("id"));
                     u.setName(rs.getString("name"));
@@ -1172,7 +1172,7 @@ class JdbcDataManagerIntegrationTest {
             TestUser found = dataManager.queryForObject(
                 "SELECT * FROM test_user WHERE id = ?",
                 List.of(inserted.getId()),
-                (rs, rowNum) -> {
+                (io.github.afgprojects.framework.data.core.mapper.ResultMapper<TestUser>) (rs, rowNum) -> {
                     TestUser u = new TestUser();
                     u.setId(rs.getLong("id"));
                     u.setName(rs.getString("name"));
@@ -1196,7 +1196,7 @@ class JdbcDataManagerIntegrationTest {
             Optional<TestUser> found = dataManager.queryForOptional(
                 "SELECT * FROM test_user WHERE id = ?",
                 List.of(inserted.getId()),
-                (rs, rowNum) -> {
+                (io.github.afgprojects.framework.data.core.mapper.ResultMapper<TestUser>) (rs, rowNum) -> {
                     TestUser u = new TestUser();
                     u.setId(rs.getLong("id"));
                     u.setName(rs.getString("name"));
@@ -1211,7 +1211,7 @@ class JdbcDataManagerIntegrationTest {
             Optional<TestUser> notFound = dataManager.queryForOptional(
                 "SELECT * FROM test_user WHERE id = ?",
                 List.of(99999L),
-                (rs, rowNum) -> {
+                (io.github.afgprojects.framework.data.core.mapper.ResultMapper<TestUser>) (rs, rowNum) -> {
                     TestUser u = new TestUser();
                     u.setId(rs.getLong("id"));
                     u.setName(rs.getString("name"));

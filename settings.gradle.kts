@@ -34,20 +34,7 @@ include("core")
 // AI 模块
 include("ai-core")
 include("ai-impl:ai-spring-ai")
-include("ai-impl:ai-langchain4j")           // LLM 实现（OpenAI, Anthropic, Ollama）
-include("ai-impl:ai-spring-ai")      // Spring AI 适配实现
-include("ai-impl:ai-agent")         // Agent 实现（ToolRegistry, ReAct, Plan-Execute）
-include("ai-impl:ai-agent-security") // Agent 安全实现（Casbin 权限检查、安全上下文）
-include("ai-impl:ai-agent-utils")   // Agent 工具类（SkillRegistry, SkillExecutor）
-include("ai-impl:ai-etl")           // ETL 实现（Reader, Transformer, Writer, Pipeline）
-include("ai-impl:ai-resilience")    // 韧性实现（重试、熔断、降级）
-include("ai-impl:ai-observability")  // 可观测性实现（指标、追踪、审计）
-include("ai-impl:ai-security")      // 安全实现（API Key 管理、内容安全、PII 检测）
-include("ai-impl:ai-persistence")   // 持久化实现（会话存储、消息历史）
-include("ai-impl:ai-performance")   // 性能优化实现（缓存、速率限制）
-include("ai-impl:ai-pipeline")      // Pipeline 实现（DefaultChatPipeline, 4 steps）
-include("ai-impl:ai-rag")           // RAG 实现（VectorStore, EmbeddingService, KnowledgeBaseService）
-include("ai-impl:ai-workflow")      // Workflow 实现（工作流引擎、节点编排）
+include("ai-impl:ai-langchain4j")
 
 // 数据访问模块
 include("data-core")

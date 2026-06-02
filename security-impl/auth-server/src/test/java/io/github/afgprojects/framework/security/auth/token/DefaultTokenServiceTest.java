@@ -11,7 +11,7 @@ import static org.mockito.Mockito.when;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.Set;
 
@@ -233,7 +233,7 @@ class DefaultTokenServiceTest {
                     eq(tenantId),
                     any(),
                     any(),
-                    any(LocalDateTime.class));
+                    any(Instant.class));
         }
 
         @Test
@@ -254,7 +254,7 @@ class DefaultTokenServiceTest {
                     eq(null),
                     any(),
                     any(),
-                    any(LocalDateTime.class));
+                    any(Instant.class));
         }
     }
 
@@ -279,8 +279,8 @@ class DefaultTokenServiceTest {
                             tenantId,
                             null,
                             null,
-                            LocalDateTime.now().plusDays(7),
-                            LocalDateTime.now())));
+                            Instant.now().plus(Duration.ofDays(7)),
+                            Instant.now())));
 
             // when
             boolean isValid = tokenService.validateRefreshToken(refreshToken);

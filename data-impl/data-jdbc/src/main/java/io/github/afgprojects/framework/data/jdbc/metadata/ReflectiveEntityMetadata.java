@@ -2,7 +2,9 @@ package io.github.afgprojects.framework.data.jdbc.metadata;
 
 import io.github.afgprojects.framework.data.core.metadata.DatabaseEntityMetadata;
 import io.github.afgprojects.framework.data.core.metadata.DatabaseFieldMetadata;
+import io.github.afgprojects.framework.data.core.metadata.EntityTrait;
 import io.github.afgprojects.framework.data.core.metadata.FieldMetadata;
+import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.relation.RelationMetadata;
 import org.jspecify.annotations.Nullable;
 import io.github.afgprojects.framework.commons.naming.NamingUtils;
@@ -11,8 +13,12 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -168,6 +174,82 @@ public class ReflectiveEntityMetadata<T> implements DatabaseEntityMetadata<T> {
     @Override
     public boolean hasRelation(String fieldName) {
         return getRelation(fieldName).isPresent();
+    }
+
+    // ==================== EntityMetadata 新增方法 ====================
+
+    @Override
+    public String getIdFieldName() {
+        DatabaseFieldMetadata idField = getIdField();
+        return idField != null ? idField.getPropertyName() : "id";
+    }
+
+    @Override
+    public @Nullable FieldMetadata getSoftDeleteField() {
+        FieldMetadata deleted = getField("deleted");
+        return deleted != null ? deleted : getField("deletedAt");
+    }
+
+    @Override
+    public @Nullable FieldMetadata getTenantField() {
+        return getField("tenantId");
+    }
+
+    @Override
+    public Map<String, String> getColumnToFieldMap() {
+        Map<String, String> map = new HashMap<>();
+        for (DatabaseFieldMetadata field : fields) {
+            map.put(field.getColumnName(), field.getPropertyName());
+        }
+        return map;
+    }
+
+    @Override
+    public Map<String, String> getFieldToColumnMap() {
+        Map<String, String> map = new HashMap<>();
+        for (DatabaseFieldMetadata field : fields) {
+            map.put(field.getPropertyName(), field.getColumnName());
+        }
+        return map;
+    }
+
+    @Override
+    public boolean hasTrait(EntityTrait trait) {
+        return getTraits().contains(trait);
+    }
+
+    @Override
+    public Set<EntityTrait> getTraits() {
+        Set<EntityTrait> traits = EnumSet.noneOf(EntityTrait.class);
+        if (isSoftDeletable()) {
+            if (getField("deletedAt") != null) {
+                traits.add(EntityTrait.TIMESTAMP_SOFT_DELETABLE);
+            } else {
+                traits.add(EntityTrait.SOFT_DELETABLE);
+            }
+        }
+        if (isTenantAware()) {
+            traits.add(EntityTrait.TENANT_AWARE);
+        }
+        if (isAuditable()) {
+            traits.add(EntityTrait.AUDITABLE);
+        }
+        if (isVersioned()) {
+            traits.add(EntityTrait.VERSIONED);
+        }
+        return traits;
+    }
+
+    @Override
+    public boolean isDataScopeAware() {
+        // 反射方式无法检测数据权限注解，默认 false
+        return false;
+    }
+
+    @Override
+    public @Nullable Condition getDefaultCondition() {
+        // 反射方式无法推断默认条件，默认 null
+        return null;
     }
 
     /**

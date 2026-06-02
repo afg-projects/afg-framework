@@ -444,7 +444,7 @@ class TimestampSoftDeleteIntegrationTest {
             user.markDeleted();
 
             // When
-            user.restore();
+            user.markNotDeleted();
 
             // Then
             assertThat(user.isDeleted()).isFalse();
@@ -458,10 +458,10 @@ class TimestampSoftDeleteIntegrationTest {
             TimestampUser user = new TimestampUser();
             user.setName("custom-time");
             user.setEmail("custom@example.com");
-            LocalDateTime customTime = LocalDateTime.of(2024, 1, 15, 10, 30, 0);
+            java.time.Instant customTime = java.time.Instant.parse("2024-01-15T10:30:00Z");
 
             // When
-            user.markDeleted(customTime);
+            user.setDeletedAt(customTime);
 
             // Then
             assertThat(user.getDeletedAt()).isEqualTo(customTime);
@@ -510,7 +510,7 @@ class TimestampSoftDeleteIntegrationTest {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    static class TimestampUser extends TimestampSoftDeleteEntity<Long> {
+    static class TimestampUser extends TimestampSoftDeleteEntity {
         private String name;
         private String email;
     }

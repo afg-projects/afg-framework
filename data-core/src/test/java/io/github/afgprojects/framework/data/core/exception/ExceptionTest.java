@@ -30,7 +30,7 @@ class ExceptionTest {
             assertThat(ex.getMessage()).contains("entity=User");
             assertThat(ex.getMessage()).contains("id=123");
             assertThat(ex.getMessage()).contains("expectedVersion=5");
-        }
+        )
 
         @Test
         @DisplayName("应使用自定义消息构造方法创建异常")
@@ -46,7 +46,7 @@ class ExceptionTest {
             assertThat(ex.getEntityClassName()).isEqualTo("Order");
             assertThat(ex.getEntityId()).isEqualTo("ORD-001");
             assertThat(ex.getExpectedVersion()).isEqualTo(10L);
-        }
+        )
 
         @Test
         @DisplayName("应继承 RuntimeException")
@@ -54,7 +54,7 @@ class ExceptionTest {
             OptimisticLockException ex = new OptimisticLockException("Test", 1L, 1L);
 
             assertThat(ex).isInstanceOf(RuntimeException.class);
-        }
+        )
 
         @Test
         @DisplayName("应支持不同类型的实体ID")
@@ -70,7 +70,7 @@ class ExceptionTest {
             // Integer 类型 ID
             OptimisticLockException ex3 = new OptimisticLockException("Entity3", 100, 3L);
             assertThat(ex3.getEntityId()).isInstanceOf(Integer.class);
-        }
+        )
 
         @Test
         @DisplayName("应正确格式化消息")
@@ -82,7 +82,7 @@ class ExceptionTest {
             assertThat(message).isEqualTo(
                     "Optimistic lock conflict: entity=Product, id=999, expectedVersion=42"
             );
-        }
+        )
 
         @Test
         @DisplayName("应支持异常链")
@@ -93,6 +93,6 @@ class ExceptionTest {
             ex.initCause(cause);
 
             assertThat(ex.getCause()).isEqualTo(cause);
-        }
-    }
-}
+        )
+    )
+)

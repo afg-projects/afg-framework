@@ -64,7 +64,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
         void testRestoreByIdTimestampEntity() {
             // Given
             insertTimestampEntity(1L, "test", null); // Not deleted
-            insertTimestampEntity(2L, "deleted_entity", java.time.LocalDateTime.now()); // Deleted
+            insertTimestampEntity(2L, "deleted_entity", java.time.Instant.now()); // Deleted
 
             var metadata = ReflectiveEntityMetadata.create(TimestampSoftDeleteEntity.class);
             var handler = new EntitySoftDeleteHandler<>(
@@ -109,7 +109,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
         @DisplayName("restoreById should evict cache when cacheManager is present")
         void testRestoreByIdEvictsCache() {
             // Given
-            insertTimestampEntity(1L, "cached_entity", java.time.LocalDateTime.now());
+            insertTimestampEntity(1L, "cached_entity", java.time.Instant.now());
             var metadata = ReflectiveEntityMetadata.create(TimestampSoftDeleteEntity.class);
             timestampCache = cacheManager.getCache(TimestampSoftDeleteEntity.class);
 
@@ -153,9 +153,9 @@ class EntitySoftDeleteHandlerAdditionalTest {
         @DisplayName("restoreAllById should restore multiple records")
         void testRestoreAllById() {
             // Given
-            insertTimestampEntity(1L, "entity1", java.time.LocalDateTime.now());
-            insertTimestampEntity(2L, "entity2", java.time.LocalDateTime.now());
-            insertTimestampEntity(3L, "entity3", java.time.LocalDateTime.now());
+            insertTimestampEntity(1L, "entity1", java.time.Instant.now());
+            insertTimestampEntity(2L, "entity2", java.time.Instant.now());
+            insertTimestampEntity(3L, "entity3", java.time.Instant.now());
 
             var metadata = ReflectiveEntityMetadata.create(TimestampSoftDeleteEntity.class);
             var handler = new EntitySoftDeleteHandler<>(
@@ -633,7 +633,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
         }
     }
 
-    private void insertTimestampEntity(Long id, String name, java.time.LocalDateTime deletedAt) {
+    private void insertTimestampEntity(Long id, String name, java.time.Instant deletedAt) {
         jdbcClient.sql("INSERT INTO timestamp_soft_delete_entity (id, name, deleted_at) VALUES (?, ?, ?)")
                 .params(id, name, deletedAt)
                 .update();
@@ -656,7 +656,7 @@ class EntitySoftDeleteHandlerAdditionalTest {
     static class TimestampSoftDeleteEntity implements TimestampSoftDeletable {
         private Long id;
         private String name;
-        private java.time.LocalDateTime deletedAt;
+        private java.time.Instant deletedAt;
 
         public Long getId() { return id; }
         public void setId(Long id) { this.id = id; }
@@ -664,19 +664,16 @@ class EntitySoftDeleteHandlerAdditionalTest {
         public void setName(String name) { this.name = name; }
 
         @Override
-        public boolean isDeleted() { return deletedAt != null; }
+        public java.time.Instant getDeletedAt() { return deletedAt; }
 
         @Override
-        public java.time.LocalDateTime getDeletedAt() { return deletedAt; }
-
-        @Override
-        public void setDeletedAt(java.time.LocalDateTime deletedAt) { this.deletedAt = deletedAt; }
+        public void setDeletedAt(java.time.Instant deletedAt) { this.deletedAt = deletedAt; }
     }
 
     static class BooleanSoftDeleteEntity implements SoftDeletable {
         private Long id;
         private String name;
-        private boolean deleted;
+        private Boolean deleted = false;
 
         public Long getId() { return id; }
         public void setId(Long id) { this.id = id; }
@@ -684,10 +681,10 @@ class EntitySoftDeleteHandlerAdditionalTest {
         public void setName(String name) { this.name = name; }
 
         @Override
-        public boolean isDeleted() { return deleted; }
+        public Boolean getDeleted() { return deleted; }
 
         @Override
-        public void setDeleted(boolean deleted) { this.deleted = deleted; }
+        public void setDeleted(Boolean deleted) { this.deleted = deleted; }
     }
 
     static class NonSoftDeleteEntity {

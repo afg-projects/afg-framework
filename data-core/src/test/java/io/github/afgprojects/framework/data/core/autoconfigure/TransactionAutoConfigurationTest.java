@@ -25,19 +25,19 @@ class TransactionAutoConfigurationTest {
             @Override
             public TransactionStatus getTransaction(TransactionDefinition definition) throws TransactionException {
                 return Mockito.mock(TransactionStatus.class);
-            }
+            )
 
             @Override
             public void commit(TransactionStatus status) throws TransactionException {
                 // no-op
-            }
+            )
 
             @Override
             public void rollback(TransactionStatus status) throws TransactionException {
                 // no-op
-            }
-        };
-    }
+            )
+        );
+    )
 
     @Test
     @DisplayName("当 PlatformTransactionManager 存在时，应注册 SpringTransactionAdapter Bean")
@@ -47,8 +47,8 @@ class TransactionAutoConfigurationTest {
                 .run(context -> {
                     assertThat(context).hasSingleBean(SpringTransactionAdapter.class);
                     assertThat(context).hasSingleBean(TransactionAdapter.class);
-                });
-    }
+                ));
+    )
 
     @Test
     @DisplayName("当用户自定义 TransactionAdapter 时，自动配置应退避")
@@ -59,23 +59,23 @@ class TransactionAutoConfigurationTest {
                     @Override
                     public void executeInTransaction(Runnable action) {
                         action.run();
-                    }
+                    )
 
                     @Override
                     public <T> T executeInTransaction(java.util.function.Supplier<T> action) {
                         return action.get();
-                    }
+                    )
 
                     @Override
                     public <T> T executeInReadOnly(java.util.function.Supplier<T> action) {
                         return action.get();
-                    }
-                })
+                    )
+                ))
                 .run(context -> {
                     assertThat(context).doesNotHaveBean(SpringTransactionAdapter.class);
                     assertThat(context).hasSingleBean(TransactionAdapter.class);
-                });
-    }
+                ));
+    )
 
     @Test
     @DisplayName("当 PlatformTransactionManager 不存在时，不应注册 SpringTransactionAdapter")
@@ -83,6 +83,6 @@ class TransactionAutoConfigurationTest {
         contextRunner.run(context -> {
             assertThat(context).doesNotHaveBean(SpringTransactionAdapter.class);
             assertThat(context).doesNotHaveBean(TransactionAdapter.class);
-        });
-    }
-}
+        ));
+    )
+)

@@ -24,8 +24,6 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -165,7 +163,6 @@ public class DefaultTokenService implements TokenService {
 
         // 保存 Refresh Token 到存储
         String tokenHash = sha256(token);
-        LocalDateTime expiresAt = LocalDateTime.ofInstant(expiration, ZoneId.systemDefault());
 
         refreshTokenStorage.save(
                 tokenId,
@@ -174,7 +171,7 @@ public class DefaultTokenService implements TokenService {
                 tenantId,
                 null, // clientId
                 null, // deviceId
-                expiresAt
+                expiration
         );
 
         return token;

@@ -23,7 +23,7 @@ class ConditionTest {
         private String email;
         private Integer age;
         private Boolean active;
-    }
+    )
 
     @Nested
     @DisplayName("Conditions 静态工厂方法测试")
@@ -35,7 +35,7 @@ class ConditionTest {
             Condition condition = Conditions.empty();
             assertThat(condition.isEmpty()).isTrue();
             assertThat(condition.getCriteria()).isEmpty();
-        }
+        )
 
         @Test
         @DisplayName("eq() 创建等于条件")
@@ -46,7 +46,7 @@ class ConditionTest {
             assertThat(condition.getCriteria().get(0).field()).isEqualTo("name");
             assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.EQ);
             assertThat(condition.getCriteria().get(0).value()).isEqualTo("test");
-        }
+        )
 
         @Test
         @DisplayName("like() 创建 LIKE 条件")
@@ -56,7 +56,7 @@ class ConditionTest {
             assertThat(condition.getCriteria()).hasSize(1);
             assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.LIKE);
             assertThat(condition.getCriteria().get(0).value()).isEqualTo("%test%");
-        }
+        )
 
         @Test
         @DisplayName("in() 创建 IN 条件")
@@ -66,8 +66,8 @@ class ConditionTest {
             assertThat(condition.isEmpty()).isFalse();
             assertThat(condition.getCriteria()).hasSize(1);
             assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.IN);
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("Conditions.builder() 条件构建器测试")
@@ -84,7 +84,7 @@ class ConditionTest {
             assertThat(condition.isEmpty()).isFalse();
             assertThat(condition.getCriteria()).hasSize(2);
             assertThat(condition.getOperator()).isEqualTo(LogicalOperator.AND);
-        }
+        )
 
         @Test
         @DisplayName("ne() 不等于条件")
@@ -93,7 +93,7 @@ class ConditionTest {
                 .ne("status", 0)
                 .build();
             assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.NE);
-        }
+        )
 
         @Test
         @DisplayName("gt() 大于条件")
@@ -102,7 +102,7 @@ class ConditionTest {
                 .gt("age", 18)
                 .build();
             assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.GT);
-        }
+        )
 
         @Test
         @DisplayName("ge() 大于等于条件")
@@ -111,7 +111,7 @@ class ConditionTest {
                 .ge("age", 18)
                 .build();
             assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.GE);
-        }
+        )
 
         @Test
         @DisplayName("lt() 小于条件")
@@ -120,7 +120,7 @@ class ConditionTest {
                 .lt("age", 65)
                 .build();
             assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.LT);
-        }
+        )
 
         @Test
         @DisplayName("le() 小于等于条件")
@@ -129,7 +129,7 @@ class ConditionTest {
                 .le("age", 65)
                 .build();
             assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.LE);
-        }
+        )
 
         @Test
         @DisplayName("like() 自动添加百分号")
@@ -138,16 +138,16 @@ class ConditionTest {
                 .like("name", "test")
                 .build();
             assertThat(condition.getCriteria().get(0).value()).isEqualTo("%test%");
-        }
+        )
 
         @Test
-        @DisplayName("like() 不重复添加百分号")
-        void shouldNotDuplicatePercentForLike() {
+        @DisplayName("like() 转义用户输入中的通配符")
+        void shouldEscapeWildcardsInLike() {
             Condition condition = Conditions.builder()
-                .like("name", "%test%")
+                .like("name", "te%st")
                 .build();
-            assertThat(condition.getCriteria().get(0).value()).isEqualTo("%test%");
-        }
+            assertThat(condition.getCriteria().get(0).value()).isEqualTo("%te\\%st%");
+        )
 
         @Test
         @DisplayName("like() null 值处理")
@@ -156,45 +156,45 @@ class ConditionTest {
                 .like("name", null)
                 .build();
             assertThat(condition.getCriteria().get(0).value()).isNull();
-        }
+        )
 
         @Test
-        @DisplayName("likeLeft() 左模糊匹配")
+        @DisplayName("likeStartsWith() 左模糊匹配")
         void shouldCreateLikeLeftCondition() {
             Condition condition = Conditions.builder()
-                .likeLeft("name", "test")
+                .likeStartsWith("name", "test")
                 .build();
-            assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.LIKE_LEFT);
+            assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.LIKE_STARTS_WITH);
             assertThat(condition.getCriteria().get(0).value()).isEqualTo("test%");
-        }
+        )
 
         @Test
-        @DisplayName("likeLeft() 不重复添加百分号")
+        @DisplayName("likeStartsWith() 不重复添加百分号")
         void shouldNotDuplicatePercentForLikeLeft() {
             Condition condition = Conditions.builder()
-                .likeLeft("name", "test%")
+                .likeStartsWith("name", "test%")
                 .build();
             assertThat(condition.getCriteria().get(0).value()).isEqualTo("test%");
-        }
+        )
 
         @Test
-        @DisplayName("likeRight() 右模糊匹配")
+        @DisplayName("likeEndsWith() 右模糊匹配")
         void shouldCreateLikeRightCondition() {
             Condition condition = Conditions.builder()
-                .likeRight("name", "test")
+                .likeEndsWith("name", "test")
                 .build();
-            assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.LIKE_RIGHT);
+            assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.LIKE_ENDS_WITH);
             assertThat(condition.getCriteria().get(0).value()).isEqualTo("%test");
-        }
+        )
 
         @Test
-        @DisplayName("likeRight() 不重复添加百分号")
+        @DisplayName("likeEndsWith() 不重复添加百分号")
         void shouldNotDuplicatePercentForLikeRight() {
             Condition condition = Conditions.builder()
-                .likeRight("name", "%test")
+                .likeEndsWith("name", "%test")
                 .build();
             assertThat(condition.getCriteria().get(0).value()).isEqualTo("%test");
-        }
+        )
 
         @Test
         @DisplayName("notLike() 不模糊匹配")
@@ -203,7 +203,7 @@ class ConditionTest {
                 .notLike("name", "test")
                 .build();
             assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.NOT_LIKE);
-        }
+        )
 
         @Test
         @DisplayName("in() IN 条件")
@@ -212,7 +212,7 @@ class ConditionTest {
                 .in("id", Arrays.asList(1, 2, 3))
                 .build();
             assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.IN);
-        }
+        )
 
         @Test
         @DisplayName("notIn() NOT IN 条件")
@@ -221,7 +221,7 @@ class ConditionTest {
                 .notIn("id", Arrays.asList(1, 2, 3))
                 .build();
             assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.NOT_IN);
-        }
+        )
 
         @Test
         @DisplayName("isNull() IS NULL 条件")
@@ -230,7 +230,7 @@ class ConditionTest {
                 .isNull("deletedAt")
                 .build();
             assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.IS_NULL);
-        }
+        )
 
         @Test
         @DisplayName("isNotNull() IS NOT NULL 条件")
@@ -239,7 +239,7 @@ class ConditionTest {
                 .isNotNull("createdAt")
                 .build();
             assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.IS_NOT_NULL);
-        }
+        )
 
         @Test
         @DisplayName("between() BETWEEN 条件")
@@ -251,7 +251,7 @@ class ConditionTest {
             Comparable<?>[] values = (Comparable<?>[]) condition.getCriteria().get(0).value();
             assertThat(values[0]).isEqualTo(18);
             assertThat(values[1]).isEqualTo(65);
-        }
+        )
 
         @Test
         @DisplayName("notBetween() NOT BETWEEN 条件")
@@ -260,7 +260,7 @@ class ConditionTest {
                 .notBetween("age", 0, 17)
                 .build();
             assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.NOT_BETWEEN);
-        }
+        )
 
         @Test
         @DisplayName("and() 嵌套 AND 条件")
@@ -274,7 +274,7 @@ class ConditionTest {
                 .and(nested)
                 .build();
             assertThat(condition.getCriteria()).hasSize(2);
-        }
+        )
 
         @Test
         @DisplayName("and() 忽略空条件")
@@ -284,7 +284,7 @@ class ConditionTest {
                 .and(Condition.empty())
                 .build();
             assertThat(condition.getCriteria()).hasSize(1);
-        }
+        )
 
         @Test
         @DisplayName("or() 嵌套 OR 条件")
@@ -298,7 +298,7 @@ class ConditionTest {
                 .or(nested)
                 .build();
             assertThat(condition.getCriteria()).hasSize(2);
-        }
+        )
 
         @Test
         @DisplayName("or() 忽略空条件")
@@ -308,15 +308,15 @@ class ConditionTest {
                 .or(Condition.empty())
                 .build();
             assertThat(condition.getCriteria()).hasSize(1);
-        }
+        )
 
         @Test
         @DisplayName("空构建器返回空条件")
         void shouldReturnEmptyForEmptyBuilder() {
             Condition condition = Conditions.builder().build();
             assertThat(condition.isEmpty()).isTrue();
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("Conditions.builder(Class) 类型化构建器测试")
@@ -329,7 +329,7 @@ class ConditionTest {
                 .eq(TestEntity::getName, "test")
                 .build();
             assertThat(condition.getCriteria().get(0).field()).isEqualTo("name");
-        }
+        )
 
         @Test
         @DisplayName("ne() 使用 getter 方法")
@@ -338,7 +338,7 @@ class ConditionTest {
                 .ne(TestEntity::getAge, 0)
                 .build();
             assertThat(condition.getCriteria().get(0).field()).isEqualTo("age");
-        }
+        )
 
         @Test
         @DisplayName("gt() 使用 getter 方法")
@@ -348,7 +348,7 @@ class ConditionTest {
                 .build();
             assertThat(condition.getCriteria().get(0).field()).isEqualTo("age");
             assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.GT);
-        }
+        )
 
         @Test
         @DisplayName("ge() 使用 getter 方法")
@@ -357,7 +357,7 @@ class ConditionTest {
                 .ge(TestEntity::getAge, 18)
                 .build();
             assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.GE);
-        }
+        )
 
         @Test
         @DisplayName("lt() 使用 getter 方法")
@@ -366,7 +366,7 @@ class ConditionTest {
                 .lt(TestEntity::getAge, 65)
                 .build();
             assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.LT);
-        }
+        )
 
         @Test
         @DisplayName("le() 使用 getter 方法")
@@ -375,7 +375,7 @@ class ConditionTest {
                 .le(TestEntity::getAge, 65)
                 .build();
             assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.LE);
-        }
+        )
 
         @Test
         @DisplayName("like() 使用 getter 方法")
@@ -385,25 +385,25 @@ class ConditionTest {
                 .build();
             assertThat(condition.getCriteria().get(0).field()).isEqualTo("name");
             assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.LIKE);
-        }
+        )
 
         @Test
-        @DisplayName("likeLeft() 使用 getter 方法")
+        @DisplayName("likeStartsWith() 使用 getter 方法")
         void shouldCreateTypedLikeLeftCondition() {
             Condition condition = Conditions.builder(TestEntity.class)
-                .likeLeft(TestEntity::getName, "test")
+                .likeStartsWith(TestEntity::getName, "test")
                 .build();
-            assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.LIKE_LEFT);
-        }
+            assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.LIKE_STARTS_WITH);
+        )
 
         @Test
-        @DisplayName("likeRight() 使用 getter 方法")
+        @DisplayName("likeEndsWith() 使用 getter 方法")
         void shouldCreateTypedLikeRightCondition() {
             Condition condition = Conditions.builder(TestEntity.class)
-                .likeRight(TestEntity::getName, "test")
+                .likeEndsWith(TestEntity::getName, "test")
                 .build();
-            assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.LIKE_RIGHT);
-        }
+            assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.LIKE_ENDS_WITH);
+        )
 
         @Test
         @DisplayName("notLike() 使用 getter 方法")
@@ -412,7 +412,7 @@ class ConditionTest {
                 .notLike(TestEntity::getName, "test")
                 .build();
             assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.NOT_LIKE);
-        }
+        )
 
         @Test
         @DisplayName("in() 使用 getter 方法")
@@ -421,7 +421,7 @@ class ConditionTest {
                 .in(TestEntity::getAge, Arrays.asList(1, 2, 3))
                 .build();
             assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.IN);
-        }
+        )
 
         @Test
         @DisplayName("notIn() 使用 getter 方法")
@@ -430,7 +430,7 @@ class ConditionTest {
                 .notIn(TestEntity::getAge, Arrays.asList(1, 2, 3))
                 .build();
             assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.NOT_IN);
-        }
+        )
 
         @Test
         @DisplayName("isNull() 使用 getter 方法")
@@ -439,7 +439,7 @@ class ConditionTest {
                 .isNull(TestEntity::getEmail)
                 .build();
             assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.IS_NULL);
-        }
+        )
 
         @Test
         @DisplayName("isNotNull() 使用 getter 方法")
@@ -448,7 +448,7 @@ class ConditionTest {
                 .isNotNull(TestEntity::getEmail)
                 .build();
             assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.IS_NOT_NULL);
-        }
+        )
 
         @Test
         @DisplayName("between() 使用 getter 方法")
@@ -457,7 +457,7 @@ class ConditionTest {
                 .between(TestEntity::getAge, 18, 65)
                 .build();
             assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.BETWEEN);
-        }
+        )
 
         @Test
         @DisplayName("notBetween() 使用 getter 方法")
@@ -466,7 +466,7 @@ class ConditionTest {
                 .notBetween(TestEntity::getAge, 0, 17)
                 .build();
             assertThat(condition.getCriteria().get(0).operator()).isEqualTo(Operator.NOT_BETWEEN);
-        }
+        )
 
         @Test
         @DisplayName("and() 嵌套条件")
@@ -479,7 +479,7 @@ class ConditionTest {
                 .and(nested)
                 .build();
             assertThat(condition.getCriteria()).hasSize(2);
-        }
+        )
 
         @Test
         @DisplayName("or() 嵌套条件")
@@ -492,8 +492,8 @@ class ConditionTest {
                 .or(nested)
                 .build();
             assertThat(condition.getCriteria()).hasSize(2);
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("Conditions.getFieldName() 方法测试")
@@ -504,15 +504,15 @@ class ConditionTest {
         void shouldGetFieldNameFromGetMethod() {
             String fieldName = Conditions.getFieldName(TestEntity::getName);
             assertThat(fieldName).isEqualTo("name");
-        }
+        )
 
         @Test
         @DisplayName("从 is 方法获取字段名")
         void shouldGetFieldNameFromIsMethod() {
             String fieldName = Conditions.getFieldName(TestEntity::getActive);
             assertThat(fieldName).isEqualTo("active");
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("Condition 组合测试")
@@ -526,7 +526,7 @@ class ConditionTest {
             Condition combined = c1.and(c2);
 
             assertThat(combined.getOperator()).isEqualTo(LogicalOperator.AND);
-        }
+        )
 
         @Test
         @DisplayName("shouldCombineConditionsWithOr")
@@ -536,6 +536,6 @@ class ConditionTest {
             Condition combined = c1.or(c2);
 
             assertThat(combined.getOperator()).isEqualTo(LogicalOperator.OR);
-        }
-    }
-}
+        )
+    )
+)

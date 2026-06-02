@@ -649,7 +649,7 @@ class JdbcEntityProxyIntegrationTest {
             Condition condition = Conditions.eq("name", "delete-user");
 
             // When
-            long affected = userProxy.deleteAll(condition);
+            long affected = userProxy.deleteByCondition(condition);
 
             // Then
             assertThat(affected).isEqualTo(1);
@@ -1108,7 +1108,7 @@ class JdbcEntityProxyIntegrationTest {
     @Data
     @NoArgsConstructor
     @lombok.EqualsAndHashCode(callSuper = true)
-    static class VersionedTestUser extends VersionedEntity<Long> {
+    static class VersionedTestUser extends VersionedEntity {
         private String name;
         private String email;
     }
@@ -1575,15 +1575,15 @@ class JdbcEntityProxyIntegrationTest {
         private Long id;
         private String name;
         private String email;
-        private boolean deleted;
+        private Boolean deleted = false;
 
         @Override
-        public boolean isDeleted() {
+        public Boolean getDeleted() {
             return deleted;
         }
 
         @Override
-        public void setDeleted(boolean deleted) {
+        public void setDeleted(Boolean deleted) {
             this.deleted = deleted;
         }
     }
@@ -1598,20 +1598,15 @@ class JdbcEntityProxyIntegrationTest {
         private Long id;
         private String name;
         private String email;
-        private java.time.LocalDateTime deletedAt;
+        private java.time.Instant deletedAt;
 
         @Override
-        public boolean isDeleted() {
-            return deletedAt != null;
-        }
-
-        @Override
-        public java.time.LocalDateTime getDeletedAt() {
+        public java.time.Instant getDeletedAt() {
             return deletedAt;
         }
 
         @Override
-        public void setDeletedAt(java.time.LocalDateTime deletedAt) {
+        public void setDeletedAt(java.time.Instant deletedAt) {
             this.deletedAt = deletedAt;
         }
     }

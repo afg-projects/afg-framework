@@ -9,7 +9,7 @@ import io.github.afgprojects.framework.security.core.storage.AfgRefreshTokenStor
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Optional;
 
 import static io.github.afgprojects.framework.data.core.condition.Conditions.*;
@@ -49,9 +49,9 @@ public class JdbcRefreshTokenStorage implements AfgRefreshTokenStorage {
             @Nullable String tenantId,
             @Nullable String clientId,
             @Nullable String deviceId,
-            @NonNull LocalDateTime expiresAt
+            @NonNull Instant expiresAt
     ) {
-        LocalDateTime createdAt = LocalDateTime.now();
+        Instant createdAt = Instant.now();
 
         AuthRefreshToken entity = new AuthRefreshToken();
         entity.setTokenId(tokenId);
@@ -108,7 +108,7 @@ public class JdbcRefreshTokenStorage implements AfgRefreshTokenStorage {
 
     @Override
     public int deleteExpired() {
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         var entities = dataManager.findList(AuthRefreshToken.class,
                 builder(AuthRefreshToken.class)
                         .lt(AuthRefreshToken::getExpiresAt, now)

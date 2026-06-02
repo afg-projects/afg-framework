@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.data.core.entity;
 
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -17,21 +18,25 @@ class SoftDeletableTest {
     class InterfaceMethodTests {
 
         @Test
-        @DisplayName("isDeleted 方法应该返回删除状态")
-        void isDeletedShouldReturnDeletedStatus() {
+        @DisplayName("isDeleted 方法应该根据 getDeleted 判断")
+        void isDeletedShouldDetermineByGetDeleted() {
             // Given
             SoftDeletable entity = new TestSoftDeletable();
 
-            // When & Then
+            // When & Then - getDeleted 返回 null 或 false 时未删除
+            assertThat(entity.getDeleted()).isNull();
             assertThat(entity.isDeleted()).isFalse();
 
+            // When - 设置 deleted
             entity.setDeleted(true);
+
+            // Then
             assertThat(entity.isDeleted()).isTrue();
-        }
+        )
 
         @Test
-        @DisplayName("setDeleted 方法应该设置删除状态")
-        void setDeletedShouldSetDeletedStatus() {
+        @DisplayName("getDeleted 方法应该返回删除标记")
+        void getDeletedShouldReturnDeletedFlag() {
             // Given
             SoftDeletable entity = new TestSoftDeletable();
 
@@ -39,238 +44,254 @@ class SoftDeletableTest {
             entity.setDeleted(true);
 
             // Then
+            assertThat(entity.getDeleted()).isTrue();
+        )
+
+        @Test
+        @DisplayName("setDeleted 方法应该设置删除标记")
+        void setDeletedShouldSetDeletedFlag() {
+            // Given
+            SoftDeletable entity = new TestSoftDeletable();
+
+            // When
+            entity.setDeleted(true);
+
+            // Then
+            assertThat(entity.getDeleted()).isTrue();
             assertThat(entity.isDeleted()).isTrue();
+        )
+
+        @Test
+        @DisplayName("setDeleted(false) 应该表示未删除")
+        void setDeletedFalseShouldIndicateNotDeleted() {
+            // Given
+            SoftDeletable entity = new TestSoftDeletable();
+            entity.setDeleted(true);
 
             // When
             entity.setDeleted(false);
 
             // Then
+            assertThat(entity.getDeleted()).isFalse();
             assertThat(entity.isDeleted()).isFalse();
-        }
-    }
+        )
+
+        @Test
+        @DisplayName("setDeleted(null) 应该表示未删除")
+        void setDeletedNullShouldIndicateNotDeleted() {
+            // Given
+            SoftDeletable entity = new TestSoftDeletable();
+            entity.setDeleted(true);
+
+            // When
+            entity.setDeleted(null);
+
+            // Then
+            assertThat(entity.getDeleted()).isNull();
+            assertThat(entity.isDeleted()).isFalse(); // null 被视为未删除
+        )
+    )
 
     @Nested
-    @DisplayName("软删除状态转换测试")
-    class StateTransitionTests {
+    @DisplayName("isDeleted 默认方法行为测试")
+    class IsDeletedDefaultMethodTests {
 
         @Test
-        @DisplayName("未删除 -> 已删除转换应该正确")
-        void notDeletedToDeletedTransitionShouldWork() {
-            // Given
-            SoftDeletable entity = new TestSoftDeletable();
-            assertThat(entity.isDeleted()).isFalse();
-
-            // When
-            entity.setDeleted(true);
-
-            // Then
-            assertThat(entity.isDeleted()).isTrue();
-        }
-
-        @Test
-        @DisplayName("已删除 -> 未删除转换应该正确")
-        void deletedToNotDeletedTransitionShouldWork() {
+        @DisplayName("getDeleted 为 true 时 isDeleted 应该返回 true")
+        void isDeletedShouldReturnTrueWhenGetDeletedIsTrue() {
             // Given
             SoftDeletable entity = new TestSoftDeletable();
             entity.setDeleted(true);
-            assertThat(entity.isDeleted()).isTrue();
 
-            // When
+            // When & Then
+            assertThat(entity.isDeleted()).isTrue();
+        )
+
+        @Test
+        @DisplayName("getDeleted 为 false 时 isDeleted 应该返回 false")
+        void isDeletedShouldReturnFalseWhenGetDeletedIsFalse() {
+            // Given
+            SoftDeletable entity = new TestSoftDeletable();
             entity.setDeleted(false);
 
-            // Then
+            // When & Then
             assertThat(entity.isDeleted()).isFalse();
-        }
+        )
 
         @Test
-        @DisplayName("多次状态转换应该正确")
-        void multipleStateTransitionsShouldWork() {
+        @DisplayName("getDeleted 为 null 时 isDeleted 应该返回 false")
+        void isDeletedShouldReturnFalseWhenGetDeletedIsNull() {
             // Given
             SoftDeletable entity = new TestSoftDeletable();
 
             // When & Then
+            assertThat(entity.getDeleted()).isNull();
+            assertThat(entity.isDeleted()).isFalse(); // null 安全处理
+        )
+    )
+
+    @Nested
+    @DisplayName("删除/恢复循环测试")
+    class DeleteRestoreCycleTests {
+
+        @Test
+        @DisplayName("删除后恢复应该正确工作")
+        void deleteAndRestoreShouldWork() {
+            // Given
+            SoftDeletable entity = new TestSoftDeletable();
+
+            // When - 删除
             entity.setDeleted(true);
             assertThat(entity.isDeleted()).isTrue();
 
+            // 恢复
             entity.setDeleted(false);
             assertThat(entity.isDeleted()).isFalse();
 
+            // 再次删除
+            entity.setDeleted(true);
+
+            // Then
+            assertThat(entity.isDeleted()).isTrue();
+        )
+
+        @Test
+        @DisplayName("重复设置删除状态应该无副作用")
+        void repeatedDeleteShouldHaveNoSideEffect() {
+            // Given
+            SoftDeletable entity = new TestSoftDeletable();
+
+            // When - 重复设置删除
+            entity.setDeleted(true);
+            entity.setDeleted(true);
+            entity.setDeleted(true);
+
+            // Then
+            assertThat(entity.isDeleted()).isTrue();
+        )
+
+        @Test
+        @DisplayName("重复设置恢复状态应该无副作用")
+        void repeatedRestoreShouldHaveNoSideEffect() {
+            // Given
+            SoftDeletable entity = new TestSoftDeletable();
+            entity.setDeleted(true);
+
+            // When - 重复设置恢复
+            entity.setDeleted(false);
+            entity.setDeleted(false);
+
+            // Then
+            assertThat(entity.isDeleted()).isFalse();
+        )
+    )
+
+    @Nested
+    @DisplayName("与 SoftDeleteEntity 集成测试")
+    class IntegrationWithSoftDeleteEntityTests {
+
+        @Test
+        @DisplayName("SoftDeleteEntity 应该实现 SoftDeletable 接口")
+        void softDeleteEntityShouldImplementSoftDeletable() {
+            // Given
+            SoftDeleteEntity entity = new SoftDeleteEntity();
+
+            // When & Then
+            assertThat(entity).isInstanceOf(SoftDeletable.class);
+        )
+
+        @Test
+        @DisplayName("SoftDeleteEntity 的 isDeleted 应该正确工作")
+        void softDeleteEntityIsDeletedShouldWork() {
+            // Given
+            SoftDeleteEntity entity = new SoftDeleteEntity();
+
+            // When & Then
+            assertThat(entity.isDeleted()).isFalse();
             entity.setDeleted(true);
             assertThat(entity.isDeleted()).isTrue();
+        )
 
-            entity.setDeleted(false);
-            assertThat(entity.isDeleted()).isFalse();
-        }
-    }
+        @Test
+        @DisplayName("通过 SoftDeletable 接口操作 SoftDeleteEntity 应该有效")
+        void operateSoftDeleteEntityViaInterfaceShouldWork() {
+            // Given
+            SoftDeletable entity = new SoftDeleteEntity();
+
+            // When
+            entity.setDeleted(true);
+
+            // Then
+            assertThat(entity.isDeleted()).isTrue();
+        )
+    )
 
     @Nested
     @DisplayName("业务场景测试")
     class BusinessScenarioTests {
 
         @Test
-        @DisplayName("软删除标记应该用于过滤查询")
-        void softDeleteMarkShouldBeUsedForQueryFilter() {
-            // Given - 创建一组实体
+        @DisplayName("批量软删除操作")
+        void batchSoftDeleteOperation() {
+            // Given
             SoftDeletable[] entities = new SoftDeletable[10];
             for (int i = 0; i < 10; i++) {
                 entities[i] = new TestSoftDeletable();
-                // 部分标记为已删除
-                if (i % 3 == 0) {
-                    entities[i].setDeleted(true);
-                }
-            }
+            )
 
-            // When - 查询未删除的实体
-            long notDeletedCount = java.util.Arrays.stream(entities)
+            // When - 软删除前 5 个
+            for (int i = 0; i < 5; i++) {
+                entities[i].setDeleted(true);
+            )
+
+            // Then
+            long deletedCount = java.util.Arrays.stream(entities)
+                    .filter(SoftDeletable::isDeleted)
+                    .count();
+            long activeCount = java.util.Arrays.stream(entities)
+                    .filter(e -> !e.isDeleted())
+                    .count();
+
+            assertThat(deletedCount).isEqualTo(5);
+            assertThat(activeCount).isEqualTo(5);
+        )
+
+        @Test
+        @DisplayName("条件查询过滤已删除数据")
+        void conditionalQueryShouldFilterDeletedData() {
+            // Given
+            SoftDeletable[] entities = new SoftDeletable[5];
+            for (int i = 0; i < 5; i++) {
+                entities[i] = new TestSoftDeletable();
+                if (i % 2 == 0) {
+                    entities[i].setDeleted(true);
+                )
+            )
+
+            // When - 只查询未删除的数据
+            long activeCount = java.util.Arrays.stream(entities)
                     .filter(e -> !e.isDeleted())
                     .count();
 
             // Then
-            assertThat(notDeletedCount).isEqualTo(6); // 10 - 4 = 6 (i % 3 == 0 for i=0,3,6,9)
-        }
-
-        @Test
-        @DisplayName("软删除标记应该用于过滤已删除实体")
-        void softDeleteMarkShouldBeUsedForDeletedFilter() {
-            // Given
-            SoftDeletable[] entities = new SoftDeletable[10];
-            for (int i = 0; i < 10; i++) {
-                entities[i] = new TestSoftDeletable();
-                if (i % 2 == 0) {
-                    entities[i].setDeleted(true);
-                }
-            }
-
-            // When - 查询已删除的实体
-            long deletedCount = java.util.Arrays.stream(entities)
-                    .filter(SoftDeletable::isDeleted)
-                    .count();
-
-            // Then
-            assertThat(deletedCount).isEqualTo(5);
-        }
-
-        @Test
-        @DisplayName("批量恢复应该正确")
-        void batchRestoreShouldWork() {
-            // Given - 所有实体都标记为已删除
-            SoftDeletable[] entities = new SoftDeletable[5];
-            for (int i = 0; i < 5; i++) {
-                entities[i] = new TestSoftDeletable();
-                entities[i].setDeleted(true);
-            }
-
-            // When - 批量恢复
-            for (SoftDeletable entity : entities) {
-                entity.setDeleted(false);
-            }
-
-            // Then
-            for (SoftDeletable entity : entities) {
-                assertThat(entity.isDeleted()).isFalse();
-            }
-        }
-
-        @Test
-        @DisplayName("批量删除应该正确")
-        void batchDeleteShouldWork() {
-            // Given - 所有实体都未删除
-            SoftDeletable[] entities = new SoftDeletable[5];
-            for (int i = 0; i < 5; i++) {
-                entities[i] = new TestSoftDeletable();
-                entities[i].setDeleted(false);
-            }
-
-            // When - 批量删除
-            for (SoftDeletable entity : entities) {
-                entity.setDeleted(true);
-            }
-
-            // Then
-            for (SoftDeletable entity : entities) {
-                assertThat(entity.isDeleted()).isTrue();
-            }
-        }
-    }
-
-    @Nested
-    @DisplayName("与其他接口组合测试")
-    class InterfaceCompositionTests {
-
-        @Test
-        @DisplayName("实体可以同时实现多个接口")
-        void entityCanImplementMultipleInterfaces() {
-            // Given
-            MultiInterfaceEntity entity = new MultiInterfaceEntity();
-
-            // When & Then - SoftDeletable 功能
-            assertThat(entity.isDeleted()).isFalse();
-            entity.setDeleted(true);
-            assertThat(entity.isDeleted()).isTrue();
-
-            // Versioned 功能
-            assertThat(entity.getVersion()).isEqualTo(0L);
-            entity.incrementVersion();
-            assertThat(entity.getVersion()).isEqualTo(1L);
-        }
-
-        @Test
-        @DisplayName("软删除状态应该不影响版本号")
-        void softDeleteShouldNotAffectVersion() {
-            // Given
-            MultiInterfaceEntity entity = new MultiInterfaceEntity();
-            entity.setVersion(5L);
-
-            // When - 软删除
-            entity.setDeleted(true);
-
-            // Then - 版本号不变
-            assertThat(entity.getVersion()).isEqualTo(5L);
-        }
-    }
+            assertThat(activeCount).isEqualTo(2); // 索引 1, 3 未删除
+        )
+    )
 
     /**
      * 测试 SoftDeletable 实现
      */
     static class TestSoftDeletable implements SoftDeletable {
-        private boolean deleted = false;
+        private @Nullable Boolean deleted;
 
         @Override
-        public boolean isDeleted() {
+        public @Nullable Boolean getDeleted() {
             return deleted;
-        }
+        )
 
         @Override
-        public void setDeleted(boolean deleted) {
+        public void setDeleted(@Nullable Boolean deleted) {
             this.deleted = deleted;
-        }
-    }
-
-    /**
-     * 多接口实现测试实体
-     */
-    static class MultiInterfaceEntity implements SoftDeletable, Versioned {
-        private boolean deleted = false;
-        private long version = 0L;
-
-        @Override
-        public boolean isDeleted() {
-            return deleted;
-        }
-
-        @Override
-        public void setDeleted(boolean deleted) {
-            this.deleted = deleted;
-        }
-
-        @Override
-        public long getVersion() {
-            return version;
-        }
-
-        @Override
-        public void setVersion(long version) {
-            this.version = version;
-        }
-    }
-}
+        )
+    )
+)

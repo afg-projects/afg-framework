@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.jspecify.annotations.Nullable;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Refresh Token 实体。
@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = true)
 @AfEntity
 @Table(name = "auth_refresh_token")
-public class AuthRefreshToken extends BaseEntity<Long> {
+public class AuthRefreshToken extends BaseEntity {
 
     /**
      * Token 唯一标识
@@ -55,7 +55,7 @@ public class AuthRefreshToken extends BaseEntity<Long> {
     /**
      * 过期时间
      */
-    private LocalDateTime expiresAt;
+    private Instant expiresAt;
 
     /**
      * 检查 Refresh Token 是否已过期。
@@ -63,7 +63,7 @@ public class AuthRefreshToken extends BaseEntity<Long> {
      * @return 如果已过期返回 true，否则返回 false
      */
     public boolean isExpired() {
-        return LocalDateTime.now().isAfter(expiresAt);
+        return Instant.now().isAfter(expiresAt);
     }
 
     /**

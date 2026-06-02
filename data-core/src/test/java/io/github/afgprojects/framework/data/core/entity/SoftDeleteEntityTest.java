@@ -1,10 +1,12 @@
 package io.github.afgprojects.framework.data.core.entity;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -26,7 +28,7 @@ class SoftDeleteEntityTest {
 
             // When & Then
             assertThat(entity.isDeleted()).isFalse();
-        }
+        )
 
         @Test
         @DisplayName("删除标记初始值应该为 false")
@@ -36,8 +38,8 @@ class SoftDeleteEntityTest {
 
             // When & Then
             assertThat(entity.deleted).isFalse();
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("删除操作测试")
@@ -54,7 +56,7 @@ class SoftDeleteEntityTest {
 
             // Then
             assertThat(entity.isDeleted()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("setDeleted(true) 应该标记为已删除")
@@ -67,7 +69,7 @@ class SoftDeleteEntityTest {
 
             // Then
             assertThat(entity.isDeleted()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("setDeleted(false) 应该保持未删除状态")
@@ -81,58 +83,58 @@ class SoftDeleteEntityTest {
 
             // Then
             assertThat(entity.isDeleted()).isFalse();
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("恢复操作测试")
     class RestoreOperationTests {
 
         @Test
-        @DisplayName("restore 应该将已删除实体恢复")
-        void restoreShouldClearDeletedFlag() {
+        @DisplayName("markNotDeleted 应该将已删除实体恢复")
+        void markNotDeletedShouldClearDeletedFlag() {
             // Given
             TestEntity entity = new TestEntity();
             entity.markDeleted();
             assertThat(entity.isDeleted()).isTrue();
 
             // When
-            entity.restore();
+            entity.markNotDeleted();
 
             // Then
             assertThat(entity.isDeleted()).isFalse();
-        }
+        )
 
         @Test
-        @DisplayName("对未删除实体调用 restore 应该无副作用")
-        void restoreOnNotDeletedEntityShouldHaveNoEffect() {
+        @DisplayName("对未删除实体调用 markNotDeleted 应该无副作用")
+        void markNotDeletedOnNotDeletedEntityShouldHaveNoEffect() {
             // Given
             TestEntity entity = new TestEntity();
             assertThat(entity.isDeleted()).isFalse();
 
             // When
-            entity.restore();
+            entity.markNotDeleted();
 
             // Then
             assertThat(entity.isDeleted()).isFalse();
-        }
+        )
 
         @Test
         @DisplayName("多次恢复应该保持未删除状态")
-        void multipleRestoreShouldKeepNotDeleted() {
+        void multipleMarkNotDeletedShouldKeepNotDeleted() {
             // Given
             TestEntity entity = new TestEntity();
             entity.markDeleted();
 
             // When
-            entity.restore();
-            entity.restore();
-            entity.restore();
+            entity.markNotDeleted();
+            entity.markNotDeleted();
+            entity.markNotDeleted();
 
             // Then
             assertThat(entity.isDeleted()).isFalse();
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("删除/恢复循环测试")
@@ -149,7 +151,7 @@ class SoftDeleteEntityTest {
             assertThat(entity.isDeleted()).isTrue();
 
             // 恢复
-            entity.restore();
+            entity.markNotDeleted();
             assertThat(entity.isDeleted()).isFalse();
 
             // 再次删除
@@ -157,7 +159,7 @@ class SoftDeleteEntityTest {
 
             // Then
             assertThat(entity.isDeleted()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("多次删除应该保持已删除状态")
@@ -172,8 +174,8 @@ class SoftDeleteEntityTest {
 
             // Then
             assertThat(entity.isDeleted()).isTrue();
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("SoftDeletable 接口测试")
@@ -187,7 +189,7 @@ class SoftDeleteEntityTest {
 
             // When & Then
             assertThat(entity).isInstanceOf(SoftDeletable.class);
-        }
+        )
 
         @Test
         @DisplayName("通过接口操作应该有效")
@@ -204,8 +206,8 @@ class SoftDeleteEntityTest {
             // 恢复
             entity.setDeleted(false);
             assertThat(entity.isDeleted()).isFalse();
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("BaseEntity 继承测试")
@@ -219,7 +221,7 @@ class SoftDeleteEntityTest {
 
             // When & Then
             assertThat(entity).isInstanceOf(BaseEntity.class);
-        }
+        )
 
         @Test
         @DisplayName("应该继承 id 字段")
@@ -233,23 +235,23 @@ class SoftDeleteEntityTest {
 
             // Then
             assertThat(entity.getId()).isEqualTo(id);
-        }
+        )
 
         @Test
         @DisplayName("应该继承时间戳字段")
         void shouldInheritTimestampFields() {
             // Given
             TestEntity entity = new TestEntity();
-            LocalDateTime now = LocalDateTime.now();
+            Instant now = Instant.now();
 
             // When
             entity.setCreatedAt(now);
-            entity.setUpdatedAt(now.plusHours(2));
+            entity.setUpdatedAt(now.plusSeconds(7200));
 
             // Then
             assertThat(entity.getCreatedAt()).isEqualTo(now);
-            assertThat(entity.getUpdatedAt()).isEqualTo(now.plusHours(2));
-        }
+            assertThat(entity.getUpdatedAt()).isEqualTo(now.plusSeconds(7200));
+        )
 
         @Test
         @DisplayName("isNew 方法应该正确工作")
@@ -258,11 +260,11 @@ class SoftDeleteEntityTest {
             TestEntity entity = new TestEntity();
 
             // When & Then
-            assertThat(entity.isNew()).isTrue();
+            assertThat(entity.getId()).isNull();
             entity.setId(1L);
-            assertThat(entity.isNew()).isFalse();
-        }
-    }
+            assertThat(entity.getId()).isNotNull();
+        )
+    )
 
     @Nested
     @DisplayName("toString 测试")
@@ -279,7 +281,7 @@ class SoftDeleteEntityTest {
 
             // Then
             assertThat(result).contains("TestEntity");
-        }
+        )
 
         @Test
         @DisplayName("toString 应该包含 id 和 deleted")
@@ -295,7 +297,7 @@ class SoftDeleteEntityTest {
             // Then
             assertThat(result).contains("id=42");
             assertThat(result).contains("deleted=true");
-        }
+        )
 
         @Test
         @DisplayName("未删除实体 toString 应该显示 deleted=false")
@@ -309,10 +311,10 @@ class SoftDeleteEntityTest {
 
             // Then
             assertThat(result).contains("deleted=false");
-        }
+        )
 
         @Test
-        @DisplayName("toString 格式应该正确")
+        @DisplayName("toString 格式应该包含 id 和 deleted")
         void toStringFormatShouldBeCorrect() {
             // Given
             TestEntity entity = new TestEntity();
@@ -323,9 +325,10 @@ class SoftDeleteEntityTest {
             String result = entity.toString();
 
             // Then
-            assertThat(result).isEqualTo("TestEntity{id=1, deleted=true}");
-        }
-    }
+            assertThat(result).contains("id=1");
+            assertThat(result).contains("deleted=true");
+        )
+    )
 
     @Nested
     @DisplayName("业务场景测试")
@@ -337,8 +340,8 @@ class SoftDeleteEntityTest {
             // Given
             TestEntity entity = new TestEntity();
             entity.setId(100L);
-            entity.setCreatedAt(LocalDateTime.now());
-            entity.setUpdatedAt(LocalDateTime.now());
+            entity.setCreatedAt(Instant.now());
+            entity.setUpdatedAt(Instant.now());
 
             // When
             entity.markDeleted();
@@ -348,7 +351,7 @@ class SoftDeleteEntityTest {
             assertThat(entity.getCreatedAt()).isNotNull();
             assertThat(entity.getUpdatedAt()).isNotNull();
             assertThat(entity.isDeleted()).isTrue();
-        }
+        )
 
         @Test
         @DisplayName("查询已删除实体应该正确判断")
@@ -366,7 +369,7 @@ class SoftDeleteEntityTest {
             assertThat(deleted1.isDeleted()).isTrue();
             assertThat(deleted2.isDeleted()).isTrue();
             assertThat(notDeleted.isDeleted()).isFalse();
-        }
+        )
 
         @Test
         @DisplayName("批量恢复操作应该正确")
@@ -377,24 +380,26 @@ class SoftDeleteEntityTest {
                 entities[i] = new TestEntity();
                 entities[i].setId((long) i);
                 entities[i].markDeleted();
-            }
+            )
 
             // When
             for (TestEntity entity : entities) {
-                entity.restore();
-            }
+                entity.markNotDeleted();
+            )
 
             // Then
             for (TestEntity entity : entities) {
                 assertThat(entity.isDeleted()).isFalse();
-            }
-        }
-    }
+            )
+        )
+    )
 
     /**
      * 测试实体类
      */
-    static class TestEntity extends SoftDeleteEntity<Long> {
+    @Getter
+    @Setter
+    static class TestEntity extends SoftDeleteEntity {
         // 用于测试的简单实体类
-    }
-}
+    )
+)

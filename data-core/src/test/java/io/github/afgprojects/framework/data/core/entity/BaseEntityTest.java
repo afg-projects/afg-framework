@@ -1,10 +1,12 @@
 package io.github.afgprojects.framework.data.core.entity;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -25,8 +27,8 @@ class BaseEntityTest {
             TestEntity entity = new TestEntity();
 
             // When & Then
-            assertThat(entity.isNew()).isTrue();
-        }
+            assertThat(entity.getId()).isNull();
+        )
 
         @Test
         @DisplayName("有 id 的实体不应该是新实体")
@@ -36,8 +38,8 @@ class BaseEntityTest {
             entity.setId(1L);
 
             // When & Then
-            assertThat(entity.isNew()).isFalse();
-        }
+            assertThat(entity.getId()).isNotNull();
+        )
 
         @Test
         @DisplayName("设置 id 后再设为 null 应该重新变成新实体")
@@ -48,9 +50,9 @@ class BaseEntityTest {
             entity.setId(null);
 
             // When & Then
-            assertThat(entity.isNew()).isTrue();
-        }
-    }
+            assertThat(entity.getId()).isNull();
+        )
+    )
 
     @Nested
     @DisplayName("ID 操作测试")
@@ -68,35 +70,7 @@ class BaseEntityTest {
 
             // Then
             assertThat(entity.getId()).isEqualTo(id);
-        }
-
-        @Test
-        @DisplayName("应该支持 String 类型 ID")
-        void shouldSupportStringId() {
-            // Given
-            StringIdEntity entity = new StringIdEntity();
-            String id = "uuid-12345";
-
-            // When
-            entity.setId(id);
-
-            // Then
-            assertThat(entity.getId()).isEqualTo(id);
-        }
-
-        @Test
-        @DisplayName("应该支持 Integer 类型 ID")
-        void shouldSupportIntegerId() {
-            // Given
-            IntEntity entity = new IntEntity();
-            Integer id = 999;
-
-            // When
-            entity.setId(id);
-
-            // Then
-            assertThat(entity.getId()).isEqualTo(id);
-        }
+        )
 
         @Test
         @DisplayName("应该支持 null ID")
@@ -110,8 +84,8 @@ class BaseEntityTest {
 
             // Then
             assertThat(entity.getId()).isNull();
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("时间戳操作测试")
@@ -122,36 +96,36 @@ class BaseEntityTest {
         void shouldSetAndGetCreatedAt() {
             // Given
             TestEntity entity = new TestEntity();
-            LocalDateTime createdAt = LocalDateTime.of(2024, 6, 15, 10, 30, 0);
+            Instant createdAt = Instant.parse("2024-06-15T10:30:00Z");
 
             // When
             entity.setCreatedAt(createdAt);
 
             // Then
             assertThat(entity.getCreatedAt()).isEqualTo(createdAt);
-        }
+        )
 
         @Test
         @DisplayName("updatedAt 应该正确设置和获取")
         void shouldSetAndGetUpdatedAt() {
             // Given
             TestEntity entity = new TestEntity();
-            LocalDateTime updatedAt = LocalDateTime.of(2024, 6, 15, 11, 30, 0);
+            Instant updatedAt = Instant.parse("2024-06-15T11:30:00Z");
 
             // When
             entity.setUpdatedAt(updatedAt);
 
             // Then
             assertThat(entity.getUpdatedAt()).isEqualTo(updatedAt);
-        }
+        )
 
         @Test
         @DisplayName("时间戳应该支持 null")
         void shouldSupportNullTimestamps() {
             // Given
             TestEntity entity = new TestEntity();
-            entity.setCreatedAt(LocalDateTime.now());
-            entity.setUpdatedAt(LocalDateTime.now());
+            entity.setCreatedAt(Instant.now());
+            entity.setUpdatedAt(Instant.now());
 
             // When
             entity.setCreatedAt(null);
@@ -160,15 +134,15 @@ class BaseEntityTest {
             // Then
             assertThat(entity.getCreatedAt()).isNull();
             assertThat(entity.getUpdatedAt()).isNull();
-        }
+        )
 
         @Test
         @DisplayName("createdAt 和 updatedAt 可以不同")
         void createdAtAndUpdatedAtCanBeDifferent() {
             // Given
             TestEntity entity = new TestEntity();
-            LocalDateTime createdAt = LocalDateTime.of(2024, 1, 1, 0, 0, 0);
-            LocalDateTime updatedAt = LocalDateTime.of(2024, 12, 31, 23, 59, 59);
+            Instant createdAt = Instant.parse("2024-01-01T00:00:00Z");
+            Instant updatedAt = Instant.parse("2024-12-31T23:59:59Z");
 
             // When
             entity.setCreatedAt(createdAt);
@@ -176,8 +150,8 @@ class BaseEntityTest {
 
             // Then
             assertThat(entity.getCreatedAt()).isBefore(entity.getUpdatedAt());
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("toString 测试")
@@ -194,7 +168,7 @@ class BaseEntityTest {
 
             // Then
             assertThat(result).contains("TestEntity");
-        }
+        )
 
         @Test
         @DisplayName("toString 应该包含 id 字段")
@@ -208,7 +182,7 @@ class BaseEntityTest {
 
             // Then
             assertThat(result).contains("id=42");
-        }
+        )
 
         @Test
         @DisplayName("id 为 null 时 toString 应该显示 null")
@@ -221,7 +195,7 @@ class BaseEntityTest {
 
             // Then
             assertThat(result).contains("id=null");
-        }
+        )
 
         @Test
         @DisplayName("toString 格式应该正确")
@@ -234,9 +208,9 @@ class BaseEntityTest {
             String result = entity.toString();
 
             // Then
-            assertThat(result).isEqualTo("TestEntity{id=1}");
-        }
-    }
+            assertThat(result).isEqualTo("TestEntity(1)");
+        )
+    )
 
     @Nested
     @DisplayName("继承测试")
@@ -248,8 +222,8 @@ class BaseEntityTest {
             // Given
             TestEntity entity = new TestEntity();
             Long id = 100L;
-            LocalDateTime createdAt = LocalDateTime.now();
-            LocalDateTime updatedAt = LocalDateTime.now().plusHours(1);
+            Instant createdAt = Instant.now();
+            Instant updatedAt = Instant.now().plusSeconds(3600);
 
             // When
             entity.setId(id);
@@ -260,8 +234,8 @@ class BaseEntityTest {
             assertThat(entity.getId()).isEqualTo(id);
             assertThat(entity.getCreatedAt()).isEqualTo(createdAt);
             assertThat(entity.getUpdatedAt()).isEqualTo(updatedAt);
-        }
-    }
+        )
+    )
 
     @Nested
     @DisplayName("边界情况测试")
@@ -278,8 +252,8 @@ class BaseEntityTest {
 
             // Then
             assertThat(entity.getId()).isEqualTo(0L);
-            assertThat(entity.isNew()).isFalse(); // 0 is not null
-        }
+            assertThat(entity.getId()).isNotNull(); // 0 is not null
+        )
 
         @Test
         @DisplayName("ID 应该支持负数")
@@ -292,7 +266,7 @@ class BaseEntityTest {
 
             // Then
             assertThat(entity.getId()).isEqualTo(-1L);
-        }
+        )
 
         @Test
         @DisplayName("ID 应该支持 Long.MAX_VALUE")
@@ -305,14 +279,14 @@ class BaseEntityTest {
 
             // Then
             assertThat(entity.getId()).isEqualTo(Long.MAX_VALUE);
-        }
+        )
 
         @Test
         @DisplayName("时间戳应该支持最小值")
         void shouldSupportMinTimestamp() {
             // Given
             TestEntity entity = new TestEntity();
-            LocalDateTime minTime = LocalDateTime.MIN;
+            Instant minTime = Instant.MIN;
 
             // When
             entity.setCreatedAt(minTime);
@@ -321,14 +295,14 @@ class BaseEntityTest {
             // Then
             assertThat(entity.getCreatedAt()).isEqualTo(minTime);
             assertThat(entity.getUpdatedAt()).isEqualTo(minTime);
-        }
+        )
 
         @Test
         @DisplayName("时间戳应该支持最大值")
         void shouldSupportMaxTimestamp() {
             // Given
             TestEntity entity = new TestEntity();
-            LocalDateTime maxTime = LocalDateTime.MAX;
+            Instant maxTime = Instant.MAX;
 
             // When
             entity.setCreatedAt(maxTime);
@@ -337,41 +311,15 @@ class BaseEntityTest {
             // Then
             assertThat(entity.getCreatedAt()).isEqualTo(maxTime);
             assertThat(entity.getUpdatedAt()).isEqualTo(maxTime);
-        }
-
-        @Test
-        @DisplayName("空字符串 ID 应该有效")
-        void shouldSupportEmptyStringId() {
-            // Given
-            StringIdEntity entity = new StringIdEntity();
-
-            // When
-            entity.setId("");
-
-            // Then
-            assertThat(entity.getId()).isEmpty();
-            assertThat(entity.isNew()).isFalse(); // empty string is not null
-        }
-    }
+        )
+    )
 
     /**
      * 测试实体类
      */
-    static class TestEntity extends BaseEntity<Long> {
+    @Getter
+    @Setter
+    static class TestEntity extends BaseEntity {
         // 用于测试的简单实体类
-    }
-
-    /**
-     * String ID 测试实体类
-     */
-    static class StringIdEntity extends BaseEntity<String> {
-        // 用于测试 String 类型 ID
-    }
-
-    /**
-     * Integer ID 测试实体类
-     */
-    static class IntEntity extends BaseEntity<Integer> {
-        // 用于测试 Integer 类型 ID
-    }
-}
+    )
+)
