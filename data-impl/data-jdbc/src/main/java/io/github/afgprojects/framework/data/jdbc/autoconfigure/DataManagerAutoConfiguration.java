@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.mapper.TypeHandlerRegistry;
@@ -39,15 +40,19 @@ public class DataManagerAutoConfiguration {
      * <p>同时注册为 DataManager 和 JdbcDataManager 类型，
      * 以便其他配置类可以通过具体类型引用。
      *
-     * @param dataSource       数据源
+     * @param dataSource          数据源
      * @param typeHandlerRegistry 类型处理器注册表
+     * @param transactionManager  Spring 事务管理器（自动注入）
      * @return JdbcDataManager 实例
      */
     @Bean
     @ConditionalOnMissingBean({DataManager.class, JdbcDataManager.class})
-    public JdbcDataManager dataManager(DataSource dataSource, TypeHandlerRegistry typeHandlerRegistry) {
+    public JdbcDataManager dataManager(DataSource dataSource,
+                                        TypeHandlerRegistry typeHandlerRegistry,
+                                        PlatformTransactionManager transactionManager) {
         JdbcDataManager dm = new JdbcDataManager(dataSource);
         dm.setTypeHandlerRegistry(typeHandlerRegistry);
+        dm.setTransactionManager(transactionManager);
         return dm;
     }
 }

@@ -1,5 +1,7 @@
 package io.github.afgprojects.framework.data.core.metadata;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * 数据库字段元数据
  * <p>
@@ -14,8 +16,8 @@ package io.github.afgprojects.framework.data.core.metadata;
  * </ul>
  *
  * <p>
- * 此接口主要用于类型系统，标识该元数据适用于数据库场景。
- * 与缓存、搜索等其他场景的元数据接口形成对照。
+ * 此接口新增数据库特有方法，提供 JDBC 类型、可空性、默认值、
+ * 列长度、精度、唯一性等数据库列级别的元信息。
  *
  * <pre>
  * 示例：
@@ -27,6 +29,9 @@ package io.github.afgprojects.framework.data.core.metadata;
  * String columnName = fieldMetadata.getColumnName();      // "user_name"
  * Class<?> type = fieldMetadata.getFieldType();           // String.class
  * boolean isId = fieldMetadata.isId();                    // false
+ * int jdbcType = fieldMetadata.getJdbcType();             // Types.VARCHAR
+ * boolean nullable = fieldMetadata.isNullable();          // false
+ * String defaultValue = fieldMetadata.getDefaultValue();  // null
  * }
  * </pre>
  *
@@ -34,6 +39,110 @@ package io.github.afgprojects.framework.data.core.metadata;
  * @see FieldMetadata
  */
 public interface DatabaseFieldMetadata extends FieldMetadata {
-    // 继承 FieldMetadata 的所有方法
-    // 此接口主要用于类型标识，区分数据库场景与其他场景（缓存、搜索等）
+
+    /**
+     * 获取 JDBC 类型
+     * <p>
+     * 返回 java.sql.Types 中定义的 JDBC 类型常量。
+     *
+     * @return JDBC 类型，默认 {@link java.sql.Types#NULL} 表示未指定
+     */
+    default int getJdbcType() {
+        return java.sql.Types.NULL;
+    }
+
+    /**
+     * 是否允许 null 值
+     *
+     * @return 是否允许 null，默认 true
+     */
+    default boolean isNullable() {
+        return true;
+    }
+
+    /**
+     * 获取默认值
+     *
+     * @return 默认值，null 表示未指定
+     */
+    default @Nullable String getDefaultValue() {
+        return null;
+    }
+
+    /**
+     * 获取列长度
+     * <p>
+     * 适用于字符串类型字段（VARCHAR、CHAR 等）。
+     *
+     * @return 列长度，0 表示未指定
+     */
+    default int getLength() {
+        return 0;
+    }
+
+    /**
+     * 获取精度
+     * <p>
+     * 适用于数值类型字段（DECIMAL、NUMERIC 等）。
+     *
+     * @return 精度，0 表示未指定
+     */
+    default int getPrecision() {
+        return 0;
+    }
+
+    /**
+     * 获取小数位数
+     * <p>
+     * 适用于数值类型字段（DECIMAL、NUMERIC 等）。
+     *
+     * @return 小数位数，0 表示未指定
+     */
+    default int getScale() {
+        return 0;
+    }
+
+    /**
+     * 是否唯一
+     *
+     * @return 是否唯一，默认 false
+     */
+    default boolean isUnique() {
+        return false;
+    }
+
+    /**
+     * 是否可插入
+     * <p>
+     * 标记该字段是否参与 INSERT 操作。
+     * 自动生成的主键字段通常不可插入。
+     *
+     * @return 是否可插入，默认 true
+     */
+    default boolean isInsertable() {
+        return true;
+    }
+
+    /**
+     * 是否可更新
+     * <p>
+     * 标记该字段是否参与 UPDATE 操作。
+     * 自动生成的主键字段通常不可更新。
+     *
+     * @return 是否可更新，默认 true
+     */
+    default boolean isUpdatable() {
+        return true;
+    }
+
+    /**
+     * 获取列定义
+     * <p>
+     * 返回数据库特定的 DDL 片段，如 "VARCHAR(255) NOT NULL DEFAULT 'active'"。
+     *
+     * @return 列定义，null 表示未指定
+     */
+    default @Nullable String getColumnDefinition() {
+        return null;
+    }
 }

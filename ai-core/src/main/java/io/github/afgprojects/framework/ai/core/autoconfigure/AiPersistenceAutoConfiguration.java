@@ -1,8 +1,10 @@
 package io.github.afgprojects.framework.ai.core.autoconfigure;
 
+import io.github.afgprojects.framework.ai.core.api.persistence.MessageHistoryStore;
+import io.github.afgprojects.framework.ai.core.api.persistence.SessionStore;
 import io.github.afgprojects.framework.ai.core.config.AfgAiProperties;
-// import io.github.afgprojects.framework.ai.core.api.persistence.SessionStore;
-// import io.github.afgprojects.framework.ai.core.api.persistence.MessageHistoryStore;
+import io.github.afgprojects.framework.ai.core.persistence.DefaultMessageHistoryStore;
+import io.github.afgprojects.framework.ai.core.persistence.DefaultSessionStore;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -27,18 +29,16 @@ public class AiPersistenceAutoConfiguration {
     @ConditionalOnProperty(prefix = "afg.ai.persistence", name = "enabled", havingValue = "true", matchIfMissing = true)
     static class PersistenceConfiguration {
 
-        // TODO: 阶段3添加默认实现Bean
-        // @Bean
-        // @ConditionalOnMissingBean
-        // public DefaultSessionStore defaultSessionStore() {
-        //     return new DefaultSessionStore();
-        // }
+        @Bean
+        @ConditionalOnMissingBean
+        public SessionStore defaultSessionStore(AfgAiProperties properties) {
+            return new DefaultSessionStore(properties.getPersistence().getSession().getMaxSessionsPerUser());
+        }
 
-        // TODO: 阶段3添加默认实现Bean
-        // @Bean
-        // @ConditionalOnMissingBean
-        // public DefaultMessageHistoryStore defaultMessageHistoryStore() {
-        //     return new DefaultMessageHistoryStore();
-        // }
+        @Bean
+        @ConditionalOnMissingBean
+        public MessageHistoryStore defaultMessageHistoryStore(AfgAiProperties properties) {
+            return new DefaultMessageHistoryStore(properties.getPersistence().getMessageHistory().getMaxMessagesPerSession());
+        }
     }
 }

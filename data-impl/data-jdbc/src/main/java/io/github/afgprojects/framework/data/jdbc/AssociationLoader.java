@@ -442,7 +442,7 @@ class AssociationLoader {
     }
 
     /**
-     * 获取类的声明字段，可被子类覆盖用于测试
+     * 获取类的声明字段，使用缓存（可被子类覆盖用于测试）
      *
      * @param entityClass 实体类
      * @param fieldName   字段名
@@ -450,7 +450,11 @@ class AssociationLoader {
      * @throws NoSuchFieldException 如果字段不存在
      */
     Field getDeclaredField(Class<?> entityClass, String fieldName) throws NoSuchFieldException {
-        return entityClass.getDeclaredField(fieldName);
+        Field field = findDeclaredFieldCached(entityClass, fieldName);
+        if (field == null) {
+            throw new NoSuchFieldException(fieldName);
+        }
+        return field;
     }
 
     /**
@@ -466,13 +470,20 @@ class AssociationLoader {
     }
 
     /**
-     * 设置实体字段值
+     * 设置实体字段值（使用字段缓存）
      */
     void setFieldValue(Object entity, String fieldName, Object value) {
         try {
-            Field field = entity.getClass().getDeclaredField(fieldName);
-            field.setAccessible(true);
-            field.set(entity, value);
+            Field field = findDeclaredFieldCached(entity.getClass(), fieldName);
+            if (field != null) {
+                field.setAccessible(true);
+                field.set(entity, value);
+            } else {
+                throw new RuntimeException(
+                        "Field '" + fieldName + "' not found on entity " + entity.getClass().getSimpleName());
+            }
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException(
                     "Failed to set association field '" + fieldName + "' on entity " + entity.getClass().getSimpleName(),

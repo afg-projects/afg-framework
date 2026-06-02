@@ -17,6 +17,8 @@ public interface ConditionBuilder {
     ConditionBuilder like(String field, @Nullable String value);
     ConditionBuilder likeLeft(String field, @Nullable String value);
     ConditionBuilder likeRight(String field, @Nullable String value);
+    ConditionBuilder likeStartsWith(String field, @Nullable String value);
+    ConditionBuilder likeEndsWith(String field, @Nullable String value);
     ConditionBuilder notLike(String field, @Nullable String value);
     ConditionBuilder in(String field, @Nullable Iterable<?> values);
     ConditionBuilder notIn(String field, @Nullable Iterable<?> values);

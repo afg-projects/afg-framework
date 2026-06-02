@@ -1,9 +1,9 @@
 package io.github.afgprojects.framework.ai.core.autoconfigure;
 
 import io.github.afgprojects.framework.ai.core.config.AfgAiProperties;
-// import io.github.afgprojects.framework.ai.core.api.etl.CompositeReader;
-// import io.github.afgprojects.framework.ai.core.api.etl.RecursiveCharacterTextSplitter;
-// import io.github.afgprojects.framework.ai.core.api.etl.DefaultEncodingDetector;
+import io.github.afgprojects.framework.ai.core.etl.reader.CompositeReader;
+import io.github.afgprojects.framework.ai.core.etl.reader.DefaultEncodingDetector;
+import io.github.afgprojects.framework.ai.core.etl.transformer.RecursiveCharacterTextSplitter;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -28,28 +28,25 @@ public class AiEtlAutoConfiguration {
     @ConditionalOnProperty(prefix = "afg.ai.etl", name = "enabled", havingValue = "true", matchIfMissing = true)
     static class EtlConfiguration {
 
-        // TODO: 阶段3添加默认实现Bean
-        // @Bean
-        // @ConditionalOnMissingBean
-        // public CompositeReader compositeReader() {
-        //     return new CompositeReader();
-        // }
+        @Bean
+        @ConditionalOnMissingBean
+        public CompositeReader compositeReader() {
+            return new CompositeReader();
+        }
 
-        // TODO: 阶段3添加默认实现Bean
-        // @Bean
-        // @ConditionalOnMissingBean
-        // public RecursiveCharacterTextSplitter recursiveCharacterTextSplitter(AfgAiProperties properties) {
-        //     return new RecursiveCharacterTextSplitter(
-        //         properties.getEtl().getSplitter().getChunkSize(),
-        //         properties.getEtl().getSplitter().getChunkOverlap()
-        //     );
-        // }
+        @Bean
+        @ConditionalOnMissingBean
+        public RecursiveCharacterTextSplitter recursiveCharacterTextSplitter(AfgAiProperties properties) {
+            return new RecursiveCharacterTextSplitter(
+                properties.getEtl().getSplitter().getChunkSize(),
+                properties.getEtl().getSplitter().getChunkOverlap()
+            );
+        }
 
-        // TODO: 阶段3添加默认实现Bean
-        // @Bean
-        // @ConditionalOnMissingBean
-        // public DefaultEncodingDetector defaultEncodingDetector() {
-        //     return new DefaultEncodingDetector();
-        // }
+        @Bean
+        @ConditionalOnMissingBean
+        public DefaultEncodingDetector defaultEncodingDetector() {
+            return new DefaultEncodingDetector();
+        }
     }
 }

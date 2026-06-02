@@ -1,9 +1,13 @@
 package io.github.afgprojects.framework.ai.core.autoconfigure;
 
 import io.github.afgprojects.framework.ai.core.config.AfgAiProperties;
-// import io.github.afgprojects.framework.ai.core.api.security.ApiKeyManager;
-// import io.github.afgprojects.framework.ai.core.api.security.ContentSafetyChecker;
-// import io.github.afgprojects.framework.ai.core.api.security.PiiDetector;
+import io.github.afgprojects.framework.ai.core.api.security.ApiKeyManager;
+import io.github.afgprojects.framework.ai.core.api.security.ContentSafetyChecker;
+import io.github.afgprojects.framework.ai.core.api.security.PiiDetector;
+import io.github.afgprojects.framework.ai.core.security.DefaultApiKeyManager;
+import io.github.afgprojects.framework.ai.core.security.DefaultContentSafetyChecker;
+import io.github.afgprojects.framework.ai.core.security.DefaultPiiDetector;
+import io.github.afgprojects.framework.ai.core.security.PiiService;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -28,32 +32,44 @@ public class AiSecurityAutoConfiguration {
     @ConditionalOnProperty(prefix = "afg.ai.security", name = "enabled", havingValue = "true", matchIfMissing = true)
     static class SecurityConfiguration {
 
-        // TODO: 阶段3添加默认实现Bean
-        // @Bean
-        // @ConditionalOnMissingBean
-        // public DefaultApiKeyManager defaultApiKeyManager(AfgAiProperties properties) {
-        //     return new DefaultApiKeyManager(properties.getSecurity().getApiKey());
-        // }
+        /**
+         * 配置 API Key 管理器
+         */
+        @Bean
+        @ConditionalOnProperty(prefix = "afg.ai.security.api-key", name = "enabled", havingValue = "true", matchIfMissing = true)
+        @ConditionalOnMissingBean(ApiKeyManager.class)
+        public DefaultApiKeyManager defaultApiKeyManager() {
+            return new DefaultApiKeyManager();
+        }
 
-        // TODO: 阶段3添加默认实现Bean
-        // @Bean
-        // @ConditionalOnMissingBean
-        // public DefaultContentSafetyChecker defaultContentSafetyChecker(AfgAiProperties properties) {
-        //     return new DefaultContentSafetyChecker(properties.getSecurity().getContentSafety());
-        // }
+        /**
+         * 配置内容安全检查器
+         */
+        @Bean
+        @ConditionalOnProperty(prefix = "afg.ai.security.content-safety", name = "enabled", havingValue = "true", matchIfMissing = true)
+        @ConditionalOnMissingBean(ContentSafetyChecker.class)
+        public DefaultContentSafetyChecker defaultContentSafetyChecker() {
+            return new DefaultContentSafetyChecker();
+        }
 
-        // TODO: 阶段3添加默认实现Bean
-        // @Bean
-        // @ConditionalOnMissingBean
-        // public DefaultPiiDetector defaultPiiDetector(AfgAiProperties properties) {
-        //     return new DefaultPiiDetector(properties.getSecurity().getPii());
-        // }
+        /**
+         * 配置 PII 检测器
+         */
+        @Bean
+        @ConditionalOnProperty(prefix = "afg.ai.security.pii", name = "enabled", havingValue = "true", matchIfMissing = true)
+        @ConditionalOnMissingBean(PiiDetector.class)
+        public DefaultPiiDetector defaultPiiDetector() {
+            return new DefaultPiiDetector();
+        }
 
-        // TODO: 阶段3添加默认实现Bean
-        // @Bean
-        // @ConditionalOnMissingBean
-        // public ContentSafetyAspect contentSafetyAspect(ContentSafetyChecker contentSafetyChecker) {
-        //     return new ContentSafetyAspect(contentSafetyChecker);
-        // }
+        /**
+         * 配置 PII 检测服务
+         */
+        @Bean
+        @ConditionalOnProperty(prefix = "afg.ai.security.pii", name = "enabled", havingValue = "true", matchIfMissing = true)
+        @ConditionalOnMissingBean(PiiService.class)
+        public PiiService piiService(PiiDetector piiDetector) {
+            return new PiiService(piiDetector);
+        }
     }
 }

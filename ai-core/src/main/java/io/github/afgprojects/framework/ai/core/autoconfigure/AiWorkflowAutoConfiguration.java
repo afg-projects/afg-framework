@@ -1,17 +1,25 @@
 package io.github.afgprojects.framework.ai.core.autoconfigure;
 
 import io.github.afgprojects.framework.ai.core.config.AfgAiProperties;
-// import io.github.afgprojects.framework.ai.core.api.workflow.engine.DagEngine;
-// import io.github.afgprojects.framework.ai.core.api.workflow.node.NodeTypeRegistry;
-// import io.github.afgprojects.framework.ai.core.api.workflow.dsl.DslConverter;
-// import io.github.afgprojects.framework.ai.core.api.workflow.dsl.DslValidator;
-// import io.github.afgprojects.framework.ai.core.api.workflow.dsl.VariableResolver;
+import io.github.afgprojects.framework.ai.core.api.workflow.engine.DagEngine;
+import io.github.afgprojects.framework.ai.core.api.workflow.engine.WorkflowNode;
+import io.github.afgprojects.framework.ai.core.api.workflow.node.NodeTypeRegistry;
+import io.github.afgprojects.framework.ai.core.api.workflow.dsl.DslConverter;
+import io.github.afgprojects.framework.ai.core.api.workflow.dsl.DslValidator;
+import io.github.afgprojects.framework.ai.core.api.workflow.dsl.VariableResolver;
+import io.github.afgprojects.framework.ai.core.workflow.engine.DefaultDagEngine;
+import io.github.afgprojects.framework.ai.core.workflow.node.DefaultNodeTypeRegistry;
+import io.github.afgprojects.framework.ai.core.workflow.dsl.DefaultDslConverter;
+import io.github.afgprojects.framework.ai.core.workflow.dsl.DefaultDslValidator;
+import io.github.afgprojects.framework.ai.core.workflow.dsl.DefaultVariableResolver;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.function.Function;
 
 /**
  * AFG AI 工作流自动配置。
@@ -30,40 +38,35 @@ public class AiWorkflowAutoConfiguration {
     @ConditionalOnProperty(prefix = "afg.ai.workflow", name = "enabled", havingValue = "true", matchIfMissing = true)
     static class WorkflowConfiguration {
 
-        // TODO: 阶段3添加默认实现Bean
-        // @Bean
-        // @ConditionalOnMissingBean
-        // public DefaultDagEngine defaultDagEngine() {
-        //     return new DefaultDagEngine();
-        // }
+        @Bean
+        @ConditionalOnMissingBean
+        public DefaultDagEngine defaultDagEngine(Function<String, WorkflowNode> nodeResolver) {
+            return new DefaultDagEngine(nodeResolver);
+        }
 
-        // TODO: 阶段3添加默认实现Bean
-        // @Bean
-        // @ConditionalOnMissingBean
-        // public DefaultNodeTypeRegistry defaultNodeTypeRegistry() {
-        //     return new DefaultNodeTypeRegistry();
-        // }
+        @Bean
+        @ConditionalOnMissingBean
+        public DefaultNodeTypeRegistry defaultNodeTypeRegistry() {
+            return new DefaultNodeTypeRegistry();
+        }
 
-        // TODO: 阶段3添加默认实现Bean
-        // @Bean
-        // @ConditionalOnMissingBean
-        // public DefaultDslConverter defaultDslConverter() {
-        //     return new DefaultDslConverter();
-        // }
+        @Bean
+        @ConditionalOnMissingBean
+        public DefaultDslConverter defaultDslConverter() {
+            return new DefaultDslConverter();
+        }
 
-        // TODO: 阶段3添加默认实现Bean
-        // @Bean
-        // @ConditionalOnMissingBean
-        // public DefaultDslValidator defaultDslValidator() {
-        //     return new DefaultDslValidator();
-        // }
+        @Bean
+        @ConditionalOnMissingBean
+        public DefaultDslValidator defaultDslValidator() {
+            return new DefaultDslValidator();
+        }
 
-        // TODO: 阶段3添加默认实现Bean
-        // @Bean
-        // @ConditionalOnMissingBean
-        // public DefaultVariableResolver defaultVariableResolver() {
-        //     return new DefaultVariableResolver();
-        // }
+        @Bean
+        @ConditionalOnMissingBean
+        public DefaultVariableResolver defaultVariableResolver() {
+            return new DefaultVariableResolver();
+        }
 
         // TODO: 阶段4添加AOP切面Bean
         // @Bean

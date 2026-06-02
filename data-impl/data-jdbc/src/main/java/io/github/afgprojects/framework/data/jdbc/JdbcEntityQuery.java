@@ -517,45 +517,11 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
     }
 
     private String buildOrderByClause() {
-        if (sort == null || !sort.isSorted()) {
-            return "";
-        }
-        StringBuilder sb = new StringBuilder();
-        for (Sort.Order order : sort.getOrders()) {
-            if (!sb.isEmpty()) {
-                sb.append(", ");
-            }
-            // 将字段名转换为数据库列名
-            String fieldName = order.getProperty();
-            var fieldMetadata = metadata.getField(fieldName);
-            String columnName = fieldMetadata != null ? fieldMetadata.getColumnName() : fieldName;
-            sb.append(dialect.quoteIdentifier(columnName));
-            if (order.isDescending()) {
-                sb.append(" DESC");
-            }
-        }
-        return sb.toString();
+        return OrderByHelper.buildOrderByClause(sort, dialect, metadata);
     }
 
     private String buildOrderByClauseFromPageRequest(PageRequest pageRequest) {
-        if (pageRequest.sort() == null || !pageRequest.sort().isSorted()) {
-            return "";
-        }
-        StringBuilder sb = new StringBuilder();
-        for (Sort.Order order : pageRequest.sort().getOrders()) {
-            if (!sb.isEmpty()) {
-                sb.append(", ");
-            }
-            // 将字段名转换为数据库列名
-            String fieldName = order.getProperty();
-            var fieldMetadata = metadata.getField(fieldName);
-            String columnName = fieldMetadata != null ? fieldMetadata.getColumnName() : fieldName;
-            sb.append(dialect.quoteIdentifier(columnName));
-            if (order.isDescending()) {
-                sb.append(" DESC");
-            }
-        }
-        return sb.toString();
+        return OrderByHelper.buildOrderByFromPageRequest(pageRequest, dialect, metadata);
     }
 
     private String appendSoftDeleteFilter(String sql, boolean hasWhere) {

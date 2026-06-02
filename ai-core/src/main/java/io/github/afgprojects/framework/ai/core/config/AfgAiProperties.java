@@ -285,6 +285,28 @@ public class AfgAiProperties {
          * 超时时间（毫秒）。
          */
         private long timeoutMs = 30000L;
+
+        /**
+         * ReAct 执行器配置。
+         */
+        private ReActConfig reAct = new ReActConfig();
+
+        /**
+         * ReAct 执行器配置类。
+         */
+        @Data
+        public static class ReActConfig {
+
+            /**
+             * 是否启用 ReAct 执行器。
+             */
+            private boolean enabled = true;
+
+            /**
+             * 最大推理步数。
+             */
+            private int maxSteps = 10;
+        }
     }
 
     // ========== 模型管理配置类 ==========
@@ -512,6 +534,11 @@ public class AfgAiProperties {
             private double multiplier = 2.0;
 
             /**
+             * 最大重试间隔（毫秒）。
+             */
+            private long maxIntervalMs = 30000;
+
+            /**
              * 抖动因子（0.0 ~ 1.0）。
              */
             private double jitterFactor = 0.5;
@@ -524,6 +551,11 @@ public class AfgAiProperties {
         public static class CircuitBreakerConfig {
 
             /**
+             * 熔断器名称。
+             */
+            private String name = "default";
+
+            /**
              * 滑动窗口大小。
              */
             private int windowSize = 100;
@@ -532,6 +564,11 @@ public class AfgAiProperties {
              * 失败率阈值（0.0 ~ 1.0）。
              */
             private double failureRateThreshold = 0.5;
+
+            /**
+             * 半开状态最大探测次数。
+             */
+            private int halfOpenMaxCalls = 10;
 
             /**
              * 熔断开启状态超时时间（毫秒）。

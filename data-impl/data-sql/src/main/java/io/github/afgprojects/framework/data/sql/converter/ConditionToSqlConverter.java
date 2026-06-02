@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.data.sql.converter;
 
+import io.github.afgprojects.framework.data.core.condition.Conditions;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
 import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.query.Criterion;
@@ -160,7 +161,7 @@ public class ConditionToSqlConverter {
 
         // 处理特殊操作符
         switch (operator) {
-            case LIKE, LIKE_LEFT, LIKE_RIGHT -> handleLike(sql, parameters, value, false);
+            case LIKE, LIKE_LEFT, LIKE_RIGHT, LIKE_STARTS_WITH, LIKE_ENDS_WITH -> handleLike(sql, parameters, value, false);
             case NOT_LIKE -> handleLike(sql, parameters, value, true);
             case IN -> handleIn(sql, parameters, value, false);
             case NOT_IN -> handleIn(sql, parameters, value, true);
@@ -168,7 +169,6 @@ public class ConditionToSqlConverter {
             case IS_NOT_NULL -> sql.append(" IS NOT NULL");
             case BETWEEN -> handleBetween(sql, parameters, value, false);
             case NOT_BETWEEN -> handleBetween(sql, parameters, value, true);
-            case NOT -> { /* 已在上面处理 */ }
             default -> { /* 其他操作符已在 handleSimpleOperator 中处理 */ }
         }
     }
@@ -211,9 +211,12 @@ public class ConditionToSqlConverter {
 
     /**
      * 处理 LIKE 操作符
+     * <p>
+     * 使用 ESCAPE 子句支持转义通配符。值中的转义字符（如 {@code \\%} 和 {@code \\_}）
+     * 已在条件构建阶段由 {@link Conditions#escapeLikeWildcards(String)} 处理。
      */
     private void handleLike(StringBuilder sql, List<Object> parameters, Object value, boolean negate) {
-        sql.append(negate ? " NOT LIKE ?" : " LIKE ?");
+        sql.append(negate ? " NOT LIKE ? ESCAPE '\\\\'" : " LIKE ? ESCAPE '\\\\'");
         parameters.add(value);
     }
 

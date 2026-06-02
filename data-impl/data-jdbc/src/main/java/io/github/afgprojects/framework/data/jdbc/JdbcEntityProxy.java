@@ -169,7 +169,7 @@ public class JdbcEntityProxy<T> implements EntityProxy<T>, ProxyStateProvider {
     }
 
     @Override
-    public @NonNull List<T> saveAll(@NonNull Iterable<T> entities) {
+    public @NonNull List<T> saveAll(@NonNull Iterable<? extends T> entities) {
         // 将 Iterable 转换为 List，同时记录原始索引
         List<T> entityList = new ArrayList<>();
         entities.forEach(entityList::add);

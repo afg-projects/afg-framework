@@ -1,9 +1,12 @@
 package io.github.afgprojects.framework.ai.core.autoconfigure;
 
 import io.github.afgprojects.framework.ai.core.config.AfgAiProperties;
-// import io.github.afgprojects.framework.ai.core.api.observability.AuditLogger;
-// import io.github.afgprojects.framework.ai.core.api.observability.MetricsCollector;
-// import io.github.afgprojects.framework.ai.core.api.observability.Tracer;
+import io.github.afgprojects.framework.ai.core.api.observability.AuditLogger;
+import io.github.afgprojects.framework.ai.core.api.observability.MetricsCollector;
+import io.github.afgprojects.framework.ai.core.api.observability.Tracer;
+import io.github.afgprojects.framework.ai.core.observability.DefaultAuditLogger;
+import io.github.afgprojects.framework.ai.core.observability.DefaultMetricsCollector;
+import io.github.afgprojects.framework.ai.core.observability.DefaultTracer;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -28,39 +31,25 @@ public class AiObservabilityAutoConfiguration {
     @ConditionalOnProperty(prefix = "afg.ai.observability", name = "enabled", havingValue = "true", matchIfMissing = true)
     static class ObservabilityConfiguration {
 
-        // TODO: 阶段3添加默认实现Bean
-        // @Bean
-        // @ConditionalOnMissingBean
-        // public DefaultAuditLogger defaultAuditLogger(AfgAiProperties properties) {
-        //     return new DefaultAuditLogger(properties.getObservability().getAudit());
-        // }
+        @Bean
+        @ConditionalOnMissingBean
+        @ConditionalOnProperty(prefix = "afg.ai.observability.audit", name = "enabled", havingValue = "true", matchIfMissing = true)
+        public DefaultAuditLogger defaultAuditLogger(AfgAiProperties properties) {
+            return new DefaultAuditLogger(properties.getObservability().getAudit().getMaxEntries());
+        }
 
-        // TODO: 阶段3添加默认实现Bean
-        // @Bean
-        // @ConditionalOnMissingBean
-        // public DefaultMetricsCollector defaultMetricsCollector(AfgAiProperties properties) {
-        //     return new DefaultMetricsCollector(properties.getObservability().getMetrics());
-        // }
+        @Bean
+        @ConditionalOnMissingBean
+        @ConditionalOnProperty(prefix = "afg.ai.observability.metrics", name = "enabled", havingValue = "true", matchIfMissing = true)
+        public DefaultMetricsCollector defaultMetricsCollector() {
+            return new DefaultMetricsCollector();
+        }
 
-        // TODO: 阶段3添加默认实现Bean
-        // @Bean
-        // @ConditionalOnMissingBean
-        // public DefaultTracer defaultTracer() {
-        //     return new DefaultTracer();
-        // }
-
-        // TODO: 阶段3添加默认实现Bean
-        // @Bean
-        // @ConditionalOnMissingBean
-        // public AiAuditedAspect aiAuditedAspect(AuditLogger auditLogger) {
-        //     return new AiAuditedAspect(auditLogger);
-        // }
-
-        // TODO: 阶段3添加默认实现Bean
-        // @Bean
-        // @ConditionalOnMissingBean
-        // public AiHealthEndpoint aiHealthEndpoint(MetricsCollector metricsCollector) {
-        //     return new AiHealthEndpoint(metricsCollector);
-        // }
+        @Bean
+        @ConditionalOnMissingBean
+        @ConditionalOnProperty(prefix = "afg.ai.observability.tracing", name = "enabled", havingValue = "true", matchIfMissing = true)
+        public DefaultTracer defaultTracer() {
+            return new DefaultTracer();
+        }
     }
 }

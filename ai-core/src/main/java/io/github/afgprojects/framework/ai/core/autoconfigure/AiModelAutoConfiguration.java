@@ -1,7 +1,8 @@
 package io.github.afgprojects.framework.ai.core.autoconfigure;
 
 import io.github.afgprojects.framework.ai.core.config.AfgAiProperties;
-// import io.github.afgprojects.framework.ai.core.api.model.ModelRegistry;
+import io.github.afgprojects.framework.ai.core.model.DefaultModelRegistry;
+import io.github.afgprojects.framework.ai.core.api.model.ModelRegistry;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -26,18 +27,10 @@ public class AiModelAutoConfiguration {
     @ConditionalOnProperty(prefix = "afg.ai.model", name = "enabled", havingValue = "true", matchIfMissing = true)
     static class ModelConfiguration {
 
-        // TODO: 阶段3添加默认实现Bean
-        // @Bean
-        // @ConditionalOnMissingBean
-        // public InMemoryModelRegistry inMemoryModelRegistry() {
-        //     return new InMemoryModelRegistry();
-        // }
-
-        // TODO: 阶段3添加默认实现Bean
-        // @Bean
-        // @ConditionalOnMissingBean
-        // public ModelRouteAspect modelRouteAspect() {
-        //     return new ModelRouteAspect();
-        // }
+        @Bean
+        @ConditionalOnMissingBean
+        public ModelRegistry defaultModelRegistry() {
+            return new DefaultModelRegistry();
+        }
     }
 }

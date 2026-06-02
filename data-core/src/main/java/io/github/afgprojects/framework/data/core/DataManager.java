@@ -16,6 +16,7 @@ import io.github.afgprojects.framework.data.core.transaction.TransactionAdapter;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -136,10 +137,13 @@ public interface DataManager {
 
     /**
      * 获取事务管理器
+     * <p>
+     * 返回底层事务管理器对象（如 Spring 的 PlatformTransactionManager）。
+     * 如果未配置事务管理器，可能返回 null 或降级对象。
      *
-     * @return 事务管理器
+     * @return 事务管理器，可能为 null（如果未配置）
      */
-    @NonNull Object getTransactionManager();
+    @Nullable Object getTransactionManager();
 
     /**
      * 获取事务适配器
@@ -240,15 +244,24 @@ public interface DataManager {
      * 根据单个字段值查找唯一实体（快捷方法）
      * <p>
      * 等价于 {@code entity(entityClass).findOne(Conditions.builder(entityClass).eq(getter, value).build())}
+     * <p>
+     * <b>类型安全说明：</b>{@code value} 应与字段 {@code getter} 的返回类型一致。
+     * 例如，如果字段类型为 {@code Integer}，则 {@code value} 应为 {@code Integer} 或 {@code null}。
+     * 运行时会检查值类型与字段声明类型的兼容性，不兼容时抛出 {@link IllegalArgumentException}。
      *
      * @param entityClass 实体类型
      * @param getter      字段 getter 方法引用
-     * @param value       字段值
+     * @param value       字段值，应与字段类型一致，可以为 null
      * @return 实体可选值
+     * @throws IllegalArgumentException 如果 value 的运行时类型与字段声明类型不兼容
      */
     default <T, R> @NonNull Optional<T> findOneByField(@NonNull Class<T> entityClass,
                                                          @NonNull SFunction<T, R> getter,
                                                          @Nullable Object value) {
+        // 运行时类型检查
+        String fieldName = io.github.afgprojects.framework.data.core.condition.Conditions.getFieldName(getter);
+        Class<?> fieldType = resolveFieldTypeFromLambda(getter);
+        io.github.afgprojects.framework.data.core.condition.TypedConditionBuilder.checkFieldType(fieldName, fieldType, value);
         return entity(entityClass).findOne(
             io.github.afgprojects.framework.data.core.condition.Conditions.builder(entityClass)
                 .eq(getter, value)
@@ -260,15 +273,24 @@ public interface DataManager {
      * 根据单个字段值查找所有匹配实体（快捷方法）
      * <p>
      * 等价于 {@code entity(entityClass).query().where(Conditions.builder(entityClass).eq(getter, value).build()).list()}
+     * <p>
+     * <b>类型安全说明：</b>{@code value} 应与字段 {@code getter} 的返回类型一致。
+     * 例如，如果字段类型为 {@code Integer}，则 {@code value} 应为 {@code Integer} 或 {@code null}。
+     * 运行时会检查值类型与字段声明类型的兼容性，不兼容时抛出 {@link IllegalArgumentException}。
      *
      * @param entityClass 实体类型
      * @param getter      字段 getter 方法引用
-     * @param value       字段值
+     * @param value       字段值，应与字段类型一致，可以为 null
      * @return 实体列表
+     * @throws IllegalArgumentException 如果 value 的运行时类型与字段声明类型不兼容
      */
     default <T, R> @NonNull List<T> findAllByField(@NonNull Class<T> entityClass,
                                                     @NonNull SFunction<T, R> getter,
                                                     @Nullable Object value) {
+        // 运行时类型检查
+        String fieldName = io.github.afgprojects.framework.data.core.condition.Conditions.getFieldName(getter);
+        Class<?> fieldType = resolveFieldTypeFromLambda(getter);
+        io.github.afgprojects.framework.data.core.condition.TypedConditionBuilder.checkFieldType(fieldName, fieldType, value);
         return entity(entityClass).query()
             .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder(entityClass)
                 .eq(getter, value)
@@ -391,8 +413,10 @@ public interface DataManager {
      * @param entities    实体集合
      * @return 保存后的实体列表
      */
-    default <T> @NonNull List<T> saveAll(@NonNull Class<T> entityClass, @NonNull Iterable<T> entities) {
-        return entity(entityClass).saveAll(entities);
+    default <T> @NonNull List<T> saveAll(@NonNull Class<T> entityClass, @NonNull Iterable<? extends T> entities) {
+        List<T> list = new ArrayList<>();
+        entities.forEach(e -> list.add(e));
+        return entity(entityClass).saveAll(list);
     }
 
     /**
@@ -457,5 +481,60 @@ public interface DataManager {
      */
     default <T> boolean existsByCondition(@NonNull Class<T> entityClass, @NonNull Condition condition) {
         return entity(entityClass).query().where(condition).exists();
+    }
+
+    // ==================== 运行时类型检查工具方法 ====================
+
+    /**
+     * 从 Lambda 方法引用中解析字段的返回类型
+     * <p>
+     * 通过 SerializedLambda 获取方法签名，解析返回类型的 JVM 描述符。
+     * 如果无法解析则返回 null（类型检查将被跳过）。
+     *
+     * @param getter Lambda 方法引用
+     * @return 字段返回类型，可能为 null
+     */
+    private static <T, R> Class<?> resolveFieldTypeFromLambda(SFunction<T, R> getter) {
+        try {
+            java.lang.reflect.Method writeReplace = getter.getClass().getDeclaredMethod("writeReplace");
+            writeReplace.setAccessible(true);
+            java.lang.invoke.SerializedLambda lambda = (java.lang.invoke.SerializedLambda) writeReplace.invoke(getter);
+            String methodSignature = lambda.getImplMethodSignature();
+            // 方法签名格式：(参数类型)返回类型
+            String returnTypeDesc = methodSignature.substring(methodSignature.indexOf(')') + 1);
+            return resolveTypeFromDescriptor(returnTypeDesc);
+        } catch (Exception e) {
+            // 降级：无法获取类型信息时不检查
+            return null;
+        }
+    }
+
+    /**
+     * 从 JVM 类型描述符解析为 Class 对象
+     *
+     * @param descriptor JVM 类型描述符（如 "Ljava/lang/String;"、"I"）
+     * @return 对应的 Class 对象，可能为 null
+     */
+    private static Class<?> resolveTypeFromDescriptor(String descriptor) {
+        return switch (descriptor.charAt(0)) {
+            case 'Z' -> boolean.class;
+            case 'B' -> byte.class;
+            case 'C' -> char.class;
+            case 'S' -> short.class;
+            case 'I' -> int.class;
+            case 'J' -> long.class;
+            case 'F' -> float.class;
+            case 'D' -> double.class;
+            case 'V' -> void.class;
+            case 'L' -> {
+                String className = descriptor.substring(1, descriptor.length() - 1).replace('/', '.');
+                try {
+                    yield Class.forName(className);
+                } catch (ClassNotFoundException e) {
+                    yield null;
+                }
+            }
+            default -> null;
+        };
     }
 }

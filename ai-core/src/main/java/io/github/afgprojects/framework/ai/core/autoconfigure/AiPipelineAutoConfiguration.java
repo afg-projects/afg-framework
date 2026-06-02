@@ -1,8 +1,10 @@
 package io.github.afgprojects.framework.ai.core.autoconfigure;
 
 import io.github.afgprojects.framework.ai.core.config.AfgAiProperties;
-// import io.github.afgprojects.framework.ai.core.api.pipeline.ChatPipeline;
-// import io.github.afgprojects.framework.ai.core.api.pipeline.KnowledgeSearchClient;
+import io.github.afgprojects.framework.ai.core.api.pipeline.ChatPipeline;
+import io.github.afgprojects.framework.ai.core.api.pipeline.KnowledgeSearchClient;
+import io.github.afgprojects.framework.ai.core.pipeline.DefaultChatPipeline;
+import io.github.afgprojects.framework.ai.core.pipeline.NoOpKnowledgeSearchClient;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -27,18 +29,10 @@ public class AiPipelineAutoConfiguration {
     @ConditionalOnProperty(prefix = "afg.ai.pipeline", name = "enabled", havingValue = "true", matchIfMissing = true)
     static class PipelineConfiguration {
 
-        // TODO: 阶段3添加默认实现Bean
-        // @Bean
-        // @ConditionalOnMissingBean
-        // public DefaultChatPipeline defaultChatPipeline() {
-        //     return new DefaultChatPipeline();
-        // }
-
-        // TODO: 阶段3添加默认实现Bean
-        // @Bean
-        // @ConditionalOnMissingBean
-        // public NoOpKnowledgeSearchClient noOpKnowledgeSearchClient() {
-        //     return new NoOpKnowledgeSearchClient();
-        // }
+        @Bean
+        @ConditionalOnMissingBean
+        public NoOpKnowledgeSearchClient noOpKnowledgeSearchClient() {
+            return new NoOpKnowledgeSearchClient();
+        }
     }
 }

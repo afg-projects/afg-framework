@@ -1,8 +1,10 @@
 package io.github.afgprojects.framework.ai.core.autoconfigure;
 
 import io.github.afgprojects.framework.ai.core.config.AfgAiProperties;
-// import io.github.afgprojects.framework.ai.core.api.chat.ChatClientRegistry;
-// import io.github.afgprojects.framework.ai.core.api.chat.EmbeddingClientRegistry;
+import io.github.afgprojects.framework.ai.core.chat.DefaultChatClientRegistry;
+import io.github.afgprojects.framework.ai.core.chat.DefaultEmbeddingClientRegistry;
+import io.github.afgprojects.framework.ai.core.api.chat.ChatClientRegistry;
+import io.github.afgprojects.framework.ai.core.api.chat.EmbeddingClientRegistry;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -27,25 +29,16 @@ public class AiChatAutoConfiguration {
     @ConditionalOnProperty(prefix = "afg.ai.chat", name = "enabled", havingValue = "true", matchIfMissing = true)
     static class ChatConfiguration {
 
-        // TODO: 阶段3添加默认实现Bean
-        // @Bean
-        // @ConditionalOnMissingBean
-        // public DefaultChatClientRegistry defaultChatClientRegistry() {
-        //     return new DefaultChatClientRegistry();
-        // }
+        @Bean
+        @ConditionalOnMissingBean
+        public ChatClientRegistry defaultChatClientRegistry() {
+            return new DefaultChatClientRegistry();
+        }
 
-        // TODO: 阶段3添加默认实现Bean
-        // @Bean
-        // @ConditionalOnMissingBean
-        // public DefaultEmbeddingClientRegistry defaultEmbeddingClientRegistry() {
-        //     return new DefaultEmbeddingClientRegistry();
-        // }
-
-        // TODO: 阶段3添加默认实现Bean
-        // @Bean
-        // @ConditionalOnMissingBean
-        // public AiChatAspect aiChatAspect() {
-        //     return new AiChatAspect();
-        // }
+        @Bean
+        @ConditionalOnMissingBean
+        public EmbeddingClientRegistry defaultEmbeddingClientRegistry() {
+            return new DefaultEmbeddingClientRegistry();
+        }
     }
 }

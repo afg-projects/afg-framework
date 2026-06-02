@@ -1,6 +1,8 @@
 package io.github.afgprojects.framework.data.core;
 
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -35,7 +37,7 @@ public interface EntityReader<T> {
      * @param id 实体ID
      * @return 实体（可能为空）
      */
-    @NonNull Optional<T> findById(@NonNull Object id);
+    @NonNull Optional<T> findById(@Nullable Object id);
 
     /**
      * 根据多个ID查询实体列表

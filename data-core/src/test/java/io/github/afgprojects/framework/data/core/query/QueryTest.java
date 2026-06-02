@@ -30,7 +30,8 @@ class QueryTest {
             assertThat(Operator.values()).containsExactly(
                     Operator.EQ, Operator.NE, Operator.GT, Operator.GE,
                     Operator.LT, Operator.LE, Operator.LIKE, Operator.LIKE_LEFT,
-                    Operator.LIKE_RIGHT, Operator.NOT_LIKE, Operator.IN, Operator.NOT_IN,
+                    Operator.LIKE_RIGHT, Operator.LIKE_STARTS_WITH, Operator.LIKE_ENDS_WITH,
+                    Operator.NOT_LIKE, Operator.IN, Operator.NOT_IN,
                     Operator.IS_NULL, Operator.IS_NOT_NULL, Operator.BETWEEN, Operator.NOT_BETWEEN,
                     Operator.JSON_CONTAINS, Operator.JSON_CONTAINED, Operator.JSON_PATH
             );

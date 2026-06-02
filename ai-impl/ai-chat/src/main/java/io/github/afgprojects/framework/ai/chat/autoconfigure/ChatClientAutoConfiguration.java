@@ -2,8 +2,8 @@ package io.github.afgprojects.framework.ai.chat.autoconfigure;
 
 import io.github.afgprojects.framework.ai.core.autoconfigure.AiConfigurationProperties;
 import io.github.afgprojects.framework.ai.chat.DefaultAfgChatClient;
-import io.github.afgprojects.framework.ai.chat.DefaultChatClientRegistry;
-import io.github.afgprojects.framework.ai.chat.model.DefaultModelRegistry;
+import io.github.afgprojects.framework.ai.core.chat.DefaultChatClientRegistry;
+import io.github.afgprojects.framework.ai.core.model.DefaultModelRegistry;
 import io.github.afgprojects.framework.ai.chat.routing.DefaultModelRoutingService;
 import io.github.afgprojects.framework.ai.core.api.chat.AfgChatClient;
 import io.github.afgprojects.framework.ai.core.api.chat.ChatClientRegistry;

@@ -3,6 +3,7 @@ package io.github.afgprojects.framework.data.core;
 import io.github.afgprojects.framework.data.core.condition.SFunction;
 import io.github.afgprojects.framework.data.core.mapper.Projection;
 import io.github.afgprojects.framework.data.core.page.PageRequest;
+import io.github.afgprojects.framework.data.core.query.BaseQuery;
 import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.query.Page;
 import io.github.afgprojects.framework.data.core.query.ProjectedQuery;
@@ -19,6 +20,7 @@ import java.util.Optional;
  * 实体条件查询接口
  * <p>
  * 提供基于条件的查询操作，支持分页、排序、数据权限等企业级特性。
+ * 继承自 {@link BaseQuery}，与 {@link ProjectedQuery} 共享公共查询配置方法。
  * <p>
  * 使用示例：
  * <pre>
@@ -51,8 +53,12 @@ import java.util.Optional;
  * </pre>
  *
  * @param <T> 实体类型
+ * @see BaseQuery 查询构建器公共接口
+ * @see ProjectedQuery DTO 投影查询接口
  */
-public interface EntityQuery<T> {
+public interface EntityQuery<T> extends BaseQuery<EntityQuery<T>, T> {
+
+    // ==================== BaseQuery 方法覆写 ====================
 
     /**
      * 设置查询条件
@@ -60,6 +66,7 @@ public interface EntityQuery<T> {
      * @param condition 查询条件
      * @return 查询构建器（支持链式调用）
      */
+    @Override
     @NonNull EntityQuery<T> where(@NonNull Condition condition);
 
     /**
@@ -68,6 +75,7 @@ public interface EntityQuery<T> {
      * @param sort 排序规则
      * @return 查询构建器（支持链式调用）
      */
+    @Override
     @NonNull EntityQuery<T> orderBy(@NonNull Sort sort);
 
     /**
@@ -95,6 +103,111 @@ public interface EntityQuery<T> {
     default <R> @NonNull EntityQuery<T> orderByDesc(@NonNull SFunction<T, R> getter) {
         return orderBy(Sort.desc(getter));
     }
+
+    /**
+     * 自动应用当前用户的数据权限
+     * <p>自动检测实体中的部门字段（如 deptId、dept_id）
+     */
+    @Override
+    @NonNull EntityQuery<T> withDataScope();
+
+    /**
+     * 自动应用当前用户的数据权限，指定关联字段
+     *
+     * @param deptField 部门字段名（如 "deptId"）
+     */
+    @Override
+    @NonNull EntityQuery<T> withDataScope(@NonNull String deptField);
+
+    /**
+     * 使用指定的数据范围类型
+     *
+     * @param scopeType 数据范围类型
+     */
+    @Override
+    @NonNull EntityQuery<T> withDataScope(@NonNull DataScopeType scopeType);
+
+    /**
+     * 设置租户ID
+     *
+     * @param tenantId 租户ID
+     * @return 查询构建器（支持链式调用）
+     */
+    @Override
+    @NonNull EntityQuery<T> withTenant(@NonNull String tenantId);
+
+    /**
+     * 包含已删除记录（软删除场景）
+     *
+     * @return 查询构建器（支持链式调用）
+     */
+    @Override
+    @NonNull EntityQuery<T> includeDeleted();
+
+    /**
+     * 设置查询限制
+     *
+     * @param limit 最大返回数量
+     * @return 查询构建器（支持链式调用）
+     */
+    @Override
+    @NonNull EntityQuery<T> limit(int limit);
+
+    /**
+     * 设置查询偏移量
+     *
+     * @param offset 偏移量
+     * @return 查询构建器（支持链式调用）
+     */
+    @Override
+    @NonNull EntityQuery<T> offset(int offset);
+
+    // ==================== 执行方法覆写 ====================
+
+    /**
+     * 执行查询，返回列表
+     *
+     * @return 实体列表
+     */
+    @Override
+    @NonNull List<T> list();
+
+    /**
+     * 执行分页查询
+     *
+     * @param pageRequest 分页参数
+     * @return 分页结果
+     */
+    @Override
+    @NonNull Page<T> page(@NonNull PageRequest pageRequest);
+
+    /**
+     * 执行查询，返回唯一结果
+     * <p>
+     * 如果查询结果超过一条，抛出异常。
+     *
+     * @return 实体（可能为空）
+     */
+    @Override
+    @NonNull Optional<T> one();
+
+    /**
+     * 执行查询，返回第一个结果
+     *
+     * @return 实体（可能为空）
+     */
+    @Override
+    @NonNull Optional<T> first();
+
+    /**
+     * 执行查询，统计数量
+     *
+     * @return 数量
+     */
+    @Override
+    long count();
+
+    // ==================== EntityQuery 独有方法 ====================
 
     /**
      * 选择部分字段查询（字符串字段名）
@@ -142,40 +255,12 @@ public interface EntityQuery<T> {
     @NonNull EntityQuery<T> withDataScope(@NonNull DataScope scope);
 
     /**
-     * 自动应用当前用户的数据权限
-     * <p>自动检测实体中的部门字段（如 deptId、dept_id）
-     */
-    @NonNull EntityQuery<T> withDataScope();
-
-    /**
-     * 自动应用当前用户的数据权限，指定关联字段
-     *
-     * @param deptField 部门字段名（如 "deptId"）
-     */
-    @NonNull EntityQuery<T> withDataScope(String deptField);
-
-    /**
-     * 使用指定的数据范围类型
-     *
-     * @param scopeType 数据范围类型
-     */
-    @NonNull EntityQuery<T> withDataScope(DataScopeType scopeType);
-
-    /**
      * 设置多个数据权限
      *
      * @param scopes 数据权限范围数组
      * @return 查询构建器（支持链式调用）
      */
     @NonNull EntityQuery<T> withDataScopes(@NonNull DataScope... scopes);
-
-    /**
-     * 设置租户ID
-     *
-     * @param tenantId 租户ID
-     * @return 查询构建器（支持链式调用）
-     */
-    @NonNull EntityQuery<T> withTenant(@NonNull String tenantId);
 
     /**
      * 设置数据源
@@ -191,13 +276,6 @@ public interface EntityQuery<T> {
      * @return 查询构建器（支持链式调用）
      */
     @NonNull EntityQuery<T> withReadOnly();
-
-    /**
-     * 包含已删除记录（软删除场景）
-     *
-     * @return 查询构建器（支持链式调用）
-     */
-    @NonNull EntityQuery<T> includeDeleted();
 
     /**
      * 急加载指定关联
@@ -223,20 +301,11 @@ public interface EntityQuery<T> {
     @NonNull EntityQuery<T> clearAssociations();
 
     /**
-     * 设置查询限制
+     * 执行查询，判断是否存在
      *
-     * @param limit 最大返回数量
-     * @return 查询构建器（支持链式调用）
+     * @return 是否存在
      */
-    @NonNull EntityQuery<T> limit(int limit);
-
-    /**
-     * 设置查询偏移量
-     *
-     * @param offset 偏移量
-     * @return 查询构建器（支持链式调用）
-     */
-    @NonNull EntityQuery<T> offset(int offset);
+    boolean exists();
 
     // ==================== DTO 投影 ====================
 
@@ -261,53 +330,6 @@ public interface EntityQuery<T> {
      * @return DTO 投影查询构建器
      */
     <R> @NonNull ProjectedQuery<T, R> project(@NonNull Projection<T, R> projection);
-
-    // ==================== 执行方法 ====================
-
-    /**
-     * 执行查询，返回列表
-     *
-     * @return 实体列表
-     */
-    @NonNull List<T> list();
-
-    /**
-     * 执行分页查询
-     *
-     * @param pageRequest 分页参数
-     * @return 分页结果
-     */
-    @NonNull Page<T> page(@NonNull PageRequest pageRequest);
-
-    /**
-     * 执行查询，返回唯一结果
-     * <p>
-     * 如果查询结果超过一条，抛出异常。
-     *
-     * @return 实体（可能为空）
-     */
-    @NonNull Optional<T> one();
-
-    /**
-     * 执行查询，返回第一个结果
-     *
-     * @return 实体（可能为空）
-     */
-    @NonNull Optional<T> first();
-
-    /**
-     * 执行查询，统计数量
-     *
-     * @return 数量
-     */
-    long count();
-
-    /**
-     * 执行查询，判断是否存在
-     *
-     * @return 是否存在
-     */
-    boolean exists();
 
     // ==================== 静态工厂方法 ====================
 

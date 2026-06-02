@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.ai.chat.autoconfigure;
 
-import io.github.afgprojects.framework.ai.chat.DefaultEmbeddingClientRegistry;
+import io.github.afgprojects.framework.ai.core.chat.DefaultEmbeddingClientRegistry;
 import io.github.afgprojects.framework.ai.chat.SpringAiEmbeddingClient;
 import io.github.afgprojects.framework.ai.core.api.chat.AfgEmbeddingClient;
 import io.github.afgprojects.framework.ai.core.api.chat.EmbeddingClientRegistry;

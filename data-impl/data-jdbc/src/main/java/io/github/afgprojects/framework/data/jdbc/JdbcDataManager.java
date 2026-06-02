@@ -214,8 +214,8 @@ public class JdbcDataManager implements DataManager {
     }
 
     @Override
-    public @NonNull Object getTransactionManager() {
-        return transactionManager != null ? transactionManager : dataSource;
+    public @Nullable Object getTransactionManager() {
+        return transactionManager;
     }
 
     @Override

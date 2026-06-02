@@ -47,7 +47,7 @@ public interface EntityWriter<T> {
      * @param entities 实体集合
      * @return 保存后的实体列表
      */
-    @NonNull List<T> saveAll(@NonNull Iterable<T> entities);
+    @NonNull List<T> saveAll(@NonNull Iterable<? extends T> entities);
 
     /**
      * 插入实体

@@ -1,19 +1,19 @@
 package io.github.afgprojects.framework.ai.core.autoconfigure;
 
+import io.github.afgprojects.framework.ai.core.api.chat.AfgChatClient;
+import io.github.afgprojects.framework.ai.core.api.skill.*;
+import io.github.afgprojects.framework.ai.core.api.tool.ToolRegistry;
 import io.github.afgprojects.framework.ai.core.config.AfgAiProperties;
-// import io.github.afgprojects.framework.ai.core.api.skill.DefaultSkillRegistry;
-// import io.github.afgprojects.framework.ai.core.api.skill.DefaultSkillExecutor;
-// import io.github.afgprojects.framework.ai.core.api.skill.DefaultSkillDispatcher;
-// import io.github.afgprojects.framework.ai.core.api.skill.DefaultIntentAnalyzer;
+import io.github.afgprojects.framework.ai.core.skill.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 /**
- * AFG AI 技能系统自动配置。
+ * AFG AI 技能自动配置。
  *
  * <p>配置前缀：{@code afg.ai.skill}
  *
@@ -25,36 +25,48 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnProperty(prefix = "afg.ai.skill", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class AiSkillAutoConfiguration {
 
-    @Configuration
-    @ConditionalOnProperty(prefix = "afg.ai.skill", name = "enabled", havingValue = "true", matchIfMissing = true)
-    static class SkillConfiguration {
+    @Bean
+    @ConditionalOnMissingBean(SkillRegistry.class)
+    public DefaultSkillRegistry defaultSkillRegistry() {
+        return new DefaultSkillRegistry();
+    }
 
-        // TODO: 阶段3添加默认实现Bean
-        // @Bean
-        // @ConditionalOnMissingBean
-        // public DefaultSkillRegistry defaultSkillRegistry() {
-        //     return new DefaultSkillRegistry();
-        // }
+    @Bean
+    @ConditionalOnMissingBean(IntentAnalyzer.class)
+    @ConditionalOnProperty(prefix = "afg.ai.skill", name = "enabled", havingValue = "true")
+    public DefaultIntentAnalyzer defaultIntentAnalyzer(
+            SkillRegistry skillRegistry,
+            @Autowired(required = false) AfgChatClient chatClient) {
+        if (chatClient == null) {
+            return null;
+        }
+        return new DefaultIntentAnalyzer(skillRegistry, chatClient);
+    }
 
-        // TODO: 阶段3添加默认实现Bean
-        // @Bean
-        // @ConditionalOnMissingBean
-        // public DefaultSkillExecutor defaultSkillExecutor() {
-        //     return new DefaultSkillExecutor();
-        // }
+    @Bean
+    @ConditionalOnMissingBean(SkillExecutor.class)
+    @ConditionalOnProperty(prefix = "afg.ai.skill", name = "enabled", havingValue = "true")
+    public DefaultSkillExecutor defaultSkillExecutor(
+            SkillRegistry skillRegistry,
+            @Autowired(required = false) AfgChatClient chatClient,
+            @Autowired(required = false) ToolRegistry toolRegistry) {
+        if (chatClient == null) {
+            return null;
+        }
+        return new DefaultSkillExecutor(skillRegistry, chatClient, toolRegistry);
+    }
 
-        // TODO: 阶段3添加默认实现Bean
-        // @Bean
-        // @ConditionalOnMissingBean
-        // public DefaultSkillDispatcher defaultSkillDispatcher() {
-        //     return new DefaultSkillDispatcher();
-        // }
-
-        // TODO: 阶段3添加默认实现Bean
-        // @Bean
-        // @ConditionalOnMissingBean
-        // public DefaultIntentAnalyzer defaultIntentAnalyzer() {
-        //     return new DefaultIntentAnalyzer();
-        // }
+    @Bean
+    @ConditionalOnMissingBean(SkillDispatcher.class)
+    @ConditionalOnProperty(prefix = "afg.ai.skill", name = "enabled", havingValue = "true")
+    public DefaultSkillDispatcher defaultSkillDispatcher(
+            IntentAnalyzer intentAnalyzer,
+            SkillExecutor skillExecutor,
+            SkillRegistry skillRegistry,
+            @Autowired(required = false) AfgChatClient chatClient) {
+        if (chatClient == null || intentAnalyzer == null || skillExecutor == null) {
+            return null;
+        }
+        return new DefaultSkillDispatcher(intentAnalyzer, skillExecutor, skillRegistry, chatClient);
     }
 }

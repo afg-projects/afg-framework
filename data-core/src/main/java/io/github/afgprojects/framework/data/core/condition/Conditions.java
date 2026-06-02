@@ -36,6 +36,30 @@ public final class Conditions {
     private Conditions() {}
 
     /**
+     * 转义 LIKE 通配符
+     * <p>
+     * 将用户输入中的 {@code %}、{@code _} 和 {@code \} 转义为 {@code \\%}、{@code \\_} 和 {@code \\\\}，
+     * 防止这些字符被当作 LIKE 通配符处理。配合 SQL 中的 {@code ESCAPE '\\'} 子句使用。
+     *
+     * @param value 原始值
+     * @return 转义后的值，如果输入为 null 则返回 null
+     */
+    public static String escapeLikeWildcards(@Nullable String value) {
+        if (value == null) {
+            return null;
+        }
+        StringBuilder escaped = new StringBuilder(value.length());
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
+            if (c == '%' || c == '_' || c == '\\') {
+                escaped.append('\\');
+            }
+            escaped.append(c);
+        }
+        return escaped.toString();
+    }
+
+    /**
      * 获取字段名解析器（懒加载）
      *
      * @return 字段名解析器
@@ -173,7 +197,10 @@ public final class Conditions {
     }
 
     /**
-     * 创建 LIKE 条件
+     * 创建 LIKE 条件（包含匹配，自动转义通配符）
+     * <p>
+     * 生成 {@code %value%} 形式的 LIKE 条件，用户输入中的 {@code %} 和 {@code _}
+     * 会被自动转义，不会作为通配符处理。
      */
     public static Condition like(String field, @Nullable String value) {
         if (value == null) {
@@ -186,24 +213,56 @@ public final class Conditions {
      * 创建左 LIKE 条件（value%）
      * <p>
      * 匹配以指定值开头的字符串
+     *
+     * @deprecated 使用 {@link #likeStartsWith(String, String)} 代替，命名更直观
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public static Condition likeLeft(String field, @Nullable String value) {
-        if (value == null) {
-            return isNull(field);
-        }
-        return builder().likeLeft(field, value).build();
+        return likeStartsWith(field, value);
     }
 
     /**
      * 创建右 LIKE 条件（%value）
      * <p>
      * 匹配以指定值结尾的字符串
+     *
+     * @deprecated 使用 {@link #likeEndsWith(String, String)} 代替，命名更直观
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public static Condition likeRight(String field, @Nullable String value) {
+        return likeEndsWith(field, value);
+    }
+
+    /**
+     * 创建前缀匹配条件（value%）
+     * <p>
+     * 匹配以指定值开头的字符串
+     *
+     * @param field 字段名
+     * @param value 匹配值
+     * @return LIKE 条件
+     */
+    public static Condition likeStartsWith(String field, @Nullable String value) {
         if (value == null) {
             return isNull(field);
         }
-        return builder().likeRight(field, value).build();
+        return builder().likeStartsWith(field, value).build();
+    }
+
+    /**
+     * 创建后缀匹配条件（%value）
+     * <p>
+     * 匹配以指定值结尾的字符串
+     *
+     * @param field 字段名
+     * @param value 匹配值
+     * @return LIKE 条件
+     */
+    public static Condition likeEndsWith(String field, @Nullable String value) {
+        if (value == null) {
+            return isNull(field);
+        }
+        return builder().likeEndsWith(field, value).build();
     }
 
     /**
@@ -276,7 +335,10 @@ public final class Conditions {
     }
 
     /**
-     * 创建类型化 LIKE 条件
+     * 创建类型化 LIKE 条件（包含匹配，自动转义通配符）
+     * <p>
+     * 生成 {@code %value%} 形式的 LIKE 条件，用户输入中的 {@code %} 和 {@code _}
+     * 会被自动转义，不会作为通配符处理。
      */
     public static <T> Condition like(Class<T> entityClass, SFunction<T, String> getter, @Nullable String value) {
         if (value == null) {
@@ -289,24 +351,58 @@ public final class Conditions {
      * 创建类型化左 LIKE 条件（value%）
      * <p>
      * 匹配以指定值开头的字符串
+     *
+     * @deprecated 使用 {@link #likeStartsWith(Class, SFunction, String)} 代替，命名更直观
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public static <T> Condition likeLeft(Class<T> entityClass, SFunction<T, String> getter, @Nullable String value) {
-        if (value == null) {
-            return isNull(entityClass, getter);
-        }
-        return builder(entityClass).likeLeft(getter, value).build();
+        return likeStartsWith(entityClass, getter, value);
     }
 
     /**
      * 创建类型化右 LIKE 条件（%value）
      * <p>
      * 匹配以指定值结尾的字符串
+     *
+     * @deprecated 使用 {@link #likeEndsWith(Class, SFunction, String)} 代替，命名更直观
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     public static <T> Condition likeRight(Class<T> entityClass, SFunction<T, String> getter, @Nullable String value) {
+        return likeEndsWith(entityClass, getter, value);
+    }
+
+    /**
+     * 创建类型化前缀匹配条件（value%）
+     * <p>
+     * 匹配以指定值开头的字符串
+     *
+     * @param entityClass 实体类
+     * @param getter      Lambda 方法引用
+     * @param value       匹配值
+     * @return LIKE 条件
+     */
+    public static <T> Condition likeStartsWith(Class<T> entityClass, SFunction<T, String> getter, @Nullable String value) {
         if (value == null) {
             return isNull(entityClass, getter);
         }
-        return builder(entityClass).likeRight(getter, value).build();
+        return builder(entityClass).likeStartsWith(getter, value).build();
+    }
+
+    /**
+     * 创建类型化后缀匹配条件（%value）
+     * <p>
+     * 匹配以指定值结尾的字符串
+     *
+     * @param entityClass 实体类
+     * @param getter      Lambda 方法引用
+     * @param value       匹配值
+     * @return LIKE 条件
+     */
+    public static <T> Condition likeEndsWith(Class<T> entityClass, SFunction<T, String> getter, @Nullable String value) {
+        if (value == null) {
+            return isNull(entityClass, getter);
+        }
+        return builder(entityClass).likeEndsWith(getter, value).build();
     }
 
     /**
@@ -427,36 +523,52 @@ public final class Conditions {
         @Override
         public ConditionBuilder like(String field, @Nullable String value) {
             String v = value;
-            if (v != null && !v.contains("%")) {
-                v = "%" + v + "%";
+            if (v != null) {
+                v = "%" + escapeLikeWildcards(v) + "%";
             }
             criteria.add(new Criterion(field, Operator.LIKE, v, null, null));
             return this;
         }
 
         @Override
+        @Deprecated(since = "1.1.0", forRemoval = true)
         public ConditionBuilder likeLeft(String field, @Nullable String value) {
+            return likeStartsWith(field, value);
+        }
+
+        @Override
+        @Deprecated(since = "1.1.0", forRemoval = true)
+        public ConditionBuilder likeRight(String field, @Nullable String value) {
+            return likeEndsWith(field, value);
+        }
+
+        @Override
+        public ConditionBuilder likeStartsWith(String field, @Nullable String value) {
             String v = value;
-            if (v != null && !v.endsWith("%")) {
-                v = v + "%";
+            if (v != null) {
+                v = escapeLikeWildcards(v) + "%";
             }
-            criteria.add(new Criterion(field, Operator.LIKE_LEFT, v, null, null));
+            criteria.add(new Criterion(field, Operator.LIKE_STARTS_WITH, v, null, null));
             return this;
         }
 
         @Override
-        public ConditionBuilder likeRight(String field, @Nullable String value) {
+        public ConditionBuilder likeEndsWith(String field, @Nullable String value) {
             String v = value;
-            if (v != null && !v.startsWith("%")) {
-                v = "%" + v;
+            if (v != null) {
+                v = "%" + escapeLikeWildcards(v);
             }
-            criteria.add(new Criterion(field, Operator.LIKE_RIGHT, v, null, null));
+            criteria.add(new Criterion(field, Operator.LIKE_ENDS_WITH, v, null, null));
             return this;
         }
 
         @Override
         public ConditionBuilder notLike(String field, @Nullable String value) {
-            criteria.add(new Criterion(field, Operator.NOT_LIKE, value, null, null));
+            String v = value;
+            if (v != null) {
+                v = "%" + escapeLikeWildcards(v) + "%";
+            }
+            criteria.add(new Criterion(field, Operator.NOT_LIKE, v, null, null));
             return this;
         }
 
@@ -548,12 +660,18 @@ public final class Conditions {
 
         @Override
         public <R> TypedConditionBuilder<T> eq(SFunction<T, R> getter, @Nullable Object value) {
+            String fieldName = getFieldName(getter);
+            Class<?> fieldType = resolveFieldType(getter);
+            TypedConditionBuilder.checkFieldType(fieldName, fieldType, value);
             delegate.eq(resolveColumnName(getter), value);
             return this;
         }
 
         @Override
         public <R> TypedConditionBuilder<T> ne(SFunction<T, R> getter, @Nullable Object value) {
+            String fieldName = getFieldName(getter);
+            Class<?> fieldType = resolveFieldType(getter);
+            TypedConditionBuilder.checkFieldType(fieldName, fieldType, value);
             delegate.ne(resolveColumnName(getter), value);
             return this;
         }
@@ -589,14 +707,26 @@ public final class Conditions {
         }
 
         @Override
+        @Deprecated(since = "1.1.0", forRemoval = true)
         public TypedConditionBuilder<T> likeLeft(SFunction<T, String> getter, @Nullable String value) {
-            delegate.likeLeft(resolveColumnName(getter), value);
+            return likeStartsWith(getter, value);
+        }
+
+        @Override
+        @Deprecated(since = "1.1.0", forRemoval = true)
+        public TypedConditionBuilder<T> likeRight(SFunction<T, String> getter, @Nullable String value) {
+            return likeEndsWith(getter, value);
+        }
+
+        @Override
+        public TypedConditionBuilder<T> likeStartsWith(SFunction<T, String> getter, @Nullable String value) {
+            delegate.likeStartsWith(resolveColumnName(getter), value);
             return this;
         }
 
         @Override
-        public TypedConditionBuilder<T> likeRight(SFunction<T, String> getter, @Nullable String value) {
-            delegate.likeRight(resolveColumnName(getter), value);
+        public TypedConditionBuilder<T> likeEndsWith(SFunction<T, String> getter, @Nullable String value) {
+            delegate.likeEndsWith(resolveColumnName(getter), value);
             return this;
         }
 
@@ -667,6 +797,59 @@ public final class Conditions {
          */
         private <R> String resolveColumnName(SFunction<T, R> getter) {
             return getFieldNameResolver().resolveColumnName(entityClass, getter);
+        }
+
+        /**
+         * 从 Lambda 方法引用中解析字段的返回类型
+         * <p>
+         * 通过 SerializedLambda 获取方法签名，解析返回类型的 JVM 描述符。
+         * 如果无法解析则返回 null（类型检查将被跳过）。
+         *
+         * @param getter Lambda 方法引用
+         * @return 字段返回类型，可能为 null
+         */
+        private <R> Class<?> resolveFieldType(SFunction<T, R> getter) {
+            try {
+                Method writeReplace = getter.getClass().getDeclaredMethod("writeReplace");
+                writeReplace.setAccessible(true);
+                SerializedLambda lambda = (SerializedLambda) writeReplace.invoke(getter);
+                String methodSignature = lambda.getImplMethodSignature();
+                // 方法签名格式：(参数类型)返回类型
+                String returnTypeDesc = methodSignature.substring(methodSignature.indexOf(')') + 1);
+                return resolveTypeFromDescriptor(returnTypeDesc);
+            } catch (Exception e) {
+                // 降级：无法获取类型信息时不检查
+                return null;
+            }
+        }
+
+        /**
+         * 从 JVM 类型描述符解析为 Class 对象
+         *
+         * @param descriptor JVM 类型描述符（如 "Ljava/lang/String;"、"I"）
+         * @return 对应的 Class 对象，可能为 null
+         */
+        private static Class<?> resolveTypeFromDescriptor(String descriptor) {
+            return switch (descriptor.charAt(0)) {
+                case 'Z' -> boolean.class;
+                case 'B' -> byte.class;
+                case 'C' -> char.class;
+                case 'S' -> short.class;
+                case 'I' -> int.class;
+                case 'J' -> long.class;
+                case 'F' -> float.class;
+                case 'D' -> double.class;
+                case 'V' -> void.class;
+                case 'L' -> {
+                    String className = descriptor.substring(1, descriptor.length() - 1).replace('/', '.');
+                    try {
+                        yield Class.forName(className);
+                    } catch (ClassNotFoundException e) {
+                        yield null;
+                    }
+                }
+                default -> null;
+            };
         }
     }
 }

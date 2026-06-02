@@ -25,6 +25,9 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * <p>支持通过 SPI 扩展自定义加载器。
  *
+ * <p>异常会被缓存，避免对同一个实体类重复执行失败的加载操作。
+ * 可通过 {@link #clear()} 清除缓存（包括异常缓存）以重试。
+ *
  * <pre>
  * 使用示例：
  * {@code
@@ -46,8 +49,15 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class EntityMetadataCache {
 
-    private final ConcurrentHashMap<Class<?>, EntityMetadata<?>> cache = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Class<?>, Object> cache = new ConcurrentHashMap<>();
     private final List<EntityMetadataLoader> loaders;
+
+    /**
+     * 异常缓存标记对象
+     * <p>
+     * 当元数据加载失败时，缓存此标记以避免重复重试。
+     */
+    private static final Object FAILED_METADATA = new Object();
 
     /**
      * 创建默认缓存实例
@@ -100,31 +110,44 @@ public class EntityMetadataCache {
      */
     @SuppressWarnings("unchecked")
     public <T> EntityMetadata<T> get(Class<T> entityClass) {
-        return (EntityMetadata<T>) cache.computeIfAbsent(entityClass, this::resolveMetadata);
+        Object cached = cache.computeIfAbsent(entityClass, this::resolveMetadata);
+        if (cached == FAILED_METADATA) {
+            // 返回空元数据作为降级，但异常已被缓存，不会重复尝试加载
+            return new EmptyEntityMetadata<>(entityClass);
+        }
+        return (EntityMetadata<T>) cached;
     }
 
     /**
      * 解析实体元数据
      * <p>
      * 按优先级尝试加载器链，返回第一个成功加载的元数据。
+     * 如果所有加载器都失败，缓存 FAILED_METADATA 标记以避免重复重试。
      */
-    private <T> EntityMetadata<T> resolveMetadata(Class<T> entityClass) {
+    private <T> Object resolveMetadata(Class<T> entityClass) {
         // 按优先级尝试每个加载器
         for (EntityMetadataLoader loader : loaders) {
             if (loader.supports(entityClass)) {
-                EntityMetadata<T> metadata = loader.load(entityClass);
-                if (metadata != null) {
-                    return metadata;
+                try {
+                    EntityMetadata<T> metadata = loader.load(entityClass);
+                    if (metadata != null) {
+                        return metadata;
+                    }
+                } catch (Exception e) {
+                    // 加载器抛出异常，继续尝试下一个加载器
+                    // 异常不在此处缓存，因为后续加载器可能成功
                 }
             }
         }
 
-        // 最终降级：返回空元数据
-        return new EmptyEntityMetadata<>(entityClass);
+        // 所有加载器都失败，缓存 FAILED_METADATA 标记
+        return FAILED_METADATA;
     }
 
     /**
      * 清空缓存
+     * <p>
+     * 同时清除元数据缓存和异常缓存，允许重新尝试加载。
      */
     public void clear() {
         cache.clear();

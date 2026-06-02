@@ -296,42 +296,10 @@ public class JdbcProjectedQuery<T, R> implements ProjectedQuery<T, R> {
     }
 
     private String buildOrderByClause(Dialect dialect, EntityMetadata<T> metadata) {
-        if (sort == null || !sort.isSorted()) {
-            return "";
-        }
-        StringBuilder sb = new StringBuilder();
-        for (Sort.Order order : sort.getOrders()) {
-            if (!sb.isEmpty()) {
-                sb.append(", ");
-            }
-            String fieldName = order.getProperty();
-            var fieldMetadata = metadata.getField(fieldName);
-            String columnName = fieldMetadata != null ? fieldMetadata.getColumnName() : fieldName;
-            sb.append(dialect.quoteIdentifier(columnName));
-            if (order.isDescending()) {
-                sb.append(" DESC");
-            }
-        }
-        return sb.toString();
+        return OrderByHelper.buildOrderByClause(sort, dialect, metadata);
     }
 
     private String buildOrderByFromPageRequest(Dialect dialect, EntityMetadata<T> metadata, PageRequest pageRequest) {
-        if (pageRequest.sort() == null || !pageRequest.sort().isSorted()) {
-            return "";
-        }
-        StringBuilder sb = new StringBuilder();
-        for (Sort.Order order : pageRequest.sort().getOrders()) {
-            if (!sb.isEmpty()) {
-                sb.append(", ");
-            }
-            String fieldName = order.getProperty();
-            var fieldMetadata = metadata.getField(fieldName);
-            String columnName = fieldMetadata != null ? fieldMetadata.getColumnName() : fieldName;
-            sb.append(dialect.quoteIdentifier(columnName));
-            if (order.isDescending()) {
-                sb.append(" DESC");
-            }
-        }
-        return sb.toString();
+        return OrderByHelper.buildOrderByFromPageRequest(pageRequest, dialect, metadata);
     }
 }

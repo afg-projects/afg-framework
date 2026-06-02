@@ -71,7 +71,7 @@ public class DefaultModelRoutingService {
         } else {
             log.debug("Routing chat request to default model");
         }
-        return chatClientRegistry.getOrDefault(modelName);
+        return chatClientRegistry.get(modelName).orElseGet(chatClientRegistry::getDefault);
     }
 
     /**
@@ -89,7 +89,7 @@ public class DefaultModelRoutingService {
         } else {
             log.debug("Routing embedding request to default model");
         }
-        return embeddingClientRegistry.getOrDefault(modelName);
+        return embeddingClientRegistry.get(modelName).orElseGet(embeddingClientRegistry::getDefault);
     }
 
     /**
