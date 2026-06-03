@@ -1,7 +1,7 @@
 package io.github.afgprojects.framework.ai.langchain4j.model;
 
-import dev.langchain4j.model.chat.ChatLanguageModel;
-import dev.langchain4j.model.chat.StreamingChatLanguageModel;
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import io.github.afgprojects.framework.ai.core.api.model.DefaultModelInfo;
 import io.github.afgprojects.framework.ai.core.api.model.ModelInfo;
@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * LangChain4j 模型注册表实现
  *
- * <p>自动检测 LangChain4j 的 {@link ChatLanguageModel}、{@link StreamingChatLanguageModel}
+ * <p>自动检测 LangChain4j 的 {@link ChatModel}、{@link StreamingChatModel}
  * 和 {@link EmbeddingModel} Bean，并将其注册到 AFG 框架的 {@link ModelRegistry} 中。
  *
  * @author afg-projects
@@ -30,25 +30,25 @@ public class Lc4jModelRegistry implements ModelRegistry {
     private final Map<ModelType, String> defaults = new ConcurrentHashMap<>();
 
     /**
-     * 注册 ChatLanguageModel
+     * 注册 ChatModel
      *
-     * @param name            模型名称
-     * @param chatLanguageModel ChatLanguageModel 实例
-     * @param provider        提供商（如 openai, anthropic, ollama）
+     * @param name      模型名称
+     * @param chatModel ChatModel 实例
+     * @param provider  提供商（如 openai, anthropic, ollama）
      */
-    public void registerChatModel(@NonNull String name, @NonNull ChatLanguageModel chatLanguageModel, @Nullable String provider) {
+    public void registerChatModel(@NonNull String name, @NonNull ChatModel chatModel, @Nullable String provider) {
         var info = DefaultModelInfo.of(name, ModelType.CHAT, provider);
         models.put(name, info);
     }
 
     /**
-     * 注册 StreamingChatLanguageModel
+     * 注册 StreamingChatModel
      *
-     * @param name                     模型名称
-     * @param streamingChatLanguageModel StreamingChatLanguageModel 实例
-     * @param provider                 提供商
+     * @param name              模型名称
+     * @param streamingChatModel StreamingChatModel 实例
+     * @param provider          提供商
      */
-    public void registerStreamingChatModel(@NonNull String name, @NonNull StreamingChatLanguageModel streamingChatLanguageModel, @Nullable String provider) {
+    public void registerStreamingChatModel(@NonNull String name, @NonNull StreamingChatModel streamingChatModel, @Nullable String provider) {
         var info = new DefaultModelInfo(
             name,
             ModelType.CHAT,

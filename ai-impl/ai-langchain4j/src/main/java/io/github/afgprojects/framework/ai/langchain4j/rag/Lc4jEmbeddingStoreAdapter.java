@@ -70,12 +70,22 @@ public class Lc4jEmbeddingStoreAdapter implements EmbeddingStore<TextSegment> {
 
     @Override
     public List<String> addAll(@NonNull List<Embedding> embeddings) {
-        return EmbeddingStore.super.addAll(embeddings);
+        var ids = new java.util.ArrayList<String>(embeddings.size());
+        for (Embedding embedding : embeddings) {
+            ids.add(add(embedding));
+        }
+        return ids;
     }
 
-    @Override
-    public void addAll(@NonNull List<String> ids, @NonNull List<Embedding> embeddings) {
-        for (int i = 0; i < ids.size(); i++) {
+    /**
+     * 批量添加嵌入（带 ID，无文本段）
+     * <p>
+     * 注意：LangChain4j 1.15.1 的 EmbeddingStore 接口没有 addAll(List&lt;String&gt;, List&lt;Embedding&gt;) 方法，
+     * 只有 addAll(List&lt;String&gt;, List&lt;Embedding&gt;, List&lt;Embedded&gt;) 方法。
+     * 此方法提供便捷实现。
+     */
+    public void addAllWithIds(@NonNull List<String> ids, @NonNull List<Embedding> embeddings) {
+        for (int i = 0; i < ids.size() && i < embeddings.size(); i++) {
             addInternal(ids.get(i), embeddings.get(i), null);
         }
     }
@@ -103,14 +113,12 @@ public class Lc4jEmbeddingStoreAdapter implements EmbeddingStore<TextSegment> {
             queryEmbedding.add((double) v);
         }
 
-        // 使用 VectorStore 的 search 方法
-        // 注意：VectorStore.search 接受文本查询，这里需要先通过 embeddingService
-        // 但 EmbeddingSearchRequest 已经提供了 queryEmbedding，所以直接使用向量搜索
-        // 简化实现：使用 VectorStore 的 search 方法
+        // minScore() 返回原始 double 类型，默认值为 0.0
+        double minScore = request.minScore();
         List<Document> results = vectorStore.search(
             "", // VectorStore.search 需要 query text，此处为简化
             request.maxResults(),
-            request.minScore() != null ? request.minScore() : 0.0
+            minScore
         );
 
         var matches = new java.util.ArrayList<EmbeddingMatch<TextSegment>>();
@@ -146,7 +154,7 @@ public class Lc4jEmbeddingStoreAdapter implements EmbeddingStore<TextSegment> {
     private Map<String, Object> fromLc4jMetadata(dev.langchain4j.data.document.Metadata lc4jMetadata) {
         var result = new HashMap<String, Object>();
         if (lc4jMetadata != null) {
-            lc4jMetadata.asMap().forEach(result::put);
+            lc4jMetadata.toMap().forEach(result::put);
         }
         return result;
     }

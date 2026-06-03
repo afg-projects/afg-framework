@@ -3,10 +3,8 @@ package io.github.afgprojects.framework.ai.langchain4j.internal;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
-import dev.langchain4j.data.message.AiMessage as Lc4jAiMessage;
 import dev.langchain4j.data.message.ToolExecutionResultMessage;
 import io.github.afgprojects.framework.ai.core.api.chat.AiMessage;
-import io.github.afgprojects.framework.ai.core.api.chat.AiRole;
 import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
@@ -39,7 +37,7 @@ public final class Lc4jMessageConverter {
                 }
                 yield UserMessage.from(msg.content());
             }
-            case ASSISTANT -> Lc4jAiMessage.from(msg.content());
+            case ASSISTANT -> dev.langchain4j.data.message.AiMessage.from(msg.content());
             case TOOL -> ToolExecutionResultMessage.from(
                 // Tool 消息需要 toolExecutionRequestId，从 metadata 中获取
                 (String) msg.metadata().getOrDefault("toolExecutionRequestId", "unknown"),
@@ -59,7 +57,7 @@ public final class Lc4jMessageConverter {
         if (msg instanceof UserMessage userMsg) {
             return AiMessage.user(userMsg.singleText());
         }
-        if (msg instanceof Lc4jAiMessage aiMsg) {
+        if (msg instanceof dev.langchain4j.data.message.AiMessage aiMsg) {
             if (aiMsg.hasToolExecutionRequests()) {
                 // AI 消息包含工具调用请求
                 return AiMessage.assistant(aiMsg.text(), Map.of(
@@ -74,8 +72,9 @@ public final class Lc4jMessageConverter {
                 "toolExecutionRequestId", toolMsg.id()
             ));
         }
-        // 降级处理
-        return AiMessage.assistant(msg.text());
+        // 降级处理：对于未知类型的 ChatMessage，返回空内容的助手消息
+        // ChatMessage 接口只有 type() 方法，没有通用的 text() 方法
+        return AiMessage.assistant("");
     }
 
     /**
