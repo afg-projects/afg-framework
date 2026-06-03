@@ -3,3 +3,4 @@ io.github.afgprojects.framework.ai.spring.autoconfigure.SpringAiAdvisorAutoConfi
 io.github.afgprojects.framework.ai.spring.autoconfigure.SpringAiMemoryAutoConfiguration
 io.github.afgprojects.framework.ai.spring.autoconfigure.SpringAiModelAutoConfiguration
 io.github.afgprojects.framework.ai.spring.autoconfigure.SpringAiObservationAutoConfiguration
+io.github.afgprojects.framework.ai.spring.autoconfigure.SpringAiRagAutoConfiguration
