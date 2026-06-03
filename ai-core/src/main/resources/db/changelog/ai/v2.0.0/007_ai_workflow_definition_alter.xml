@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="v2.0.0-007-ai-workflow-definition-alter" author="afg">
+        <!-- 添加 deleted 列（软删除标记） -->
+        <addColumn tableName="ai_workflow_definition">
+            <column name="deleted" type="BOOLEAN" defaultValueBoolean="false" remarks="删除标记">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <!-- 添加 tenant_id 列（多租户） -->
+        <addColumn tableName="ai_workflow_definition">
+            <column name="tenant_id" type="VARCHAR(64)" remarks="租户ID"/>
+        </addColumn>
+
+        <!-- 重命名 create_time → created_at -->
+        <renameColumn tableName="ai_workflow_definition"
+                      oldColumnName="create_time"
+                      newColumnName="created_at"
+                      columnDataType="TIMESTAMP"/>
+
+        <!-- 重命名 update_time → updated_at -->
+        <renameColumn tableName="ai_workflow_definition"
+                      oldColumnName="update_time"
+                      newColumnName="updated_at"
+                      columnDataType="TIMESTAMP"/>
+    </changeSet>
+
+</databaseChangeLog>

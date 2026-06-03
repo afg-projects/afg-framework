@@ -31,5 +31,7 @@
     <include file="v2.0.0/004_ai_knowledge_base_alter.xml" relativeToChangelogFile="true"/>
     <include file="v2.0.0/005_ai_document_alter.xml" relativeToChangelogFile="true"/>
     <include file="v2.0.0/006_ai_document_chunk_alter.xml" relativeToChangelogFile="true"/>
+    <include file="v2.0.0/007_ai_workflow_definition_alter.xml" relativeToChangelogFile="true"/>
+    <include file="v2.0.0/008_ai_workflow_execution_alter.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>

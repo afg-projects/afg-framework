@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="v2.0.0-008-ai-workflow-execution-alter" author="afg">
+        <!-- 重命名 create_time → created_at -->
+        <renameColumn tableName="ai_workflow_execution"
+                      oldColumnName="create_time"
+                      newColumnName="created_at"
+                      columnDataType="TIMESTAMP"/>
+
+        <!-- 重命名 update_time → updated_at -->
+        <renameColumn tableName="ai_workflow_execution"
+                      oldColumnName="update_time"
+                      newColumnName="updated_at"
+                      columnDataType="TIMESTAMP"/>
+    </changeSet>
+
+</databaseChangeLog>
