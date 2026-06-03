@@ -6,6 +6,7 @@ import io.github.afgprojects.framework.security.auth.api.DeptController;
 import io.github.afgprojects.framework.security.auth.datascope.service.DataScopeResolverImpl;
 import io.github.afgprojects.framework.security.auth.datascope.service.JdbcDataScopeService;
 import io.github.afgprojects.framework.security.auth.datascope.service.JdbcDeptService;
+import io.github.afgprojects.framework.security.auth.properties.AuthSecurityProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;

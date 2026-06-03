@@ -3,7 +3,6 @@ package io.github.afgprojects.framework.data.jdbc.cache;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -56,31 +55,12 @@ public interface EntityCache<T> {
     void put(@NonNull Object id, @NonNull T entity);
 
     /**
-     * 缓存实体（指定 TTL）
-     *
-     * @param id        实体 ID
-     * @param entity    实体对象
-     * @param ttlMillis 过期时间（毫秒）
-     */
-    void put(@NonNull Object id, @NonNull T entity, long ttlMillis);
-
-    /**
      * 缓存 null 标记（防止缓存穿透）
      *
      * @param id 实体 ID
      */
     default void putNull(@NonNull Object id) {
         // 默认实现：子类可覆盖以支持 null 标记
-    }
-
-    /**
-     * 缓存 null 标记（指定 TTL）
-     *
-     * @param id        实体 ID
-     * @param ttlMillis 过期时间（毫秒）
-     */
-    default void putNull(@NonNull Object id, long ttlMillis) {
-        putNull(id);
     }
 
     /**
@@ -158,22 +138,4 @@ public interface EntityCache<T> {
      * @return 缓存名称
      */
     @NonNull String getCacheName();
-
-    /**
-     * 获取所有缓存的 ID
-     *
-     * @return ID 集合
-     */
-    default Set<Object> keys() {
-        throw new UnsupportedOperationException("keys() not supported");
-    }
-
-    /**
-     * 获取所有缓存的实体
-     *
-     * @return 实体集合
-     */
-    default Collection<T> values() {
-        throw new UnsupportedOperationException("values() not supported");
-    }
 }

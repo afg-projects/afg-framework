@@ -6,17 +6,19 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import io.github.afgprojects.framework.core.config.AfgCoreProperties;
+import io.github.afgprojects.framework.core.properties.AfgCoreProperties;
 import io.github.afgprojects.framework.core.cache.exception.CacheException;
 import io.github.afgprojects.framework.core.cache.spi.CacheStorageProvider;
 import io.github.afgprojects.framework.core.cache.spi.DistributedCacheStorage;
 import io.github.afgprojects.framework.core.cache.spi.LocalDistributedCacheStorage;
+import io.github.afgprojects.framework.core.properties.cache.AfgCoreCacheProperties;
+import io.github.afgprojects.framework.core.properties.cache.CacheType;
 
 /**
  * 默认缓存管理器
  * <p>
  * 实现 {@link CacheManager} 接口，统一管理缓存实例的创建、获取和销毁。
- * 默认支持本地缓存，分布式缓存和多级缓存需要配置 RedissonClient。
+ * 默认支持本地缓存，分布式缓存和多级缓存需要配置 CacheStorageProvider。
  * </p>
  * <p>
  * 注意：分布式缓存和多级缓存功能需要引入 afg-redis 模块。
@@ -35,14 +37,6 @@ public class DefaultCacheManager implements CacheManager {
     private final AfgCoreProperties properties;
 
     /**
-     * Redisson 客户端（可选，用于分布式缓存）
-     * 通过 afg-redis 模块注入
-     * @deprecated 使用 {@link #storageProvider} 替代
-     */
-    @Deprecated(since = "1.0.0", forRemoval = true)
-    private volatile @Nullable Object redissonClient;
-
-    /**
      * 缓存存储提供者（可选，用于分布式缓存）
      */
     private volatile @Nullable CacheStorageProvider storageProvider;
@@ -54,29 +48,6 @@ public class DefaultCacheManager implements CacheManager {
      */
     public DefaultCacheManager(@NonNull AfgCoreProperties properties) {
         this.properties = properties;
-    }
-
-    /**
-     * 设置 Redisson 客户端（由 afg-redis 模块调用）
-     *
-     * @param redissonClient Redisson 客户端
-     * @deprecated 使用 {@link #setCacheStorageProvider(CacheStorageProvider)} 替代
-     */
-    @Deprecated(since = "1.0.0", forRemoval = true)
-    public void setRedissonClient(@Nullable Object redissonClient) {
-        this.redissonClient = redissonClient;
-    }
-
-    /**
-     * 获取 Redisson 客户端
-     *
-     * @return Redisson 客户端，可能为 null
-     * @deprecated 使用 {@link #getCacheStorageProvider()} 替代
-     */
-    @Deprecated(since = "1.0.0", forRemoval = true)
-    @Nullable
-    public Object getRedissonClient() {
-        return redissonClient;
     }
 
     /**
@@ -144,7 +115,7 @@ public class DefaultCacheManager implements CacheManager {
      */
     @SuppressWarnings("unchecked")
     @NonNull
-    public <V> AfgCache<V> getCache(@NonNull String cacheName, AfgCoreProperties.CacheConfig.CacheType type) {
+    public <V> AfgCache<V> getCache(@NonNull String cacheName, CacheType type) {
         String key = cacheName + ":" + type.name();
         return (AfgCache<V>) cacheMap.computeIfAbsent(key, k -> createCache(cacheName, type));
     }
@@ -158,7 +129,7 @@ public class DefaultCacheManager implements CacheManager {
      */
     @NonNull
     public <V> LocalCache<V> getLocalCache(@NonNull String cacheName) {
-        AfgCache<V> cache = getCache(cacheName, AfgCoreProperties.CacheConfig.CacheType.LOCAL);
+        AfgCache<V> cache = getCache(cacheName, CacheType.LOCAL);
         if (cache instanceof LocalCache) {
             return (LocalCache<V>) cache;
         }
@@ -177,10 +148,10 @@ public class DefaultCacheManager implements CacheManager {
      */
     @NonNull
     public <V> AfgCache<V> getDistributedCache(@NonNull String cacheName) {
-        if (storageProvider == null && redissonClient == null) {
+        if (storageProvider == null) {
             throw new CacheException("CacheStorageProvider is not configured. Please add afg-redis module dependency.");
         }
-        return getCache(cacheName, AfgCoreProperties.CacheConfig.CacheType.DISTRIBUTED);
+        return getCache(cacheName, CacheType.DISTRIBUTED);
     }
 
     /**
@@ -195,10 +166,10 @@ public class DefaultCacheManager implements CacheManager {
      */
     @NonNull
     public <V> AfgCache<V> getMultiLevelCache(@NonNull String cacheName) {
-        if (storageProvider == null && redissonClient == null) {
+        if (storageProvider == null) {
             throw new CacheException("CacheStorageProvider is not configured. Please add afg-redis module dependency.");
         }
-        return getCache(cacheName, AfgCoreProperties.CacheConfig.CacheType.MULTI_LEVEL);
+        return getCache(cacheName, CacheType.MULTI_LEVEL);
     }
 
     /**
@@ -220,7 +191,7 @@ public class DefaultCacheManager implements CacheManager {
      * @return 缓存实例
      */
     @NonNull
-    private AfgCache<?> createCache(@NonNull String cacheName, AfgCoreProperties.CacheConfig.CacheType type) {
+    private AfgCache<?> createCache(@NonNull String cacheName, CacheType type) {
         CacheConfig config = getCacheConfig(cacheName);
 
         switch (type) {
@@ -244,10 +215,10 @@ public class DefaultCacheManager implements CacheManager {
      */
     @NonNull
     private AfgCache<?> createDistributedCache(
-            @NonNull String cacheName, CacheConfig config, AfgCoreProperties.CacheConfig.CacheType type) {
+            @NonNull String cacheName, CacheConfig config, CacheType type) {
         DistributedCacheStorage storage = getOrCreateStorage(cacheName, cacheName + ":");
 
-        if (type == AfgCoreProperties.CacheConfig.CacheType.MULTI_LEVEL) {
+        if (type == CacheType.MULTI_LEVEL) {
             // 多级缓存：本地 + 分布式
             return MultiLevelCache.create(cacheName, config, storage);
         } else {
@@ -264,7 +235,7 @@ public class DefaultCacheManager implements CacheManager {
      */
     private CacheConfig getCacheConfig(String cacheName) {
         // 使用 AfgCoreProperties 中的缓存配置创建 CacheConfig
-        AfgCoreProperties.CacheConfig cacheProps = properties.getCache();
+        AfgCoreCacheProperties cacheProps = properties.getCache();
         return CacheConfig.defaultConfig()
                 .defaultTtl(cacheProps.getDefaultTtl())
                 .cacheNull(cacheProps.isCacheNull())

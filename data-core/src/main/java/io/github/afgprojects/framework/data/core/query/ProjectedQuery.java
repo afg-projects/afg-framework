@@ -76,6 +76,30 @@ public interface ProjectedQuery<T, R> extends BaseQuery<ProjectedQuery<T, R>, R>
     @NonNull ProjectedQuery<T, R> where(@NonNull Condition condition);
 
     /**
+     * 追加 AND 条件
+     * <p>
+     * 在已有条件基础上追加 AND 条件。
+     * 如果尚未设置条件，等同于 {@code where(condition)}。
+     *
+     * @param condition 要追加的条件
+     * @return 查询构建器（支持链式调用）
+     */
+    @Override
+    @NonNull ProjectedQuery<T, R> and(@NonNull Condition condition);
+
+    /**
+     * 追加 OR 条件
+     * <p>
+     * 在已有条件基础上追加 OR 条件。
+     * 如果尚未设置条件，等同于 {@code where(condition)}。
+     *
+     * @param condition 要追加的条件
+     * @return 查询构建器（支持链式调用）
+     */
+    @Override
+    @NonNull ProjectedQuery<T, R> or(@NonNull Condition condition);
+
+    /**
      * 设置排序
      *
      * @param sort 排序规则

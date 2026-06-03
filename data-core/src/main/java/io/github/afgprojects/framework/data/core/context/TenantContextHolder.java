@@ -18,14 +18,6 @@ import org.jspecify.annotations.Nullable;
  * <p>
  * <b>使用场景：</b>异步执行、线程池、定时任务等需要跨线程传播租户上下文的场景。
  * <p>
- * <b>与 ThreadLocalTenantContext 的区别：</b>
- * <ul>
- *   <li>{@link io.github.afgprojects.framework.data.core.tenant.ThreadLocalTenantContext}：
- *       简单实现，仅提供基本的 ThreadLocal 存储，适用于单线程场景</li>
- *   <li>{@code TenantContextHolder}：高级实现，支持快照/恢复和跨线程传播，
- *       适用于异步执行、线程池等场景</li>
- * </ul>
- * <p>
  * <b>使用示例：</b>
  * <pre>{@code
  * // 在主线程中创建快照

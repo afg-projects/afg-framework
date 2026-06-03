@@ -7,6 +7,7 @@ import io.github.afgprojects.framework.security.auth.audit.alert.LogAlertChannel
 import io.github.afgprojects.framework.security.auth.audit.service.DefaultAlertService;
 import io.github.afgprojects.framework.security.auth.audit.service.JdbcSecurityEventService;
 import io.github.afgprojects.framework.security.auth.audit.service.NoOpSecurityEventService;
+import io.github.afgprojects.framework.security.auth.properties.AuthSecurityProperties;
 import io.github.afgprojects.framework.security.core.audit.AlertService;
 import io.github.afgprojects.framework.security.core.audit.SecurityEventService;
 import lombok.extern.slf4j.Slf4j;

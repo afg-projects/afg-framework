@@ -1,6 +1,8 @@
 package io.github.afgprojects.framework.security.auth.autoconfigure;
 
 import lombok.extern.slf4j.Slf4j;
+import io.github.afgprojects.framework.security.auth.properties.AuthSecurityProperties;
+import io.github.afgprojects.framework.security.auth.properties.token.TokenConfig;
 import io.github.afgprojects.framework.security.core.authentication.AfgUserDetailsService;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -33,7 +35,7 @@ public class SecurityConfigValidator implements ApplicationRunner {
         log.info("Validating auth-server security configuration...");
 
         // 验证 Token 配置
-        AuthSecurityProperties.TokenConfig tokenConfig = properties.getToken();
+        TokenConfig tokenConfig = properties.getToken();
         if (tokenConfig.getIssuer() == null || tokenConfig.getIssuer().isBlank()) {
             throw new IllegalStateException(
                 "认证服务器需要配置 afg.security.auth-server.token.issuer\n" +

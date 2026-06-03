@@ -1,6 +1,8 @@
 package io.github.afgprojects.framework.security.resource.autoconfigure;
 
 import lombok.extern.slf4j.Slf4j;
+import io.github.afgprojects.framework.security.resource.properties.ResourceSecurityProperties;
+import io.github.afgprojects.framework.security.resource.properties.jwt.ResourceSecurityJwtProperties;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -30,7 +32,7 @@ public class ResourceSecurityConfigValidator implements ApplicationRunner {
 
         boolean hasAuthServer = isAuthServerPresent();
 
-        ResourceSecurityProperties.JwtConfig jwtConfig = properties.getJwt();
+        ResourceSecurityJwtProperties jwtConfig = properties.getJwt();
 
         if (!hasAuthServer && jwtConfig.isEnabled()) {
             if ((jwtConfig.getJwkSetUri() == null || jwtConfig.getJwkSetUri().isBlank())

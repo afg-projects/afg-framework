@@ -80,6 +80,28 @@ public class JdbcProjectedQuery<T, R> implements ProjectedQuery<T, R> {
     }
 
     @Override
+    public @NonNull ProjectedQuery<T, R> and(@NonNull Condition condition) {
+        if (this.condition.isEmpty()) {
+            this.condition = condition;
+        } else {
+            this.condition = this.condition.and(condition);
+        }
+        entityQuery.and(condition);
+        return this;
+    }
+
+    @Override
+    public @NonNull ProjectedQuery<T, R> or(@NonNull Condition condition) {
+        if (this.condition.isEmpty()) {
+            this.condition = condition;
+        } else {
+            this.condition = this.condition.or(condition);
+        }
+        entityQuery.or(condition);
+        return this;
+    }
+
+    @Override
     public @NonNull ProjectedQuery<T, R> orderBy(@NonNull Sort sort) {
         this.sort = sort;
         entityQuery.orderBy(sort);
@@ -239,12 +261,14 @@ public class JdbcProjectedQuery<T, R> implements ProjectedQuery<T, R> {
         }
 
         if (!includeDeleted && proxy.isSoftDeletable()) {
-            if (!whereClause.isEmpty()) {
-                whereClause += " AND ";
-            }
-            whereClause += proxy.getSoftDeleteStrategy() == SoftDeleteStrategy.TIMESTAMP
+            String filter = proxy.getSoftDeleteStrategy() == SoftDeleteStrategy.TIMESTAMP
                     ? "deleted_at IS NULL"
                     : "deleted = false";
+            if (!whereClause.isEmpty()) {
+                whereClause += " AND " + filter;
+            } else {
+                whereClause += filter;
+            }
         }
 
         String whereSql = !whereClause.isEmpty() ? " WHERE " + whereClause : "";
@@ -289,10 +313,7 @@ public class JdbcProjectedQuery<T, R> implements ProjectedQuery<T, R> {
     }
 
     private String appendSoftDeleteFilter(String sql, boolean hasWhere, JdbcEntityProxy<T> proxy) {
-        String filter = proxy.getSoftDeleteStrategy() == SoftDeleteStrategy.TIMESTAMP
-                ? "deleted_at IS NULL"
-                : "deleted = false";
-        return sql + (hasWhere ? " AND " : " WHERE ") + filter;
+        return sql + proxy.getSoftDeleteHandler().buildSoftDeleteFilterSql(hasWhere, includeDeleted);
     }
 
     private String buildOrderByClause(Dialect dialect, EntityMetadata<T> metadata) {

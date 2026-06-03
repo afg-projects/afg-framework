@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.core.cache.exception;
 
-import io.github.afgprojects.framework.core.exception.AfgException;
+import io.github.afgprojects.framework.commons.exception.AfgException;
 
 /**
  * 缓存异常

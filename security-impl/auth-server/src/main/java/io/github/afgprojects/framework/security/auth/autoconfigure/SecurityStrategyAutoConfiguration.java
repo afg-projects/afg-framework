@@ -16,6 +16,8 @@ import io.github.afgprojects.framework.security.auth.security.DefaultDeviceLimit
 import io.github.afgprojects.framework.security.auth.security.DefaultIpRestrictionChecker;
 import io.github.afgprojects.framework.security.auth.security.DefaultLoginFailureTracker;
 import io.github.afgprojects.framework.security.auth.security.DefaultPasswordValidator;
+import io.github.afgprojects.framework.security.auth.properties.AuthSecurityProperties;
+import io.github.afgprojects.framework.security.auth.properties.security.SecurityConfig;
 import io.github.afgprojects.framework.security.core.security.DeviceLimiter;
 import io.github.afgprojects.framework.security.core.security.IpRestrictionChecker;
 import io.github.afgprojects.framework.security.core.security.LoginFailureTracker;
@@ -73,7 +75,7 @@ public class SecurityStrategyAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(LoginFailureTracker.class)
     public DefaultLoginFailureTracker loginFailureTracker(AuthSecurityProperties properties) {
-        AuthSecurityProperties.SecurityConfig securityConfig = properties.getSecurity();
+        SecurityConfig securityConfig = properties.getSecurity();
         int maxFailures = securityConfig.getMaxLoginFailures();
         var lockDuration = securityConfig.getLockDuration();
 
@@ -92,7 +94,7 @@ public class SecurityStrategyAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(PasswordValidator.class)
     public DefaultPasswordValidator passwordValidator(AuthSecurityProperties properties) {
-        AuthSecurityProperties.SecurityConfig securityConfig = properties.getSecurity();
+        SecurityConfig securityConfig = properties.getSecurity();
         var policyConfig = securityConfig.getPasswordPolicy();
         var passwordPolicy = policyConfig.toPasswordPolicy();
 
@@ -115,7 +117,7 @@ public class SecurityStrategyAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(IpRestrictionChecker.class)
     public DefaultIpRestrictionChecker ipRestrictionChecker(AuthSecurityProperties properties) {
-        AuthSecurityProperties.SecurityConfig securityConfig = properties.getSecurity();
+        SecurityConfig securityConfig = properties.getSecurity();
         List<String> ipWhitelist = securityConfig.getIpWhitelist();
         List<String> ipBlacklist = securityConfig.getIpBlacklist();
 
@@ -158,7 +160,7 @@ public class SecurityStrategyAutoConfiguration {
             AuthSecurityProperties properties,
             AfgDeviceStorage deviceStorage) {
 
-        AuthSecurityProperties.SecurityConfig securityConfig = properties.getSecurity();
+        SecurityConfig securityConfig = properties.getSecurity();
         int maxDevices = securityConfig.getMaxDevices();
 
         log.info("Initializing DefaultDeviceLimiter with maxDevices={}", maxDevices);

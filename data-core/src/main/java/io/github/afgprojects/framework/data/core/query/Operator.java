@@ -41,22 +41,6 @@ public enum Operator {
     LIKE("LIKE"),
 
     /**
-     * 左模糊匹配（以...开头）
-     *
-     * @deprecated 使用 {@link #LIKE_STARTS_WITH} 代替，命名更直观
-     */
-    @Deprecated(since = "1.1.0", forRemoval = true)
-    LIKE_LEFT("LIKE"),
-
-    /**
-     * 右模糊匹配（以...结尾）
-     *
-     * @deprecated 使用 {@link #LIKE_ENDS_WITH} 代替，命名更直观
-     */
-    @Deprecated(since = "1.1.0", forRemoval = true)
-    LIKE_RIGHT("LIKE"),
-
-    /**
      * 前缀匹配（以指定值开头，即 value%）
      */
     LIKE_STARTS_WITH("LIKE"),

@@ -5,7 +5,7 @@ import org.jspecify.annotations.Nullable;
 /**
  * 任务调度异常
  */
-public class SchedulerException extends AfgException {
+public class SchedulerException extends io.github.afgprojects.framework.commons.exception.AfgException {
 
     /** 调度错误 */
     public static final int SCHEDULER_ERROR = 90400;

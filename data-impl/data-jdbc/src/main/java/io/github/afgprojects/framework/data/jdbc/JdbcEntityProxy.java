@@ -116,8 +116,6 @@ public class JdbcEntityProxy<T> implements EntityProxy<T>, ProxyStateProvider {
 
     private List<DataScope> dataScopes = new ArrayList<>();
     private String tenantId;
-    private String dataSourceName;
-    private boolean readOnly = false;
     private boolean includeDeleted = false;
 
     /**
@@ -336,20 +334,6 @@ public class JdbcEntityProxy<T> implements EntityProxy<T>, ProxyStateProvider {
     }
 
     /**
-     * 获取数据源名称
-     */
-    String getDataSourceName() {
-        return dataSourceName;
-    }
-
-    /**
-     * 是否只读模式
-     */
-    boolean isReadOnly() {
-        return readOnly;
-    }
-
-    /**
      * 是否包含已删除记录
      */
     @Override
@@ -437,6 +421,13 @@ public class JdbcEntityProxy<T> implements EntityProxy<T>, ProxyStateProvider {
      */
     public @Nullable SoftDeleteStrategy getSoftDeleteStrategy() {
         return softDeleteHandler.getSoftDeleteStrategy();
+    }
+
+    /**
+     * 获取软删除处理器
+     */
+    EntitySoftDeleteHandler<T> getSoftDeleteHandler() {
+        return softDeleteHandler;
     }
 
     /**

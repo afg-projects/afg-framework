@@ -236,7 +236,7 @@ public class EntityMetadataCache {
 
         @Override
         public Condition getDefaultCondition() {
-            return null;
+            return Condition.empty();
         }
 
         @Override

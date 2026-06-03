@@ -174,6 +174,43 @@ class EntitySoftDeleteHandler<T> {
     }
 
     /**
+     * 构建软删除过滤 SQL 片段
+     * <p>
+     * 返回需要追加到 SQL 语句末尾的过滤条件（如 " AND deleted = false" 或 " WHERE deleted_at IS NULL"）。
+     * 如果实体不支持软删除或已包含已删除记录，返回空字符串。
+     *
+     * @param hasWhereClause 是否已有 WHERE 子句
+     * @param includeDeleted 是否包含已删除记录
+     * @return SQL 过滤片段
+     */
+    String buildSoftDeleteFilterSql(boolean hasWhereClause, boolean includeDeleted) {
+        if (softDeleteStrategy == null || includeDeleted) {
+            return "";
+        }
+
+        String filter = (softDeleteStrategy == SoftDeleteStrategy.TIMESTAMP)
+                ? "deleted_at IS NULL"
+                : "deleted = false";
+        return (hasWhereClause ? " AND " : " WHERE ") + filter;
+    }
+
+    /**
+     * 获取纯软删除过滤条件（不含 WHERE/AND 前缀）
+     * <p>
+     * 用于手动拼接 WHERE 子句时，调用方自行处理前缀。
+     *
+     * @return 过滤条件（如 "deleted_at IS NULL" 或 "deleted = false"），如果实体不支持软删除返回 null
+     */
+    @Nullable String getSoftDeleteFilterCondition() {
+        if (softDeleteStrategy == null) {
+            return null;
+        }
+        return (softDeleteStrategy == SoftDeleteStrategy.TIMESTAMP)
+                ? "deleted_at IS NULL"
+                : "deleted = false";
+    }
+
+    /**
      * 构建软删除 SET 子句
      *
      * @return SET 子句（如 "deleted_at = NOW()" 或 "deleted = true"）

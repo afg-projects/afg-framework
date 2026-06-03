@@ -23,7 +23,7 @@ import io.github.afgprojects.framework.core.api.scheduler.TaskExecutionLog;
 import io.github.afgprojects.framework.core.api.scheduler.TaskExecutionLogStorage;
 import io.github.afgprojects.framework.core.api.scheduler.TaskScheduler;
 import io.github.afgprojects.framework.core.api.scheduler.TaskStatus;
-import io.github.afgprojects.framework.core.model.result.Result;
+import io.github.afgprojects.framework.commons.model.Result;
 import io.github.afgprojects.framework.core.model.result.Results;
 
 /**

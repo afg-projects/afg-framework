@@ -6,6 +6,8 @@ import io.github.afgprojects.framework.security.auth.permission.adapter.JdbcCasb
 import io.github.afgprojects.framework.security.auth.permission.service.CasbinRbacService;
 import io.github.afgprojects.framework.security.auth.permission.service.JdbcResourceService;
 import io.github.afgprojects.framework.security.auth.permission.service.JdbcRoleService;
+import io.github.afgprojects.framework.security.auth.properties.AuthSecurityProperties;
+import io.github.afgprojects.framework.security.auth.properties.casbin.CasbinConfig;
 import io.github.afgprojects.framework.security.core.permission.RbacService;
 import lombok.extern.slf4j.Slf4j;
 import org.casbin.jcasbin.main.Enforcer;
@@ -62,7 +64,7 @@ public class PermissionAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public Model casbinModel(AuthSecurityProperties properties) {
-        AuthSecurityProperties.CasbinConfig casbinConfig = properties.getCasbin();
+        CasbinConfig casbinConfig = properties.getCasbin();
         String modelPath = casbinConfig.getModelPath();
 
         Model model = new Model();

@@ -22,5 +22,6 @@
     <include file="v1.0.0/015_ai_audit_log.xml" relativeToChangelogFile="true"/>
     <include file="v1.0.0/016_ai_tool_registry.xml" relativeToChangelogFile="true"/>
     <include file="v1.0.0/017_ai_tool_execution.xml" relativeToChangelogFile="true"/>
+    <include file="v1.0.0/018_ai_workflow_checkpoint.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>

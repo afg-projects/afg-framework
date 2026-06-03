@@ -1,7 +1,7 @@
 package io.github.afgprojects.framework.security.auth.tenant.resolver;
 
-import io.github.afgprojects.framework.security.auth.tenant.model.SimpleTenantContext;
 import io.github.afgprojects.framework.security.core.login.TokenService;
+import io.github.afgprojects.framework.security.core.tenant.SimpleTenantContext;
 import io.github.afgprojects.framework.security.core.tenant.TenantContext;
 import io.github.afgprojects.framework.security.core.tenant.TenantResolver;
 import jakarta.servlet.http.HttpServletRequest;

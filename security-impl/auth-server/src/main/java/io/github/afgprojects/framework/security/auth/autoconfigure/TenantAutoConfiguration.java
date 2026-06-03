@@ -17,13 +17,20 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
 import io.github.afgprojects.framework.data.core.context.TenantContextHolder;
+import io.github.afgprojects.framework.security.auth.properties.AuthSecurityProperties;
+import io.github.afgprojects.framework.security.auth.properties.tenant.TenantConfig;
 import io.github.afgprojects.framework.security.auth.tenant.filter.TenantFilter;
-import io.github.afgprojects.framework.security.auth.tenant.resolver.TenantResolverChain;
 import io.github.afgprojects.framework.security.auth.tenant.validator.DefaultTenantValidator;
 import io.github.afgprojects.framework.security.auth.tenant.validator.NoOpTenantValidator;
-import io.github.afgprojects.framework.security.auth.tenant.validator.TenantValidator;
 import io.github.afgprojects.framework.security.core.tenant.AfgTenantService;
+import io.github.afgprojects.framework.security.core.tenant.HeaderTenantResolver;
+import io.github.afgprojects.framework.security.core.tenant.SimpleTenantContext;
+import io.github.afgprojects.framework.security.core.tenant.TenantResolveStrategy;
 import io.github.afgprojects.framework.security.core.tenant.TenantResolver;
+import io.github.afgprojects.framework.security.core.tenant.TenantResolverChain;
+import io.github.afgprojects.framework.security.core.tenant.TenantValidator;
+
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -120,7 +127,7 @@ public class TenantAutoConfiguration {
             @NonNull AuthSecurityProperties properties,
             @NonNull TenantValidator validator) {
 
-        AuthSecurityProperties.TenantConfig tenantConfig = properties.getTenant();
+        TenantConfig tenantConfig = properties.getTenant();
         log.info("创建 TenantResolverChain: strategies={}, failIfUnresolved={}",
                 tenantConfig.getStrategies(), tenantConfig.isFailIfUnresolved());
 
@@ -157,10 +164,10 @@ public class TenantAutoConfiguration {
      * @param tenantConfig 租户配置
      * @return 解析器列表
      */
-    private List<TenantResolver> createResolvers(AuthSecurityProperties.TenantConfig tenantConfig) {
+    private List<TenantResolver> createResolvers(TenantConfig tenantConfig) {
         List<TenantResolver> resolvers = new ArrayList<>();
 
-        for (AuthSecurityProperties.TenantConfig.TenantStrategy strategy : tenantConfig.getStrategies()) {
+        for (TenantResolveStrategy strategy : tenantConfig.getStrategies()) {
             TenantResolver resolver = createResolverForStrategy(strategy, tenantConfig);
             if (resolver != null) {
                 resolvers.add(resolver);
@@ -180,14 +187,10 @@ public class TenantAutoConfiguration {
      * @return 解析器实例，如果策略不支持则返回 null
      */
     private TenantResolver createResolverForStrategy(
-            AuthSecurityProperties.TenantConfig.TenantStrategy strategy,
-            AuthSecurityProperties.TenantConfig tenantConfig) {
+            TenantResolveStrategy strategy,
+            TenantConfig tenantConfig) {
 
         switch (strategy) {
-            case TOKEN:
-                log.warn("TOKEN 解析器暂未实现，需要配置 JwtDecoder");
-                return null;
-
             case HEADER:
                 return createHeaderResolver(tenantConfig);
 
@@ -207,10 +210,12 @@ public class TenantAutoConfiguration {
      * 创建请求头解析器。
      *
      * @param tenantConfig 租户配置
-     * @return HeaderResolver 实例
+     * @return HeaderTenantResolver 实例
      */
-    private TenantResolver createHeaderResolver(AuthSecurityProperties.TenantConfig tenantConfig) {
-        return new HeaderResolver(tenantConfig.getHeaderName());
+    private TenantResolver createHeaderResolver(TenantConfig tenantConfig) {
+        HeaderTenantResolver resolver = new HeaderTenantResolver(tenantConfig.getHeaderName());
+        resolver.setOrder(TenantResolveStrategy.HEADER.getOrder());
+        return resolver;
     }
 
     /**
@@ -219,7 +224,7 @@ public class TenantAutoConfiguration {
      * @param tenantConfig 租户配置
      * @return DomainResolver 实例
      */
-    private TenantResolver createDomainResolver(AuthSecurityProperties.TenantConfig tenantConfig) {
+    private TenantResolver createDomainResolver(TenantConfig tenantConfig) {
         return new DomainResolver(tenantConfig.getDomainMappings());
     }
 
@@ -229,39 +234,11 @@ public class TenantAutoConfiguration {
      * @param tenantConfig 租户配置
      * @return DefaultResolver 实例
      */
-    private TenantResolver createDefaultResolver(AuthSecurityProperties.TenantConfig tenantConfig) {
+    private TenantResolver createDefaultResolver(TenantConfig tenantConfig) {
         return new DefaultResolver(tenantConfig.getDefaultTenant());
     }
 
     // ========== 内部解析器实现 ==========
-
-    /**
-     * 请求头解析器（内部实现）。
-     */
-    private static class HeaderResolver implements TenantResolver {
-
-        private final String headerName;
-        private final int order = 200;
-
-        HeaderResolver(String headerName) {
-            this.headerName = headerName != null ? headerName : "X-Tenant-Id";
-        }
-
-        @Override
-        public io.github.afgprojects.framework.security.core.tenant.TenantContext resolve(
-                jakarta.servlet.http.HttpServletRequest request) {
-            String tenantId = request.getHeader(headerName);
-            if (tenantId == null || tenantId.isBlank()) {
-                return null;
-            }
-            return new SimpleTenantContext(tenantId.trim());
-        }
-
-        @Override
-        public int getOrder() {
-            return order;
-        }
-    }
 
     /**
      * 域名解析器（内部实现）。
@@ -269,7 +246,7 @@ public class TenantAutoConfiguration {
     private static class DomainResolver implements TenantResolver {
 
         private final java.util.Map<String, String> domainMappings;
-        private final int order = 300;
+        private final int order = TenantResolveStrategy.DOMAIN.getOrder();
 
         DomainResolver(java.util.Map<String, String> domainMappings) {
             this.domainMappings = domainMappings != null ? domainMappings : java.util.Map.of();
@@ -277,7 +254,7 @@ public class TenantAutoConfiguration {
 
         @Override
         public io.github.afgprojects.framework.security.core.tenant.TenantContext resolve(
-                jakarta.servlet.http.HttpServletRequest request) {
+                HttpServletRequest request) {
             String host = request.getServerName();
             if (host == null || host.isBlank()) {
                 return null;
@@ -309,7 +286,7 @@ public class TenantAutoConfiguration {
     private static class DefaultResolver implements TenantResolver {
 
         private final String defaultTenantId;
-        private final int order = 400;
+        private final int order = TenantResolveStrategy.DEFAULT.getOrder();
 
         DefaultResolver(String defaultTenantId) {
             this.defaultTenantId = defaultTenantId != null ? defaultTenantId : "default";
@@ -317,30 +294,13 @@ public class TenantAutoConfiguration {
 
         @Override
         public io.github.afgprojects.framework.security.core.tenant.TenantContext resolve(
-                jakarta.servlet.http.HttpServletRequest request) {
+                HttpServletRequest request) {
             return new SimpleTenantContext(defaultTenantId);
         }
 
         @Override
         public int getOrder() {
             return order;
-        }
-    }
-
-    /**
-     * 简单租户上下文实现。
-     */
-    private static class SimpleTenantContext implements io.github.afgprojects.framework.security.core.tenant.TenantContext {
-
-        private final String tenantId;
-
-        SimpleTenantContext(String tenantId) {
-            this.tenantId = tenantId;
-        }
-
-        @Override
-        public String getTenantId() {
-            return tenantId;
         }
     }
 }

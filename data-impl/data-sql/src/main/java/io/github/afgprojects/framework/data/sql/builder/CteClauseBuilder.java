@@ -1,6 +1,7 @@
 package io.github.afgprojects.framework.data.sql.builder;
 
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
+import io.github.afgprojects.framework.data.core.security.SqlIdentifierValidator;
 import io.github.afgprojects.framework.data.core.sql.SqlQueryBuilder;
 import org.jspecify.annotations.NonNull;
 
@@ -26,8 +27,10 @@ public class CteClauseBuilder {
      *
      * @param name CTE 名称
      * @param cte  CTE 查询定义
+     * @throws IllegalArgumentException 如果 CTE 名称非法
      */
     public CteClauseBuilder with(@NonNull String name, @NonNull SqlQueryBuilder cte) {
+        SqlIdentifierValidator.validateCteName(name);
         cteClauses.add(new CteClause(name, null, cte, false));
         return this;
     }
@@ -37,8 +40,10 @@ public class CteClauseBuilder {
      *
      * @param name CTE 名称
      * @param cte  CTE 查询定义
+     * @throws IllegalArgumentException 如果 CTE 名称非法
      */
     public CteClauseBuilder withRecursive(@NonNull String name, @NonNull SqlQueryBuilder cte) {
+        SqlIdentifierValidator.validateCteName(name);
         cteClauses.add(new CteClause(name, null, cte, true));
         return this;
     }
@@ -49,8 +54,13 @@ public class CteClauseBuilder {
      * @param name    CTE 名称
      * @param columns 列名数组
      * @param cte     CTE 查询定义
+     * @throws IllegalArgumentException 如果 CTE 名称或列名非法
      */
     public CteClauseBuilder withColumnNames(@NonNull String name, @NonNull String[] columns, @NonNull SqlQueryBuilder cte) {
+        SqlIdentifierValidator.validateCteName(name);
+        for (String column : columns) {
+            SqlIdentifierValidator.validateColumn(column);
+        }
         cteClauses.add(new CteClause(name, columns, cte, false));
         return this;
     }
@@ -61,8 +71,13 @@ public class CteClauseBuilder {
      * @param name    CTE 名称
      * @param columns 列名数组
      * @param cte     CTE 查询定义
+     * @throws IllegalArgumentException 如果 CTE 名称或列名非法
      */
     public CteClauseBuilder withRecursiveColumnNames(@NonNull String name, @NonNull String[] columns, @NonNull SqlQueryBuilder cte) {
+        SqlIdentifierValidator.validateCteName(name);
+        for (String column : columns) {
+            SqlIdentifierValidator.validateColumn(column);
+        }
         cteClauses.add(new CteClause(name, columns, cte, true));
         return this;
     }

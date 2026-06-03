@@ -1,14 +1,10 @@
 /**
- * 响应结果包。
- *
- * <p>提供统一的响应结果封装。
- *
- * <p>核心类：
- * <ul>
- *   <li>{@link io.github.afgprojects.framework.core.model.result.Result} - 统一响应包装（code, message, data, traceId, requestId）</li>
- *   <li>{@link io.github.afgprojects.framework.core.model.result.Results} - Result 工厂类，自动填充 traceId/requestId</li>
- *   <li>{@link io.github.afgprojects.framework.core.model.result.PageData} - 分页数据包装</li>
- * </ul>
+ * Core 模块结果模型。
+ * <p>
+ * 基础结果类 {@code Result} 已迁移至 {@code commons.model} 包，
+ * 本包保留 {@link io.github.afgprojects.framework.core.model.result.Results} 工厂类
+ * 用于便捷构建统一响应结果。
+ * </p>
  *
  * @since 1.0.0
  */

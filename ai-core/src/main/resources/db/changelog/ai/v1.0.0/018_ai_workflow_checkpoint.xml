@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="v1.0.0-018-ai-workflow-checkpoint" author="afg">
+        <createTable tableName="ai_workflow_checkpoint" remarks="工作流检查点">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_ai_workflow_checkpoint"/>
+            </column>
+            <column name="execution_id" type="VARCHAR(100)" remarks="执行ID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="workflow_id" type="VARCHAR(100)" remarks="工作流ID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="current_node_id" type="VARCHAR(100)" remarks="当前节点ID"/>
+            <column name="context_data" type="TEXT" remarks="上下文数据"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="创建时间">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="更新时间">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="ai_workflow_checkpoint" indexName="uk_ai_workflow_checkpoint_execution_id" unique="true">
+            <column name="execution_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

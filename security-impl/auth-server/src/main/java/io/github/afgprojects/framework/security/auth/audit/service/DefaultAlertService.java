@@ -1,7 +1,10 @@
 package io.github.afgprojects.framework.security.auth.audit.service;
 
 import io.github.afgprojects.framework.security.auth.audit.alert.AlertChannel;
-import io.github.afgprojects.framework.security.auth.autoconfigure.AuthSecurityProperties;
+import io.github.afgprojects.framework.security.auth.properties.AuthSecurityProperties;
+import io.github.afgprojects.framework.security.auth.properties.audit.AlertConfig;
+import io.github.afgprojects.framework.security.auth.properties.audit.AlertChannelConfig;
+import io.github.afgprojects.framework.security.auth.properties.audit.AuditConfig;
 import io.github.afgprojects.framework.security.core.audit.AlertService;
 import io.github.afgprojects.framework.security.core.audit.SecurityEventService;
 import lombok.extern.slf4j.Slf4j;
@@ -41,12 +44,12 @@ public class DefaultAlertService implements AlertService {
 
     @Override
     public void checkAndAlert(SecurityEventService.@NonNull SecurityEventInfo event) {
-        AuthSecurityProperties.AuditConfig auditConfig = properties.getAudit();
+        AuditConfig auditConfig = properties.getAudit();
         if (!auditConfig.isEnabled()) {
             return;
         }
 
-        AuthSecurityProperties.AuditConfig.AlertConfig alertConfig = auditConfig.getAlert();
+        AlertConfig alertConfig = auditConfig.getAlert();
         String eventType = event.getEventType();
 
         // 检查登录失败告警
@@ -90,7 +93,7 @@ public class DefaultAlertService implements AlertService {
     /**
      * 检查登录失败告警。
      */
-    private void checkLoginFailureAlert(SecurityEventService.SecurityEventInfo event, AuthSecurityProperties.AuditConfig.AlertConfig alertConfig) {
+    private void checkLoginFailureAlert(SecurityEventService.SecurityEventInfo event, AlertConfig alertConfig) {
         String userId = event.getUserId();
         if (userId == null || userId.isEmpty()) {
             return;
@@ -115,8 +118,8 @@ public class DefaultAlertService implements AlertService {
      * 发送告警到配置的通道。
      */
     private void sendAlertToChannels(SecurityEventService.SecurityEventInfo event,
-                                     List<AuthSecurityProperties.AuditConfig.AlertChannelConfig> channelConfigs) {
-        for (AuthSecurityProperties.AuditConfig.AlertChannelConfig channelConfig : channelConfigs) {
+                                     List<AlertChannelConfig> channelConfigs) {
+        for (AlertChannelConfig channelConfig : channelConfigs) {
             AlertChannel channel = alertChannelMap.get(channelConfig.getType());
             if (channel != null) {
                 try {

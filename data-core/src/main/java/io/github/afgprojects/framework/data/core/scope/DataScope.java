@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.data.core.scope;
 
+import io.github.afgprojects.framework.data.core.security.SqlIdentifierValidator;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -9,7 +10,7 @@ import org.jspecify.annotations.Nullable;
  * @param column          权限过滤列名
  * @param scopeType       数据范围类型
  * @param customCondition 自定义 SQL 条件（scopeType 为 CUSTOM 时使用）
- *                        <p><b>警告：</b>此字段允许直接传入 SQL 片段，存在 SQL 注入风险。
+ *                        <p><b>警告：</b>此字段允许传入有限 SQL 片段，框架会进行安全验证。
  *                        <b>仅供内部框架使用</b>，禁止在业务代码中直接设置此字段。
  *                        如需自定义条件，请使用 {@link io.github.afgprojects.framework.data.core.condition.Conditions} API。
  * @param aliasPrefix     别名前缀
@@ -21,6 +22,21 @@ public record DataScope(
     @Nullable String customCondition,
     @Nullable String aliasPrefix
 ) {
+    /**
+     * Compact constructor：验证 customCondition 安全性
+     *
+     * @throws IllegalArgumentException 如果 customCondition 在非 CUSTOM 模式下设置，或包含不安全内容
+     */
+    public DataScope {
+        if (customCondition != null && scopeType != DataScopeType.CUSTOM) {
+            throw new IllegalArgumentException(
+                    "customCondition can only be set when scopeType is CUSTOM, got: " + scopeType);
+        }
+        if (customCondition != null) {
+            SqlIdentifierValidator.validateSqlConditionFragment(customCondition);
+        }
+    }
+
     public static DataScope of(String table, String column, DataScopeType scopeType) {
         return new DataScope(table, column, scopeType, null, null);
     }

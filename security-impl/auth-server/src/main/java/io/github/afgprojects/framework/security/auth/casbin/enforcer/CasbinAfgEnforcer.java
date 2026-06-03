@@ -1,9 +1,9 @@
 package io.github.afgprojects.framework.security.auth.casbin.enforcer;
 
 import io.github.afgprojects.framework.core.web.security.AfgEnforcer;
-import io.github.afgprojects.framework.security.auth.autoconfigure.AuthSecurityProperties;
 import io.github.afgprojects.framework.security.auth.casbin.model.AfgPolicyService;
 import io.github.afgprojects.framework.security.auth.casbin.model.CasbinRule;
+import io.github.afgprojects.framework.security.auth.properties.casbin.CasbinConfig;
 import org.casbin.jcasbin.main.Enforcer;
 import org.casbin.jcasbin.model.Model;
 import org.casbin.jcasbin.persist.Adapter;
@@ -31,7 +31,7 @@ import java.util.List;
  */
 public class CasbinAfgEnforcer implements AfgEnforcer {
 
-    private final AuthSecurityProperties.CasbinConfig casbinConfig;
+    private final CasbinConfig casbinConfig;
     private final AfgPolicyService policyService;
     private final Enforcer enforcer;
 
@@ -41,7 +41,7 @@ public class CasbinAfgEnforcer implements AfgEnforcer {
      * @param casbinConfig Casbin 配置属性
      * @param policyService 策略服务
      */
-    public CasbinAfgEnforcer(AuthSecurityProperties.CasbinConfig casbinConfig, AfgPolicyService policyService) {
+    public CasbinAfgEnforcer(CasbinConfig casbinConfig, AfgPolicyService policyService) {
         this.casbinConfig = casbinConfig;
         this.policyService = policyService;
         this.enforcer = createEnforcer();

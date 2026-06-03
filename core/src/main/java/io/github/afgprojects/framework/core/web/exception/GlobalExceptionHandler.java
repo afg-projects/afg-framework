@@ -27,7 +27,7 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 
 import io.github.afgprojects.framework.commons.exception.BusinessException;
 import io.github.afgprojects.framework.core.model.exception.CommonErrorCode;
-import io.github.afgprojects.framework.core.model.result.Result;
+import io.github.afgprojects.framework.commons.model.Result;
 import io.github.afgprojects.framework.core.model.result.Results;
 import io.github.afgprojects.framework.core.web.context.AfgRequestContextHolder;
 import io.github.afgprojects.framework.core.web.context.RequestContext;

@@ -19,7 +19,7 @@ import io.github.afgprojects.framework.core.feature.FeatureFlagManager;
 import io.github.afgprojects.framework.core.feature.FeatureFlagRequest;
 import io.github.afgprojects.framework.core.feature.FeatureFlagResponse;
 import io.github.afgprojects.framework.core.feature.FeatureFlagUpdateRequest;
-import io.github.afgprojects.framework.core.model.result.Result;
+import io.github.afgprojects.framework.commons.model.Result;
 import io.github.afgprojects.framework.core.model.result.Results;
 
 import jakarta.validation.Valid;

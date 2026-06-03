@@ -13,6 +13,7 @@ import io.github.afgprojects.framework.data.core.sql.SqlInsertBuilder;
 import io.github.afgprojects.framework.data.core.sql.SqlQueryBuilder;
 import io.github.afgprojects.framework.data.core.sql.SqlUpdateBuilder;
 import io.github.afgprojects.framework.data.core.transaction.TransactionAdapter;
+import io.github.afgprojects.framework.data.core.util.TypeDescriptorUtils;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 

@@ -28,11 +28,6 @@ public class PostgreSQLDialect extends AbstractDialect {
     }
 
     @Override
-    public @NonNull String getCurrentTimestampFunction() {
-        return "CURRENT_TIMESTAMP";
-    }
-
-    @Override
     public boolean supportsFetchFirst() {
         return true;
     }

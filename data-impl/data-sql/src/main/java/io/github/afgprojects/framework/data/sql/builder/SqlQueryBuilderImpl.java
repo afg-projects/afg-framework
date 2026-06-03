@@ -1,6 +1,5 @@
 package io.github.afgprojects.framework.data.sql.builder;
 
-import io.github.afgprojects.framework.data.core.condition.Conditions;
 import io.github.afgprojects.framework.data.core.condition.SFunction;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
 import io.github.afgprojects.framework.data.core.dialect.MySQLDialect;
@@ -9,6 +8,7 @@ import io.github.afgprojects.framework.data.core.page.PageRequest;
 import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.query.Page;
 import io.github.afgprojects.framework.data.core.query.Sort;
+import io.github.afgprojects.framework.data.core.security.SqlIdentifierValidator;
 import io.github.afgprojects.framework.data.core.sql.SqlQueryBuilder;
 import io.github.afgprojects.framework.data.core.sql.WindowFunctionBuilder;
 import io.github.afgprojects.framework.data.sql.converter.ConditionToSqlConverter;
@@ -273,12 +273,6 @@ public class SqlQueryBuilderImpl implements SqlQueryBuilder {
     }
 
     /**
-     * 合法标识符正则：字母/下划线开头，后跟字母/数字/下划线/点号
-     */
-    private static final java.util.regex.Pattern VALID_IDENTIFIER_PATTERN =
-            java.util.regex.Pattern.compile("^[a-zA-Z_][a-zA-Z0-9_.]*$");
-
-    /**
      * 对逗号分隔的标识符列表进行引用
      * 例如: "col1, col2" -> "`col1`, `col2`"
      *
@@ -295,32 +289,14 @@ public class SqlQueryBuilderImpl implements SqlQueryBuilder {
                 int spaceIndex = trimmed.lastIndexOf(' ');
                 String column = trimmed.substring(0, spaceIndex);
                 String direction = trimmed.substring(spaceIndex + 1);
-                validateIdentifier(column);
+                SqlIdentifierValidator.validateColumn(column);
                 quoted.add(dialect.quoteIdentifier(column) + " " + direction);
             } else {
-                validateIdentifier(trimmed);
+                SqlIdentifierValidator.validateColumn(trimmed);
                 quoted.add(dialect.quoteIdentifier(trimmed));
             }
         }
         return String.join(", ", quoted);
-    }
-
-    /**
-     * 验证标识符合法性，防止 SQL 注入
-     *
-     * @param identifier 标识符
-     * @throws IllegalArgumentException 如果标识符非法
-     */
-    private void validateIdentifier(String identifier) {
-        if (identifier == null || identifier.isEmpty()) {
-            throw new IllegalArgumentException("Identifier cannot be null or empty");
-        }
-        if (!VALID_IDENTIFIER_PATTERN.matcher(identifier).matches()) {
-            throw new IllegalArgumentException(
-                    "Invalid identifier: '" + identifier + "'. " +
-                    "Identifier must start with a letter or underscore, " +
-                    "followed by letters, digits, underscores, or dots.");
-        }
     }
 
     /**
@@ -385,6 +361,7 @@ public class SqlQueryBuilderImpl implements SqlQueryBuilder {
     @Override
     public @NonNull SqlQueryBuilder from(@NonNull String table) {
         flushPendingWindowFunction();
+        SqlIdentifierValidator.validateTable(table);
         this.fromTable = table;
         this.fromAlias = null;
         return this;
@@ -393,6 +370,8 @@ public class SqlQueryBuilderImpl implements SqlQueryBuilder {
     @Override
     public @NonNull SqlQueryBuilder from(@NonNull String table, @NonNull String alias) {
         flushPendingWindowFunction();
+        SqlIdentifierValidator.validateTable(table);
+        SqlIdentifierValidator.validateAlias(alias);
         this.fromTable = table;
         this.fromAlias = alias;
         return this;
@@ -468,6 +447,9 @@ public class SqlQueryBuilderImpl implements SqlQueryBuilder {
 
     @Override
     public @NonNull SqlQueryBuilder groupBy(@NonNull String... columns) {
+        for (String column : columns) {
+            SqlIdentifierValidator.validateColumn(column);
+        }
         this.groupByColumns = new ArrayList<>(List.of(columns));
         return this;
     }
@@ -591,7 +573,7 @@ public class SqlQueryBuilderImpl implements SqlQueryBuilder {
         // FROM
         sql.append(" FROM ").append(dialect.quoteIdentifier(fromTable));
         if (fromAlias != null) {
-            sql.append(" ").append(fromAlias);
+            sql.append(" ").append(dialect.quoteIdentifier(fromAlias));
         }
 
         // JOINs

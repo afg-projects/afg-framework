@@ -99,28 +99,6 @@ public interface TypedConditionBuilder<T> {
     TypedConditionBuilder<T> like(SFunction<T, String> getter, @Nullable String value);
 
     /**
-     * 添加左模糊匹配条件（value%）
-     *
-     * @param getter 字段 getter 方法引用（字段类型为 String）
-     * @param value  匹配值
-     * @return 条件构建器（支持链式调用）
-     * @deprecated 使用 {@link #likeStartsWith(SFunction, String)} 代替，命名更直观
-     */
-    @Deprecated(since = "1.1.0", forRemoval = true)
-    TypedConditionBuilder<T> likeLeft(SFunction<T, String> getter, @Nullable String value);
-
-    /**
-     * 添加右模糊匹配条件（%value）
-     *
-     * @param getter 字段 getter 方法引用（字段类型为 String）
-     * @param value  匹配值
-     * @return 条件构建器（支持链式调用）
-     * @deprecated 使用 {@link #likeEndsWith(SFunction, String)} 代替，命名更直观
-     */
-    @Deprecated(since = "1.1.0", forRemoval = true)
-    TypedConditionBuilder<T> likeRight(SFunction<T, String> getter, @Nullable String value);
-
-    /**
      * 添加前缀匹配条件（value%）
      * <p>
      * 匹配以指定值开头的字符串。
@@ -210,6 +188,43 @@ public interface TypedConditionBuilder<T> {
      * @return 条件构建器（支持链式调用）
      */
     <R extends Comparable<?>> TypedConditionBuilder<T> notBetween(SFunction<T, R> getter, @Nullable R from, @Nullable R to);
+
+    // ==================== JSON 操作符 ====================
+
+    /**
+     * 添加 JSON CONTAINS 条件（Lambda 方式）
+     * <p>
+     * JSON 列包含指定值。getter 的字段类型可能是 String、Map 或自定义 JSON 类型。
+     *
+     * @param getter    字段 getter 方法引用
+     * @param jsonValue JSON 值（字符串或对象）
+     * @param <R>       字段类型
+     * @return 条件构建器（支持链式调用）
+     */
+    <R> TypedConditionBuilder<T> jsonContains(SFunction<T, R> getter, @Nullable Object jsonValue);
+
+    /**
+     * 添加 JSON CONTAINED 条件（Lambda 方式）
+     * <p>
+     * JSON 列被指定值包含。getter 的字段类型可能是 String、Map 或自定义 JSON 类型。
+     *
+     * @param getter    字段 getter 方法引用
+     * @param jsonValue JSON 值（字符串或对象）
+     * @param <R>       字段类型
+     * @return 条件构建器（支持链式调用）
+     */
+    <R> TypedConditionBuilder<T> jsonContained(SFunction<T, R> getter, @Nullable Object jsonValue);
+
+    /**
+     * 添加 JSON PATH 条件（Lambda 方式）
+     * <p>
+     * JSON 路径存在。路径表达式始终是字符串类型。
+     *
+     * @param getter 字段 getter 方法引用（字段类型为 String）
+     * @param path   JSON 路径表达式
+     * @return 条件构建器（支持链式调用）
+     */
+    TypedConditionBuilder<T> jsonPath(SFunction<T, String> getter, @Nullable String path);
 
     /**
      * 添加 AND 嵌套条件

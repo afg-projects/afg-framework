@@ -5,8 +5,10 @@ import io.github.afgprojects.framework.data.core.naming.FieldNameResolver;
 import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.query.ConditionImpl;
 import io.github.afgprojects.framework.data.core.query.Criterion;
+import io.github.afgprojects.framework.data.core.query.DenyAllCondition;
 import io.github.afgprojects.framework.data.core.query.LogicalOperator;
 import io.github.afgprojects.framework.data.core.query.Operator;
+import io.github.afgprojects.framework.data.core.util.TypeDescriptorUtils;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.invoke.SerializedLambda;
@@ -124,8 +126,15 @@ public final class Conditions {
      * <p>
      * 用于需要返回空结果集的场景
      */
+    /**
+     * 创建一个永假条件（1 = 0），用于拒绝所有数据访问
+     * <p>
+     * 内部使用特殊的 DENY_ALL 条件类型，不会触发字段名验证。
+     *
+     * @return 永假条件
+     */
     public static Condition none() {
-        return builder().eq("1", "0").build();
+        return new DenyAllCondition();
     }
 
     /**
@@ -210,30 +219,6 @@ public final class Conditions {
     }
 
     /**
-     * 创建左 LIKE 条件（value%）
-     * <p>
-     * 匹配以指定值开头的字符串
-     *
-     * @deprecated 使用 {@link #likeStartsWith(String, String)} 代替，命名更直观
-     */
-    @Deprecated(since = "1.1.0", forRemoval = true)
-    public static Condition likeLeft(String field, @Nullable String value) {
-        return likeStartsWith(field, value);
-    }
-
-    /**
-     * 创建右 LIKE 条件（%value）
-     * <p>
-     * 匹配以指定值结尾的字符串
-     *
-     * @deprecated 使用 {@link #likeEndsWith(String, String)} 代替，命名更直观
-     */
-    @Deprecated(since = "1.1.0", forRemoval = true)
-    public static Condition likeRight(String field, @Nullable String value) {
-        return likeEndsWith(field, value);
-    }
-
-    /**
      * 创建前缀匹配条件（value%）
      * <p>
      * 匹配以指定值开头的字符串
@@ -312,6 +297,94 @@ public final class Conditions {
         return builder().isNotNull(field).build();
     }
 
+    /**
+     * 创建大于条件（&gt;）
+     */
+    public static Condition gt(String field, @Nullable Comparable<?> value) {
+        return builder().gt(field, value).build();
+    }
+
+    /**
+     * 创建大于等于条件（&gt;=）
+     */
+    public static Condition ge(String field, @Nullable Comparable<?> value) {
+        return builder().ge(field, value).build();
+    }
+
+    /**
+     * 创建小于条件（&lt;）
+     */
+    public static Condition lt(String field, @Nullable Comparable<?> value) {
+        return builder().lt(field, value).build();
+    }
+
+    /**
+     * 创建小于等于条件（&lt;=）
+     */
+    public static Condition le(String field, @Nullable Comparable<?> value) {
+        return builder().le(field, value).build();
+    }
+
+    /**
+     * 创建 NOT LIKE 条件（智能处理 null 值）
+     * <p>
+     * 如果 value 为 null，自动转换为 IS NOT NULL 条件
+     */
+    public static Condition notLike(String field, @Nullable String value) {
+        if (value == null) {
+            return isNotNull(field);
+        }
+        return builder().notLike(field, value).build();
+    }
+
+    /**
+     * 创建 BETWEEN 条件
+     */
+    public static Condition between(String field, @Nullable Comparable<?> from, @Nullable Comparable<?> to) {
+        return builder().between(field, from, to).build();
+    }
+
+    /**
+     * 创建 NOT BETWEEN 条件
+     */
+    public static Condition notBetween(String field, @Nullable Comparable<?> from, @Nullable Comparable<?> to) {
+        return builder().notBetween(field, from, to).build();
+    }
+
+    // ==================== JSON 操作符静态方法 ====================
+
+    /**
+     * 创建 JSON CONTAINS 条件（JSON 列包含指定值）
+     *
+     * @param field     字段名
+     * @param jsonValue JSON 值
+     */
+    public static Condition jsonContains(String field, @Nullable Object jsonValue) {
+        return builder().jsonContains(field, jsonValue).build();
+    }
+
+    /**
+     * 创建 JSON CONTAINED 条件（JSON 列被指定值包含）
+     *
+     * @param field     字段名
+     * @param jsonValue JSON 值
+     */
+    public static Condition jsonContained(String field, @Nullable Object jsonValue) {
+        return builder().jsonContained(field, jsonValue).build();
+    }
+
+    /**
+     * 创建 JSON PATH 条件（JSON 路径存在）
+     * <p>
+     * 如果 path 为 null，自动转换为 IS NULL 条件
+     *
+     * @param field 字段名
+     * @param path  JSON 路径表达式
+     */
+    public static Condition jsonPath(String field, @Nullable String path) {
+        return builder().jsonPath(field, path).build();
+    }
+
     // ==================== 类型化静态方法 ====================
 
     /**
@@ -345,30 +418,6 @@ public final class Conditions {
             return isNull(entityClass, getter);
         }
         return builder(entityClass).like(getter, value).build();
-    }
-
-    /**
-     * 创建类型化左 LIKE 条件（value%）
-     * <p>
-     * 匹配以指定值开头的字符串
-     *
-     * @deprecated 使用 {@link #likeStartsWith(Class, SFunction, String)} 代替，命名更直观
-     */
-    @Deprecated(since = "1.1.0", forRemoval = true)
-    public static <T> Condition likeLeft(Class<T> entityClass, SFunction<T, String> getter, @Nullable String value) {
-        return likeStartsWith(entityClass, getter, value);
-    }
-
-    /**
-     * 创建类型化右 LIKE 条件（%value）
-     * <p>
-     * 匹配以指定值结尾的字符串
-     *
-     * @deprecated 使用 {@link #likeEndsWith(Class, SFunction, String)} 代替，命名更直观
-     */
-    @Deprecated(since = "1.1.0", forRemoval = true)
-    public static <T> Condition likeRight(Class<T> entityClass, SFunction<T, String> getter, @Nullable String value) {
-        return likeEndsWith(entityClass, getter, value);
     }
 
     /**
@@ -447,6 +496,95 @@ public final class Conditions {
      */
     public static <T, R> Condition isNotNull(Class<T> entityClass, SFunction<T, R> getter) {
         return builder(entityClass).isNotNull(getter).build();
+    }
+
+    /**
+     * 创建类型化大于条件（&gt;）
+     */
+    public static <T, R extends Comparable<?>> Condition gt(Class<T> entityClass, SFunction<T, R> getter, @Nullable R value) {
+        return builder(entityClass).gt(getter, value).build();
+    }
+
+    /**
+     * 创建类型化大于等于条件（&gt;=）
+     */
+    public static <T, R extends Comparable<?>> Condition ge(Class<T> entityClass, SFunction<T, R> getter, @Nullable R value) {
+        return builder(entityClass).ge(getter, value).build();
+    }
+
+    /**
+     * 创建类型化小于条件（&lt;）
+     */
+    public static <T, R extends Comparable<?>> Condition lt(Class<T> entityClass, SFunction<T, R> getter, @Nullable R value) {
+        return builder(entityClass).lt(getter, value).build();
+    }
+
+    /**
+     * 创建类型化小于等于条件（&lt;=）
+     */
+    public static <T, R extends Comparable<?>> Condition le(Class<T> entityClass, SFunction<T, R> getter, @Nullable R value) {
+        return builder(entityClass).le(getter, value).build();
+    }
+
+    /**
+     * 创建类型化 NOT LIKE 条件（智能处理 null 值）
+     * <p>
+     * 如果 value 为 null，自动转换为 IS NOT NULL 条件
+     */
+    public static <T> Condition notLike(Class<T> entityClass, SFunction<T, String> getter, @Nullable String value) {
+        if (value == null) {
+            return isNotNull(entityClass, getter);
+        }
+        return builder(entityClass).notLike(getter, value).build();
+    }
+
+    /**
+     * 创建类型化 BETWEEN 条件
+     */
+    public static <T, R extends Comparable<?>> Condition between(Class<T> entityClass, SFunction<T, R> getter, @Nullable R from, @Nullable R to) {
+        return builder(entityClass).between(getter, from, to).build();
+    }
+
+    /**
+     * 创建类型化 NOT BETWEEN 条件
+     */
+    public static <T, R extends Comparable<?>> Condition notBetween(Class<T> entityClass, SFunction<T, R> getter, @Nullable R from, @Nullable R to) {
+        return builder(entityClass).notBetween(getter, from, to).build();
+    }
+
+    // ==================== JSON 操作符类型化静态方法 ====================
+
+    /**
+     * 创建类型化 JSON CONTAINS 条件
+     *
+     * @param entityClass 实体类
+     * @param getter      字段 getter 方法引用
+     * @param jsonValue   JSON 值
+     */
+    public static <T, R> Condition jsonContains(Class<T> entityClass, SFunction<T, R> getter, @Nullable Object jsonValue) {
+        return builder(entityClass).jsonContains(getter, jsonValue).build();
+    }
+
+    /**
+     * 创建类型化 JSON CONTAINED 条件
+     *
+     * @param entityClass 实体类
+     * @param getter      字段 getter 方法引用
+     * @param jsonValue   JSON 值
+     */
+    public static <T, R> Condition jsonContained(Class<T> entityClass, SFunction<T, R> getter, @Nullable Object jsonValue) {
+        return builder(entityClass).jsonContained(getter, jsonValue).build();
+    }
+
+    /**
+     * 创建类型化 JSON PATH 条件
+     *
+     * @param entityClass 实体类
+     * @param getter      字段 getter 方法引用
+     * @param path        JSON 路径表达式
+     */
+    public static <T> Condition jsonPath(Class<T> entityClass, SFunction<T, String> getter, @Nullable String path) {
+        return builder(entityClass).jsonPath(getter, path).build();
     }
 
     /**
@@ -531,18 +669,6 @@ public final class Conditions {
         }
 
         @Override
-        @Deprecated(since = "1.1.0", forRemoval = true)
-        public ConditionBuilder likeLeft(String field, @Nullable String value) {
-            return likeStartsWith(field, value);
-        }
-
-        @Override
-        @Deprecated(since = "1.1.0", forRemoval = true)
-        public ConditionBuilder likeRight(String field, @Nullable String value) {
-            return likeEndsWith(field, value);
-        }
-
-        @Override
         public ConditionBuilder likeStartsWith(String field, @Nullable String value) {
             String v = value;
             if (v != null) {
@@ -605,6 +731,28 @@ public final class Conditions {
         @Override
         public ConditionBuilder notBetween(String field, @Nullable Comparable<?> from, @Nullable Comparable<?> to) {
             criteria.add(new Criterion(field, Operator.NOT_BETWEEN, new Comparable<?>[]{from, to}, null, null));
+            return this;
+        }
+
+        @Override
+        public ConditionBuilder jsonContains(String field, @Nullable Object jsonValue) {
+            criteria.add(new Criterion(field, Operator.JSON_CONTAINS, jsonValue, null, null));
+            return this;
+        }
+
+        @Override
+        public ConditionBuilder jsonContained(String field, @Nullable Object jsonValue) {
+            criteria.add(new Criterion(field, Operator.JSON_CONTAINED, jsonValue, null, null));
+            return this;
+        }
+
+        @Override
+        public ConditionBuilder jsonPath(String field, @Nullable String path) {
+            if (path == null) {
+                criteria.add(new Criterion(field, Operator.IS_NULL, null, null, null));
+            } else {
+                criteria.add(new Criterion(field, Operator.JSON_PATH, path, null, null));
+            }
             return this;
         }
 
@@ -707,18 +855,6 @@ public final class Conditions {
         }
 
         @Override
-        @Deprecated(since = "1.1.0", forRemoval = true)
-        public TypedConditionBuilder<T> likeLeft(SFunction<T, String> getter, @Nullable String value) {
-            return likeStartsWith(getter, value);
-        }
-
-        @Override
-        @Deprecated(since = "1.1.0", forRemoval = true)
-        public TypedConditionBuilder<T> likeRight(SFunction<T, String> getter, @Nullable String value) {
-            return likeEndsWith(getter, value);
-        }
-
-        @Override
         public TypedConditionBuilder<T> likeStartsWith(SFunction<T, String> getter, @Nullable String value) {
             delegate.likeStartsWith(resolveColumnName(getter), value);
             return this;
@@ -769,6 +905,24 @@ public final class Conditions {
         @Override
         public <R extends Comparable<?>> TypedConditionBuilder<T> notBetween(SFunction<T, R> getter, @Nullable R from, @Nullable R to) {
             delegate.notBetween(resolveColumnName(getter), from, to);
+            return this;
+        }
+
+        @Override
+        public <R> TypedConditionBuilder<T> jsonContains(SFunction<T, R> getter, @Nullable Object jsonValue) {
+            delegate.jsonContains(resolveColumnName(getter), jsonValue);
+            return this;
+        }
+
+        @Override
+        public <R> TypedConditionBuilder<T> jsonContained(SFunction<T, R> getter, @Nullable Object jsonValue) {
+            delegate.jsonContained(resolveColumnName(getter), jsonValue);
+            return this;
+        }
+
+        @Override
+        public TypedConditionBuilder<T> jsonPath(SFunction<T, String> getter, @Nullable String path) {
+            delegate.jsonPath(resolveColumnName(getter), path);
             return this;
         }
 

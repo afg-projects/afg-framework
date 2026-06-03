@@ -1,12 +1,9 @@
 /**
- * AFG 平台异常基类包。
- *
- * <p>提供平台级别的异常基类，所有业务异常的父类。
- *
- * <p>核心类：
- * <ul>
- *   <li>{@link io.github.afgprojects.framework.core.exception.AfgException} - AFG 平台异常基类</li>
- * </ul>
+ * Core 模块异常定义。
+ * <p>
+ * 基础异常类 {@code AfgException} 已迁移至 {@code commons.exception} 包，
+ * 本包仅保留框架核心特有的异常类（如 {@link io.github.afgprojects.framework.core.exception.SchedulerException}）。
+ * </p>
  *
  * @since 1.0.0
  */

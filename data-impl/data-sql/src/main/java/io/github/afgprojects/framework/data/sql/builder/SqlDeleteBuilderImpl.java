@@ -4,6 +4,7 @@ import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.sql.SqlDeleteBuilder;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
 import io.github.afgprojects.framework.data.core.dialect.MySQLDialect;
+import io.github.afgprojects.framework.data.core.security.SqlIdentifierValidator;
 import io.github.afgprojects.framework.data.sql.converter.ConditionToSqlConverter;
 import org.jspecify.annotations.NonNull;
 
@@ -14,12 +15,6 @@ import java.util.List;
  * SQL 删除构建器实现
  */
 public class SqlDeleteBuilderImpl implements SqlDeleteBuilder {
-
-    /**
-     * 合法标识符正则：字母/下划线开头，后跟字母/数字/下划线
-     */
-    private static final java.util.regex.Pattern VALID_IDENTIFIER_PATTERN =
-            java.util.regex.Pattern.compile("^[a-zA-Z_][a-zA-Z0-9_]*$");
 
     private final Dialect dialect;
     private String tableName;
@@ -81,14 +76,6 @@ public class SqlDeleteBuilderImpl implements SqlDeleteBuilder {
      * @throws IllegalArgumentException 如果标识符非法
      */
     private void validateIdentifier(String identifier, String type) {
-        if (identifier == null || identifier.isEmpty()) {
-            throw new IllegalArgumentException(type + " cannot be null or empty");
-        }
-        if (!VALID_IDENTIFIER_PATTERN.matcher(identifier).matches()) {
-            throw new IllegalArgumentException(
-                    "Invalid " + type + ": '" + identifier + "'. " +
-                    "Identifier must start with a letter or underscore, " +
-                    "followed by letters, digits, or underscores.");
-        }
+        SqlIdentifierValidator.validateSimpleIdentifier(identifier, type);
     }
 }

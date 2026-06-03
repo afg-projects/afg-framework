@@ -84,12 +84,6 @@ public class DefaultEntityCache<T> implements EntityCache<T> {
     }
 
     @Override
-    public void put(@NonNull Object id, @NonNull T entity, long ttlMillis) {
-        String key = buildKey(id);
-        cache.put(key, entity, ttlMillis);
-    }
-
-    @Override
     public void evict(@NonNull Object id) {
         String key = buildKey(id);
         cache.evict(key);

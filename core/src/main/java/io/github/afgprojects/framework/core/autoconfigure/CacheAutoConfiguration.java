@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Bean;
 
 import io.github.afgprojects.framework.core.cache.CacheAspect;
 import io.github.afgprojects.framework.core.cache.DefaultCacheManager;
-import io.github.afgprojects.framework.core.config.AfgCoreProperties;
+import io.github.afgprojects.framework.core.properties.AfgCoreProperties;
 
 /**
  * 缓存自动配置

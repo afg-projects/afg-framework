@@ -9,6 +9,9 @@ import org.springframework.context.annotation.Bean;
 import io.github.afgprojects.framework.security.auth.oauth2.DefaultOAuth2AuthorizationService;
 import io.github.afgprojects.framework.security.auth.oauth2.InMemoryAuthorizationCodeStorage;
 import io.github.afgprojects.framework.security.auth.oauth2.InMemoryOAuth2ClientService;
+import io.github.afgprojects.framework.security.auth.properties.AuthSecurityProperties;
+import io.github.afgprojects.framework.security.auth.properties.oauth2.OAuth2Config;
+import io.github.afgprojects.framework.security.auth.properties.token.TokenConfig;
 import io.github.afgprojects.framework.security.core.oauth2.AuthorizationCodeStorage;
 import io.github.afgprojects.framework.security.core.oauth2.OAuth2AuthorizationService;
 import io.github.afgprojects.framework.security.core.oauth2.OAuth2ClientService;
@@ -46,8 +49,8 @@ public class OAuth2AutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public OAuth2ClientService oAuth2ClientService(@NonNull AuthSecurityProperties properties) {
-        AuthSecurityProperties.OAuth2Config oauth2Config = properties.getOauth2();
-        AuthSecurityProperties.TokenConfig tokenConfig = properties.getToken();
+        OAuth2Config oauth2Config = properties.getOauth2();
+        TokenConfig tokenConfig = properties.getToken();
 
         Set<ClientDetails> clients = oauth2Config.getClients().stream()
                 .map(config -> new ClientDetails(

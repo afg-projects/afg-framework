@@ -3,6 +3,7 @@ package io.github.afgprojects.framework.data.sql.builder;
 import io.github.afgprojects.framework.data.core.condition.Conditions;
 import io.github.afgprojects.framework.data.core.condition.SFunction;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
+import io.github.afgprojects.framework.data.core.security.SqlIdentifierValidator;
 import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
@@ -25,9 +26,21 @@ public class SelectClauseBuilder {
 
     /**
      * 指定查询列
+     *
+     * @throws IllegalArgumentException 如果列名非法
      */
     public SelectClauseBuilder select(@NonNull String... columns) {
-        selectColumns = new ArrayList<>(List.of(columns));
+        List<String> validated = new ArrayList<>(columns.length);
+        for (String column : columns) {
+            // 特殊值 * 和表达式允许直接通过（如 COUNT(*) 等聚合函数结果）
+            if ("*".equals(column)) {
+                validated.add(column);
+            } else {
+                SqlIdentifierValidator.validateColumn(column);
+                validated.add(dialect.quoteIdentifier(column));
+            }
+        }
+        this.selectColumns = validated;
         return this;
     }
 
@@ -37,7 +50,8 @@ public class SelectClauseBuilder {
     public SelectClauseBuilder select(@NonNull SFunction<?, ?>... getters) {
         selectColumns = new ArrayList<>();
         for (SFunction<?, ?> getter : getters) {
-            selectColumns.add(Conditions.getFieldName(getter));
+            String fieldName = Conditions.getFieldName(getter);
+            selectColumns.add(dialect.quoteIdentifier(fieldName));
         }
         return this;
     }
@@ -60,8 +74,11 @@ public class SelectClauseBuilder {
 
     /**
      * 添加 COUNT(column) 聚合函数
+     *
+     * @throws IllegalArgumentException 如果列名非法
      */
     public SelectClauseBuilder count(@NonNull String column) {
+        SqlIdentifierValidator.validateColumn(column);
         selectColumns.add("COUNT(" + dialect.quoteIdentifier(column) + ")");
         return this;
     }
@@ -76,40 +93,55 @@ public class SelectClauseBuilder {
 
     /**
      * 添加 COUNT(DISTINCT column) 聚合函数
+     *
+     * @throws IllegalArgumentException 如果列名非法
      */
     public SelectClauseBuilder countDistinct(@NonNull String column) {
+        SqlIdentifierValidator.validateColumn(column);
         selectColumns.add("COUNT(DISTINCT " + dialect.quoteIdentifier(column) + ")");
         return this;
     }
 
     /**
      * 添加 SUM(column) 聚合函数
+     *
+     * @throws IllegalArgumentException 如果列名非法
      */
     public SelectClauseBuilder sum(@NonNull String column) {
+        SqlIdentifierValidator.validateColumn(column);
         selectColumns.add("SUM(" + dialect.quoteIdentifier(column) + ")");
         return this;
     }
 
     /**
      * 添加 AVG(column) 聚合函数
+     *
+     * @throws IllegalArgumentException 如果列名非法
      */
     public SelectClauseBuilder avg(@NonNull String column) {
+        SqlIdentifierValidator.validateColumn(column);
         selectColumns.add("AVG(" + dialect.quoteIdentifier(column) + ")");
         return this;
     }
 
     /**
      * 添加 MAX(column) 聚合函数
+     *
+     * @throws IllegalArgumentException 如果列名非法
      */
     public SelectClauseBuilder max(@NonNull String column) {
+        SqlIdentifierValidator.validateColumn(column);
         selectColumns.add("MAX(" + dialect.quoteIdentifier(column) + ")");
         return this;
     }
 
     /**
      * 添加 MIN(column) 聚合函数
+     *
+     * @throws IllegalArgumentException 如果列名非法
      */
     public SelectClauseBuilder min(@NonNull String column) {
+        SqlIdentifierValidator.validateColumn(column);
         selectColumns.add("MIN(" + dialect.quoteIdentifier(column) + ")");
         return this;
     }

@@ -4,6 +4,7 @@ import io.github.afgprojects.framework.core.web.security.AfgEnforcer;
 import io.github.afgprojects.framework.security.auth.casbin.enforcer.CasbinAfgEnforcer;
 import io.github.afgprojects.framework.security.auth.casbin.model.AfgPolicyService;
 import io.github.afgprojects.framework.security.auth.casbin.model.InMemoryPolicyService;
+import io.github.afgprojects.framework.security.auth.properties.AuthSecurityProperties;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

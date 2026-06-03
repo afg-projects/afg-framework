@@ -11,10 +11,14 @@ import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.query.Page;
 import io.github.afgprojects.framework.data.core.query.ProjectedQuery;
 import io.github.afgprojects.framework.data.core.query.Sort;
+import io.github.afgprojects.framework.data.core.query.AggregateQuery;
 import io.github.afgprojects.framework.data.core.scope.DataScope;
 import io.github.afgprojects.framework.data.core.scope.DataScopeType;
 import io.github.afgprojects.framework.data.sql.converter.ConditionToSqlConverter;
+import io.github.afgprojects.framework.data.sql.scope.DataScopeSqlBuilder;
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.JdbcClient;
 
@@ -25,6 +29,7 @@ import java.util.*;
  * <p>
  * 提供基于条件的查询操作，支持分页、排序、数据权限等企业级特性。
  */
+@Slf4j
 @SuppressWarnings("PMD.CouplingBetweenObjects")
 public class JdbcEntityQuery<T> implements EntityQuery<T> {
 
@@ -44,6 +49,7 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
     private String dataSourceName;
     private boolean readOnly = false;
     private boolean includeDeleted = false;
+    private boolean distinct = false;
     private final Set<String> eagerFetchAssociations = new LinkedHashSet<>();
     private Integer limit;
     private Integer offset;
@@ -128,6 +134,32 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
     }
 
     @Override
+    public @NonNull EntityQuery<T> and(@NonNull Condition condition) {
+        if (this.condition.isEmpty()) {
+            this.condition = condition;
+        } else {
+            this.condition = this.condition.and(condition);
+        }
+        return this;
+    }
+
+    @Override
+    public @NonNull EntityQuery<T> or(@NonNull Condition condition) {
+        if (this.condition.isEmpty()) {
+            this.condition = condition;
+        } else {
+            this.condition = this.condition.or(condition);
+        }
+        return this;
+    }
+
+    @Override
+    public @NonNull EntityQuery<T> distinct() {
+        this.distinct = true;
+        return this;
+    }
+
+    @Override
     public @NonNull EntityQuery<T> orderBy(@NonNull Sort sort) {
         if (this.sort == null || this.sort.isUnsorted()) {
             this.sort = sort;
@@ -193,19 +225,27 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
 
     @Override
     public @NonNull EntityQuery<T> withDataScope() {
-        // TODO: 自动检测实体中的部门字段并应用数据权限
+        // 自动检测实体中的部门字段
+        String deptColumn = findDeptColumn();
+        if (deptColumn != null) {
+            this.dataScopes.add(DataScope.of(metadata.getTableName(), deptColumn, DataScopeType.DEPT_AND_CHILD));
+        }
         return this;
     }
 
     @Override
     public @NonNull EntityQuery<T> withDataScope(String deptField) {
-        // TODO: 使用指定部门字段应用数据权限
+        String columnName = resolveColumnNameFromFieldName(deptField);
+        this.dataScopes.add(DataScope.of(metadata.getTableName(), columnName, DataScopeType.DEPT_AND_CHILD));
         return this;
     }
 
     @Override
     public @NonNull EntityQuery<T> withDataScope(DataScopeType scopeType) {
-        // TODO: 使用指定数据范围类型应用数据权限
+        String deptColumn = findDeptColumn();
+        if (deptColumn != null) {
+            this.dataScopes.add(DataScope.of(metadata.getTableName(), deptColumn, scopeType));
+        }
         return this;
     }
 
@@ -305,6 +345,14 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
             sql = appendSoftDeleteFilter(sql, !condition.isEmpty());
         }
 
+        // 数据权限过滤
+        boolean hasWhere = !condition.isEmpty() || (!includeDeleted && parentProxy.isSoftDeletable());
+        DataScopeFilterResult dsFilter = buildDataScopeFilter(hasWhere);
+        if (dsFilter != null) {
+            sql += dsFilter.sql();
+            params.addAll(dsFilter.parameters());
+        }
+
         // 排序
         if (sort != null && sort.isSorted()) {
             sql += " ORDER BY " + buildOrderByClause();
@@ -343,6 +391,14 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
             whereClause += parentProxy.getSoftDeleteStrategy() == SoftDeleteStrategy.TIMESTAMP
                     ? "deleted_at IS NULL"
                     : "deleted = false";
+        }
+
+        // 数据权限过滤
+        boolean hasWhereForPage = !whereClause.isEmpty();
+        DataScopeFilterResult dsFilterForPage = buildDataScopeFilter(hasWhereForPage);
+        if (dsFilterForPage != null) {
+            whereClause += dsFilterForPage.sql();
+            params.addAll(dsFilterForPage.parameters());
         }
 
         String whereSql = !whereClause.isEmpty() ? " WHERE " + whereClause : "";
@@ -477,18 +533,24 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
         return !results.isEmpty();
     }
 
+    @Override
+    public @NonNull AggregateQuery<T> aggregate() {
+        return new JdbcAggregateQuery<>(parentProxy);
+    }
+
     // ==================== 辅助方法 ====================
 
     private String buildSelectSql() {
         List<String> fields = resolveFields();
+        String prefix = distinct ? "SELECT DISTINCT " : "SELECT ";
         if (fields == null || fields.isEmpty()) {
-            return "SELECT * FROM " + dialect.quoteIdentifier(metadata.getTableName());
+            return prefix + "* FROM " + dialect.quoteIdentifier(metadata.getTableName());
         }
         // 确保所有字段名被引用（selectedFields 已在 select() 中引用，excludedFields 场景需要在此引用）
         List<String> quotedFields = fields.stream()
                 .map(f -> f.startsWith(dialect.getIdentifierQuote()) ? f : dialect.quoteIdentifier(f))
                 .toList();
-        return "SELECT " + String.join(", ", quotedFields) + " FROM " + dialect.quoteIdentifier(metadata.getTableName());
+        return prefix + String.join(", ", quotedFields) + " FROM " + dialect.quoteIdentifier(metadata.getTableName());
     }
 
     /**
@@ -538,6 +600,72 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
             );
         }
     }
+
+    /**
+     * 自动检测实体中的部门字段
+     * <p>
+     * 按优先级检测常见部门字段名：deptId, dept_id, departmentId, department_id, orgId, org_id
+     *
+     * @return 列名，未找到返回 null
+     */
+    private @Nullable String findDeptColumn() {
+        for (String candidate : List.of("deptId", "dept_id", "departmentId", "department_id", "orgId", "org_id")) {
+            var fieldMetadata = metadata.getField(candidate);
+            if (fieldMetadata != null) {
+                return fieldMetadata.getColumnName();
+            }
+            // 尝试作为列名匹配
+            for (var fm : metadata.getFields()) {
+                if (fm.getColumnName().equals(candidate)) {
+                    return candidate;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 将 Java 字段名解析为数据库列名
+     */
+    private String resolveColumnNameFromFieldName(String fieldName) {
+        var fieldMetadata = metadata.getField(fieldName);
+        if (fieldMetadata != null) {
+            return fieldMetadata.getColumnName();
+        }
+        return fieldName;
+    }
+
+    /**
+     * 构建 DataScope WHERE 条件
+     *
+     * @param hasWhere 是否已有 WHERE 子句
+     * @return [sql片段, 参数列表]，如果不需要过滤则返回 null
+     */
+    private @Nullable DataScopeFilterResult buildDataScopeFilter(boolean hasWhere) {
+        if (dataScopes.isEmpty()) {
+            return null;
+        }
+
+        var contextProvider = parentProxy.dataManager.getDataScopeContextProvider();
+        if (contextProvider == null) {
+            log.debug("No DataScopeContextProvider configured, skipping data scope filter");
+            return null;
+        }
+
+        DataScopeSqlBuilder scopeBuilder = new DataScopeSqlBuilder(contextProvider);
+        DataScopeSqlBuilder.SqlResult result = scopeBuilder.buildSql(dataScopes, dialect);
+        if (result == null) {
+            return null;
+        }
+
+        String prefix = hasWhere ? " AND " : " WHERE ";
+        return new DataScopeFilterResult(prefix + result.sql(), result.parameters());
+    }
+
+    /**
+     * DataScope 过滤结果
+     */
+    private record DataScopeFilterResult(String sql, List<Object> parameters) {}
 
     Class<T> getEntityClass() {
         return entityClass;

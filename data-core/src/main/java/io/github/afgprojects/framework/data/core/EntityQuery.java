@@ -8,6 +8,7 @@ import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.query.Page;
 import io.github.afgprojects.framework.data.core.query.ProjectedQuery;
 import io.github.afgprojects.framework.data.core.query.Sort;
+import io.github.afgprojects.framework.data.core.query.AggregateQuery;
 import io.github.afgprojects.framework.data.core.scope.DataScope;
 import io.github.afgprojects.framework.data.core.scope.DataScopeType;
 import org.jspecify.annotations.NonNull;
@@ -68,6 +69,40 @@ public interface EntityQuery<T> extends BaseQuery<EntityQuery<T>, T> {
      */
     @Override
     @NonNull EntityQuery<T> where(@NonNull Condition condition);
+
+    /**
+     * 追加 AND 条件
+     * <p>
+     * 在已有条件基础上追加 AND 条件。
+     * 如果尚未设置条件，等同于 {@code where(condition)}。
+     *
+     * @param condition 要追加的条件
+     * @return 查询构建器（支持链式调用）
+     */
+    @Override
+    @NonNull EntityQuery<T> and(@NonNull Condition condition);
+
+    /**
+     * 追加 OR 条件
+     * <p>
+     * 在已有条件基础上追加 OR 条件。
+     * 如果尚未设置条件，等同于 {@code where(condition)}。
+     *
+     * @param condition 要追加的条件
+     * @return 查询构建器（支持链式调用）
+     */
+    @Override
+    @NonNull EntityQuery<T> or(@NonNull Condition condition);
+
+    /**
+     * 设置 DISTINCT 去重
+     * <p>
+     * 启用后查询将使用 {@code SELECT DISTINCT} 替代 {@code SELECT}，
+     * 去除结果集中的重复行。
+     *
+     * @return 查询构建器（支持链式调用）
+     */
+    @NonNull EntityQuery<T> distinct();
 
     /**
      * 设置排序
@@ -306,6 +341,30 @@ public interface EntityQuery<T> extends BaseQuery<EntityQuery<T>, T> {
      * @return 是否存在
      */
     boolean exists();
+
+    // ==================== 聚合查询 ====================
+
+    /**
+     * 创建聚合查询构建器
+     * <p>
+     * 聚合查询支持 GROUP BY、聚合函数（COUNT/SUM/AVG/MAX/MIN）、HAVING 过滤。
+     * 适用于单表统计报表场景。
+     * <p>
+     * 使用示例：
+     * <pre>
+     * // 按部门统计人数
+     * List&lt;AggregateResult&gt; results = dataManager.entity(User.class)
+     *     .query()
+     *     .aggregate()
+     *     .groupBy("dept_id")
+     *     .count("id", "userCount")
+     *     .avg("salary", "avgSalary")
+     *     .list();
+     * </pre>
+     *
+     * @return 聚合查询构建器
+     */
+    @NonNull AggregateQuery<T> aggregate();
 
     // ==================== DTO 投影 ====================
 

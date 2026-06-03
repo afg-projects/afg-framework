@@ -6,8 +6,10 @@ import io.github.afgprojects.framework.data.core.metadata.EntityTrait;
 import io.github.afgprojects.framework.data.core.metadata.FieldMetadata;
 import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.relation.RelationMetadata;
+import io.github.afgprojects.framework.data.core.condition.Conditions;
 import org.jspecify.annotations.Nullable;
 import io.github.afgprojects.framework.commons.naming.NamingUtils;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -242,14 +244,99 @@ public class ReflectiveEntityMetadata<T> implements DatabaseEntityMetadata<T> {
 
     @Override
     public boolean isDataScopeAware() {
-        // 反射方式无法检测数据权限注解，默认 false
-        return false;
+        return inferDataScopeAware();
     }
 
     @Override
     public @Nullable Condition getDefaultCondition() {
-        // 反射方式无法推断默认条件，默认 null
-        return null;
+        return inferDefaultCondition();
+    }
+
+/**
+     * 推断实体是否需要数据权限过滤
+     * <p>
+     * 通过反射检测实体类上的 @DataScope 注解（core 模块），
+     * 或检测实体是否包含典型的数据权限字段（deptId、createBy 等）。
+     * <p>
+     * 这是 APT 不可用时的安全降级方案，确保数据权限保护在反射模式下仍然生效。
+     *
+     * @return 如果实体需要数据权限过滤则返回 true
+     */
+    @SuppressWarnings("unchecked")
+    private boolean inferDataScopeAware() {
+        // 1. 检查 core 模块的 @DataScope 注解（类级别）
+        try {
+            Class<? extends java.lang.annotation.Annotation> dataScopeAnnotationClass =
+                    (Class<? extends java.lang.annotation.Annotation>) Class.forName(
+                            "io.github.afgprojects.framework.core.security.datascope.DataScope");
+            if (entityClass.isAnnotationPresent(dataScopeAnnotationClass)) {
+                return true;
+            }
+            // 检查 @DataScope 是 @Repeatable 的，可能有容器注解
+            Class<? extends java.lang.annotation.Annotation> dataScopesAnnotationClass =
+                    (Class<? extends java.lang.annotation.Annotation>) Class.forName(
+                            "io.github.afgprojects.framework.core.security.datascope.DataScopes");
+            if (entityClass.isAnnotationPresent(dataScopesAnnotationClass)) {
+                return true;
+            }
+        } catch (ClassNotFoundException e) {
+            // core 模块不在类路径中，跳过注解检测
+        } catch (NoClassDefFoundError e) {
+            // core 模块不在类路径中，跳过注解检测
+        }
+
+        // 2. 检查典型数据权限字段
+        // 如果实体包含 deptId 字段，很可能需要数据权限过滤
+        if (getField("deptId") != null) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * 推断实体的默认查询条件
+     * <p>
+     * 基于字段元数据构建软删除的默认条件。
+     * 这是 APT 不可用时的安全降级方案，确保软删除过滤在反射模式下仍然生效。
+     * <p>
+     * <b>注意：</b>租户隔离条件不在此处构建，因为元数据是缓存的单例对象，
+     * 而租户 ID 是请求级别的上下文。租户过滤由运行时 SQL 改写处理
+     * （JdbcEntityProxy / EntityConditionalHandler 中已包含租户条件注入逻辑）。
+     * <p>
+     * <b>安全性说明：</b>此方法确保反射降级时不会静默绕过安全保护。
+     * 之前硬编码返回 null 会导致软删除条件被完全绕过。
+     *
+     * @return 默认条件，如果没有需要自动过滤的字段则返回 null
+     */
+    private @Nullable Condition inferDefaultCondition() {
+        List<Condition> conditions = new ArrayList<>(1);
+
+        // 1. 软删除过滤
+        if (isSoftDeletable()) {
+            FieldMetadata deletedAtField = getField("deletedAt");
+            if (deletedAtField != null) {
+                // 时间戳型软删除：deleted_at IS NULL
+                conditions.add(Conditions.isNull(deletedAtField.getColumnName()));
+            } else {
+                FieldMetadata deletedField = getField("deleted");
+                if (deletedField != null) {
+                    // 布尔型软删除：deleted = false
+                    conditions.add(Conditions.eq(deletedField.getColumnName(), false));
+                }
+            }
+        }
+
+        // 2. 租户隔离不在元数据层处理（运行时由 JdbcEntityProxy 等注入）
+        // 因为 EntityMetadata 是单例缓存，而 tenantId 是请求级上下文
+
+        if (conditions.isEmpty()) {
+            return null;
+        }
+        if (conditions.size() == 1) {
+            return conditions.getFirst();
+        }
+        return Conditions.allOf(conditions.toArray(new Condition[0]));
     }
 
     /**

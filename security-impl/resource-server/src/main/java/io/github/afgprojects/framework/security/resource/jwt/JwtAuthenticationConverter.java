@@ -2,7 +2,7 @@ package io.github.afgprojects.framework.security.resource.jwt;
 
 import io.github.afgprojects.framework.security.core.authentication.AfgAuthentication;
 import io.github.afgprojects.framework.security.core.authentication.AfgUserDetails;
-import io.github.afgprojects.framework.security.resource.autoconfigure.ResourceSecurityProperties;
+import io.github.afgprojects.framework.security.resource.properties.jwt.ResourceSecurityJwtProperties;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -30,14 +30,14 @@ import java.util.stream.Collectors;
  */
 public class JwtAuthenticationConverter {
 
-    private final ResourceSecurityProperties.JwtConfig jwtConfig;
+    private final ResourceSecurityJwtProperties jwtConfig;
 
     /**
      * 构造转换器。
      *
      * @param jwtConfig JWT 配置属性
      */
-    public JwtAuthenticationConverter(ResourceSecurityProperties.@NonNull JwtConfig jwtConfig) {
+    public JwtAuthenticationConverter(@NonNull ResourceSecurityJwtProperties jwtConfig) {
         this.jwtConfig = jwtConfig;
     }
 

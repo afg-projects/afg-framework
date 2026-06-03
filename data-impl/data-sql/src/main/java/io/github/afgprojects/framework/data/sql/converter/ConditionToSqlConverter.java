@@ -4,9 +4,11 @@ import io.github.afgprojects.framework.data.core.condition.Conditions;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
 import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.query.Criterion;
+import io.github.afgprojects.framework.data.core.query.DenyAllCondition;
 import io.github.afgprojects.framework.data.core.query.LogicalOperator;
 import io.github.afgprojects.framework.data.core.query.NotCondition;
 import io.github.afgprojects.framework.data.core.query.Operator;
+import io.github.afgprojects.framework.data.core.security.SqlIdentifierValidator;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -19,10 +21,6 @@ import java.util.function.BiConsumer;
  * Condition 到 SQL WHERE 子句的转换器
  */
 public class ConditionToSqlConverter {
-
-    /** 合法字段名正则：字母/下划线开头，后跟字母/数字/下划线/点（支持 table.field 格式） */
-    private static final java.util.regex.Pattern FIELD_NAME_PATTERN =
-            java.util.regex.Pattern.compile("^[a-zA-Z_][a-zA-Z0-9_.]*$");
 
     /** 可选的方言，用于生成数据库兼容的 JSON 操作 SQL */
     private final @Nullable Dialect dialect;
@@ -52,14 +50,7 @@ public class ConditionToSqlConverter {
      * @throws IllegalArgumentException 如果字段名不合法
      */
     private void validateFieldName(String field) {
-        if (field == null || field.isEmpty()) {
-            throw new IllegalArgumentException("Field name cannot be null or empty");
-        }
-        if (!FIELD_NAME_PATTERN.matcher(field).matches()) {
-            throw new IllegalArgumentException(
-                    "Invalid field name: '" + field + "'. Field name must start with a letter or underscore, "
-                    + "and contain only letters, digits, underscores, or dots.");
-        }
+        SqlIdentifierValidator.validateColumn(field);
     }
 
 
@@ -161,7 +152,7 @@ public class ConditionToSqlConverter {
 
         // 处理特殊操作符
         switch (operator) {
-            case LIKE, LIKE_LEFT, LIKE_RIGHT, LIKE_STARTS_WITH, LIKE_ENDS_WITH -> handleLike(sql, parameters, value, false);
+            case LIKE, LIKE_STARTS_WITH, LIKE_ENDS_WITH -> handleLike(sql, parameters, value, false);
             case NOT_LIKE -> handleLike(sql, parameters, value, true);
             case IN -> handleIn(sql, parameters, value, false);
             case NOT_IN -> handleIn(sql, parameters, value, true);
@@ -223,17 +214,32 @@ public class ConditionToSqlConverter {
     /**
      * 处理 IN 操作符
      */
+    /**
+     * 处理 IN 操作符
+     *
+     * @throws IllegalArgumentException 如果 value 不是 Iterable
+     */
     private void handleIn(StringBuilder sql, List<Object> parameters, Object value, boolean negate) {
-        sql.append(negate ? " NOT IN (" : " IN (");
-        if (value instanceof Iterable<?> iterable) {
-            boolean first = true;
-            for (Object v : iterable) {
-                if (!first) sql.append(", ");
-                sql.append("?");
-                parameters.add(v);
-                first = false;
-            }
+        if (!(value instanceof Iterable<?> iterable)) {
+            throw new IllegalArgumentException(
+                    "IN/NOT IN operator requires an Iterable value, got: " + value.getClass().getName());
         }
+
+        sql.append(negate ? " NOT IN (" : " IN (");
+
+        boolean first = true;
+        for (Object v : iterable) {
+            if (!first) sql.append(", ");
+            sql.append("?");
+            parameters.add(v);
+            first = false;
+        }
+
+        // 空 Iterable 时生成 IN (NULL)，避免语法错误
+        if (first) {
+            sql.append("NULL");
+        }
+
         sql.append(")");
     }
 
@@ -241,11 +247,14 @@ public class ConditionToSqlConverter {
      * 处理 BETWEEN 操作符
      */
     private void handleBetween(StringBuilder sql, List<Object> parameters, Object value, boolean negate) {
-        if (value instanceof Comparable<?>[] arr && arr.length == 2) {
-            sql.append(negate ? " NOT BETWEEN ? AND ?" : " BETWEEN ? AND ?");
-            parameters.add(arr[0]);
-            parameters.add(arr[1]);
+        if (!(value instanceof Comparable<?>[] arr) || arr.length != 2) {
+            throw new IllegalArgumentException(
+                    "BETWEEN/NOT BETWEEN requires a Comparable array of length 2, got: "
+                    + (value == null ? "null" : value.getClass().getName()));
         }
+        sql.append(negate ? " NOT BETWEEN ? AND ?" : " BETWEEN ? AND ?");
+        parameters.add(arr[0]);
+        parameters.add(arr[1]);
     }
 
     /**

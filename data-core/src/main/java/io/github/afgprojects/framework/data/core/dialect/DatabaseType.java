@@ -1,8 +1,11 @@
 package io.github.afgprojects.framework.data.core.dialect;
 
+import lombok.Getter;
+
 /**
  * 数据库类型枚举
  */
+@Getter
 public enum DatabaseType {
 
     /** MySQL */
@@ -47,14 +50,6 @@ public enum DatabaseType {
     DatabaseType(String code, String name) {
         this.code = code;
         this.name = name;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public String getName() {
-        return name;
     }
 
     /**

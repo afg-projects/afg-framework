@@ -2,7 +2,6 @@ package io.github.afgprojects.framework.security.resource.autoconfigure;
 
 import io.github.afgprojects.framework.core.api.config.RemoteConfigClient;
 import io.github.afgprojects.framework.core.cache.CacheManager;
-import io.github.afgprojects.framework.security.resource.introspection.IntrospectionProperties;
 import io.github.afgprojects.framework.security.resource.jwt.JwtAuthenticationConverter;
 import io.github.afgprojects.framework.security.resource.permission.CachedPermissionChecker;
 import io.github.afgprojects.framework.security.resource.permission.DynamicApiPermissionInterceptor;
@@ -12,9 +11,10 @@ import io.github.afgprojects.framework.security.resource.permission.JwtPermissio
 import io.github.afgprojects.framework.security.resource.permission.PermissionAspect;
 import io.github.afgprojects.framework.security.resource.permission.RemotePermissionClient;
 import io.github.afgprojects.framework.security.resource.permission.SignedHttpPermissionClient;
-import io.github.afgprojects.framework.security.resource.tenant.HeaderTenantResolver;
+import io.github.afgprojects.framework.security.resource.properties.ResourceSecurityProperties;
 import io.github.afgprojects.framework.security.resource.tenant.TokenTenantResolver;
-import io.github.afgprojects.framework.security.resource.tenant.TenantResolverChain;
+import io.github.afgprojects.framework.security.core.tenant.HeaderTenantResolver;
+import io.github.afgprojects.framework.security.core.tenant.TenantResolverChain;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,10 +36,7 @@ import lombok.extern.slf4j.Slf4j;
  * @since 1.0.0
  */
 @AutoConfiguration
-@EnableConfigurationProperties({
-        ResourceSecurityProperties.class,
-        IntrospectionProperties.class
-})
+@EnableConfigurationProperties(ResourceSecurityProperties.class)
 @ConditionalOnProperty(prefix = "afg.security.resource-server", name = "enabled", havingValue = "true", matchIfMissing = true)
 @Slf4j
 public class ResourceServerAutoConfiguration {

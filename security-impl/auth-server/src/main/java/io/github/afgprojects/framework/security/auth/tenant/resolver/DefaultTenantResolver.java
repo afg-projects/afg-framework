@@ -1,11 +1,10 @@
 package io.github.afgprojects.framework.security.auth.tenant.resolver;
 
-import io.github.afgprojects.framework.security.auth.autoconfigure.AuthSecurityProperties;
+import io.github.afgprojects.framework.security.core.tenant.SimpleTenantContext;
 import io.github.afgprojects.framework.security.core.tenant.TenantContext;
 import io.github.afgprojects.framework.security.core.tenant.TenantResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 /**
  * 默认租户解析器。
@@ -26,16 +25,7 @@ public class DefaultTenantResolver implements TenantResolver {
     private int order = DEFAULT_ORDER;
 
     /**
-     * 使用 TenantConfig 构造默认租户解析器。
-     *
-     * @param tenantConfig 租户配置属性
-     */
-    public DefaultTenantResolver(AuthSecurityProperties.@NonNull TenantConfig tenantConfig) {
-        this.defaultTenantId = tenantConfig.getDefaultTenant();
-    }
-
-    /**
-     * 使用自定义默认租户 ID 构造解析器。
+     * 构造默认租户解析器。
      *
      * @param defaultTenantId 默认租户 ID
      */
@@ -46,7 +36,7 @@ public class DefaultTenantResolver implements TenantResolver {
     @Override
     @NonNull
     public TenantContext resolve(@NonNull HttpServletRequest request) {
-        return new DefaultTenantContext(defaultTenantId);
+        return new SimpleTenantContext(defaultTenantId);
     }
 
     @Override
@@ -61,14 +51,5 @@ public class DefaultTenantResolver implements TenantResolver {
      */
     public void setOrder(int order) {
         this.order = order;
-    }
-
-    /**
-     * 获取默认租户 ID。
-     *
-     * @return 默认租户 ID
-     */
-    public String getDefaultTenantId() {
-        return defaultTenantId;
     }
 }

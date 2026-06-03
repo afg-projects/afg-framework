@@ -10,6 +10,8 @@ import io.github.afgprojects.framework.security.auth.login.DefaultLoginService;
 import io.github.afgprojects.framework.security.auth.login.strategy.EmailCaptchaLoginStrategy;
 import io.github.afgprojects.framework.security.auth.login.strategy.MobileCaptchaLoginStrategy;
 import io.github.afgprojects.framework.security.auth.login.strategy.UsernamePasswordLoginStrategy;
+import io.github.afgprojects.framework.security.auth.properties.AuthSecurityProperties;
+import io.github.afgprojects.framework.security.auth.properties.token.TokenConfig;
 import io.github.afgprojects.framework.security.auth.storage.JdbcCaptchaStorage;
 import io.github.afgprojects.framework.security.auth.storage.JdbcRefreshTokenStorage;
 import io.github.afgprojects.framework.security.auth.storage.JdbcTokenBlacklist;
@@ -100,7 +102,7 @@ public class LoginAutoConfiguration {
             AfgRefreshTokenStorage refreshTokenStorage,
             AfgTokenBlacklist tokenBlacklist) {
         log.info("Initializing DefaultTokenService with RS256");
-        AuthSecurityProperties.TokenConfig tokenConfig = properties.getToken();
+        TokenConfig tokenConfig = properties.getToken();
         return new DefaultTokenService(
                 keyPairManager,
                 tokenConfig.getIssuer(),

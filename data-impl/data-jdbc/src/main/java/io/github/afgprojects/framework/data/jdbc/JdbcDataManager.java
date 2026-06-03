@@ -2,6 +2,7 @@ package io.github.afgprojects.framework.data.jdbc;
 
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.EntityProxy;
+import io.github.afgprojects.framework.data.jdbc.metrics.RawSqlSecurityGuard;
 import io.github.afgprojects.framework.data.core.context.TenantContextHolder;
 import io.github.afgprojects.framework.data.core.dialect.*;
 import io.github.afgprojects.framework.data.core.exception.EntityMappingException;
@@ -23,6 +24,7 @@ import io.github.afgprojects.framework.data.sql.builder.SqlDeleteBuilderImpl;
 import io.github.afgprojects.framework.data.sql.builder.SqlInsertBuilderImpl;
 import io.github.afgprojects.framework.data.sql.builder.SqlQueryBuilderImpl;
 import io.github.afgprojects.framework.data.sql.builder.SqlUpdateBuilderImpl;
+import io.github.afgprojects.framework.data.sql.scope.DataScopeContextProvider;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
@@ -100,7 +102,17 @@ public class JdbcDataManager implements DataManager {
     /**
      * 实体元数据缓存
      */
+    private final RawSqlSecurityGuard rawSqlSecurityGuard = new RawSqlSecurityGuard();
+
+    /**
+     * 实体元数据缓存
+     */
     private final EntityMetadataCache metadataCache = new EntityMetadataCache();
+
+    /**
+     * 数据权限上下文提供者（可选）
+     */
+    private volatile @Nullable DataScopeContextProvider dataScopeContextProvider;
 
     /**
      * 类型处理器注册表
@@ -278,6 +290,7 @@ public class JdbcDataManager implements DataManager {
 
     @Override
     public <T> List<T> queryForList(@NonNull String sql, @NonNull List<Object> params, @NonNull ResultMapper<T> rowMapper) {
+        rawSqlSecurityGuard.check(sql, "JdbcDataManager.queryForList");
         return jdbcClient.sql(sql)
             .params(params)
             .query(ResultMapperAdapter.adapt(rowMapper))
@@ -286,6 +299,7 @@ public class JdbcDataManager implements DataManager {
 
     @Override
     public <T> @Nullable T queryForObject(@NonNull String sql, @NonNull List<Object> params, @NonNull ResultMapper<T> rowMapper) {
+        rawSqlSecurityGuard.check(sql, "JdbcDataManager.queryForObject");
         return jdbcClient.sql(sql)
             .params(params)
             .query(ResultMapperAdapter.adapt(rowMapper))
@@ -294,6 +308,7 @@ public class JdbcDataManager implements DataManager {
 
     @Override
     public <T> Optional<T> queryForOptional(@NonNull String sql, @NonNull List<Object> params, @NonNull ResultMapper<T> rowMapper) {
+        rawSqlSecurityGuard.check(sql, "JdbcDataManager.queryForOptional");
         return jdbcClient.sql(sql)
             .params(params)
             .query(ResultMapperAdapter.adapt(rowMapper))
@@ -368,6 +383,7 @@ public class JdbcDataManager implements DataManager {
      * 执行查询并返回可选单个结果
      */
     public <T> java.util.Optional<T> queryForOptional(String sql, List<Object> params, RowMapper<T> rowMapper) {
+        rawSqlSecurityGuard.check(sql, "JdbcDataManager.queryForOptional(RowMapper)");
         return jdbcClient.sql(sql)
             .params(params)
             .query(rowMapper)
@@ -379,6 +395,7 @@ public class JdbcDataManager implements DataManager {
      */
     @Override
     public int executeUpdate(String sql, List<Object> params) {
+        rawSqlSecurityGuard.check(sql, "JdbcDataManager.executeUpdate");
         return jdbcClient.sql(sql)
             .params(params)
             .update();
@@ -389,6 +406,7 @@ public class JdbcDataManager implements DataManager {
      */
     @Override
     public int executeUpdate(String sql, Map<String, Object> params) {
+        rawSqlSecurityGuard.check(sql, "JdbcDataManager.executeUpdate(Map)");
         return jdbcClient.sql(sql)
             .params(params)
             .update();
@@ -396,6 +414,7 @@ public class JdbcDataManager implements DataManager {
 
     /**
      * 执行插入并返回生成的主键
+        rawSqlSecurityGuard.check(sql, "JdbcDataManager.executeInsertAndReturnKey");
      */
     public long executeInsertAndReturnKey(String sql, List<Object> params) {
         return isInTransaction()
@@ -535,6 +554,7 @@ public class JdbcDataManager implements DataManager {
      */
     @Override
     public long queryForCount(String sql, List<Object> params) {
+        rawSqlSecurityGuard.check(sql, "JdbcDataManager.queryForCount");
         Long count = jdbcClient.sql(sql)
             .params(params)
             .query(Long.class)
@@ -543,6 +563,7 @@ public class JdbcDataManager implements DataManager {
     }
 
     /**
+        rawSqlSecurityGuard.check(sql, "JdbcDataManager.queryWithMapper");
      * 使用 ResultMapper 执行查询，返回列表
      */
     public <T> List<T> queryWithMapper(String sql, List<Object> params, ResultMapper<T> mapper) {
@@ -564,6 +585,24 @@ public class JdbcDataManager implements DataManager {
      */
     public void setTypeHandlerRegistry(TypeHandlerRegistry registry) {
         this.typeHandlerRegistry = registry;
+    }
+
+    /**
+     * 设置数据权限上下文提供者
+     *
+     * @param provider 数据权限上下文提供者
+     */
+    public void setDataScopeContextProvider(@Nullable DataScopeContextProvider provider) {
+        this.dataScopeContextProvider = provider;
+    }
+
+    /**
+     * 获取数据权限上下文提供者
+     *
+     * @return 数据权限上下文提供者，可能为 null
+     */
+    public @Nullable DataScopeContextProvider getDataScopeContextProvider() {
+        return dataScopeContextProvider;
     }
 
     /**

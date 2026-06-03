@@ -2,7 +2,7 @@ package io.github.afgprojects.framework.core.module.exception;
 
 import java.io.Serial;
 
-import io.github.afgprojects.framework.core.exception.AfgException;
+import io.github.afgprojects.framework.commons.exception.AfgException;
 import lombok.Getter;
 
 /**

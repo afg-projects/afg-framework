@@ -2,6 +2,7 @@ package io.github.afgprojects.framework.data.sql.builder;
 
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
 import io.github.afgprojects.framework.data.core.query.Condition;
+import io.github.afgprojects.framework.data.core.security.SqlIdentifierValidator;
 import io.github.afgprojects.framework.data.sql.converter.ConditionToSqlConverter;
 import org.jspecify.annotations.NonNull;
 
@@ -26,48 +27,68 @@ public class JoinClauseBuilder {
 
     /**
      * JOIN 连接
+     *
+     * @throws IllegalArgumentException 如果表名非法
      */
     public JoinClauseBuilder join(@NonNull String table, @NonNull Condition on) {
+        SqlIdentifierValidator.validateTable(table);
         joins.add(new JoinClause("JOIN", table, null, on));
         return this;
     }
 
     /**
      * LEFT JOIN 连接
+     *
+     * @throws IllegalArgumentException 如果表名非法
      */
     public JoinClauseBuilder leftJoin(@NonNull String table, @NonNull Condition on) {
+        SqlIdentifierValidator.validateTable(table);
         joins.add(new JoinClause("LEFT JOIN", table, null, on));
         return this;
     }
 
     /**
      * RIGHT JOIN 连接
+     *
+     * @throws IllegalArgumentException 如果表名非法
      */
     public JoinClauseBuilder rightJoin(@NonNull String table, @NonNull Condition on) {
+        SqlIdentifierValidator.validateTable(table);
         joins.add(new JoinClause("RIGHT JOIN", table, null, on));
         return this;
     }
 
     /**
      * INNER JOIN 连接
+     *
+     * @throws IllegalArgumentException 如果表名非法
      */
     public JoinClauseBuilder innerJoin(@NonNull String table, @NonNull Condition on) {
+        SqlIdentifierValidator.validateTable(table);
         joins.add(new JoinClause("INNER JOIN", table, null, on));
         return this;
     }
 
     /**
      * JOIN 连接（带别名）
+     *
+     * @throws IllegalArgumentException 如果表名或别名非法
      */
     public JoinClauseBuilder join(@NonNull String table, @NonNull String alias, @NonNull Condition on) {
+        SqlIdentifierValidator.validateTable(table);
+        SqlIdentifierValidator.validateAlias(alias);
         joins.add(new JoinClause("JOIN", table, alias, on));
         return this;
     }
 
     /**
      * LEFT JOIN 连接（带别名）
+     *
+     * @throws IllegalArgumentException 如果表名或别名非法
      */
     public JoinClauseBuilder leftJoin(@NonNull String table, @NonNull String alias, @NonNull Condition on) {
+        SqlIdentifierValidator.validateTable(table);
+        SqlIdentifierValidator.validateAlias(alias);
         joins.add(new JoinClause("LEFT JOIN", table, alias, on));
         return this;
     }
@@ -86,7 +107,7 @@ public class JoinClauseBuilder {
             sql.append(" ").append(join.type());
             sql.append(" ").append(dialect.quoteIdentifier(join.table()));
             if (join.alias() != null) {
-                sql.append(" ").append(join.alias());
+                sql.append(" ").append(dialect.quoteIdentifier(join.alias()));
             }
             sql.append(" ON ").append(conditionConverter.convert(join.on()).sql());
         }
