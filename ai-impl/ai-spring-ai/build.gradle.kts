@@ -15,6 +15,9 @@ dependencies {
     compileOnly(libs.spring.ai.anthropic)
     compileOnly(libs.spring.ai.ollama)
 
+    // Spring AI VectorStore（RAG 适配需要）
+    compileOnly(libs.spring.ai.vector.store)
+
     // Spring Boot
     api(libs.spring.boot.starter)
     api(libs.spring.boot.autoconfigure)
