@@ -1,17 +1,13 @@
 package io.github.afgprojects.framework.ai.core.entity.knowledge;
 
 import io.github.afgprojects.framework.apt.entity.AfEntity;
+import io.github.afgprojects.framework.data.core.entity.SoftDeletable;
+import io.github.afgprojects.framework.data.core.entity.TenantEntity;
 import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.time.LocalDateTime;
 
 /**
  * AI 知识库实体
@@ -22,14 +18,12 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @AfEntity
 @Table(name = "ai_knowledge_base")
-public class KnowledgeBaseEntity {
+public class KnowledgeBaseEntity extends TenantEntity implements SoftDeletable {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "deleted", nullable = false)
+    private Boolean deleted = false;
 
     @Column(name = "name", nullable = false, length = 200)
     private String name;
@@ -51,10 +45,4 @@ public class KnowledgeBaseEntity {
 
     @Column(name = "user_id", length = 64)
     private String userId;
-
-    @Column(name = "create_time")
-    private LocalDateTime createTime;
-
-    @Column(name = "update_time")
-    private LocalDateTime updateTime;
 }

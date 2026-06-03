@@ -28,5 +28,8 @@
     <include file="v2.0.0/001_ai_model_provider_alter.xml" relativeToChangelogFile="true"/>
     <include file="v2.0.0/002_ai_model_config_alter.xml" relativeToChangelogFile="true"/>
     <include file="v2.0.0/003_ai_model_usage_alter.xml" relativeToChangelogFile="true"/>
+    <include file="v2.0.0/004_ai_knowledge_base_alter.xml" relativeToChangelogFile="true"/>
+    <include file="v2.0.0/005_ai_document_alter.xml" relativeToChangelogFile="true"/>
+    <include file="v2.0.0/006_ai_document_chunk_alter.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>
