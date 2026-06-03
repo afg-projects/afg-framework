@@ -1,0 +1,49 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/ai/changelog.xml
+
+afg:
+  ai:
+    enabled: true
+    chat:
+      enabled: true
+      default-name: default
+    model:
+      enabled: true
+    pipeline:
+      enabled: true
+    rag:
+      enabled: true
+    workflow:
+      enabled: true
+    agent:
+      enabled: true
+    tool:
+      enabled: true
+    skill:
+      enabled: true
+    application:
+      enabled: true
+    persistence:
+      enabled: true
+    spring:
+      enabled: true
+
+# Spring AI Ollama configuration
+spring.ai.ollama:
+  base-url: http://localhost:11434
+  chat:
+    model: qwen3:0.6b
+    options:
+      temperature: 0.0
+  embedding:
+    model: nomic-embed-text
+
+logging:
+  level:
+    io.github.afgprojects: DEBUG

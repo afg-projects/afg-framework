@@ -62,4 +62,11 @@ dependencies {
     // Test
     testImplementation(libs.bundles.testing)
     testImplementation(libs.spring.boot.starter.test)
+    testImplementation(libs.spring.webflux)  // SSE/WebClient testing
+    testImplementation(libs.testcontainers)
+    testImplementation(libs.testcontainers.junit.jupiter)
+    testImplementation(libs.testcontainers.mysql)
+    testImplementation(project(":ai-impl:ai-spring-ai"))  // Spring AI Ollama integration
+    testImplementation(project(":data-impl:data-jdbc"))
+    testImplementation(project(":data-impl:data-liquibase"))
 }
