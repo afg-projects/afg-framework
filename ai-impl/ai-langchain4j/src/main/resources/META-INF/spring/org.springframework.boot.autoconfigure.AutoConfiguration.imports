@@ -2,3 +2,6 @@ io.github.afgprojects.framework.ai.langchain4j.autoconfigure.Lc4jChatAutoConfigu
 io.github.afgprojects.framework.ai.langchain4j.autoconfigure.Lc4jEmbeddingAutoConfiguration
 io.github.afgprojects.framework.ai.langchain4j.autoconfigure.Lc4jToolAutoConfiguration
 io.github.afgprojects.framework.ai.langchain4j.autoconfigure.Lc4jMemoryAutoConfiguration
+io.github.afgprojects.framework.ai.langchain4j.autoconfigure.Lc4jAdvisorAutoConfiguration
+io.github.afgprojects.framework.ai.langchain4j.autoconfigure.Lc4jObservationAutoConfiguration
+io.github.afgprojects.framework.ai.langchain4j.autoconfigure.Lc4jModelAutoConfiguration
