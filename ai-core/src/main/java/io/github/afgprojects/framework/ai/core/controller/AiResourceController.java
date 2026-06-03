@@ -158,7 +158,8 @@ public class AiResourceController {
             ? request.getParameters()
             : Map.of();
 
-        Object result = tool.execute(params);
+        @SuppressWarnings("unchecked")
+        Object result = ((Tool<Map<String, Object>, ?>) tool).execute(params);
         return ResponseEntity.ok(result);
     }
 
