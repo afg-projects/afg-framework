@@ -5,6 +5,7 @@ import java.util.List;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.afgprojects.framework.ai.core.api.workflow.checkpoint.CheckpointManager;
 import io.github.afgprojects.framework.ai.core.api.workflow.engine.ExecutionContext;
+import io.github.afgprojects.framework.ai.core.entity.workflow.WorkflowCheckpointEntity;
 import io.github.afgprojects.framework.data.core.DataManager;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;

@@ -7,6 +7,7 @@ import io.github.afgprojects.framework.ai.core.api.persistence.MessageHistorySto
 import io.github.afgprojects.framework.ai.core.api.persistence.MessageHistoryStore.Message;
 import io.github.afgprojects.framework.ai.core.api.persistence.MessageHistoryStore.MessageRole;
 import io.github.afgprojects.framework.ai.core.api.persistence.MessageHistoryStore.MessageStatus;
+import io.github.afgprojects.framework.ai.core.api.persistence.MessageHistoryStore.TokenUsage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;

@@ -35,6 +35,6 @@ public class DefaultValueFallbackStrategy<T> implements FallbackStrategy<T> {
 
     @Override
     public boolean shouldFallback(Exception exception) {
-        return !(exception instanceof Error);
+        return true;
     }
 }
