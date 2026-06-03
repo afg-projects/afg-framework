@@ -9,19 +9,23 @@
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" primaryKeyName="pk_ai_knowledge_base"/>
             </column>
-            <column name="name" type="VARCHAR(100)" remarks="名称">
+            <column name="name" type="VARCHAR(200)" remarks="名称">
                 <constraints nullable="false"/>
             </column>
-            <column name="description" type="VARCHAR(500)" remarks="描述"/>
-            <column name="embedding_model_name" type="VARCHAR(100)" remarks="嵌入模型名称"/>
+            <column name="description" type="VARCHAR(1000)" remarks="描述"/>
+            <column name="embedding_model_name" type="VARCHAR(200)" remarks="嵌入模型名称"/>
             <column name="document_count" type="INT" defaultValueNumeric="0" remarks="文档数量"/>
             <column name="chunk_count" type="INT" defaultValueNumeric="0" remarks="分块数量"/>
             <column name="config" type="CLOB" remarks="配置(JSON)"/>
-            <column name="user_id" type="VARCHAR(100)" remarks="用户ID"/>
-            <column name="create_time" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="创建时间">
+            <column name="user_id" type="VARCHAR(64)" remarks="用户ID"/>
+            <column name="tenant_id" type="VARCHAR(64)" remarks="租户ID"/>
+            <column name="deleted" type="BOOLEAN" defaultValueBoolean="false" remarks="删除标记">
                 <constraints nullable="false"/>
             </column>
-            <column name="update_time" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="更新时间">
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="创建时间">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="更新时间">
                 <constraints nullable="false"/>
             </column>
         </createTable>

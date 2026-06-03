@@ -9,21 +9,27 @@
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" primaryKeyName="pk_ai_workflow_definition"/>
             </column>
-            <column name="name" type="VARCHAR(100)" remarks="名称">
+            <column name="name" type="VARCHAR(200)" remarks="名称">
                 <constraints nullable="false"/>
             </column>
-            <column name="description" type="VARCHAR(500)" remarks="描述"/>
+            <column name="description" type="VARCHAR(1000)" remarks="描述"/>
             <column name="dsl_content" type="CLOB" remarks="DSL内容">
                 <constraints nullable="false"/>
             </column>
             <column name="version" type="VARCHAR(50)" defaultValue="1.0.0" remarks="版本"/>
-            <column name="status" type="VARCHAR(50)" defaultValue="DRAFT" remarks="状态"/>
-            <column name="application_id" type="BIGINT" remarks="应用ID"/>
-            <column name="user_id" type="VARCHAR(100)" remarks="用户ID"/>
-            <column name="create_time" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="创建时间">
+            <column name="status" type="VARCHAR(50)" defaultValue="DRAFT" remarks="状态">
                 <constraints nullable="false"/>
             </column>
-            <column name="update_time" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="更新时间">
+            <column name="application_id" type="BIGINT" remarks="应用ID"/>
+            <column name="user_id" type="VARCHAR(64)" remarks="用户ID"/>
+            <column name="tenant_id" type="VARCHAR(64)" remarks="租户ID"/>
+            <column name="deleted" type="BOOLEAN" defaultValueBoolean="false" remarks="删除标记">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="创建时间">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="更新时间">
                 <constraints nullable="false"/>
             </column>
         </createTable>

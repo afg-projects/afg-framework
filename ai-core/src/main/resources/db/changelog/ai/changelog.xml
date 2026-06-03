@@ -24,23 +24,4 @@
     <include file="v1.0.0/017_ai_tool_execution.xml" relativeToChangelogFile="true"/>
     <include file="v1.0.0/018_ai_workflow_checkpoint.xml" relativeToChangelogFile="true"/>
 
-    <!-- v2.0.0 -->
-    <include file="v2.0.0/001_ai_model_provider_alter.xml" relativeToChangelogFile="true"/>
-    <include file="v2.0.0/002_ai_model_config_alter.xml" relativeToChangelogFile="true"/>
-    <include file="v2.0.0/003_ai_model_usage_alter.xml" relativeToChangelogFile="true"/>
-    <include file="v2.0.0/004_ai_knowledge_base_alter.xml" relativeToChangelogFile="true"/>
-    <include file="v2.0.0/005_ai_document_alter.xml" relativeToChangelogFile="true"/>
-    <include file="v2.0.0/006_ai_document_chunk_alter.xml" relativeToChangelogFile="true"/>
-    <include file="v2.0.0/007_ai_workflow_definition_alter.xml" relativeToChangelogFile="true"/>
-    <include file="v2.0.0/008_ai_workflow_execution_alter.xml" relativeToChangelogFile="true"/>
-    <include file="v2.0.0/009_ai_agent_definition_alter.xml" relativeToChangelogFile="true"/>
-    <include file="v2.0.0/010_ai_agent_session_alter.xml" relativeToChangelogFile="true"/>
-    <include file="v2.0.0/011_ai_chat_log_alter.xml" relativeToChangelogFile="true"/>
-    <include file="v2.0.0/012_ai_application_alter.xml" relativeToChangelogFile="true"/>
-    <include file="v2.0.0/013_ai_application_version_alter.xml" relativeToChangelogFile="true"/>
-    <include file="v2.0.0/014_ai_api_key_alter.xml" relativeToChangelogFile="true"/>
-    <include file="v2.0.0/015_ai_audit_log_alter.xml" relativeToChangelogFile="true"/>
-    <include file="v2.0.0/016_ai_tool_registry_alter.xml" relativeToChangelogFile="true"/>
-    <include file="v2.0.0/017_ai_tool_execution_alter.xml" relativeToChangelogFile="true"/>
-
 </databaseChangeLog>

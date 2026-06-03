@@ -6,6 +6,7 @@ import io.github.afgprojects.framework.ai.core.api.pipeline.ApplicationConfig;
 import io.github.afgprojects.framework.ai.core.api.pipeline.ChatPipeline;
 import io.github.afgprojects.framework.ai.core.api.pipeline.PipelineContext;
 import io.github.afgprojects.framework.ai.core.api.pipeline.PipelineResult;
+import io.github.afgprojects.framework.ai.core.api.pipeline.TokenUsage;
 import io.github.afgprojects.framework.ai.core.api.persistence.MessageHistoryStore;
 import io.github.afgprojects.framework.ai.core.api.persistence.SessionStore;
 import io.github.afgprojects.framework.ai.core.entity.application.ApplicationEntity;
@@ -17,7 +18,8 @@ import io.github.afgprojects.framework.data.core.DataManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import reactor.core.publisher.Flux;
 
 /**
@@ -38,9 +40,13 @@ public class ChatService {
     private final SessionStore sessionStore;
     private final MessageHistoryStore messageHistoryStore;
     private final ObjectMapper objectMapper;
+    private final PlatformTransactionManager transactionManager;
 
     /**
      * 同步对话
+     * <p>
+     * 不使用 @Transactional：ChatPipeline.execute() 是 AI 调用，可能耗时较长。
+     * 对话日志的保存在独立短事务中通过 TransactionTemplate 完成。
      *
      * @param conversationId 会话 ID
      * @param applicationId  应用 ID
@@ -48,11 +54,14 @@ public class ChatService {
      * @param userId         用户 ID
      * @return 流水线执行结果
      */
-    @Transactional
     public PipelineResult chat(String conversationId, String applicationId, String message, String userId) {
         PipelineContext context = buildPipelineContext(conversationId, applicationId, message, userId);
+
+        // AI 调用，不在事务中
         PipelineResult result = chatPipeline.execute(context);
-        saveChatLog(applicationId, conversationId, message, result, userId);
+
+        // 保存对话日志（短事务）
+        saveChatLogInTransaction(applicationId, conversationId, message, result, userId);
         return result;
     }
 
@@ -135,31 +144,34 @@ public class ChatService {
     }
 
     /**
-     * 保存对话日志
+     * 在独立短事务中保存对话日志
      */
-    private void saveChatLog(String applicationId, String conversationId, String question,
-                              PipelineResult result, String userId) {
+    private void saveChatLogInTransaction(String applicationId, String conversationId, String question,
+                                          PipelineResult result, String userId) {
         try {
-            ChatLogEntity logEntity = new ChatLogEntity();
-            if (applicationId != null && !applicationId.isBlank()) {
-                try {
-                    logEntity.setApplicationId(Long.parseLong(applicationId));
-                } catch (NumberFormatException ignored) {
+            new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+                ChatLogEntity logEntity = new ChatLogEntity();
+                if (applicationId != null && !applicationId.isBlank()) {
+                    try {
+                        logEntity.setApplicationId(Long.parseLong(applicationId));
+                    } catch (NumberFormatException ignored) {
+                    }
                 }
-            }
-            logEntity.setSessionId(conversationId);
-            logEntity.setUserId(userId);
-            logEntity.setQuestion(question);
-            logEntity.setAnswer(result.content());
-            logEntity.setDurationMs(result.durationMs());
+                logEntity.setSessionId(conversationId);
+                logEntity.setUserId(userId);
+                logEntity.setQuestion(question);
+                logEntity.setAnswer(result.content());
+                logEntity.setDurationMs(result.durationMs());
 
-            if (result.tokenUsage() != null) {
-                logEntity.setInputTokens(result.tokenUsage().promptTokens());
-                logEntity.setOutputTokens(result.tokenUsage().completionTokens());
-            }
+                if (result.tokenUsage() != null) {
+                    TokenUsage usage = result.tokenUsage();
+                    logEntity.setInputTokens(usage.promptTokens());
+                    logEntity.setOutputTokens(usage.completionTokens());
+                }
 
-            dataManager.save(ChatLogEntity.class, logEntity);
-            log.debug("Chat log saved: conversationId={}", conversationId);
+                dataManager.save(ChatLogEntity.class, logEntity);
+                log.debug("Chat log saved: conversationId={}", conversationId);
+            });
         } catch (Exception e) {
             log.warn("Failed to save chat log: {}", e.getMessage());
         }
@@ -171,18 +183,20 @@ public class ChatService {
     private void saveChatLogAsync(String applicationId, String conversationId, String question,
                                    String errorMessage, String userId) {
         try {
-            ChatLogEntity logEntity = new ChatLogEntity();
-            if (applicationId != null && !applicationId.isBlank()) {
-                try {
-                    logEntity.setApplicationId(Long.parseLong(applicationId));
-                } catch (NumberFormatException ignored) {
+            new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+                ChatLogEntity logEntity = new ChatLogEntity();
+                if (applicationId != null && !applicationId.isBlank()) {
+                    try {
+                        logEntity.setApplicationId(Long.parseLong(applicationId));
+                    } catch (NumberFormatException ignored) {
+                    }
                 }
-            }
-            logEntity.setSessionId(conversationId);
-            logEntity.setUserId(userId);
-            logEntity.setQuestion(question);
-            logEntity.setAnswer(errorMessage);
-            dataManager.save(ChatLogEntity.class, logEntity);
+                logEntity.setSessionId(conversationId);
+                logEntity.setUserId(userId);
+                logEntity.setQuestion(question);
+                logEntity.setAnswer(errorMessage);
+                dataManager.save(ChatLogEntity.class, logEntity);
+            });
         } catch (Exception e) {
             log.warn("Failed to save chat log (async): {}", e.getMessage());
         }

@@ -12,21 +12,27 @@
             <column name="knowledge_base_id" type="BIGINT" remarks="知识库ID">
                 <constraints nullable="false"/>
             </column>
-            <column name="title" type="VARCHAR(200)" remarks="标题">
+            <column name="title" type="VARCHAR(500)" remarks="标题">
                 <constraints nullable="false"/>
             </column>
             <column name="content" type="CLOB" remarks="内容"/>
-            <column name="source_url" type="VARCHAR(2000)" remarks="来源URL"/>
+            <column name="source_url" type="VARCHAR(500)" remarks="来源URL"/>
             <column name="file_type" type="VARCHAR(50)" remarks="文件类型"/>
             <column name="file_size" type="BIGINT" remarks="文件大小"/>
-            <column name="status" type="VARCHAR(50)" defaultValue="PENDING" remarks="状态"/>
-            <column name="error" type="VARCHAR(2000)" remarks="错误信息"/>
-            <column name="chunk_count" type="INT" defaultValueNumeric="0" remarks="分块数量"/>
-            <column name="metadata" type="CLOB" remarks="元数据(JSON)"/>
-            <column name="create_time" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="创建时间">
+            <column name="status" type="VARCHAR(50)" defaultValue="PENDING" remarks="状态">
                 <constraints nullable="false"/>
             </column>
-            <column name="update_time" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="更新时间">
+            <column name="error" type="CLOB" remarks="错误信息"/>
+            <column name="chunk_count" type="INT" defaultValueNumeric="0" remarks="分块数量"/>
+            <column name="metadata" type="CLOB" remarks="元数据(JSON)"/>
+            <column name="tenant_id" type="VARCHAR(64)" remarks="租户ID"/>
+            <column name="deleted" type="BOOLEAN" defaultValueBoolean="false" remarks="删除标记">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="创建时间">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="更新时间">
                 <constraints nullable="false"/>
             </column>
         </createTable>

@@ -10,8 +10,8 @@
                 <constraints primaryKey="true" primaryKeyName="pk_ai_chat_log"/>
             </column>
             <column name="application_id" type="BIGINT" remarks="应用ID"/>
-            <column name="session_id" type="VARCHAR(100)" remarks="会话ID"/>
-            <column name="user_id" type="VARCHAR(100)" remarks="用户ID"/>
+            <column name="session_id" type="VARCHAR(64)" remarks="会话ID"/>
+            <column name="user_id" type="VARCHAR(64)" remarks="用户ID"/>
             <column name="question" type="CLOB" remarks="问题"/>
             <column name="answer" type="CLOB" remarks="回答"/>
             <column name="input_tokens" type="BIGINT" defaultValueNumeric="0" remarks="输入Token数"/>
@@ -21,7 +21,10 @@
             <column name="vote" type="INT" defaultValueNumeric="0" remarks="投票(1好评/-1差评)"/>
             <column name="vote_reason" type="VARCHAR(500)" remarks="投票原因"/>
             <column name="metadata" type="CLOB" remarks="元数据(JSON)"/>
-            <column name="create_time" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="创建时间">
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="创建时间">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="更新时间">
                 <constraints nullable="false"/>
             </column>
         </createTable>
@@ -35,7 +38,7 @@
         </createIndex>
 
         <createIndex tableName="ai_chat_log" indexName="idx_ai_chat_log_time">
-            <column name="create_time"/>
+            <column name="created_at"/>
         </createIndex>
     </changeSet>
 

@@ -17,7 +17,8 @@ import io.github.afgprojects.framework.data.core.DataManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.Map;
 
@@ -39,27 +40,29 @@ public class AgentService {
     private final ToolRegistry toolRegistry;
     private final AgentExecutor agentExecutor;
     private final ObjectMapper objectMapper;
+    private final PlatformTransactionManager transactionManager;
 
     /**
      * 执行 Agent
+     * <p>
+     * 不使用 @Transactional：AI 执行可能耗时数分钟，不应持有数据库事务。
+     * 会话状态的更新在独立短事务中通过 TransactionTemplate 完成。
      *
      * @param sessionId  会话 ID
      * @param userInput  用户输入
      * @return Agent 响应
      */
-    @Transactional
     public AgentResponse execute(Long sessionId, String userInput) {
-        // 1. 加载会话
+        // 1. 加载会话（读操作，无需事务）
         AgentSessionEntity session = dataManager.findById(AgentSessionEntity.class, sessionId)
             .orElseThrow(() -> new IllegalArgumentException("Agent session not found: " + sessionId));
 
-        // 2. 加载 Agent 定义
+        // 2. 加载 Agent 定义（读操作，无需事务）
         AgentDefinitionEntity definition = dataManager.findById(AgentDefinitionEntity.class, session.getAgentDefinitionId())
             .orElseThrow(() -> new IllegalArgumentException("Agent definition not found: " + session.getAgentDefinitionId()));
 
-        // 3. 更新会话状态为运行中
-        session.setStatus("RUNNING");
-        dataManager.save(AgentSessionEntity.class, session);
+        // 3. 更新会话状态为运行中（短事务）
+        updateSessionStatusInTransaction(sessionId, "RUNNING", null);
 
         // 4. 构建 Agent
         Agent agent = buildAgent(definition);
@@ -72,7 +75,7 @@ public class AgentService {
             java.util.List.of()
         );
 
-        // 6. 执行 Agent
+        // 6. 执行 Agent（AI 调用，可能耗时数分钟，不在事务中）
         AgentResponse response;
         try {
             response = agentExecutor.execute(agent, request);
@@ -81,17 +84,32 @@ public class AgentService {
             response = AgentResponse.error("Agent execution failed: " + e.getMessage(), e);
         }
 
-        // 7. 更新会话状态
-        session.setStatus(response.status().name());
-        if (response.output() != null) {
-            Map<String, Object> metadata = parseJsonToMap(session.getMetadata());
-            metadata.put("lastOutput", response.output());
-            session.setMetadata(toJsonOrNull(metadata));
-        }
-        dataManager.save(AgentSessionEntity.class, session);
+        // 7. 更新会话状态（短事务）
+        String outputJson = response.output() != null ? toJsonOrNull(Map.of("lastOutput", response.output())) : null;
+        updateSessionStatusInTransaction(sessionId, response.status().name(), outputJson);
 
         log.info("Agent execution completed for session {}: status={}", sessionId, response.status());
         return response;
+    }
+
+    /**
+     * 在独立短事务中更新会话状态
+     * <p>
+     * 使用 TransactionTemplate 而非 @Transactional，因为此方法从同一 bean 内部调用，
+     * Spring AOP 代理不会拦截自调用。
+     */
+    private void updateSessionStatusInTransaction(Long sessionId, String status, String metadataJson) {
+        new TransactionTemplate(transactionManager).executeWithoutResult(txStatus -> {
+            AgentSessionEntity session = dataManager.findById(AgentSessionEntity.class, sessionId)
+                .orElseThrow(() -> new IllegalArgumentException("Agent session not found: " + sessionId));
+            session.setStatus(status);
+            if (metadataJson != null) {
+                Map<String, Object> metadata = parseJsonToMap(session.getMetadata());
+                metadata.putAll(parseJsonToMap(metadataJson));
+                session.setMetadata(toJsonOrNull(metadata));
+            }
+            dataManager.save(AgentSessionEntity.class, session);
+        });
     }
 
     /**

@@ -12,7 +12,7 @@
             <column name="provider_id" type="BIGINT" remarks="供应商ID">
                 <constraints nullable="false"/>
             </column>
-            <column name="model_name" type="VARCHAR(100)" remarks="模型名称">
+            <column name="model_name" type="VARCHAR(200)" remarks="模型名称">
                 <constraints nullable="false"/>
             </column>
             <column name="display_name" type="VARCHAR(200)" remarks="显示名称"/>
@@ -24,10 +24,13 @@
             <column name="enabled" type="BOOLEAN" defaultValueBoolean="true" remarks="是否启用">
                 <constraints nullable="false"/>
             </column>
-            <column name="create_time" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="创建时间">
+            <column name="deleted" type="BOOLEAN" defaultValueBoolean="false" remarks="删除标记">
                 <constraints nullable="false"/>
             </column>
-            <column name="update_time" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="更新时间">
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="创建时间">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="更新时间">
                 <constraints nullable="false"/>
             </column>
         </createTable>

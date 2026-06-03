@@ -19,11 +19,11 @@
             <column name="output" type="CLOB" remarks="输出(JSON)"/>
             <column name="error" type="CLOB" remarks="错误信息"/>
             <column name="duration_ms" type="BIGINT" remarks="耗时(毫秒)"/>
-            <column name="user_id" type="VARCHAR(100)" remarks="用户ID"/>
-            <column name="create_time" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="创建时间">
+            <column name="user_id" type="VARCHAR(64)" remarks="用户ID"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="创建时间">
                 <constraints nullable="false"/>
             </column>
-            <column name="update_time" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="更新时间">
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="更新时间">
                 <constraints nullable="false"/>
             </column>
         </createTable>
@@ -33,7 +33,7 @@
         </createIndex>
 
         <createIndex tableName="ai_workflow_execution" indexName="idx_ai_workflow_exec_time">
-            <column name="create_time"/>
+            <column name="created_at"/>
         </createIndex>
 
         <addForeignKeyConstraint baseTableName="ai_workflow_execution" baseColumnNames="workflow_definition_id"
