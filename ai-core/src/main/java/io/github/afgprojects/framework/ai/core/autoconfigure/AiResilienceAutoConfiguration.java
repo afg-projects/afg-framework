@@ -1,12 +1,14 @@
 package io.github.afgprojects.framework.ai.core.autoconfigure;
 
-import io.github.afgprojects.framework.ai.core.config.AfgAiProperties;
 import io.github.afgprojects.framework.ai.core.api.resilience.CircuitBreaker;
+import io.github.afgprojects.framework.ai.core.api.resilience.FallbackStrategy;
 import io.github.afgprojects.framework.ai.core.api.resilience.ResilienceExecutor;
 import io.github.afgprojects.framework.ai.core.api.resilience.RetryPolicy;
+import io.github.afgprojects.framework.ai.core.config.AfgAiProperties;
 import io.github.afgprojects.framework.ai.core.resilience.DefaultCircuitBreaker;
 import io.github.afgprojects.framework.ai.core.resilience.DefaultResilienceExecutor;
 import io.github.afgprojects.framework.ai.core.resilience.DefaultRetryPolicy;
+import io.github.afgprojects.framework.ai.core.resilience.DefaultValueFallbackStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -70,6 +72,13 @@ public class AiResilienceAutoConfiguration {
         public ResilienceExecutor resilienceExecutor(RetryPolicy retryPolicy, CircuitBreaker circuitBreaker) {
             log.info("Creating DefaultResilienceExecutor");
             return new DefaultResilienceExecutor(retryPolicy, circuitBreaker);
+        }
+
+        @Bean
+        @ConditionalOnMissingBean(FallbackStrategy.class)
+        public DefaultValueFallbackStrategy<?> defaultValueFallbackStrategy() {
+            log.info("Creating DefaultValueFallbackStrategy");
+            return new DefaultValueFallbackStrategy<>();
         }
 
         // TODO: 阶段4添加AOP切面Bean

@@ -1,11 +1,17 @@
 package io.github.afgprojects.framework.ai.core.autoconfigure;
 
-import io.github.afgprojects.framework.ai.core.config.AfgAiProperties;
-import io.github.afgprojects.framework.ai.core.chat.DefaultChatClientRegistry;
-import io.github.afgprojects.framework.ai.core.chat.DefaultEmbeddingClientRegistry;
 import io.github.afgprojects.framework.ai.core.api.chat.ChatClientRegistry;
 import io.github.afgprojects.framework.ai.core.api.chat.EmbeddingClientRegistry;
+import io.github.afgprojects.framework.ai.core.api.memory.ConversationMemory;
+import io.github.afgprojects.framework.ai.core.api.persistence.MessageHistoryStore;
+import io.github.afgprojects.framework.ai.core.chat.DefaultChatClientRegistry;
+import io.github.afgprojects.framework.ai.core.chat.DefaultEmbeddingClientRegistry;
+import io.github.afgprojects.framework.ai.core.config.AfgAiProperties;
+import io.github.afgprojects.framework.ai.core.memory.InMemoryConversationMemory;
+import io.github.afgprojects.framework.ai.core.persistence.JdbcConversationMemory;
+import io.github.afgprojects.framework.data.core.DataManager;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -39,6 +45,20 @@ public class AiChatAutoConfiguration {
         @ConditionalOnMissingBean
         public EmbeddingClientRegistry defaultEmbeddingClientRegistry() {
             return new DefaultEmbeddingClientRegistry();
+        }
+
+        @Bean
+        @ConditionalOnMissingBean(ConversationMemory.class)
+        public InMemoryConversationMemory inMemoryConversationMemory(AfgAiProperties properties) {
+            int maxHistory = properties.getChat().getMemory().getMaxMessages();
+            return new InMemoryConversationMemory(maxHistory);
+        }
+
+        @Bean
+        @ConditionalOnMissingBean(ConversationMemory.class)
+        @ConditionalOnBean({DataManager.class, MessageHistoryStore.class})
+        public JdbcConversationMemory jdbcConversationMemory(MessageHistoryStore messageHistoryStore) {
+            return new JdbcConversationMemory(messageHistoryStore);
         }
     }
 }

@@ -1,17 +1,19 @@
 package io.github.afgprojects.framework.ai.core.autoconfigure;
 
-import io.github.afgprojects.framework.ai.core.config.AfgAiProperties;
-import io.github.afgprojects.framework.ai.core.api.workflow.engine.DagEngine;
-import io.github.afgprojects.framework.ai.core.api.workflow.engine.WorkflowNode;
-import io.github.afgprojects.framework.ai.core.api.workflow.node.NodeTypeRegistry;
+import io.github.afgprojects.framework.ai.core.api.workflow.checkpoint.CheckpointManager;
 import io.github.afgprojects.framework.ai.core.api.workflow.dsl.DslConverter;
 import io.github.afgprojects.framework.ai.core.api.workflow.dsl.DslValidator;
 import io.github.afgprojects.framework.ai.core.api.workflow.dsl.VariableResolver;
-import io.github.afgprojects.framework.ai.core.workflow.engine.DefaultDagEngine;
-import io.github.afgprojects.framework.ai.core.workflow.node.DefaultNodeTypeRegistry;
+import io.github.afgprojects.framework.ai.core.api.workflow.engine.DagEngine;
+import io.github.afgprojects.framework.ai.core.api.workflow.engine.WorkflowNode;
+import io.github.afgprojects.framework.ai.core.api.workflow.node.NodeTypeRegistry;
+import io.github.afgprojects.framework.ai.core.config.AfgAiProperties;
 import io.github.afgprojects.framework.ai.core.workflow.dsl.DefaultDslConverter;
 import io.github.afgprojects.framework.ai.core.workflow.dsl.DefaultDslValidator;
 import io.github.afgprojects.framework.ai.core.workflow.dsl.DefaultVariableResolver;
+import io.github.afgprojects.framework.ai.core.workflow.engine.DefaultDagEngine;
+import io.github.afgprojects.framework.ai.core.workflow.node.DefaultNodeTypeRegistry;
+import io.github.afgprojects.framework.ai.core.workflow.InMemoryCheckpointManager;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -66,6 +68,12 @@ public class AiWorkflowAutoConfiguration {
         @ConditionalOnMissingBean
         public DefaultVariableResolver defaultVariableResolver() {
             return new DefaultVariableResolver();
+        }
+
+        @Bean
+        @ConditionalOnMissingBean(CheckpointManager.class)
+        public InMemoryCheckpointManager inMemoryCheckpointManager() {
+            return new InMemoryCheckpointManager();
         }
 
         // TODO: 阶段4添加AOP切面Bean
