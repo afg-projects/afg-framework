@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="v2.0.0-003-ai-model-usage-alter" author="afg">
+        <!-- 重命名 create_time → created_at -->
+        <renameColumn tableName="ai_model_usage"
+                      oldColumnName="create_time"
+                      newColumnName="created_at"
+                      columnDataType="TIMESTAMP"/>
+
+        <!-- 添加 updated_at 列（BaseEntity 包含此字段） -->
+        <addColumn tableName="ai_model_usage">
+            <column name="updated_at" type="TIMESTAMP" remarks="更新时间"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

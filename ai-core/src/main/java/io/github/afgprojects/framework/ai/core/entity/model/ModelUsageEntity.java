@@ -1,10 +1,8 @@
 package io.github.afgprojects.framework.ai.core.entity.model;
 
 import io.github.afgprojects.framework.apt.entity.AfEntity;
+import io.github.afgprojects.framework.data.core.entity.BaseEntity;
 import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,7 +10,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 /**
  * AI 模型使用记录实体
@@ -26,11 +23,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @AfEntity
 @Table(name = "ai_model_usage")
-public class ModelUsageEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class ModelUsageEntity extends BaseEntity {
 
     @Column(name = "model_config_id", nullable = false)
     private Long modelConfigId;
@@ -58,7 +51,4 @@ public class ModelUsageEntity {
 
     @Column(name = "status", length = 50)
     private String status;
-
-    @Column(name = "create_time")
-    private LocalDateTime createTime;
 }

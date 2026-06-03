@@ -1,17 +1,13 @@
 package io.github.afgprojects.framework.ai.core.entity.model;
 
 import io.github.afgprojects.framework.apt.entity.AfEntity;
+import io.github.afgprojects.framework.data.core.entity.SoftDeleteEntity;
 import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.time.LocalDateTime;
 
 /**
  * AI 模型供应商实体
@@ -25,11 +21,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @AfEntity
 @Table(name = "ai_model_provider")
-public class ModelProviderEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class ModelProviderEntity extends SoftDeleteEntity {
 
     @Column(name = "provider_name", nullable = false, length = 100)
     private String providerName;
@@ -48,10 +40,4 @@ public class ModelProviderEntity {
 
     @Column(name = "config", columnDefinition = "JSON")
     private String config;
-
-    @Column(name = "create_time")
-    private LocalDateTime createTime;
-
-    @Column(name = "update_time")
-    private LocalDateTime updateTime;
 }

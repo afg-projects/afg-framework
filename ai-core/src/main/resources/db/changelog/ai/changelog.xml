@@ -24,4 +24,9 @@
     <include file="v1.0.0/017_ai_tool_execution.xml" relativeToChangelogFile="true"/>
     <include file="v1.0.0/018_ai_workflow_checkpoint.xml" relativeToChangelogFile="true"/>
 
+    <!-- v2.0.0 -->
+    <include file="v2.0.0/001_ai_model_provider_alter.xml" relativeToChangelogFile="true"/>
+    <include file="v2.0.0/002_ai_model_config_alter.xml" relativeToChangelogFile="true"/>
+    <include file="v2.0.0/003_ai_model_usage_alter.xml" relativeToChangelogFile="true"/>
+
 </databaseChangeLog>
