@@ -1,12 +1,9 @@
 package io.github.afgprojects.framework.ai.core.entity.security;
 
 import io.github.afgprojects.framework.apt.entity.AfEntity;
+import io.github.afgprojects.framework.data.core.entity.SoftDeleteEntity;
 import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -22,14 +19,9 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @AfEntity
 @Table(name = "ai_api_key")
-public class ApiKeyEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class ApiKeyEntity extends SoftDeleteEntity {
 
     @Column(name = "name", nullable = false, length = 200)
     private String name;
@@ -63,10 +55,4 @@ public class ApiKeyEntity {
 
     @Column(name = "user_id", length = 64)
     private String userId;
-
-    @Column(name = "create_time")
-    private LocalDateTime createTime;
-
-    @Column(name = "update_time")
-    private LocalDateTime updateTime;
 }

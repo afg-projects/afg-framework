@@ -1,17 +1,12 @@
 package io.github.afgprojects.framework.ai.core.entity.security;
 
 import io.github.afgprojects.framework.apt.entity.AfEntity;
+import io.github.afgprojects.framework.data.core.entity.BaseEntity;
 import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.time.LocalDateTime;
 
 /**
  * AI 审计日志实体
@@ -22,14 +17,9 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @AfEntity
 @Table(name = "ai_audit_log")
-public class AuditLogEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class AuditLogEntity extends BaseEntity {
 
     @Column(name = "operation", nullable = false, length = 100)
     private String operation;
@@ -57,7 +47,4 @@ public class AuditLogEntity {
 
     @Column(name = "metadata", columnDefinition = "JSON")
     private String metadata;
-
-    @Column(name = "create_time")
-    private LocalDateTime createTime;
 }
