@@ -2,6 +2,7 @@ package io.github.afgprojects.framework.core.web.security.filter;
 
 import java.io.IOException;
 
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,7 +11,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import io.github.afgprojects.framework.commons.exception.BusinessException;
-import io.github.afgprojects.framework.core.model.exception.CommonErrorCode;
 import lombok.extern.slf4j.Slf4j;
 
 /**

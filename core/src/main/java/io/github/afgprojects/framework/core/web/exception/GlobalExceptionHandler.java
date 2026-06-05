@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 
 import jakarta.validation.ConstraintViolation;
@@ -12,6 +13,7 @@ import jakarta.validation.ConstraintViolationException;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -26,7 +28,6 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import io.github.afgprojects.framework.commons.exception.BusinessException;
-import io.github.afgprojects.framework.core.model.exception.CommonErrorCode;
 import io.github.afgprojects.framework.commons.model.Result;
 import io.github.afgprojects.framework.core.model.result.Results;
 import io.github.afgprojects.framework.core.web.context.AfgRequestContextHolder;
@@ -205,10 +206,9 @@ public class GlobalExceptionHandler {
     /**
      * 访问拒绝 — 403
      */
-    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    @ExceptionHandler(AccessDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    public Result<Void> handleAccessDenied(
-            org.springframework.security.access.AccessDeniedException e, HttpServletRequest request) {
+    public Result<Void> handleAccessDenied(AccessDeniedException e, HttpServletRequest request) {
         Locale locale = resolveLocale(request);
         log.warn(
                 "Access denied | traceId={} | path={} | userId={} | message={}",

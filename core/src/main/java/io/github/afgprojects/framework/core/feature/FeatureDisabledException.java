@@ -1,10 +1,10 @@
 package io.github.afgprojects.framework.core.feature;
 
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import io.github.afgprojects.framework.commons.exception.BusinessException;
-import io.github.afgprojects.framework.core.model.exception.CommonErrorCode;
 
 /**
  * 功能禁用异常

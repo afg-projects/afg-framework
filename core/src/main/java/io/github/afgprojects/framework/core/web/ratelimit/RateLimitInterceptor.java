@@ -2,6 +2,7 @@ package io.github.afgprojects.framework.core.web.ratelimit;
 
 import java.lang.reflect.Method;
 
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -10,11 +11,9 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.jspecify.annotations.Nullable;
 
 import io.github.afgprojects.framework.core.config.AfgCoreProperties;
-import io.github.afgprojects.framework.core.api.ratelimit.RateLimitDimension;
 import io.github.afgprojects.framework.core.api.ratelimit.RateLimitResult;
 import io.github.afgprojects.framework.core.api.ratelimit.RateLimiter;
 import io.github.afgprojects.framework.commons.exception.BusinessException;
-import io.github.afgprojects.framework.core.model.exception.CommonErrorCode;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 

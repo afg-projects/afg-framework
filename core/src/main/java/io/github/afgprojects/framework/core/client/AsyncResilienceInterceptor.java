@@ -10,6 +10,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.http.HttpRequest;
@@ -18,7 +19,6 @@ import org.springframework.http.client.ClientHttpResponse;
 import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.client.ResilienceInterceptor.CircuitBreakerOpenException;
 import io.github.afgprojects.framework.core.client.ResilienceInterceptor.RetryExhaustedException;
-import io.github.afgprojects.framework.core.model.exception.CommonErrorCode;
 
 import lombok.extern.slf4j.Slf4j;
 

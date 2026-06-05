@@ -1,11 +1,8 @@
 [versions]
-java = "25"
-gradle = "9.4.0"
 spring-boot = "4.0.6"
 jsqlparser = "5.3"
 jcasbin = "1.9.2"
 dynamic-datasource = "4.5.0"
-testcontainers = "2.0.5"
 
 # 非 Spring Boot BOM 管理的依赖版本
 jspecify = "1.0.0"
@@ -58,12 +55,10 @@ spring-boot-test = { module = "org.springframework.boot:spring-boot-test" }
 
 # Spring Framework（版本由 Spring Boot BOM 管理）
 spring-context = { module = "org.springframework:spring-context" }
-spring-beans = { module = "org.springframework:spring-beans" }
 spring-aop = { module = "org.springframework:spring-aop" }
 spring-expression = { module = "org.springframework:spring-expression" }
 spring-webflux = { module = "org.springframework:spring-webflux" }
 spring-test = { module = "org.springframework:spring-test" }
-spring-kafka = { module = "org.springframework.kafka:spring-kafka" }
 spring-data-commons = { module = "org.springframework.data:spring-data-commons" }
 
 # Spring Security（版本由 Spring Boot BOM 管理）
@@ -108,11 +103,8 @@ h2 = { module = "com.h2database:h2" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 assertj-core = { module = "org.assertj:assertj-core" }
-mockito-core = { module = "org.mockito:mockito-core" }
-mockito-junit-jupiter = { module = "org.mockito:mockito-junit-jupiter" }
 testcontainers = { module = "org.testcontainers:testcontainers" }
 testcontainers-junit-jupiter = { module = "org.testcontainers:testcontainers-junit-jupiter" }
-testcontainers-kafka = { module = "org.testcontainers:testcontainers-kafka" }
 testcontainers-rabbitmq = { module = "org.testcontainers:testcontainers-rabbitmq" }
 testcontainers-mysql = { module = "org.testcontainers:testcontainers-mysql" }
 testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql" }
@@ -128,12 +120,6 @@ jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
 jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
 jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
 clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
-spring-ai-openai = { module = "org.springframework.ai:spring-ai-openai", version.ref = "spring-ai" }
-spring-ai-anthropic = { module = "org.springframework.ai:spring-ai-anthropic", version.ref = "spring-ai" }
-spring-ai-ollama = { module = "org.springframework.ai:spring-ai-ollama", version.ref = "spring-ai" }
-spring-ai-client-chat = { module = "org.springframework.ai:spring-ai-client-chat", version.ref = "spring-ai" }
-spring-ai-model = { module = "org.springframework.ai:spring-ai-model", version.ref = "spring-ai" }
-spring-ai-vector-store = { module = "org.springframework.ai:spring-ai-vector-store", version.ref = "spring-ai" }
 jsqlparser = { module = "com.github.jsqlparser:jsqlparser", version.ref = "jsqlparser" }
 spring-jdbc = { module = "org.springframework.boot:spring-boot-starter-data-jdbc" }
 
@@ -158,18 +144,12 @@ redisson-core = { module = "org.redisson:redisson", version.ref = "redisson" }
 # API 文档
 springdoc-openapi-starter-webmvc = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc-openapi" }
 
-# 配置中心
-nacos-client = { module = "com.alibaba.nacos:nacos-client", version.ref = "nacos" }
-apollo-client = { module = "com.ctrip.framework.apollo:apollo-client", version.ref = "apollo" }
-consul-client = { module = "com.ecwid.consul:consul-api", version.ref = "consul" }
-
 # 云存储
 aws-s3 = { module = "software.amazon.awssdk:s3", version.ref = "aws-s3" }
 aliyun-oss = { module = "com.aliyun.oss:aliyun-sdk-oss", version.ref = "aliyun-oss" }
 
 # LangChain4j
 langchain4j = { module = "dev.langchain4j:langchain4j", version.ref = "langchain4j" }
-langchain4j-spring-boot-starter = { module = "dev.langchain4j:langchain4j-spring-boot-starter", version.ref = "langchain4j" }
 langchain4j-open-ai = { module = "dev.langchain4j:langchain4j-open-ai", version.ref = "langchain4j" }
 langchain4j-ollama = { module = "dev.langchain4j:langchain4j-ollama", version.ref = "langchain4j" }
 

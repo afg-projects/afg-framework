@@ -14,6 +14,7 @@ dependencies {
 
     // Spring JDBC (JdbcClient) - 版本由 Spring Boot BOM 管理
     api(libs.spring.jdbc)
+    api(libs.spring.boot.starter.data.jdbc)
 
     // Spring Boot Starter Data JDBC (for DataSourceAutoConfiguration)
     compileOnly(libs.spring.boot.starter.data.jdbc)

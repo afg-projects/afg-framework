@@ -8,8 +8,6 @@
  *   <li>{@link io.github.afgprojects.framework.data.sql.scope.DataScopeContextProvider} - 数据权限上下文提供者接口</li>
  *   <li>{@link io.github.afgprojects.framework.data.sql.scope.DataScopeUserContext} - 数据权限用户上下文</li>
  *   <li>{@link io.github.afgprojects.framework.data.sql.scope.DataScopeProcessor} - 占位符解析处理器</li>
- *   <li>{@link io.github.afgprojects.framework.data.sql.scope.DataScopeContextProviders} - 提供者工厂类</li>
- *   <li>{@link io.github.afgprojects.framework.data.sql.scope.DataScopePlaceholders} - 占位符常量</li>
  * </ul>
  * <p>
  * 支持的占位符：

@@ -3,7 +3,7 @@ package io.github.afgprojects.framework.core.module.exception;
 import java.io.Serial;
 import java.util.List;
 
-import io.github.afgprojects.framework.core.model.exception.CommonErrorCode;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import lombok.Getter;
 
 /**

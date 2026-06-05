@@ -15,7 +15,7 @@ import io.swagger.v3.oas.models.info.License;
 
 @AutoConfiguration
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
-@ConditionalOnClass(OpenAPI.class)
+@ConditionalOnClass(name = "io.swagger.v3.oas.models.OpenAPI")
 @ConditionalOnProperty(prefix = "afg.openapi", name = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(AfgOpenApiProperties.class)
 public class AfgOpenApiAutoConfiguration {

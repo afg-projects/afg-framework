@@ -3,13 +3,11 @@ plugins {
 }
 
 dependencies {
-    // 只暴露抽象层
+    // 基础依赖
     api(project(":security-core"))
     api(project(":data-core"))
     api(project(":apt-api"))
-
-    // 实现层使用 implementation（不传递）
-    implementation(project(":data-impl:data-jdbc"))
+    api(project(":data-impl:data-jdbc"))
 
     api(libs.spring.boot.starter.web)
     api(libs.jspecify)
@@ -31,9 +29,6 @@ dependencies {
 
     // Casbin（权限管理）
     api(libs.jcasbin)
-
-    // Liquibase (for auto-configuration ordering)
-    compileOnly(libs.spring.boot.starter.data.jdbc)
 
     // APT 处理器（编译时生成元数据）
     annotationProcessor(project(":apt-impl"))

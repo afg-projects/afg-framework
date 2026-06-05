@@ -1,6 +1,6 @@
 package io.github.afgprojects.framework.security.core.audit;
 
-import io.github.afgprojects.framework.core.model.result.PageData;
+import io.github.afgprojects.framework.commons.model.PageData;
 import io.github.afgprojects.framework.data.core.page.PageRequest;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;

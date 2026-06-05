@@ -2,6 +2,7 @@ package io.github.afgprojects.framework.core.model.exception;
 
 import java.util.Locale;
 
+import io.github.afgprojects.framework.commons.exception.ErrorCode;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.context.MessageSource;

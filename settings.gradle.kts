@@ -1,12 +1,9 @@
 rootProject.name = "afg-framework"
 
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     repositories {
         // Maven Central (优先，确保获取最新版本)
         mavenCentral()
-        // Spring Milestone（Spring AI 等里程碑版本）
-        maven { url = uri("https://repo.spring.io/milestone") }
         // 阿里云镜像（优先）
         maven { url = uri("https://maven.aliyun.com/repository/public") }
         maven { url = uri("https://maven.aliyun.com/repository/central") }
@@ -33,7 +30,6 @@ include("core")
 
 // AI 模块
 include("ai-core")
-include("ai-impl:ai-spring-ai")
 include("ai-impl:ai-langchain4j")
 
 // 数据访问模块

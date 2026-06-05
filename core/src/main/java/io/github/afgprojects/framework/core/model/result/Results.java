@@ -3,6 +3,7 @@ package io.github.afgprojects.framework.core.model.result;
 import java.util.List;
 import java.util.Locale;
 
+import io.github.afgprojects.framework.commons.model.PageData;
 import org.jspecify.annotations.Nullable;
 
 import io.github.afgprojects.framework.commons.exception.ErrorCode;

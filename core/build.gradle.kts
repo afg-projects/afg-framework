@@ -33,14 +33,15 @@ dependencies {
     api(libs.jspecify)
 
     // Spring Security
+    api("org.springframework.security:spring-security-core")
     compileOnly(libs.spring.boot.starter.security)
 
     // Validation
-    compileOnly(libs.jakarta.validation.api)
+    api(libs.jakarta.validation.api)
 
     // Spring Boot
     compileOnly(libs.spring.boot.starter.web)
-    compileOnly(libs.spring.boot.starter.validation)
+    api(libs.spring.boot.starter.validation)
 
     // Lombok
     compileOnly(libs.lombok)
@@ -51,11 +52,11 @@ dependencies {
     compileOnly(libs.slf4j.api)
 
     // Micrometer (指标监控)
-    compileOnly(libs.micrometer.core)
+    api(libs.micrometer.core)
 
     // Spring Boot Actuator (健康检查)
-    compileOnly(libs.spring.boot.starter.actuator)
-    compileOnly(libs.spring.boot.health)
+    api(libs.spring.boot.starter.actuator)
+    api(libs.spring.boot.health)
 
     // SpringDoc OpenAPI (AfgOpenApiAutoConfiguration - optional)
     compileOnly(libs.springdoc.openapi.starter.webmvc)

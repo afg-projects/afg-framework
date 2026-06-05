@@ -1,8 +1,8 @@
 package io.github.afgprojects.framework.core.module.exception;
 
-import java.io.Serial;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 
-import io.github.afgprojects.framework.core.model.exception.CommonErrorCode;
+import java.io.Serial;
 
 /**
  * 模块重复异常
