@@ -15,6 +15,7 @@ dependencies {
     // Spring Security Web（用于 SecurityFilterChain 配置）
     api(libs.spring.security.web)
     api(libs.spring.security.config)
+    api(libs.spring.boot.starter.security)
 
     // Nimbus JOSE JWT（JWT 处理）
     api(libs.nimbus.jose.jwt)
