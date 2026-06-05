@@ -63,7 +63,7 @@ public class SqlQueryBuilderImpl implements SqlQueryBuilder {
 
     public SqlQueryBuilderImpl(Dialect dialect) {
         this.dialect = dialect;
-        this.conditionConverter = new ConditionToSqlConverter();
+        this.conditionConverter = new ConditionToSqlConverter(dialect);
         this.selectBuilder = new SelectClauseBuilder(dialect);
         this.joinBuilder = new JoinClauseBuilder(dialect, conditionConverter);
         this.orderByBuilder = new OrderByClauseBuilder(dialect);

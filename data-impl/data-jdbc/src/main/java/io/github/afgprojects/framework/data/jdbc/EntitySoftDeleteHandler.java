@@ -74,19 +74,20 @@ class EntitySoftDeleteHandler<T> {
             );
         }
 
-        String sql;
         if (softDeleteStrategy == SoftDeleteStrategy.TIMESTAMP) {
-            sql = "UPDATE " + dialect.quoteIdentifier(metadata.getTableName()) +
+            String sql = "UPDATE " + dialect.quoteIdentifier(metadata.getTableName()) +
                    " SET deleted_at = NULL WHERE id = :id";
+            jdbcClient.sql(sql)
+                .param("id", id)
+                .update();
         } else {
-            sql = "UPDATE " + dialect.quoteIdentifier(metadata.getTableName()) +
+            String sql = "UPDATE " + dialect.quoteIdentifier(metadata.getTableName()) +
                    " SET deleted = :deleted WHERE id = :id";
+            jdbcClient.sql(sql)
+                .param("id", id)
+                .param("deleted", false)
+                .update();
         }
-
-        jdbcClient.sql(sql)
-            .param("id", id)
-            .param("deleted", false)
-            .update();
 
         evictCacheById(id);
     }
@@ -101,19 +102,20 @@ class EntitySoftDeleteHandler<T> {
             return;
         }
 
-        String sql;
         if (softDeleteStrategy == SoftDeleteStrategy.TIMESTAMP) {
-            sql = "UPDATE " + dialect.quoteIdentifier(metadata.getTableName()) +
+            String sql = "UPDATE " + dialect.quoteIdentifier(metadata.getTableName()) +
                    " SET deleted_at = NULL WHERE id IN (:ids)";
+            jdbcClient.sql(sql)
+                .param("ids", idList)
+                .update();
         } else {
-            sql = "UPDATE " + dialect.quoteIdentifier(metadata.getTableName()) +
+            String sql = "UPDATE " + dialect.quoteIdentifier(metadata.getTableName()) +
                    " SET deleted = :deleted WHERE id IN (:ids)";
+            jdbcClient.sql(sql)
+                .param("ids", idList)
+                .param("deleted", false)
+                .update();
         }
-
-        jdbcClient.sql(sql)
-            .param("ids", idList)
-            .param("deleted", false)
-            .update();
 
         idList.forEach(this::evictCacheById);
     }
@@ -212,8 +214,12 @@ class EntitySoftDeleteHandler<T> {
 
     /**
      * 构建软删除 SET 子句
+     * <p>
+     * 使用位置参数占位符，调用方需在参数列表中提供对应的值。
+     * TIMESTAMP 模式使用 {@code ?} 占位符（调用方传入 {@link java.time.LocalDateTime#now()}），
+     * BOOLEAN 模式使用 {@code ?} 占位符（调用方传入 {@code true}）。
      *
-     * @return SET 子句（如 "deleted_at = NOW()" 或 "deleted = true"）
+     * @return SET 子句（如 "deleted_at = ?" 或 "deleted = ?"）
      */
     String buildSoftDeleteSetClause() {
         if (softDeleteStrategy == null) {
@@ -223,9 +229,9 @@ class EntitySoftDeleteHandler<T> {
         }
 
         if (softDeleteStrategy == SoftDeleteStrategy.TIMESTAMP) {
-            return "deleted_at = NOW()";
+            return "deleted_at = ?";
         } else {
-            return "deleted = true";
+            return "deleted = ?";
         }
     }
 

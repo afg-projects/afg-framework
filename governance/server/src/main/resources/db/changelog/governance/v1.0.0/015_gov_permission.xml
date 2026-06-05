@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.26.xsd">
+
+    <changeSet id="v1.0.0-015-gov-permission" author="afg">
+        <createTable tableName="gov_permission" remarks="权限表">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_gov_permission"/>
+            </column>
+            <column name="code" type="VARCHAR(100)" remarks="权限编码">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_gov_permission_code"/>
+            </column>
+            <column name="name" type="VARCHAR(200)" remarks="权限名称">
+                <constraints nullable="false"/>
+            </column>
+            <column name="resource_type" type="VARCHAR(50)" remarks="资源类型"/>
+            <column name="created_at" type="DATETIME"/>
+        </createTable>
+
+        <!-- 初始化权限数据 -->
+        <insert tableName="gov_permission">
+            <column name="code" value="config:group:view"/>
+            <column name="name" value="查看配置组"/>
+            <column name="resource_type" value="CONFIG"/>
+            <column name="created_at" valueDate="now()"/>
+        </insert>
+        <insert tableName="gov_permission">
+            <column name="code" value="config:group:create"/>
+            <column name="name" value="创建配置组"/>
+            <column name="resource_type" value="CONFIG"/>
+            <column name="created_at" valueDate="now()"/>
+        </insert>
+        <insert tableName="gov_permission">
+            <column name="code" value="config:group:edit"/>
+            <column name="name" value="编辑配置组"/>
+            <column name="resource_type" value="CONFIG"/>
+            <column name="created_at" valueDate="now()"/>
+        </insert>
+        <insert tableName="gov_permission">
+            <column name="code" value="config:group:delete"/>
+            <column name="name" value="删除配置组"/>
+            <column name="resource_type" value="CONFIG"/>
+            <column name="created_at" valueDate="now()"/>
+        </insert>
+        <insert tableName="gov_permission">
+            <column name="code" value="config:item:view"/>
+            <column name="name" value="查看配置项"/>
+            <column name="resource_type" value="CONFIG"/>
+            <column name="created_at" valueDate="now()"/>
+        </insert>
+        <insert tableName="gov_permission">
+            <column name="code" value="config:item:create"/>
+            <column name="name" value="创建配置项"/>
+            <column name="resource_type" value="CONFIG"/>
+            <column name="created_at" valueDate="now()"/>
+        </insert>
+        <insert tableName="gov_permission">
+            <column name="code" value="config:item:edit"/>
+            <column name="name" value="编辑配置项值"/>
+            <column name="resource_type" value="CONFIG"/>
+            <column name="created_at" valueDate="now()"/>
+        </insert>
+        <insert tableName="gov_permission">
+            <column name="code" value="config:item:delete"/>
+            <column name="name" value="删除配置项"/>
+            <column name="resource_type" value="CONFIG"/>
+            <column name="created_at" valueDate="now()"/>
+        </insert>
+        <insert tableName="gov_permission">
+            <column name="code" value="config:gray:create"/>
+            <column name="name" value="创建灰度发布"/>
+            <column name="resource_type" value="CONFIG"/>
+            <column name="created_at" valueDate="now()"/>
+        </insert>
+        <insert tableName="gov_permission">
+            <column name="code" value="config:gray:execute"/>
+            <column name="name" value="执行灰度发布"/>
+            <column name="resource_type" value="CONFIG"/>
+            <column name="created_at" valueDate="now()"/>
+        </insert>
+        <insert tableName="gov_permission">
+            <column name="code" value="config:gray:rollback"/>
+            <column name="name" value="回滚灰度发布"/>
+            <column name="resource_type" value="CONFIG"/>
+            <column name="created_at" valueDate="now()"/>
+        </insert>
+        <insert tableName="gov_permission">
+            <column name="code" value="service:view"/>
+            <column name="name" value="查看服务列表"/>
+            <column name="resource_type" value="SERVICE"/>
+            <column name="created_at" valueDate="now()"/>
+        </insert>
+        <insert tableName="gov_permission">
+            <column name="code" value="service:instance:view"/>
+            <column name="name" value="查看实例"/>
+            <column name="resource_type" value="SERVICE"/>
+            <column name="created_at" valueDate="now()"/>
+        </insert>
+        <insert tableName="gov_permission">
+            <column name="code" value="service:instance:edit"/>
+            <column name="name" value="编辑实例权重"/>
+            <column name="resource_type" value="SERVICE"/>
+            <column name="created_at" valueDate="now()"/>
+        </insert>
+        <insert tableName="gov_permission">
+            <column name="code" value="service:instance:delete"/>
+            <column name="name" value="注销实例"/>
+            <column name="resource_type" value="SERVICE"/>
+            <column name="created_at" valueDate="now()"/>
+        </insert>
+        <insert tableName="gov_permission">
+            <column name="code" value="env:view"/>
+            <column name="name" value="查看环境"/>
+            <column name="resource_type" value="SYSTEM"/>
+            <column name="created_at" valueDate="now()"/>
+        </insert>
+        <insert tableName="gov_permission">
+            <column name="code" value="env:create"/>
+            <column name="name" value="创建环境"/>
+            <column name="resource_type" value="SYSTEM"/>
+            <column name="created_at" valueDate="now()"/>
+        </insert>
+        <insert tableName="gov_permission">
+            <column name="code" value="env:edit"/>
+            <column name="name" value="编辑环境"/>
+            <column name="resource_type" value="SYSTEM"/>
+            <column name="created_at" valueDate="now()"/>
+        </insert>
+        <insert tableName="gov_permission">
+            <column name="code" value="env:delete"/>
+            <column name="name" value="删除环境"/>
+            <column name="resource_type" value="SYSTEM"/>
+            <column name="created_at" valueDate="now()"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

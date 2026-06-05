@@ -9,12 +9,11 @@ import dev.langchain4j.store.embedding.EmbeddingStore;
 import io.github.afgprojects.framework.ai.core.api.rag.Document;
 import io.github.afgprojects.framework.ai.core.api.rag.EmbeddingService;
 import io.github.afgprojects.framework.ai.core.api.rag.VectorStore;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 将 AFG VectorStore 适配为 LangChain4j EmbeddingStore
@@ -37,14 +36,14 @@ public class Lc4jEmbeddingStoreAdapter implements EmbeddingStore<TextSegment> {
      * @param vectorStore      AFG 向量存储
      * @param embeddingService AFG 嵌入服务（用于将查询文本转为向量）
      */
-    public Lc4jEmbeddingStoreAdapter(@NonNull VectorStore vectorStore,
-                                     @NonNull EmbeddingService embeddingService) {
-        this.vectorStore = vectorStore;
-        this.embeddingService = embeddingService;
+    public Lc4jEmbeddingStoreAdapter(VectorStore vectorStore,
+                                     EmbeddingService embeddingService) {
+        this.vectorStore = Objects.requireNonNull(vectorStore, "vectorStore must not be null");
+        this.embeddingService = Objects.requireNonNull(embeddingService, "embeddingService must not be null");
     }
 
     @Override
-    public String add(@NonNull Embedding embedding) {
+    public String add(Embedding embedding) {
         // LangChain4j 的 add(Embedding) 不含文本内容，需要创建空文档
         String id = java.util.UUID.randomUUID().toString();
         addInternal(id, embedding, null);
@@ -52,12 +51,12 @@ public class Lc4jEmbeddingStoreAdapter implements EmbeddingStore<TextSegment> {
     }
 
     @Override
-    public void add(@NonNull String id, @NonNull Embedding embedding) {
+    public void add(String id, Embedding embedding) {
         addInternal(id, embedding, null);
     }
 
     @Override
-    public String add(@NonNull Embedding embedding, @Nullable TextSegment textSegment) {
+    public String add(Embedding embedding, TextSegment textSegment) {
         String id = textSegment != null && textSegment.metadata() != null
                 ? textSegment.metadata().getString("id")
                 : null;
@@ -69,7 +68,7 @@ public class Lc4jEmbeddingStoreAdapter implements EmbeddingStore<TextSegment> {
     }
 
     @Override
-    public List<String> addAll(@NonNull List<Embedding> embeddings) {
+    public List<String> addAll(List<Embedding> embeddings) {
         var ids = new java.util.ArrayList<String>(embeddings.size());
         for (Embedding embedding : embeddings) {
             ids.add(add(embedding));
@@ -84,15 +83,15 @@ public class Lc4jEmbeddingStoreAdapter implements EmbeddingStore<TextSegment> {
      * 只有 addAll(List&lt;String&gt;, List&lt;Embedding&gt;, List&lt;Embedded&gt;) 方法。
      * 此方法提供便捷实现。
      */
-    public void addAllWithIds(@NonNull List<String> ids, @NonNull List<Embedding> embeddings) {
+    public void addAllWithIds(List<String> ids, List<Embedding> embeddings) {
         for (int i = 0; i < ids.size() && i < embeddings.size(); i++) {
             addInternal(ids.get(i), embeddings.get(i), null);
         }
     }
 
     @Override
-    public List<String> addAll(@NonNull List<Embedding> embeddings,
-                               @Nullable List<TextSegment> textSegments) {
+    public List<String> addAll(List<Embedding> embeddings,
+                               List<TextSegment> textSegments) {
         var ids = new java.util.ArrayList<String>(embeddings.size());
         for (int i = 0; i < embeddings.size(); i++) {
             TextSegment segment = textSegments != null && i < textSegments.size()
@@ -103,9 +102,8 @@ public class Lc4jEmbeddingStoreAdapter implements EmbeddingStore<TextSegment> {
         return ids;
     }
 
-    @NonNull
     @Override
-    public EmbeddingSearchResult<TextSegment> search(@NonNull EmbeddingSearchRequest request) {
+    public EmbeddingSearchResult<TextSegment> search(EmbeddingSearchRequest request) {
         // 将查询嵌入转为 AFG Document 搜索
         float[] queryVector = request.queryEmbedding().vector();
         List<Double> queryEmbedding = new java.util.ArrayList<>(queryVector.length);
@@ -136,7 +134,7 @@ public class Lc4jEmbeddingStoreAdapter implements EmbeddingStore<TextSegment> {
 
     // ---- 内部方法 ----
 
-    private void addInternal(String id, Embedding embedding, @Nullable TextSegment segment) {
+    private void addInternal(String id, Embedding embedding, TextSegment segment) {
         String content = segment != null ? segment.text() : "";
         Map<String, Object> metadata = segment != null && segment.metadata() != null
                 ? fromLc4jMetadata(segment.metadata())
@@ -160,13 +158,14 @@ public class Lc4jEmbeddingStoreAdapter implements EmbeddingStore<TextSegment> {
     }
 
     private dev.langchain4j.data.document.Metadata toLc4jMetadata(Map<String, Object> metadata) {
-        var result = dev.langchain4j.data.document.Metadata.from(metadata);
-        return result;
+        return dev.langchain4j.data.document.Metadata.from(metadata);
     }
 
     private double cosineSimilarity(List<Double> a, List<Double> b) {
         if (a.size() != b.size()) return 0.0;
-        double dotProduct = 0.0, normA = 0.0, normB = 0.0;
+        double dotProduct = 0.0;
+        double normA = 0.0;
+        double normB = 0.0;
         for (int i = 0; i < a.size(); i++) {
             dotProduct += a.get(i) * b.get(i);
             normA += a.get(i) * a.get(i);

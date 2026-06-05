@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.26.xsd">
+
+    <changeSet id="v1.0.0-010-gov-service-registry" author="afg">
+        <createTable tableName="gov_service_registry" remarks="服务注册表">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_service_registry"/>
+            </column>
+            <column name="code" type="VARCHAR(100)" remarks="服务编码">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_service_registry_code"/>
+            </column>
+            <column name="name" type="VARCHAR(200)" remarks="服务名称">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(500)" remarks="描述"/>
+            <column name="group_name" type="VARCHAR(100)" remarks="服务分组"/>
+            <column name="service_version" type="VARCHAR(50)" remarks="服务版本"/>
+            <column name="metadata" type="TEXT" remarks="元数据(JSON)"/>
+            <column name="status" type="SMALLINT" remarks="状态" defaultValueNumeric="1"/>
+            <column name="tenant_id" type="VARCHAR(64)" remarks="租户ID"/>
+            <column name="version" type="BIGINT" remarks="版本号" defaultValueNumeric="1"/>
+            <column name="create_by" type="VARCHAR(100)" remarks="创建人"/>
+            <column name="update_by" type="VARCHAR(100)" remarks="更新人"/>
+            <column name="created_at" type="TIMESTAMP" remarks="创建时间"/>
+            <column name="updated_at" type="TIMESTAMP" remarks="更新时间"/>
+            <column name="deleted" type="BOOLEAN" remarks="软删除" defaultValueBoolean="false"/>
+        </createTable>
+
+        <createIndex indexName="idx_service_registry_code" tableName="gov_service_registry">
+            <column name="code"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

@@ -167,7 +167,10 @@ public class DefaultBeanInvocationEngine implements BeanInvocationEngine {
             Throwable cause = e instanceof java.lang.reflect.InvocationTargetException ie
                     ? ie.getTargetException() : e;
             runErrorInterceptors(context, cause);
-            if (cause instanceof RuntimeException re) throw re;
+            if (cause instanceof RuntimeException re) {
+                re.addSuppressed(e);
+                throw re;
+            }
             throw new ServiceInvocationException(
                     "Invocation failed: " + context.serviceName() + "." + context.operationName() + " - " + cause.getMessage(), cause);
         }
@@ -231,12 +234,13 @@ public class DefaultBeanInvocationEngine implements BeanInvocationEngine {
     }
 
     private Object processResult(Object result, InvocationContext context) {
+        Object processed = result;
         for (ResultProcessor processor : resultProcessors) {
-            if (processor.supports(context, result)) {
-                result = processor.process(new io.github.afgprojects.framework.core.invocation.processor.DefaultResultContext(context, result, objectMapper));
+            if (processor.supports(context, processed)) {
+                processed = processor.process(new io.github.afgprojects.framework.core.invocation.processor.DefaultResultContext(context, processed, objectMapper));
             }
         }
-        return result;
+        return processed;
     }
 
     private void runBeforeInterceptors(InvocationContext context) {
@@ -249,10 +253,11 @@ public class DefaultBeanInvocationEngine implements BeanInvocationEngine {
     }
 
     private Object runAfterInterceptors(InvocationContext context, Object result) {
+        Object current = result;
         for (InvocationInterceptor interceptor : interceptors) {
-            result = interceptor.after(context, result);
+            current = interceptor.after(context, current);
         }
-        return result;
+        return current;
     }
 
     private void runErrorInterceptors(InvocationContext context, Throwable error) {

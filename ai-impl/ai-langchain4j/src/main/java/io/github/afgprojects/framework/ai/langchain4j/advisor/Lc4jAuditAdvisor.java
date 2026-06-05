@@ -13,7 +13,6 @@ import io.github.afgprojects.framework.ai.core.api.observability.AuditLogger;
 import io.github.afgprojects.framework.ai.core.api.observability.AuditLogger.AuditStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jspecify.annotations.NonNull;
 
 import java.util.Map;
 
@@ -45,7 +44,7 @@ public class Lc4jAuditAdvisor implements ChatModelListener {
     private final AuditLogger auditLogger;
 
     @Override
-    public void onRequest(@NonNull ChatModelRequestContext requestContext) {
+    public void onRequest(ChatModelRequestContext requestContext) {
         ChatRequest chatRequest = requestContext.chatRequest();
         String modelName = extractModelName(chatRequest);
         String userMessage = extractLastUserMessage(chatRequest);
@@ -70,7 +69,7 @@ public class Lc4jAuditAdvisor implements ChatModelListener {
     }
 
     @Override
-    public void onResponse(@NonNull ChatModelResponseContext responseContext) {
+    public void onResponse(ChatModelResponseContext responseContext) {
         Map<Object, Object> attributes = responseContext.attributes();
         Long startTime = (Long) attributes.get(ATTR_START_TIME);
         String modelName = (String) attributes.get(ATTR_MODEL_NAME);
@@ -99,7 +98,7 @@ public class Lc4jAuditAdvisor implements ChatModelListener {
     }
 
     @Override
-    public void onError(@NonNull ChatModelErrorContext errorContext) {
+    public void onError(ChatModelErrorContext errorContext) {
         Map<Object, Object> attributes = errorContext.attributes();
         Long startTime = (Long) attributes.get(ATTR_START_TIME);
         String modelName = (String) attributes.get(ATTR_MODEL_NAME);

@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assumptions.assumeThat;
  * <p>注意：不要在继承类上使用 @Transactional，因为 HTTP 请求在不同线程执行，
  * 事务不会共享。
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = AiTestConfiguration.class)
 @ActiveProfiles("test")
 @Testcontainers
 public abstract class AbstractAiWebTest {

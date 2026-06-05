@@ -2,10 +2,10 @@ package io.github.afgprojects.framework.data.jdbc;
 
 import io.github.afgprojects.framework.data.core.EntityQuery;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
-import io.github.afgprojects.framework.data.core.entity.SoftDeleteStrategy;
 import io.github.afgprojects.framework.data.core.mapper.Projection;
 import io.github.afgprojects.framework.data.core.mapper.TypeHandlerRegistry;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
+import io.github.afgprojects.framework.data.core.metadata.EntityTrait;
 import io.github.afgprojects.framework.data.core.page.PageRequest;
 import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.query.Page;
@@ -27,7 +27,10 @@ import java.util.*;
 /**
  * JDBC EntityQuery 实现
  * <p>
- * 提供基于条件的查询操作，支持分页、排序、数据权限等企业级特性。
+ * 提供基于条件的查询操作，支持分页、排序、数据权限、租户过滤等企业级特性。
+ * <p>
+ * 所有查询方法（list/one/first/count/exists/page）通过统一的 {@link #buildWhereClause()} 构建 WHERE 子句，
+ * 确保软删除过滤、租户过滤、数据权限过滤在所有查询路径上一致应用。
  */
 @Slf4j
 @SuppressWarnings("PMD.CouplingBetweenObjects")
@@ -80,52 +83,18 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
     @Override
     public <R> @NonNull ProjectedQuery<T, R> project(@NonNull Class<R> dtoType) {
         JdbcProjectedQuery<T, R> pq = new JdbcProjectedQuery<>(this, dtoType, null, typeHandlerRegistry);
-        // 将已有的查询条件传递给投影查询
-        if (!condition.isEmpty()) {
-            pq.where(condition);
-        }
-        if (sort != null && sort.isSorted()) {
-            pq.orderBy(sort);
-        }
-        if (tenantId != null) {
-            pq.withTenant(tenantId);
-        }
-        if (includeDeleted) {
-            pq.includeDeleted();
-        }
-        if (limit != null) {
-            pq.limit(limit);
-        }
-        if (offset != null) {
-            pq.offset(offset);
-        }
+        transferQueryStateTo(pq);
         return pq;
     }
 
     @Override
     public <R> @NonNull ProjectedQuery<T, R> project(@NonNull Projection<T, R> projection) {
         JdbcProjectedQuery<T, R> pq = new JdbcProjectedQuery<>(this, projection.resultType(), projection, typeHandlerRegistry);
-        // 将已有的查询条件传递给投影查询
-        if (!condition.isEmpty()) {
-            pq.where(condition);
-        }
-        if (sort != null && sort.isSorted()) {
-            pq.orderBy(sort);
-        }
-        if (tenantId != null) {
-            pq.withTenant(tenantId);
-        }
-        if (includeDeleted) {
-            pq.includeDeleted();
-        }
-        if (limit != null) {
-            pq.limit(limit);
-        }
-        if (offset != null) {
-            pq.offset(offset);
-        }
+        transferQueryStateTo(pq);
         return pq;
     }
+
+    // ==================== 条件配置 ====================
 
     @Override
     public @NonNull EntityQuery<T> where(@NonNull Condition condition) {
@@ -223,6 +192,8 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
         return this;
     }
 
+    // ==================== 数据权限配置 ====================
+
     @Override
     public @NonNull EntityQuery<T> withDataScope() {
         // 自动检测实体中的部门字段
@@ -261,6 +232,8 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
         return this;
     }
 
+    // ==================== 租户/数据源/只读配置 ====================
+
     @Override
     public @NonNull EntityQuery<T> withTenant(@NonNull String tenantId) {
         this.tenantId = tenantId;
@@ -284,6 +257,8 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
         this.includeDeleted = true;
         return this;
     }
+
+    // ==================== 关联加载配置 ====================
 
     @Override
     public @NonNull EntityQuery<T> withAssociation(@NonNull String name) {
@@ -316,6 +291,8 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
         return Collections.unmodifiableSet(eagerFetchAssociations);
     }
 
+    // ==================== 分页限制配置 ====================
+
     @Override
     public @NonNull EntityQuery<T> limit(int limit) {
         this.limit = limit;
@@ -328,124 +305,68 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
         return this;
     }
 
+    // ==================== 查询执行方法 ====================
+
     @Override
     public @NonNull List<T> list() {
-        String sql = buildSelectSql();
-        List<Object> params = new ArrayList<>();
-
-        if (!condition.isEmpty()) {
-            ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
-            ConditionToSqlConverter.SqlResult result = converter.convert(condition);
-            sql += " WHERE " + result.sql();
-            params.addAll(result.parameters());
-        }
-
-        // 软删除过滤
-        if (!includeDeleted && parentProxy.isSoftDeletable()) {
-            sql = appendSoftDeleteFilter(sql, !condition.isEmpty());
-        }
-
-        // 数据权限过滤
-        boolean hasWhere = !condition.isEmpty() || (!includeDeleted && parentProxy.isSoftDeletable());
-        DataScopeFilterResult dsFilter = buildDataScopeFilter(hasWhere);
-        if (dsFilter != null) {
-            sql += dsFilter.sql();
-            params.addAll(dsFilter.parameters());
-        }
+        String selectSql = buildSelectSql();
+        WhereClause where = buildWhereClause();
+        String sql = selectSql + where.withKeyword();
+        List<Object> params = where.parameters();
 
         // 排序
         if (sort != null && sort.isSorted()) {
             sql += " ORDER BY " + buildOrderByClause();
         }
 
-        // 分页限制（使用 Dialect 生成兼容 SQL）
+        // 分页限制
         if (limit != null) {
             sql = dialect.getPaginationSql(sql, offset != null ? offset : 0, limit);
         }
 
-        return jdbcClient.sql(sql)
-                .params(params)
-                .query(rowMapper)
-                .list();
+        List<T> results = executeQuery(sql, params);
+
+        // 急加载关联
+        results = loadAssociations(results);
+
+        return results;
     }
 
     @Override
     public @NonNull Page<T> page(@NonNull PageRequest pageRequest) {
-        // 构建基础查询
-        String baseSql = buildSelectSql();
-        String whereClause = "";
-        List<Object> params = new ArrayList<>();
-
-        if (!condition.isEmpty()) {
-            ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
-            ConditionToSqlConverter.SqlResult result = converter.convert(condition);
-            whereClause = result.sql();
-            params.addAll(result.parameters());
-        }
-
-        // 软删除过滤
-        if (!includeDeleted && parentProxy.isSoftDeletable()) {
-            if (!whereClause.isEmpty()) {
-                whereClause += " AND ";
-            }
-            whereClause += parentProxy.getSoftDeleteStrategy() == SoftDeleteStrategy.TIMESTAMP
-                    ? "deleted_at IS NULL"
-                    : "deleted = false";
-        }
-
-        // 数据权限过滤
-        boolean hasWhereForPage = !whereClause.isEmpty();
-        DataScopeFilterResult dsFilterForPage = buildDataScopeFilter(hasWhereForPage);
-        if (dsFilterForPage != null) {
-            whereClause += dsFilterForPage.sql();
-            params.addAll(dsFilterForPage.parameters());
-        }
-
-        String whereSql = !whereClause.isEmpty() ? " WHERE " + whereClause : "";
+        WhereClause where = buildWhereClause();
+        String whereSql = where.withKeyword();
+        List<Object> params = where.parameters();
 
         // 计数查询
         String countSql = "SELECT COUNT(*) FROM " + dialect.quoteIdentifier(metadata.getTableName()) + whereSql;
         long total = dataManager.queryForCount(countSql, params);
 
         // 数据查询
-        String dataSql = baseSql + whereSql;
+        String dataSql = buildSelectSql() + whereSql;
         if (pageRequest.hasSort()) {
             dataSql += " ORDER BY " + buildOrderByClauseFromPageRequest(pageRequest);
         }
         dataSql = dialect.getPaginationSql(dataSql, pageRequest.offset(), pageRequest.size());
 
-        List<T> records = jdbcClient.sql(dataSql)
-                .params(params)
-                .query(rowMapper)
-                .list();
+        List<T> records = executeQuery(dataSql, params);
+
+        // 急加载关联
+        records = loadAssociations(records);
 
         return new Page<>(records, total, pageRequest.page(), pageRequest.size());
     }
 
     @Override
     public @NonNull Optional<T> one() {
-        // 使用 LIMIT 2 而非获取全部结果，节省带宽和查询时间
-        String sql = buildSelectSql();
-        List<Object> params = new ArrayList<>();
-
-        if (!condition.isEmpty()) {
-            ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
-            ConditionToSqlConverter.SqlResult result = converter.convert(condition);
-            sql += " WHERE " + result.sql();
-            params.addAll(result.parameters());
-        }
-
-        // 软删除过滤
-        if (!includeDeleted && parentProxy.isSoftDeletable()) {
-            sql = appendSoftDeleteFilter(sql, !condition.isEmpty());
-        }
+        String selectSql = buildSelectSql();
+        WhereClause where = buildWhereClause();
+        String sql = selectSql + where.withKeyword();
+        List<Object> params = where.parameters();
 
         sql = dialect.getLimitSql(sql, 2);
 
-        List<T> results = jdbcClient.sql(sql)
-                .params(params)
-                .query(rowMapper)
-                .list();
+        List<T> results = executeQuery(sql, params);
 
         if (results.isEmpty()) {
             return Optional.empty();
@@ -453,50 +374,28 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
         if (results.size() > 1) {
             throw new IllegalStateException("Expected one result but got " + results.size());
         }
-        return Optional.of(results.get(0));
+        return Optional.of(loadAssociationsSingle(results.get(0)));
     }
 
     @Override
     public @NonNull Optional<T> first() {
-        String sql = buildSelectSql();
-        List<Object> params = new ArrayList<>();
-
-        if (!condition.isEmpty()) {
-            ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
-            ConditionToSqlConverter.SqlResult result = converter.convert(condition);
-            sql += " WHERE " + result.sql();
-            params.addAll(result.parameters());
-        }
-
-        // 软删除过滤
-        if (!includeDeleted && parentProxy.isSoftDeletable()) {
-            sql = appendSoftDeleteFilter(sql, !condition.isEmpty());
-        }
+        String selectSql = buildSelectSql();
+        WhereClause where = buildWhereClause();
+        String sql = selectSql + where.withKeyword();
+        List<Object> params = where.parameters();
 
         sql = dialect.getLimitSql(sql, 1);
 
-        return jdbcClient.sql(sql)
-                .params(params)
-                .query(rowMapper)
-                .optional();
+        List<T> results = executeQuery(sql, params);
+        return results.isEmpty() ? Optional.empty() : Optional.of(loadAssociationsSingle(results.get(0)));
     }
 
     @Override
     public long count() {
         String sql = "SELECT COUNT(*) FROM " + dialect.quoteIdentifier(metadata.getTableName());
-        List<Object> params = new ArrayList<>();
-
-        if (!condition.isEmpty()) {
-            ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
-            ConditionToSqlConverter.SqlResult result = converter.convert(condition);
-            sql += " WHERE " + result.sql();
-            params.addAll(result.parameters());
-        }
-
-        // 软删除过滤
-        if (!includeDeleted && parentProxy.isSoftDeletable()) {
-            sql = appendSoftDeleteFilter(sql, !condition.isEmpty());
-        }
+        WhereClause where = buildWhereClause();
+        sql += where.withKeyword();
+        List<Object> params = where.parameters();
 
         Long result = jdbcClient.sql(sql)
                 .params(params)
@@ -507,21 +406,10 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
 
     @Override
     public boolean exists() {
-        // 使用 SELECT 1 ... LIMIT 1 代替 count()，避免全表计数
         String sql = "SELECT 1 FROM " + dialect.quoteIdentifier(metadata.getTableName());
-        List<Object> params = new ArrayList<>();
-
-        if (!condition.isEmpty()) {
-            ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
-            ConditionToSqlConverter.SqlResult result = converter.convert(condition);
-            sql += " WHERE " + result.sql();
-            params.addAll(result.parameters());
-        }
-
-        // 软删除过滤
-        if (!includeDeleted && parentProxy.isSoftDeletable()) {
-            sql = appendSoftDeleteFilter(sql, !condition.isEmpty());
-        }
+        WhereClause where = buildWhereClause();
+        sql += where.withKeyword();
+        List<Object> params = where.parameters();
 
         sql = dialect.getLimitSql(sql, 1);
 
@@ -538,7 +426,150 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
         return new JdbcAggregateQuery<>(parentProxy);
     }
 
-    // ==================== 辅助方法 ====================
+    // ==================== WHERE 子句统一构建 ====================
+
+    /**
+     * WHERE 子句构建结果
+     */
+    private record WhereClause(String whereSql, List<Object> parameters) {
+        static WhereClause empty() { return new WhereClause("", List.of()); }
+        boolean hasWhere() { return !whereSql.isEmpty(); }
+        String withKeyword() { return hasWhere() ? " WHERE " + whereSql : ""; }
+    }
+
+    /**
+     * 统一构建 WHERE 子句（条件 + 软删除 + 租户过滤 + 数据权限）
+     * <p>
+     * 所有查询方法（list/one/first/count/exists/page）都应调用此方法，
+     * 确保数据权限和租户过滤在所有查询路径上一致应用。
+     */
+    private WhereClause buildWhereClause() {
+        StringBuilder whereSql = new StringBuilder();
+        List<Object> params = new ArrayList<>();
+
+        // 1. 用户条件
+        if (!condition.isEmpty()) {
+            ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
+            ConditionToSqlConverter.SqlResult result = converter.convert(condition);
+            whereSql.append(result.sql());
+            params.addAll(result.parameters());
+        }
+
+        // 2. 软删除过滤
+        if (!includeDeleted && (metadata.hasTrait(EntityTrait.SOFT_DELETABLE) || metadata.hasTrait(EntityTrait.TIMESTAMP_SOFT_DELETABLE))) {
+            if (whereSql.length() > 0) {
+                whereSql.append(" AND ");
+            }
+            whereSql.append(parentProxy.getSoftDeleteHandler().getSoftDeleteFilterCondition());
+        }
+
+        // 3. 租户过滤
+        String effectiveTenantId = resolveEffectiveTenantId();
+        if (effectiveTenantId != null && metadata.getTenantField() != null) {
+            if (whereSql.length() > 0) {
+                whereSql.append(" AND ");
+            }
+            String tenantColumn = metadata.getTenantField().getColumnName();
+            whereSql.append(tenantColumn).append(" = ?");
+            params.add(effectiveTenantId);
+        }
+
+        // 4. 数据权限过滤
+        if (!dataScopes.isEmpty()) {
+            var contextProvider = parentProxy.dataManager.getDataScopeContextProvider();
+            if (contextProvider != null) {
+                DataScopeSqlBuilder scopeBuilder = new DataScopeSqlBuilder(contextProvider);
+                DataScopeSqlBuilder.SqlResult result = scopeBuilder.buildSql(dataScopes, dialect);
+                if (result != null) {
+                    if (whereSql.length() > 0) {
+                        whereSql.append(" AND ");
+                    }
+                    whereSql.append(result.sql());
+                    params.addAll(result.parameters());
+                }
+            }
+        }
+
+        return new WhereClause(whereSql.toString(), params);
+    }
+
+    /**
+     * 解析有效的租户ID
+     * <p>
+     * 优先使用显式设置的 tenantId，其次使用 TenantContextHolder 中的上下文租户ID
+     */
+    private @Nullable String resolveEffectiveTenantId() {
+        if (tenantId != null) {
+            return tenantId;
+        }
+        return parentProxy.dataManager.getTenantContextHolder().getTenantId();
+    }
+
+    // ==================== 查询执行辅助方法 ====================
+
+    /**
+     * 执行查询（支持只读模式）
+     */
+    private List<T> executeQuery(String sql, List<Object> params) {
+        if (readOnly) {
+            return dataManager.executeInReadOnly(() ->
+                jdbcClient.sql(sql).params(params).query(rowMapper).list()
+            );
+        }
+        return jdbcClient.sql(sql).params(params).query(rowMapper).list();
+    }
+
+    /**
+     * 急加载关联数据（列表）
+     */
+    private List<T> loadAssociations(List<T> results) {
+        if (!eagerFetchAssociations.isEmpty() && !results.isEmpty()) {
+            for (String association : eagerFetchAssociations) {
+                parentProxy.fetchAll(results, association);
+            }
+        }
+        return results;
+    }
+
+    /**
+     * 急加载关联数据（单个实体）
+     */
+    private T loadAssociationsSingle(T entity) {
+        if (!eagerFetchAssociations.isEmpty()) {
+            for (String association : eagerFetchAssociations) {
+                parentProxy.fetchAll(List.of(entity), association);
+            }
+        }
+        return entity;
+    }
+
+    // ==================== 投影状态传递 ====================
+
+    /**
+     * 将当前查询状态传递给投影查询
+     */
+    private <R> void transferQueryStateTo(JdbcProjectedQuery<T, R> pq) {
+        if (!condition.isEmpty()) {
+            pq.where(condition);
+        }
+        if (sort != null && sort.isSorted()) {
+            pq.orderBy(sort);
+        }
+        if (tenantId != null) {
+            pq.withTenant(tenantId);
+        }
+        if (includeDeleted) {
+            pq.includeDeleted();
+        }
+        if (limit != null) {
+            pq.limit(limit);
+        }
+        if (offset != null) {
+            pq.offset(offset);
+        }
+    }
+
+    // ==================== SQL 构建辅助方法 ====================
 
     private String buildSelectSql() {
         List<String> fields = resolveFields();
@@ -586,13 +617,6 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
         return OrderByHelper.buildOrderByFromPageRequest(pageRequest, dialect, metadata);
     }
 
-    private String appendSoftDeleteFilter(String sql, boolean hasWhere) {
-        String filter = parentProxy.getSoftDeleteStrategy() == SoftDeleteStrategy.TIMESTAMP
-                ? "deleted_at IS NULL"
-                : "deleted = false";
-        return sql + (hasWhere ? " AND " : " WHERE ") + filter;
-    }
-
     private void validateAssociation(String name) {
         if (!metadata.hasRelation(name)) {
             throw new IllegalArgumentException(
@@ -635,37 +659,7 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
         return fieldName;
     }
 
-    /**
-     * 构建 DataScope WHERE 条件
-     *
-     * @param hasWhere 是否已有 WHERE 子句
-     * @return [sql片段, 参数列表]，如果不需要过滤则返回 null
-     */
-    private @Nullable DataScopeFilterResult buildDataScopeFilter(boolean hasWhere) {
-        if (dataScopes.isEmpty()) {
-            return null;
-        }
-
-        var contextProvider = parentProxy.dataManager.getDataScopeContextProvider();
-        if (contextProvider == null) {
-            log.debug("No DataScopeContextProvider configured, skipping data scope filter");
-            return null;
-        }
-
-        DataScopeSqlBuilder scopeBuilder = new DataScopeSqlBuilder(contextProvider);
-        DataScopeSqlBuilder.SqlResult result = scopeBuilder.buildSql(dataScopes, dialect);
-        if (result == null) {
-            return null;
-        }
-
-        String prefix = hasWhere ? " AND " : " WHERE ";
-        return new DataScopeFilterResult(prefix + result.sql(), result.parameters());
-    }
-
-    /**
-     * DataScope 过滤结果
-     */
-    private record DataScopeFilterResult(String sql, List<Object> parameters) {}
+    // ==================== 测试辅助方法 ====================
 
     Class<T> getEntityClass() {
         return entityClass;

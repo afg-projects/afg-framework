@@ -24,14 +24,16 @@ public class SqlUpdateBuilderImpl implements SqlUpdateBuilder {
     private String tableName;
     private final Map<String, Object> setValues = new LinkedHashMap<>();
     private Condition whereCondition;
-    private final ConditionToSqlConverter conditionConverter = new ConditionToSqlConverter();
+    private final ConditionToSqlConverter conditionConverter;
 
     public SqlUpdateBuilderImpl() {
         this.dialect = new MySQLDialect();
+        this.conditionConverter = new ConditionToSqlConverter(dialect);
     }
 
     public SqlUpdateBuilderImpl(Dialect dialect) {
         this.dialect = dialect;
+        this.conditionConverter = new ConditionToSqlConverter(dialect);
     }
 
     @Override

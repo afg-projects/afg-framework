@@ -5,6 +5,7 @@ import io.github.afgprojects.framework.data.core.condition.Conditions;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
 import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
+import io.github.afgprojects.framework.data.jdbc.mapper.ResultMapperAdapter;
 import io.github.afgprojects.framework.data.core.metadata.FieldMetadata;
 import io.github.afgprojects.framework.data.core.relation.RelationMetadata;
 import io.github.afgprojects.framework.data.core.relation.RelationType;
@@ -286,7 +287,8 @@ class AssociationLoader {
     @SuppressWarnings("unchecked")
     private Set<?> executeManyToManyQuery(String sql, Object idValue, Class<?> targetEntityClass) {
         JdbcEntityProxy<?> targetProxy = (JdbcEntityProxy<?>) dataManager.entity(targetEntityClass);
-        List<?> results = targetProxy.dataManager.queryForList(sql, List.of(idValue), targetProxy.rowMapper);
+        List<?> results = targetProxy.dataManager.queryForList(sql, List.of(idValue),
+                ResultMapperAdapter.fromRowMapper(targetProxy.rowMapper));
         return new LinkedHashSet<>(results);
     }
 

@@ -261,7 +261,7 @@ public interface DataManager {
                                                          @Nullable Object value) {
         // 运行时类型检查
         String fieldName = io.github.afgprojects.framework.data.core.condition.Conditions.getFieldName(getter);
-        Class<?> fieldType = resolveFieldTypeFromLambda(getter);
+        Class<?> fieldType = io.github.afgprojects.framework.data.core.util.TypeDescriptorUtils.resolveFieldTypeFromLambda(getter);
         io.github.afgprojects.framework.data.core.condition.TypedConditionBuilder.checkFieldType(fieldName, fieldType, value);
         return entity(entityClass).findOne(
             io.github.afgprojects.framework.data.core.condition.Conditions.builder(entityClass)
@@ -290,13 +290,108 @@ public interface DataManager {
                                                     @Nullable Object value) {
         // 运行时类型检查
         String fieldName = io.github.afgprojects.framework.data.core.condition.Conditions.getFieldName(getter);
-        Class<?> fieldType = resolveFieldTypeFromLambda(getter);
+        Class<?> fieldType = io.github.afgprojects.framework.data.core.util.TypeDescriptorUtils.resolveFieldTypeFromLambda(getter);
         io.github.afgprojects.framework.data.core.condition.TypedConditionBuilder.checkFieldType(fieldName, fieldType, value);
         return entity(entityClass).query()
             .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder(entityClass)
                 .eq(getter, value)
                 .build())
             .list();
+    }
+
+    /**
+     * 按单字段判断记录是否存在
+     *
+     * @param entityClass 实体类
+     * @param getter      字段的 Lambda 方法引用
+     * @param value       字段值
+     * @return 是否存在匹配记录
+     */
+    default <T, R> boolean existsByField(@NonNull Class<T> entityClass,
+                                          @NonNull SFunction<T, R> getter,
+                                          @Nullable Object value) {
+        // 运行时类型检查
+        String fieldName = io.github.afgprojects.framework.data.core.condition.Conditions.getFieldName(getter);
+        Class<?> fieldType = io.github.afgprojects.framework.data.core.util.TypeDescriptorUtils.resolveFieldTypeFromLambda(getter);
+        io.github.afgprojects.framework.data.core.condition.TypedConditionBuilder.checkFieldType(fieldName, fieldType, value);
+        return entity(entityClass).query()
+            .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder(entityClass)
+                .eq(getter, value)
+                .build())
+            .exists();
+    }
+
+    /**
+     * 按单字段统计记录数
+     *
+     * @param entityClass 实体类
+     * @param getter      字段的 Lambda 方法引用
+     * @param value       字段值
+     * @return 匹配记录数
+     */
+    default <T, R> long countByField(@NonNull Class<T> entityClass,
+                                      @NonNull SFunction<T, R> getter,
+                                      @Nullable Object value) {
+        // 运行时类型检查
+        String fieldName = io.github.afgprojects.framework.data.core.condition.Conditions.getFieldName(getter);
+        Class<?> fieldType = io.github.afgprojects.framework.data.core.util.TypeDescriptorUtils.resolveFieldTypeFromLambda(getter);
+        io.github.afgprojects.framework.data.core.condition.TypedConditionBuilder.checkFieldType(fieldName, fieldType, value);
+        return entity(entityClass).query()
+            .where(io.github.afgprojects.framework.data.core.condition.Conditions.builder(entityClass)
+                .eq(getter, value)
+                .build())
+            .count();
+    }
+
+    /**
+     * 按条件删除记录
+     * <p>
+     * 软删除实体自动变软删除。
+     *
+     * @param entityClass 实体类
+     * @param condition   删除条件
+     * @return 删除的记录数
+     */
+    default <T> long deleteByCondition(@NonNull Class<T> entityClass,
+                                        @NonNull Condition condition) {
+        return entity(entityClass).deleteByCondition(condition);
+    }
+
+    /**
+     * 更新实体
+     * <p>
+     * 与 save() 不同，此方法不检查实体是否已存在，直接执行 UPDATE。
+     *
+     * @param entityClass 实体类
+     * @param entity      要更新的实体（必须已设置 ID）
+     * @return 更新后的实体
+     */
+    default <T> @NonNull T update(@NonNull Class<T> entityClass, @NonNull T entity) {
+        return entity(entityClass).update(entity);
+    }
+
+    /**
+     * 按条件批量更新
+     *
+     * @param entityClass 实体类
+     * @param condition   更新条件
+     * @param updates     字段更新映射（字段名 -> 新值）
+     * @return 更新的记录数
+     */
+    default <T> long updateAll(@NonNull Class<T> entityClass,
+                                @NonNull Condition condition,
+                                @NonNull Map<String, Object> updates) {
+        return entity(entityClass).updateAll(condition, updates);
+    }
+
+    /**
+     * 恢复软删除的记录
+     *
+     * @param entityClass 实体类
+     * @param id          记录 ID
+     */
+    default <T> void restoreById(@NonNull Class<T> entityClass, @NonNull Object id) {
+        entity(entityClass).restoreById(id);
     }
 
     /**
@@ -484,58 +579,4 @@ public interface DataManager {
         return entity(entityClass).query().where(condition).exists();
     }
 
-    // ==================== 运行时类型检查工具方法 ====================
-
-    /**
-     * 从 Lambda 方法引用中解析字段的返回类型
-     * <p>
-     * 通过 SerializedLambda 获取方法签名，解析返回类型的 JVM 描述符。
-     * 如果无法解析则返回 null（类型检查将被跳过）。
-     *
-     * @param getter Lambda 方法引用
-     * @return 字段返回类型，可能为 null
-     */
-    private static <T, R> Class<?> resolveFieldTypeFromLambda(SFunction<T, R> getter) {
-        try {
-            java.lang.reflect.Method writeReplace = getter.getClass().getDeclaredMethod("writeReplace");
-            writeReplace.setAccessible(true);
-            java.lang.invoke.SerializedLambda lambda = (java.lang.invoke.SerializedLambda) writeReplace.invoke(getter);
-            String methodSignature = lambda.getImplMethodSignature();
-            // 方法签名格式：(参数类型)返回类型
-            String returnTypeDesc = methodSignature.substring(methodSignature.indexOf(')') + 1);
-            return resolveTypeFromDescriptor(returnTypeDesc);
-        } catch (Exception e) {
-            // 降级：无法获取类型信息时不检查
-            return null;
-        }
-    }
-
-    /**
-     * 从 JVM 类型描述符解析为 Class 对象
-     *
-     * @param descriptor JVM 类型描述符（如 "Ljava/lang/String;"、"I"）
-     * @return 对应的 Class 对象，可能为 null
-     */
-    private static Class<?> resolveTypeFromDescriptor(String descriptor) {
-        return switch (descriptor.charAt(0)) {
-            case 'Z' -> boolean.class;
-            case 'B' -> byte.class;
-            case 'C' -> char.class;
-            case 'S' -> short.class;
-            case 'I' -> int.class;
-            case 'J' -> long.class;
-            case 'F' -> float.class;
-            case 'D' -> double.class;
-            case 'V' -> void.class;
-            case 'L' -> {
-                String className = descriptor.substring(1, descriptor.length() - 1).replace('/', '.');
-                try {
-                    yield Class.forName(className);
-                } catch (ClassNotFoundException e) {
-                    yield null;
-                }
-            }
-            default -> null;
-        };
-    }
 }

@@ -1,0 +1,155 @@
+syntax = "proto3";
+
+package afg.governance;
+
+option java_multiple_files = true;
+option java_package = "io.github.afgprojects.framework.governance.proto";
+
+// ==================== 配置管理 ====================
+
+// 配置订阅请求
+message SubscribeConfigRequest {
+  repeated string keys = 1;           // 订阅的配置键（空=订阅全部）
+  string service_name = 2;            // 服务名称
+  map<string, string> labels = 3;     // 标签过滤
+}
+
+// 配置变更通知
+message ConfigChangeNotification {
+  string key = 1;
+  string value = 2;
+  ChangeType change_type = 3;         // CREATE/UPDATE/DELETE
+  int64 version = 4;
+  int64 timestamp = 5;
+  string source = 6;                  // 变更来源
+}
+
+enum ChangeType {
+  CHANGE_TYPE_UNSPECIFIED = 0;
+  CHANGE_TYPE_CREATE = 1;
+  CHANGE_TYPE_UPDATE = 2;
+  CHANGE_TYPE_DELETE = 3;
+}
+
+// 配置确认
+message ConfigAck {
+  string key = 1;
+  int64 version = 2;
+  bool success = 3;
+  string error_message = 4;
+}
+
+// 批量获取配置请求
+message GetConfigsRequest {
+  string prefix = 1;                  // 配置前缀
+  repeated string keys = 2;           // 指定键列表
+}
+
+// 批量获取配置响应
+message GetConfigsResponse {
+  map<string, string> configs = 1;
+  int64 version = 2;
+}
+
+// 发布配置请求
+message PublishConfigRequest {
+  string key = 1;
+  string value = 2;
+  string reason = 3;                  // 变更原因
+  string operator = 4;                // 操作人
+  string service_name = 5;            // 服务名称（用于分组）
+  string environment = 6;             // 环境（dev/test/prod）
+  string display_name = 7;            // 配置项中文显示名
+  string type = 8;                    // 配置类型（java.lang.Boolean, java.lang.Integer 等）
+  string default_value = 9;           // 默认值
+  bool deprecated = 10;               // 是否已废弃
+}
+
+// 发布配置响应
+message PublishConfigResponse {
+  bool success = 1;
+  int64 version = 2;
+  string error_message = 3;
+}
+
+// ==================== 服务注册（Phase 3 占位）====================
+
+message RegisterServiceRequest {
+  string service_name = 1;
+  string host = 2;
+  int32 port = 3;
+}
+
+message RegisterServiceResponse {
+  string instance_id = 1;
+}
+
+message DeregisterServiceRequest {
+  string instance_id = 1;
+}
+
+message DeregisterServiceResponse {
+  bool success = 1;
+}
+
+message HeartbeatRequest {
+  string instance_id = 1;
+  int64 timestamp = 2;
+}
+
+message HeartbeatResponse {
+  bool ack = 1;
+  int64 server_timestamp = 2;
+}
+
+message DiscoverServicesRequest {
+  string service_name = 1;
+}
+
+message DiscoverServicesResponse {
+  repeated ServiceInstanceMessage instances = 1;
+}
+
+message ServiceInstanceMessage {
+  string instance_id = 1;
+  string service_name = 2;
+  string host = 3;
+  int32 port = 4;
+  string status = 5;
+}
+
+// ==================== gRPC 服务定义 ====================
+
+service GovernanceService {
+  // 配置订阅（服务端流）
+  rpc SubscribeConfig(SubscribeConfigRequest)
+      returns (stream ConfigChangeNotification);
+
+  // 配置确认（双向流）
+  rpc ConfigAckStream(stream ConfigAck)
+      returns (stream ConfigChangeNotification);
+
+  // 批量获取配置
+  rpc GetConfigs(GetConfigsRequest)
+      returns (GetConfigsResponse);
+
+  // 发布配置
+  rpc PublishConfig(PublishConfigRequest)
+      returns (PublishConfigResponse);
+
+  // 服务注册（Phase 3 实现）
+  rpc RegisterService(RegisterServiceRequest)
+      returns (RegisterServiceResponse);
+
+  // 服务下线（Phase 3 实现）
+  rpc DeregisterService(DeregisterServiceRequest)
+      returns (DeregisterServiceResponse);
+
+  // 心跳（Phase 3 实现）
+  rpc HeartbeatStream(stream HeartbeatRequest)
+      returns (stream HeartbeatResponse);
+
+  // 服务发现（Phase 3 实现）
+  rpc DiscoverServices(DiscoverServicesRequest)
+      returns (DiscoverServicesResponse);
+}

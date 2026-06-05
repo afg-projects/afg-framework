@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.26.xsd">
+
+    <changeSet id="v1.0.0-011-gov-service-instance" author="afg">
+        <createTable tableName="gov_service_instance" remarks="服务实例表">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_service_instance"/>
+            </column>
+            <column name="service_id" type="BIGINT" remarks="服务ID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="instance_id" type="VARCHAR(100)" remarks="实例ID">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_service_instance_id"/>
+            </column>
+            <column name="host" type="VARCHAR(255)" remarks="主机地址">
+                <constraints nullable="false"/>
+            </column>
+            <column name="port" type="INT" remarks="端口">
+                <constraints nullable="false"/>
+            </column>
+            <column name="protocol" type="VARCHAR(20)" remarks="协议" defaultValue="http"/>
+            <column name="weight" type="INT" remarks="权重" defaultValueNumeric="100"/>
+            <column name="metadata" type="TEXT" remarks="元数据(JSON)"/>
+            <column name="status" type="SMALLINT" remarks="状态" defaultValueNumeric="1"/>
+            <column name="last_heartbeat" type="TIMESTAMP" remarks="最后心跳时间"/>
+            <column name="tenant_id" type="VARCHAR(64)" remarks="租户ID"/>
+            <column name="version" type="BIGINT" remarks="版本号" defaultValueNumeric="1"/>
+            <column name="create_by" type="VARCHAR(100)" remarks="创建人"/>
+            <column name="update_by" type="VARCHAR(100)" remarks="更新人"/>
+            <column name="created_at" type="TIMESTAMP" remarks="创建时间"/>
+            <column name="updated_at" type="TIMESTAMP" remarks="更新时间"/>
+            <column name="deleted" type="BOOLEAN" remarks="软删除" defaultValueBoolean="false"/>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="gov_service_instance"
+                                 baseColumnNames="service_id"
+                                 constraintName="fk_service_instance_registry"
+                                 referencedTableName="gov_service_registry"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+
+        <createIndex indexName="idx_service_instance_service_id" tableName="gov_service_instance">
+            <column name="service_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_service_instance_status" tableName="gov_service_instance">
+            <column name="status"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

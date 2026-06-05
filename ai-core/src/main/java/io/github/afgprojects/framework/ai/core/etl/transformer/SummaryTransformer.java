@@ -86,10 +86,12 @@ public class SummaryTransformer implements DocumentTransformer {
         return result;
     }
 
+    @Override
     public @NonNull String getName() {
         return "SummaryTransformer";
     }
 
+    @Override
     public int getOrder() {
         return 200;
     }

@@ -22,8 +22,8 @@ import java.util.function.BiConsumer;
  */
 public class ConditionToSqlConverter {
 
-    /** 可选的方言，用于生成数据库兼容的 JSON 操作 SQL */
-    private final @Nullable Dialect dialect;
+    /** 方言，用于生成数据库兼容的 JSON 操作 SQL（强制要求） */
+    private final @NonNull Dialect dialect;
 
     /** 操作符处理器映射 */
     private final Map<Operator, BiConsumer<StringBuilder, List<Object>>> simpleOperators = Map.of(
@@ -35,11 +35,7 @@ public class ConditionToSqlConverter {
             Operator.LE, (sql, params) -> { sql.append(" <= ?"); }
     );
 
-    public ConditionToSqlConverter() {
-        this.dialect = null;
-    }
-
-    public ConditionToSqlConverter(@Nullable Dialect dialect) {
+    public ConditionToSqlConverter(@NonNull Dialect dialect) {
         this.dialect = dialect;
     }
 
@@ -74,10 +70,17 @@ public class ConditionToSqlConverter {
     }
 
     private void convertCondition(Condition condition, StringBuilder sql, List<Object> parameters) {
-        // 处理 NOT 条件
+        // 处理 DENY_ALL 条件（永假条件，生成 1 = 0）
+        if (condition instanceof DenyAllCondition) {
+            sql.append("1 = 0");
+            return;
+        }
+
+        // 处理 NOT 条件（始终用括号包裹，避免优先级问题）
         if (condition instanceof NotCondition notCondition) {
-            sql.append("NOT ");
+            sql.append("NOT (");
             convertCondition(notCondition.getOriginal(), sql, parameters);
+            sql.append(")");
             return;
         }
 
@@ -168,21 +171,14 @@ public class ConditionToSqlConverter {
      * 使用 Dialect 处理 JSON 操作符，生成数据库兼容的 SQL 表达式
      */
     private void handleJsonOperator(String field, Operator operator, StringBuilder sql, List<Object> parameters, Object value) {
-        if (dialect != null) {
-            switch (operator) {
-                case JSON_CONTAINS -> sql.append(dialect.getJsonContainsExpression(field));
-                case JSON_CONTAINED -> sql.append(dialect.getJsonContainedExpression(field));
-                case JSON_PATH -> sql.append(dialect.getJsonPathExpression(field));
-                default -> {}
-            }
-        } else {
-            // 无 Dialect 时降级为 PostgreSQL 语法（保持向后兼容）
-            switch (operator) {
-                case JSON_CONTAINS -> sql.append(field).append(" @> ?::jsonb");
-                case JSON_CONTAINED -> sql.append(field).append(" <@ ?::jsonb");
-                case JSON_PATH -> sql.append(field).append(" ?? ?");
-                default -> {}
-            }
+        switch (operator) {
+            case JSON_CONTAINS -> sql.append(dialect.getJsonContainsExpression(field));
+            case JSON_CONTAINED -> sql.append(dialect.getJsonContainedExpression(field));
+            case JSON_PATH -> sql.append(dialect.getJsonPathExpression(field));
+            default -> throw new UnsupportedOperationException(
+                "JSON operators require a Dialect to generate database-specific SQL. " +
+                "Please provide a Dialect when creating ConditionToSqlConverter."
+            );
         }
         parameters.add(value);
     }
@@ -203,11 +199,11 @@ public class ConditionToSqlConverter {
     /**
      * 处理 LIKE 操作符
      * <p>
-     * 使用 ESCAPE 子句支持转义通配符。值中的转义字符（如 {@code \\%} 和 {@code \\_}）
+     * 使用 ESCAPE 子句支持转义通配符。值中的转义字符（如 {@code !%} 和 {@code !_}）
      * 已在条件构建阶段由 {@link Conditions#escapeLikeWildcards(String)} 处理。
      */
     private void handleLike(StringBuilder sql, List<Object> parameters, Object value, boolean negate) {
-        sql.append(negate ? " NOT LIKE ? ESCAPE '\\\\'" : " LIKE ? ESCAPE '\\\\'");
+        sql.append(negate ? " NOT LIKE ? ESCAPE '!'" : " LIKE ? ESCAPE '!'");
         parameters.add(value);
     }
 

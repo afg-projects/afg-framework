@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.26.xsd">
+
+    <changeSet id="v1.0.0-001-gov-config-group" author="afg">
+        <createTable tableName="gov_config_group" remarks="配置分组表">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_config_group"/>
+            </column>
+            <column name="environment_id" type="BIGINT" remarks="环境ID"/>
+            <column name="code" type="VARCHAR(50)" remarks="分组编码">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_config_group_code"/>
+            </column>
+            <column name="name" type="VARCHAR(100)" remarks="分组名称">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(500)" remarks="描述"/>
+            <column name="icon" type="VARCHAR(50)" remarks="图标"/>
+            <column name="sort" type="INT" remarks="排序" defaultValueNumeric="0"/>
+            <column name="status" type="SMALLINT" remarks="状态" defaultValueNumeric="1"/>
+            <column name="tenant_id" type="VARCHAR(64)" remarks="租户ID"/>
+            <column name="deleted" type="BOOLEAN" remarks="软删除" defaultValueBoolean="false"/>
+            <column name="version" type="BIGINT" remarks="版本号" defaultValueNumeric="0"/>
+            <column name="created_at" type="TIMESTAMP" remarks="创建时间"/>
+            <column name="updated_at" type="TIMESTAMP" remarks="更新时间"/>
+            <column name="create_by" type="VARCHAR(64)" remarks="创建人ID"/>
+            <column name="update_by" type="VARCHAR(64)" remarks="更新人ID"/>
+        </createTable>
+
+        <createIndex indexName="idx_config_group_code" tableName="gov_config_group">
+            <column name="code"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

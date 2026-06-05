@@ -41,6 +41,21 @@ public class EntityMappingException extends DataAccessException {
     /**
      * 创建实体映射异常
      *
+     * @param entityClass 实体类
+     * @param fieldName   字段名
+     * @param message     错误消息
+     * @param cause       原因
+     */
+    public EntityMappingException(Class<?> entityClass, String fieldName, String message, Throwable cause) {
+        super(String.format("Mapping error for field '%s' in entity '%s': %s",
+                fieldName, entityClass.getSimpleName(), message),
+                entityClass.getSimpleName(), cause);
+        this.fieldName = fieldName;
+    }
+
+    /**
+     * 创建实体映射异常
+     *
      * @param message   错误消息
      * @param fieldName 字段名
      */

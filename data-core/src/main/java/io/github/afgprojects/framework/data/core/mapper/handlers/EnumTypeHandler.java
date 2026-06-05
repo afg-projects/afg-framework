@@ -10,10 +10,10 @@ public class EnumTypeHandler implements TypeHandler<Enum> {
     @SuppressWarnings("unchecked")
     public Enum convert(Object value, Class<Enum> targetType) {
         if (value == null) return null;
-        Class<? extends Enum> enumType = (Class<? extends Enum>) targetType;
+        Class<? extends Enum> enumType = targetType;
         if (value instanceof String s) {
             for (var c : enumType.getEnumConstants()) {
-                if (((Enum<?>) c).name().equals(s)) return c;
+                if (c.name().equals(s)) return c;
             }
         }
         if (value instanceof Number num) {

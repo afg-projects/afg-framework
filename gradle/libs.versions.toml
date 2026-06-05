@@ -5,6 +5,7 @@ spring-boot = "4.0.6"
 jsqlparser = "5.3"
 jcasbin = "1.9.2"
 dynamic-datasource = "4.5.0"
+testcontainers = "2.0.5"
 
 # 非 Spring Boot BOM 管理的依赖版本
 jspecify = "1.0.0"
@@ -113,6 +114,8 @@ testcontainers = { module = "org.testcontainers:testcontainers" }
 testcontainers-junit-jupiter = { module = "org.testcontainers:testcontainers-junit-jupiter" }
 testcontainers-kafka = { module = "org.testcontainers:testcontainers-kafka" }
 testcontainers-rabbitmq = { module = "org.testcontainers:testcontainers-rabbitmq" }
+testcontainers-mysql = { module = "org.testcontainers:testcontainers-mysql" }
+testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql" }
 
 # 非 Spring Boot BOM 管理的依赖
 jcasbin = { module = "org.casbin:jcasbin", version.ref = "jcasbin" }
@@ -180,4 +183,4 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-jvm" }
 
 [bundles]
 jackson = ["jackson-databind", "jackson-datatype-jsr310"]
-testing = ["junit-jupiter", "junit-platform-launcher", "assertj-core", "mockito-core", "mockito-junit-jupiter", "awaitility"]
+testing = ["junit-jupiter", "junit-platform-launcher", "assertj-core", "awaitility"]

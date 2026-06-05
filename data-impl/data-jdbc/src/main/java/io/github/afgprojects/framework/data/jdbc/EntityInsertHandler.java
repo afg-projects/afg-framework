@@ -57,6 +57,18 @@ public class EntityInsertHandler<T> {
         // 触发 beforeCreate 生命周期回调（类似 JPA @PrePersist）
         LifecycleCallbacks.ifCallback(entity, LifecycleCallbacks::beforeCreate);
 
+        // 自动填充租户ID：当实体的租户字段为空且 TenantContextHolder 设置了租户ID时
+        var tenantField = metadata.getTenantField();
+        if (tenantField != null) {
+            String currentTenantId = dataManager.getTenantContextHolder().getTenantId();
+            if (currentTenantId != null) {
+                Object entityTenantId = queryHelper.getParameterExtractor().getFieldValue(entity, tenantField.getPropertyName());
+                if (entityTenantId == null) {
+                    queryHelper.getParameterExtractor().setFieldValue(entity, tenantField.getPropertyName(), currentTenantId);
+                }
+            }
+        }
+
         // 检查实体是否已有ID（应用主动传入）
         Object existingId = queryHelper.getIdValue(entity);
         if (existingId != null) {

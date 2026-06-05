@@ -32,7 +32,7 @@ class ParameterExtractor<T> {
 
     // ==================== 字段访问 ====================
 
-    private @Nullable Object getFieldValue(T entity, String propertyName) {
+    @Nullable Object getFieldValue(T entity, String propertyName) {
         FieldMetadata field = metadata.getField(propertyName);
         if (field instanceof ReflectiveFieldMetadata reflective) {
             FieldAccessor accessor = reflective.getFieldAccessor();
@@ -41,7 +41,7 @@ class ParameterExtractor<T> {
                 if (value instanceof Enum<?> enumValue) {
                     return enumValue.name();
                 }
-                return value;
+                return convertForJdbc(value);
             }
         }
         // APT 生成的元数据回退到原始反射
@@ -53,16 +53,47 @@ class ParameterExtractor<T> {
                 if (value instanceof Enum<?> enumValue) {
                     return enumValue.name();
                 }
-                return value;
+                return convertForJdbc(value);
             }
         } catch (Exception e) {
             throw new EntityMappingException(entityClass, propertyName,
-                    "Failed to get field value: " + e.getMessage());
+                    "Failed to get field value: " + e.getMessage(), e);
         }
         return null;
     }
 
-    private void setFieldValue(T entity, String propertyName, Object value) {
+    /**
+     * 将 Java 时间类型转换为 JDBC 兼容的 SQL 类型
+     * <p>
+     * PostgreSQL JDBC 驱动不支持直接 setObject(Instant)，需要转换为 Timestamp。
+     * 其他时间类型同理转换以确保跨数据库兼容性。
+     */
+    private @Nullable Object convertForJdbc(@Nullable Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof java.time.Instant instant) {
+            return java.sql.Timestamp.from(instant);
+        }
+        if (value instanceof java.time.LocalDateTime ldt) {
+            return java.sql.Timestamp.valueOf(ldt);
+        }
+        if (value instanceof java.time.LocalDate ld) {
+            return java.sql.Date.valueOf(ld);
+        }
+        if (value instanceof java.time.LocalTime lt) {
+            return java.sql.Time.valueOf(lt);
+        }
+        if (value instanceof java.time.OffsetDateTime odt) {
+            return java.sql.Timestamp.from(odt.toInstant());
+        }
+        if (value instanceof java.time.ZonedDateTime zdt) {
+            return java.sql.Timestamp.from(zdt.toInstant());
+        }
+        return value;
+    }
+
+    void setFieldValue(T entity, String propertyName, Object value) {
         FieldMetadata field = metadata.getField(propertyName);
         if (field instanceof ReflectiveFieldMetadata reflective) {
             FieldAccessor accessor = reflective.getFieldAccessor();
@@ -80,7 +111,7 @@ class ParameterExtractor<T> {
             }
         } catch (Exception e) {
             throw new EntityMappingException(entityClass, propertyName,
-                    "Failed to set field value: " + e.getMessage());
+                    "Failed to set field value: " + e.getMessage(), e);
         }
     }
 

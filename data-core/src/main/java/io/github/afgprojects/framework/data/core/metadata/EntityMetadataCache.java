@@ -230,11 +230,6 @@ public class EntityMetadataCache {
         }
 
         @Override
-        public boolean isDataScopeAware() {
-            return false;
-        }
-
-        @Override
         public Condition getDefaultCondition() {
             return Condition.empty();
         }

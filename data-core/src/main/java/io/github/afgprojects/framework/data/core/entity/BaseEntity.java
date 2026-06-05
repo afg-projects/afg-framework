@@ -15,6 +15,9 @@
  */
 package io.github.afgprojects.framework.data.core.entity;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.Instant;
 
 /**
@@ -30,6 +33,8 @@ import java.time.Instant;
  *   <li>已持久化实体使用 id 判断相等性</li>
  * </ul>
  */
+@Setter
+@Getter
 public abstract class BaseEntity {
 
     /**
@@ -46,30 +51,6 @@ public abstract class BaseEntity {
      * 更新时间（UTC）
      */
     protected Instant updatedAt;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
-    }
 
     /**
      * 基于 ID 的相等性判断。

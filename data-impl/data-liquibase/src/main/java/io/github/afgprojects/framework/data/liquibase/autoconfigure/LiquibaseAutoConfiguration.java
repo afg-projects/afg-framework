@@ -18,6 +18,8 @@ import javax.sql.DataSource;
  * 统一配置 SpringLiquibase，默认使用 classpath:db/changelog/changelog.xml 作为入口。
  * 各模块只需在 db/changelog/ 目录下创建模块目录和迁移脚本。
  * <p>
+ * 必须在 DataSource 自动配置之后执行。
+ * <p>
  * 配置项（前缀 afg.liquibase）：
  * - enabled: 是否启用（默认 true）
  * - change-log: ChangeLog 路径（默认 classpath:db/changelog/changelog.xml）
@@ -26,7 +28,7 @@ import javax.sql.DataSource;
  * - labels: 执行标签过滤
  * - default-schema: 默认 Schema
  */
-@AutoConfiguration
+@AutoConfiguration(afterName = "org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration")
 @ConditionalOnClass(SpringLiquibase.class)
 @ConditionalOnProperty(prefix = "afg.liquibase", name = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(LiquibaseProperties.class)

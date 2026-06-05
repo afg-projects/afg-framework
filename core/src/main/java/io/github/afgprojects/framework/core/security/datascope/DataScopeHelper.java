@@ -6,7 +6,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -20,32 +19,8 @@ import io.github.afgprojects.framework.core.config.AfgCoreProperties;
  */
 public final class DataScopeHelper {
 
-    /**
-     * 合法标识符正则：字母/下划线开头，后跟字母/数字/下划线/点（支持 table.column 格式）
-     */
-    private static final Pattern IDENTIFIER_PATTERN = Pattern.compile("^[a-zA-Z_][a-zA-Z0-9_.]*$");
-
     private DataScopeHelper() {
         // 私有构造函数，防止实例化
-    }
-
-    /**
-     * 验证 SQL 标识符合法性
-     *
-     * @param identifier 标识符
-     * @param type       标识符类型描述（用于错误消息）
-     * @throws IllegalArgumentException 如果标识符非法
-     */
-    private static void validateIdentifier(String identifier, String type) {
-        if (identifier == null || identifier.isEmpty()) {
-            throw new IllegalArgumentException(type + " cannot be null or empty");
-        }
-        if (!IDENTIFIER_PATTERN.matcher(identifier).matches()) {
-            throw new IllegalArgumentException(
-                    "Invalid " + type + ": '" + identifier + "'. "
-                    + "Identifier must start with a letter or underscore, "
-                    + "followed by letters, digits, underscores, or dots.");
-        }
     }
 
     /**

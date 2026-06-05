@@ -67,6 +67,7 @@ dependencies {
     testImplementation(libs.testcontainers.junit.jupiter)
     testImplementation(libs.testcontainers.mysql)
     testImplementation(project(":ai-impl:ai-spring-ai"))  // Spring AI Ollama integration
+    testImplementation(project(":data-impl:data-liquibase"))
     testImplementation(project(":data-impl:data-jdbc"))
     testImplementation(project(":data-impl:data-liquibase"))
 }

@@ -56,6 +56,11 @@ public enum EntityTrait {
     AUDITABLE,
 
     /**
+     * 数据权限感知特征（支持按部门/组织等维度过滤数据访问）
+     */
+    DATA_SCOPE_AWARE,
+
+    /**
      * 时间戳特征（createdAt/updatedAt 字段）
      */
     TIMESTAMPED

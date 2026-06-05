@@ -122,56 +122,6 @@ public interface EntityMetadata<T> {
      */
     Set<EntityTrait> getTraits();
 
-    /**
-     * 判断实体是否支持软删除
-     *
-     * @return 是否支持软删除
-     * @deprecated 使用 {@link #hasTrait(EntityTrait)} 替代，如 {@code hasTrait(EntityTrait.SOFT_DELETABLE)}
-     */
-    @Deprecated
-    default boolean isSoftDeletable() {
-        return hasTrait(EntityTrait.SOFT_DELETABLE) || hasTrait(EntityTrait.TIMESTAMP_SOFT_DELETABLE);
-    }
-
-    /**
-     * 判断实体是否支持多租户
-     *
-     * @return 是否支持多租户
-     * @deprecated 使用 {@link #hasTrait(EntityTrait)} 替代，如 {@code hasTrait(EntityTrait.TENANT_AWARE)}
-     */
-    @Deprecated
-    default boolean isTenantAware() {
-        return hasTrait(EntityTrait.TENANT_AWARE);
-    }
-
-    /**
-     * 判断实体是否支持审计
-     *
-     * @return 是否支持审计
-     * @deprecated 使用 {@link #hasTrait(EntityTrait)} 替代，如 {@code hasTrait(EntityTrait.AUDITABLE)}
-     */
-    @Deprecated
-    default boolean isAuditable() {
-        return hasTrait(EntityTrait.AUDITABLE);
-    }
-
-    /**
-     * 判断实体是否支持乐观锁
-     *
-     * @return 是否支持乐观锁
-     * @deprecated 使用 {@link #hasTrait(EntityTrait)} 替代，如 {@code hasTrait(EntityTrait.VERSIONED)}
-     */
-    @Deprecated
-    default boolean isVersioned() {
-        return hasTrait(EntityTrait.VERSIONED);
-    }
-
-    /**
-     * 判断实体是否支持数据权限
-     *
-     * @return 是否支持数据权限
-     */
-    boolean isDataScopeAware();
 
     /**
      * 获取默认查询条件

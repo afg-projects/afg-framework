@@ -40,8 +40,8 @@ public final class Conditions {
     /**
      * 转义 LIKE 通配符
      * <p>
-     * 将用户输入中的 {@code %}、{@code _} 和 {@code \} 转义为 {@code \\%}、{@code \\_} 和 {@code \\\\}，
-     * 防止这些字符被当作 LIKE 通配符处理。配合 SQL 中的 {@code ESCAPE '\\'} 子句使用。
+     * 将用户输入中的 {@code %}、{@code _} 和 {@code !} 转义为 {@code !%}、{@code !_} 和 {@code !!}，
+     * 防止这些字符被当作 LIKE 通配符处理。配合 SQL 中的 {@code ESCAPE '!'} 子句使用。
      *
      * @param value 原始值
      * @return 转义后的值，如果输入为 null 则返回 null
@@ -53,8 +53,8 @@ public final class Conditions {
         StringBuilder escaped = new StringBuilder(value.length());
         for (int i = 0; i < value.length(); i++) {
             char c = value.charAt(i);
-            if (c == '%' || c == '_' || c == '\\') {
-                escaped.append('\\');
+            if (c == '%' || c == '_' || c == '!') {
+                escaped.append('!');
             }
             escaped.append(c);
         }
@@ -121,11 +121,6 @@ public final class Conditions {
         return builder().build();
     }
 
-    /**
-     * 创建不匹配任何条件（WHERE 1=0）
-     * <p>
-     * 用于需要返回空结果集的场景
-     */
     /**
      * 创建一个永假条件（1 = 0），用于拒绝所有数据访问
      * <p>
@@ -809,7 +804,7 @@ public final class Conditions {
         @Override
         public <R> TypedConditionBuilder<T> eq(SFunction<T, R> getter, @Nullable Object value) {
             String fieldName = getFieldName(getter);
-            Class<?> fieldType = resolveFieldType(getter);
+            Class<?> fieldType = io.github.afgprojects.framework.data.core.util.TypeDescriptorUtils.resolveFieldTypeFromLambda(getter);
             TypedConditionBuilder.checkFieldType(fieldName, fieldType, value);
             delegate.eq(resolveColumnName(getter), value);
             return this;
@@ -818,7 +813,7 @@ public final class Conditions {
         @Override
         public <R> TypedConditionBuilder<T> ne(SFunction<T, R> getter, @Nullable Object value) {
             String fieldName = getFieldName(getter);
-            Class<?> fieldType = resolveFieldType(getter);
+            Class<?> fieldType = io.github.afgprojects.framework.data.core.util.TypeDescriptorUtils.resolveFieldTypeFromLambda(getter);
             TypedConditionBuilder.checkFieldType(fieldName, fieldType, value);
             delegate.ne(resolveColumnName(getter), value);
             return this;
@@ -953,57 +948,5 @@ public final class Conditions {
             return getFieldNameResolver().resolveColumnName(entityClass, getter);
         }
 
-        /**
-         * 从 Lambda 方法引用中解析字段的返回类型
-         * <p>
-         * 通过 SerializedLambda 获取方法签名，解析返回类型的 JVM 描述符。
-         * 如果无法解析则返回 null（类型检查将被跳过）。
-         *
-         * @param getter Lambda 方法引用
-         * @return 字段返回类型，可能为 null
-         */
-        private <R> Class<?> resolveFieldType(SFunction<T, R> getter) {
-            try {
-                Method writeReplace = getter.getClass().getDeclaredMethod("writeReplace");
-                writeReplace.setAccessible(true);
-                SerializedLambda lambda = (SerializedLambda) writeReplace.invoke(getter);
-                String methodSignature = lambda.getImplMethodSignature();
-                // 方法签名格式：(参数类型)返回类型
-                String returnTypeDesc = methodSignature.substring(methodSignature.indexOf(')') + 1);
-                return resolveTypeFromDescriptor(returnTypeDesc);
-            } catch (Exception e) {
-                // 降级：无法获取类型信息时不检查
-                return null;
-            }
-        }
-
-        /**
-         * 从 JVM 类型描述符解析为 Class 对象
-         *
-         * @param descriptor JVM 类型描述符（如 "Ljava/lang/String;"、"I"）
-         * @return 对应的 Class 对象，可能为 null
-         */
-        private static Class<?> resolveTypeFromDescriptor(String descriptor) {
-            return switch (descriptor.charAt(0)) {
-                case 'Z' -> boolean.class;
-                case 'B' -> byte.class;
-                case 'C' -> char.class;
-                case 'S' -> short.class;
-                case 'I' -> int.class;
-                case 'J' -> long.class;
-                case 'F' -> float.class;
-                case 'D' -> double.class;
-                case 'V' -> void.class;
-                case 'L' -> {
-                    String className = descriptor.substring(1, descriptor.length() - 1).replace('/', '.');
-                    try {
-                        yield Class.forName(className);
-                    } catch (ClassNotFoundException e) {
-                        yield null;
-                    }
-                }
-                default -> null;
-            };
-        }
     }
 }

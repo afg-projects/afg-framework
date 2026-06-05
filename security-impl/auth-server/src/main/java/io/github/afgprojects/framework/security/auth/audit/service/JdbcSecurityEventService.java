@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.security.auth.audit.service;
 
+import io.github.afgprojects.framework.data.core.mapper.ResultMapper;
 import io.github.afgprojects.framework.data.jdbc.JdbcDataManager;
 import io.github.afgprojects.framework.security.auth.audit.model.SecurityEvent;
 import io.github.afgprojects.framework.security.auth.audit.model.SecurityEventType;
@@ -98,9 +99,9 @@ public class JdbcSecurityEventService implements SecurityEventService {
     /**
      * 安全事件行映射器。
      */
-    private static class SecurityEventRowMapper implements org.springframework.jdbc.core.RowMapper<SecurityEventInfo> {
+    private static class SecurityEventRowMapper implements ResultMapper<SecurityEventInfo> {
         @Override
-        public SecurityEventInfo mapRow(ResultSet rs, int rowNum) throws SQLException {
+        public SecurityEventInfo map(ResultSet rs, int rowNum) throws SQLException {
             return SecurityEvent.builder()
                     .id(rs.getLong("id"))
                     .eventType(SecurityEventType.valueOf(rs.getString("event_type")))

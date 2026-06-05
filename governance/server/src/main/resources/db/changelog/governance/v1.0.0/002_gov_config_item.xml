@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.26.xsd">
+
+    <changeSet id="v1.0.0-002-gov-config-item" author="afg">
+        <createTable tableName="gov_config_item" remarks="配置项元数据表">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_config_item"/>
+            </column>
+            <column name="group_id" type="BIGINT" remarks="分组ID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="code" type="VARCHAR(100)" remarks="配置编码">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(100)" remarks="配置名称">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(500)" remarks="描述"/>
+            <column name="type" type="VARCHAR(20)" remarks="类型">
+                <constraints nullable="false"/>
+            </column>
+            <column name="default_value" type="TEXT" remarks="默认值"/>
+            <column name="options" type="TEXT" remarks="选项配置"/>
+            <column name="validation" type="TEXT" remarks="验证规则"/>
+            <column name="placeholder" type="VARCHAR(200)" remarks="输入提示"/>
+            <column name="is_secret" type="BOOLEAN" remarks="是否敏感配置" defaultValueBoolean="false"/>
+            <column name="is_required" type="BOOLEAN" remarks="是否必填" defaultValueBoolean="false"/>
+            <column name="is_dynamic" type="BOOLEAN" remarks="是否支持动态刷新" defaultValueBoolean="true"/>
+            <column name="is_deprecated" type="BOOLEAN" remarks="是否已废弃" defaultValueBoolean="false"/>
+            <column name="sort" type="INT" remarks="排序" defaultValueNumeric="0"/>
+            <column name="status" type="SMALLINT" remarks="状态" defaultValueNumeric="1"/>
+            <column name="tenant_id" type="VARCHAR(64)" remarks="租户ID"/>
+            <column name="deleted" type="BOOLEAN" remarks="软删除" defaultValueBoolean="false"/>
+            <column name="version" type="BIGINT" remarks="版本号" defaultValueNumeric="0"/>
+            <column name="created_at" type="TIMESTAMP" remarks="创建时间"/>
+            <column name="updated_at" type="TIMESTAMP" remarks="更新时间"/>
+            <column name="create_by" type="VARCHAR(64)" remarks="创建人ID"/>
+            <column name="update_by" type="VARCHAR(64)" remarks="更新人ID"/>
+        </createTable>
+
+        <createIndex indexName="idx_config_item_code" tableName="gov_config_item">
+            <column name="code"/>
+        </createIndex>
+        <addUniqueConstraint tableName="gov_config_item" constraintName="uk_config_item_group_code"
+                             columnNames="group_id,code"/>
+    </changeSet>
+
+</databaseChangeLog>

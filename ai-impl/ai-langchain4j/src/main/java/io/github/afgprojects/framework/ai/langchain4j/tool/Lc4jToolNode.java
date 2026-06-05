@@ -4,8 +4,6 @@ import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import io.github.afgprojects.framework.ai.core.api.tool.Tool;
 import io.github.afgprojects.framework.ai.core.api.tool.ToolExecutionException;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,7 +27,7 @@ public class Lc4jToolNode {
     private final Tool<?, ?> tool;
     private final ToolSpecification toolSpecification;
 
-    public Lc4jToolNode(@NonNull Tool<?, ?> tool) {
+    public Lc4jToolNode(Tool<?, ?> tool) {
         this.tool = tool;
         this.toolSpecification = Lc4jToolAdapter.toToolSpecification(tool);
     }
@@ -54,11 +52,10 @@ public class Lc4jToolNode {
      * @param request LangChain4j 工具执行请求
      * @return 执行结果字符串
      */
-    @SuppressWarnings("unchecked")
-    public String execute(@NonNull ToolExecutionRequest request) {
+    public String execute(ToolExecutionRequest request) {
         try {
             Object input = deserializeInput(request.arguments());
-            Object result = tool.execute(input);
+            Object result = executeTool(tool, input);
             return serializeOutput(result);
         } catch (ToolExecutionException e) {
             return "Error: " + e.getMessage();
@@ -68,10 +65,18 @@ public class Lc4jToolNode {
     }
 
     /**
+     * 通过泛型辅助方法捕获通配符类型，执行工具调用
+     */
+    @SuppressWarnings("unchecked")
+    private <I, O> O executeTool(Tool<I, O> t, Object input) {
+        return t.execute((I) input);
+    }
+
+    /**
      * 反序列化工具输入参数
      */
     @SuppressWarnings("unchecked")
-    private Object deserializeInput(@Nullable String arguments) {
+    private Object deserializeInput(String arguments) {
         if (arguments == null || arguments.isBlank()) {
             return Map.of();
         }
@@ -92,7 +97,7 @@ public class Lc4jToolNode {
     /**
      * 序列化工具输出
      */
-    private String serializeOutput(@Nullable Object result) {
+    private String serializeOutput(Object result) {
         if (result == null) {
             return "";
         }
@@ -109,14 +114,14 @@ public class Lc4jToolNode {
     /**
      * 批量创建工具节点
      */
-    public static List<Lc4jToolNode> fromTools(@NonNull List<Tool<?, ?>> tools) {
+    public static List<Lc4jToolNode> fromTools(List<Tool<?, ?>> tools) {
         return tools.stream().map(Lc4jToolNode::new).toList();
     }
 
     /**
      * 批量获取 ToolSpecification 列表
      */
-    public static List<ToolSpecification> toToolSpecifications(@NonNull List<Lc4jToolNode> nodes) {
+    public static List<ToolSpecification> toToolSpecifications(List<Lc4jToolNode> nodes) {
         return nodes.stream().map(Lc4jToolNode::toolSpecification).toList();
     }
 }

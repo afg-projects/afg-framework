@@ -1,7 +1,7 @@
 package io.github.afgprojects.framework.ai.langchain4j.autoconfigure;
 
-import dev.langchain4j.model.chat.ChatLanguageModel;
-import dev.langchain4j.model.chat.StreamingChatLanguageModel;
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import io.github.afgprojects.framework.ai.core.api.model.ModelRegistry;
 import io.github.afgprojects.framework.ai.langchain4j.config.Lc4jProperties;
@@ -28,21 +28,21 @@ import java.util.List;
  */
 @Slf4j
 @AutoConfiguration(after = Lc4jChatAutoConfiguration.class)
-@ConditionalOnClass(name = "dev.langchain4j.model.chat.ChatLanguageModel")
+@ConditionalOnClass(name = "dev.langchain4j.model.chat.ChatModel")
 @ConditionalOnProperty(prefix = "afg.ai.langchain4j", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class Lc4jModelAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(ModelRegistry.class)
     public Lc4jModelRegistry lc4jModelRegistry(
-            ObjectProvider<List<ChatLanguageModel>> chatModelsProvider,
-            ObjectProvider<List<StreamingChatLanguageModel>> streamingChatModelsProvider,
+            ObjectProvider<List<ChatModel>> chatModelsProvider,
+            ObjectProvider<List<StreamingChatModel>> streamingChatModelsProvider,
             ObjectProvider<List<EmbeddingModel>> embeddingModelsProvider,
             Lc4jProperties properties) {
         Lc4jModelRegistry registry = new Lc4jModelRegistry();
 
-        // 注册 ChatLanguageModel
-        List<ChatLanguageModel> chatModels = chatModelsProvider.getIfAvailable(() -> List.of());
+        // 注册 ChatModel
+        List<ChatModel> chatModels = chatModelsProvider.getIfAvailable(() -> List.of());
         if (chatModels != null) {
             for (int i = 0; i < chatModels.size(); i++) {
                 String name = i == 0 ? properties.getDefaultChatModel() : "chat-model-" + i;
@@ -53,8 +53,8 @@ public class Lc4jModelAutoConfiguration {
             }
         }
 
-        // 注册 StreamingChatLanguageModel
-        List<StreamingChatLanguageModel> streamingChatModels = streamingChatModelsProvider.getIfAvailable(() -> List.of());
+        // 注册 StreamingChatModel
+        List<StreamingChatModel> streamingChatModels = streamingChatModelsProvider.getIfAvailable(() -> List.of());
         if (streamingChatModels != null) {
             for (int i = 0; i < streamingChatModels.size(); i++) {
                 String name = "streaming-" + (i == 0 ? properties.getDefaultChatModel() : "chat-model-" + i);

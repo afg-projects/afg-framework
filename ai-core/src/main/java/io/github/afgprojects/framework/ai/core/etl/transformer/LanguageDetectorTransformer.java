@@ -79,10 +79,12 @@ public class LanguageDetectorTransformer implements DocumentTransformer {
         return result;
     }
 
+    @Override
     public @NonNull String getName() {
         return "LanguageDetectorTransformer";
     }
 
+    @Override
     public int getOrder() {
         return 150;
     }

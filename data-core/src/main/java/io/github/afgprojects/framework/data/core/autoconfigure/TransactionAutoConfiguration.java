@@ -9,7 +9,16 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnSingleCandi
 import org.springframework.context.annotation.Bean;
 import org.springframework.transaction.PlatformTransactionManager;
 
-@AutoConfiguration
+/**
+ * 事务适配器自动配置
+ * <p>
+ * 当 PlatformTransactionManager 存在时，自动创建 SpringTransactionAdapter，
+ * 供 DataManager 等组件使用。
+ * <p>
+ * 必须在 DataSourceTransactionManagerAutoConfiguration 之后执行，
+ * 确保 PlatformTransactionManager Bean 已创建。
+ */
+@AutoConfiguration(afterName = "org.springframework.boot.jdbc.autoconfigure.DataSourceTransactionManagerAutoConfiguration")
 @ConditionalOnClass({PlatformTransactionManager.class, TransactionAdapter.class})
 @ConditionalOnSingleCandidate(PlatformTransactionManager.class)
 public class TransactionAutoConfiguration {

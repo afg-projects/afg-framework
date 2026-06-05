@@ -270,6 +270,6 @@ public class KnowledgeDocumentService {
         if (filename == null || !filename.contains(".")) {
             return null;
         }
-        return filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
+        return filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();
     }
 }

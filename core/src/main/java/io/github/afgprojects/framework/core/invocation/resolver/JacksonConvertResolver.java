@@ -39,11 +39,7 @@ public class JacksonConvertResolver implements ArgumentResolver {
         try {
             Class<?> targetClass = Class.forName(targetType);
             return om.convertValue(rawValue, targetClass);
-        } catch (ClassNotFoundException e) {
-            throw new ArgumentConversionException(
-                    context.parameterMetadata().name(), targetType,
-                    rawValue.getClass().getName(), e);
-        } catch (IllegalArgumentException e) {
+        } catch (ClassNotFoundException | IllegalArgumentException e) {
             throw new ArgumentConversionException(
                     context.parameterMetadata().name(), targetType,
                     rawValue.getClass().getName(), e);

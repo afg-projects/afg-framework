@@ -12,7 +12,6 @@ import io.github.afgprojects.framework.ai.core.api.security.ContentSafetyChecker
 import io.github.afgprojects.framework.ai.core.api.security.ContentSafetyChecker.SafetyCheckResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jspecify.annotations.NonNull;
 
 import java.util.Collections;
 import java.util.Map;
@@ -43,7 +42,7 @@ public class Lc4jContentSafetyAdvisor implements ChatModelListener {
     private final ContentSafetyChecker contentSafetyChecker;
 
     @Override
-    public void onRequest(@NonNull ChatModelRequestContext requestContext) {
+    public void onRequest(ChatModelRequestContext requestContext) {
         ChatRequest chatRequest = requestContext.chatRequest();
         String userMessage = extractLastUserMessage(chatRequest);
         String modelName = extractModelName(chatRequest);
@@ -72,12 +71,12 @@ public class Lc4jContentSafetyAdvisor implements ChatModelListener {
     }
 
     @Override
-    public void onResponse(@NonNull ChatModelResponseContext responseContext) {
+    public void onResponse(ChatModelResponseContext responseContext) {
         // 内容安全检查在请求阶段完成，响应阶段不需要处理
     }
 
     @Override
-    public void onError(@NonNull ChatModelErrorContext errorContext) {
+    public void onError(ChatModelErrorContext errorContext) {
         // 内容安全检查在请求阶段完成，错误阶段不需要处理
     }
 
@@ -120,12 +119,32 @@ public class Lc4jContentSafetyAdvisor implements ChatModelListener {
     ) implements SafetyCheckContext {
 
         @Override
+        public String getUserId() {
+            return "";
+        }
+
+        @Override
+        public String getTenantId() {
+            return "";
+        }
+
+        @Override
+        public String getModelName() {
+            return "";
+        }
+
+        @Override
+        public String getOperationType() {
+            return "";
+        }
+
+        @Override
         public boolean isStrictMode() {
             return false;
         }
 
         @Override
-        public @NonNull java.util.List<String> getCheckCategories() {
+        public java.util.List<String> getCheckCategories() {
             return Collections.emptyList();
         }
     }

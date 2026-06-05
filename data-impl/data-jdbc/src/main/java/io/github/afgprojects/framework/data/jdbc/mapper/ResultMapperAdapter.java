@@ -32,4 +32,25 @@ public class ResultMapperAdapter<R> implements RowMapper<R> {
         }
         return new ResultMapperAdapter<>(mapper);
     }
+
+    /**
+     * 将 Spring RowMapper 适配为 ResultMapper
+     *
+     * @param rowMapper Spring RowMapper 实例
+     * @return ResultMapper 实例
+     */
+    public static <R> ResultMapper<R> fromRowMapper(RowMapper<R> rowMapper) {
+        if (rowMapper instanceof ResultMapper<?> resultMapper) {
+            @SuppressWarnings("unchecked")
+            ResultMapper<R> cast = (ResultMapper<R>) resultMapper;
+            return cast;
+        }
+        return (rs, rowNum) -> {
+            try {
+                return rowMapper.mapRow(rs, rowNum);
+            } catch (SQLException e) {
+                throw new RuntimeException("Failed to map row", e);
+            }
+        };
+    }
 }

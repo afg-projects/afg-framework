@@ -1,6 +1,7 @@
 package io.github.afgprojects.framework.data.core.condition;
 
 import io.github.afgprojects.framework.data.core.query.Condition;
+import java.util.Map;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -294,23 +295,25 @@ public interface TypedConditionBuilder<T> {
      * 判断两个类型是否为原始类型与包装类型的关系
      */
     private static boolean isPrimitiveWrapper(Class<?> primitiveOrWrapper, Class<?> other) {
-        if (primitiveOrWrapper == int.class && other == Integer.class) return true;
-        if (primitiveOrWrapper == long.class && other == Long.class) return true;
-        if (primitiveOrWrapper == double.class && other == Double.class) return true;
-        if (primitiveOrWrapper == float.class && other == Float.class) return true;
-        if (primitiveOrWrapper == boolean.class && other == Boolean.class) return true;
-        if (primitiveOrWrapper == short.class && other == Short.class) return true;
-        if (primitiveOrWrapper == byte.class && other == Byte.class) return true;
-        if (primitiveOrWrapper == char.class && other == Character.class) return true;
-        // 反向
-        if (primitiveOrWrapper == Integer.class && other == int.class) return true;
-        if (primitiveOrWrapper == Long.class && other == long.class) return true;
-        if (primitiveOrWrapper == Double.class && other == double.class) return true;
-        if (primitiveOrWrapper == Float.class && other == float.class) return true;
-        if (primitiveOrWrapper == Boolean.class && other == boolean.class) return true;
-        if (primitiveOrWrapper == Short.class && other == short.class) return true;
-        if (primitiveOrWrapper == Byte.class && other == byte.class) return true;
-        if (primitiveOrWrapper == Character.class && other == char.class) return true;
-        return false;
+        Class<?> expectedWrapper = primitiveWrapperMap().get(primitiveOrWrapper);
+        if (expectedWrapper != null && expectedWrapper == other) return true;
+        Class<?> expectedPrimitive = primitiveWrapperMap().get(other);
+        return expectedPrimitive != null && expectedPrimitive == primitiveOrWrapper;
+    }
+
+    /**
+     * 返回原始类型到包装类型的映射
+     */
+    private static Map<Class<?>, Class<?>> primitiveWrapperMap() {
+        return Map.of(
+            int.class, Integer.class,
+            long.class, Long.class,
+            double.class, Double.class,
+            float.class, Float.class,
+            boolean.class, Boolean.class,
+            short.class, Short.class,
+            byte.class, Byte.class,
+            char.class, Character.class
+        );
     }
 }

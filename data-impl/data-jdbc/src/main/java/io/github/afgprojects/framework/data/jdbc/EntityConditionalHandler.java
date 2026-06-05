@@ -1,12 +1,12 @@
 package io.github.afgprojects.framework.data.jdbc;
 
+import io.github.afgprojects.framework.apt.module.AfgModuleAnnotation;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
 import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheHandler;
 import io.github.afgprojects.framework.data.sql.converter.ConditionToSqlConverter;
 import org.jspecify.annotations.NonNull;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -89,7 +89,7 @@ public class EntityConditionalHandler<T> {
             validateFieldName(fieldName);
         }
 
-        ConditionToSqlConverter converter = new ConditionToSqlConverter();
+        ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
         ConditionToSqlConverter.SqlResult whereResult = converter.convert(condition);
 
         StringBuilder sql = new StringBuilder("UPDATE ");
@@ -117,7 +117,7 @@ public class EntityConditionalHandler<T> {
      * 执行条件删除
      */
     private long executeConditionalDelete(@NonNull Condition condition) {
-        ConditionToSqlConverter converter = new ConditionToSqlConverter();
+        ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
         ConditionToSqlConverter.SqlResult result = converter.convert(condition);
         String sql = "DELETE FROM " + dialect.quoteIdentifier(metadata.getTableName()) + " WHERE " + result.sql();
         return dataManager.executeUpdate(sql, result.parameters());

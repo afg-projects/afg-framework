@@ -1,11 +1,11 @@
 package io.github.afgprojects.framework.data.jdbc;
 
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
+import io.github.afgprojects.framework.data.core.metadata.EntityTrait;
 import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.condition.Conditions;
 import io.github.afgprojects.framework.data.core.condition.SFunction;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
-import io.github.afgprojects.framework.data.core.entity.SoftDeleteStrategy;
 import io.github.afgprojects.framework.data.core.query.AggregateFunction;
 import io.github.afgprojects.framework.data.core.query.AggregateQuery;
 import io.github.afgprojects.framework.data.core.query.AggregateReference;
@@ -13,8 +13,10 @@ import io.github.afgprojects.framework.data.core.query.AggregateResult;
 import io.github.afgprojects.framework.data.core.query.Sort;
 import io.github.afgprojects.framework.data.core.scope.DataScope;
 import io.github.afgprojects.framework.data.sql.converter.ConditionToSqlConverter;
+import io.github.afgprojects.framework.data.sql.scope.DataScopeSqlBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.JdbcClient;
 
@@ -50,6 +52,7 @@ public class JdbcAggregateQuery<T> implements AggregateQuery<T> {
     private Sort sort;
     private final List<DataScope> dataScopes = new ArrayList<>();
     private boolean includeDeleted = false;
+    private String tenantId;
 
     public JdbcAggregateQuery(JdbcEntityProxy<T> parentProxy) {
         this.parentProxy = parentProxy;
@@ -244,21 +247,7 @@ public class JdbcAggregateQuery<T> implements AggregateQuery<T> {
         sql.append(" FROM ").append(dialect.quoteIdentifier(metadata.getTableName()));
 
         // WHERE 子句
-        boolean hasWhere = false;
-        if (whereCondition != null && !whereCondition.isEmpty()) {
-            ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
-            ConditionToSqlConverter.SqlResult result = converter.convert(whereCondition);
-            sql.append(" WHERE ").append(result.sql());
-            hasWhere = true;
-        }
-
-        // 软删除过滤
-        if (!includeDeleted && parentProxy.isSoftDeletable()) {
-            String filter = parentProxy.getSoftDeleteStrategy() == SoftDeleteStrategy.TIMESTAMP
-                    ? "deleted_at IS NULL"
-                    : "deleted = false";
-            sql.append(hasWhere ? " AND " : " WHERE ").append(filter);
-        }
+        buildWhereClause(sql);
 
         // GROUP BY 子句（全局统计时跳过）
         if (!isSingle && !groupByFields.isEmpty()) {
@@ -293,12 +282,74 @@ public class JdbcAggregateQuery<T> implements AggregateQuery<T> {
         return sql.toString();
     }
 
+    /**
+     * 构建 WHERE 子句（条件 + 软删除 + 租户 + 数据权限）
+     */
+    private void buildWhereClause(StringBuilder sql) {
+        boolean hasWhere = false;
+        if (whereCondition != null && !whereCondition.isEmpty()) {
+            ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
+            ConditionToSqlConverter.SqlResult result = converter.convert(whereCondition);
+            sql.append(" WHERE ").append(result.sql());
+            hasWhere = true;
+        }
+
+        // 软删除过滤
+        if (!includeDeleted && (metadata.hasTrait(EntityTrait.SOFT_DELETABLE) || metadata.hasTrait(EntityTrait.TIMESTAMP_SOFT_DELETABLE))) {
+            String filter = parentProxy.getSoftDeleteHandler().getSoftDeleteFilterCondition();
+            if (filter != null) {
+                sql.append(hasWhere ? " AND " : " WHERE ").append(filter);
+                hasWhere = true;
+            }
+        }
+
+        // 租户过滤
+        String effectiveTenantId = resolveEffectiveTenantId();
+        if (effectiveTenantId != null && metadata.getTenantField() != null) {
+            String tenantColumn = metadata.getTenantField().getColumnName();
+            sql.append(hasWhere ? " AND " : " WHERE ").append(tenantColumn).append(" = ?");
+            hasWhere = true;
+        }
+
+        // 数据权限过滤
+        if (!dataScopes.isEmpty()) {
+            var contextProvider = parentProxy.dataManager.getDataScopeContextProvider();
+            if (contextProvider != null) {
+                DataScopeSqlBuilder scopeBuilder = new DataScopeSqlBuilder(contextProvider);
+                DataScopeSqlBuilder.SqlResult result = scopeBuilder.buildSql(dataScopes, dialect);
+                if (result != null) {
+                    sql.append(hasWhere ? " AND " : " WHERE ").append(result.sql());
+                    hasWhere = true;
+                }
+            }
+        }
+    }
+
     private List<Object> collectParams() {
         List<Object> params = new ArrayList<>();
         if (whereCondition != null && !whereCondition.isEmpty()) {
             ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
             params.addAll(converter.convert(whereCondition).parameters());
         }
+
+        // 租户参数
+        String effectiveTenantId = resolveEffectiveTenantId();
+        if (effectiveTenantId != null && metadata.getTenantField() != null) {
+            params.add(effectiveTenantId);
+        }
+
+        // 数据权限参数
+        if (!dataScopes.isEmpty()) {
+            var contextProvider = parentProxy.dataManager.getDataScopeContextProvider();
+            if (contextProvider != null) {
+                DataScopeSqlBuilder scopeBuilder = new DataScopeSqlBuilder(contextProvider);
+                DataScopeSqlBuilder.SqlResult result = scopeBuilder.buildSql(dataScopes, dialect);
+                if (result != null) {
+                    params.addAll(result.parameters());
+                }
+            }
+        }
+
         if (havingCondition != null && !havingCondition.isEmpty()) {
             ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
             params.addAll(converter.convert(havingCondition).parameters());
@@ -307,6 +358,18 @@ public class JdbcAggregateQuery<T> implements AggregateQuery<T> {
     }
 
     // ==================== 辅助方法 ====================
+
+    /**
+     * 解析有效的租户ID
+     * <p>
+     * 优先使用显式设置的 tenantId，其次使用 TenantContextHolder 中的上下文租户ID
+     */
+    private @Nullable String resolveEffectiveTenantId() {
+        if (tenantId != null) {
+            return tenantId;
+        }
+        return parentProxy.dataManager.getTenantContextHolder().getTenantId();
+    }
 
     /**
      * 将 Java 字段名解析为数据库列名

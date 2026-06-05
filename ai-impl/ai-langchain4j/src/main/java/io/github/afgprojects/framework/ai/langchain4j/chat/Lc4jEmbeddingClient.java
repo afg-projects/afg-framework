@@ -4,10 +4,9 @@ import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.output.Response;
 import io.github.afgprojects.framework.ai.core.api.chat.AfgEmbeddingClient;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * AfgEmbeddingClient 的 LangChain4j 实现 - 委托 LangChain4j EmbeddingModel
@@ -20,18 +19,18 @@ public class Lc4jEmbeddingClient implements AfgEmbeddingClient {
     private final EmbeddingModel embeddingModel;
     private final String modelName;
 
-    public Lc4jEmbeddingClient(@NonNull EmbeddingModel embeddingModel) {
-        this(embeddingModel, null);
+    public Lc4jEmbeddingClient(EmbeddingModel embeddingModel) {
+        this.embeddingModel = Objects.requireNonNull(embeddingModel, "embeddingModel must not be null");
+        this.modelName = null;
     }
 
-    private Lc4jEmbeddingClient(@NonNull EmbeddingModel embeddingModel, @Nullable String modelName) {
-        this.embeddingModel = embeddingModel;
+    private Lc4jEmbeddingClient(EmbeddingModel embeddingModel, String modelName) {
+        this.embeddingModel = Objects.requireNonNull(embeddingModel, "embeddingModel must not be null");
         this.modelName = modelName;
     }
 
     @Override
-    @NonNull
-    public List<float[]> embed(@NonNull List<String> texts) {
+    public List<float[]> embed(List<String> texts) {
         Response<List<Embedding>> response = embeddingModel.embedAll(texts.stream()
                 .map(dev.langchain4j.data.segment.TextSegment::from)
                 .toList());
@@ -41,16 +40,14 @@ public class Lc4jEmbeddingClient implements AfgEmbeddingClient {
     }
 
     @Override
-    @NonNull
-    public float[] embed(@NonNull String text) {
+    public float[] embed(String text) {
         Response<Embedding> response = embeddingModel.embed(
                 dev.langchain4j.data.segment.TextSegment.from(text));
         return response.content().vector();
     }
 
     @Override
-    @NonNull
-    public AfgEmbeddingClient withModel(@Nullable String modelName) {
+    public AfgEmbeddingClient withModel(String modelName) {
         return new Lc4jEmbeddingClient(this.embeddingModel, modelName);
     }
 }

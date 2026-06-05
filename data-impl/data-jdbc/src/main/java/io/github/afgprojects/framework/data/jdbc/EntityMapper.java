@@ -79,7 +79,7 @@ public class EntityMapper<T> extends AbstractResultSetMapper<T> {
             return (Constructor<T>) constructor;
         } catch (NoSuchMethodException e) {
             throw new EntityMappingException(entityClass, null,
-                "No default constructor found for entity " + clazz.getSimpleName());
+                "No default constructor found for entity " + clazz.getSimpleName(), e);
         }
     }
 
@@ -107,7 +107,7 @@ public class EntityMapper<T> extends AbstractResultSetMapper<T> {
                         } catch (Exception e) {
                             throw new EntityMappingException(entityClass, field.getPropertyName(),
                                 String.format("Failed to convert column '%s' value [%s] to type %s: %s",
-                                    columnName, value, field.getFieldType().getSimpleName(), e.getMessage()));
+                                    columnName, value, field.getFieldType().getSimpleName(), e.getMessage()), e);
                         }
                         setFieldValue(entity, field.getPropertyName(), value);
                     }
@@ -116,9 +116,7 @@ public class EntityMapper<T> extends AbstractResultSetMapper<T> {
             // 触发 afterLoad 生命周期回调（类似 JPA @PostLoad）
             LifecycleCallbacks.ifCallback(entity, LifecycleCallbacks::afterLoad);
             return entity;
-        } catch (SQLException e) {
-            throw e;
-        } catch (EntityMappingException e) {
+        } catch (SQLException | EntityMappingException e) {
             throw e;
         } catch (Exception e) {
             throw new EntityMappingException(
@@ -191,7 +189,7 @@ public class EntityMapper<T> extends AbstractResultSetMapper<T> {
                 }
             } catch (Exception e) {
                 throw new EntityMappingException(entityClass, propertyName,
-                    "Failed to set field value: " + e.getMessage());
+                    "Failed to set field value: " + e.getMessage(), e);
             }
         }
     }

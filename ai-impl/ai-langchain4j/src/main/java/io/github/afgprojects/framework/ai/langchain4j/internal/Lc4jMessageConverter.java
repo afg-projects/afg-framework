@@ -5,7 +5,6 @@ import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.data.message.ToolExecutionResultMessage;
 import io.github.afgprojects.framework.ai.core.api.chat.AiMessage;
-import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +25,7 @@ public final class Lc4jMessageConverter {
     /**
      * AFG AiMessage → LangChain4j ChatMessage
      */
-    public static ChatMessage toLc4j(@NonNull AiMessage msg) {
+    public static ChatMessage toLc4j(AiMessage msg) {
         return switch (msg.role()) {
             case SYSTEM -> SystemMessage.from(msg.content());
             case USER -> {
@@ -50,7 +49,7 @@ public final class Lc4jMessageConverter {
     /**
      * LangChain4j ChatMessage → AFG AiMessage
      */
-    public static AiMessage fromLc4j(@NonNull ChatMessage msg) {
+    public static AiMessage fromLc4j(ChatMessage msg) {
         if (msg instanceof SystemMessage systemMsg) {
             return AiMessage.system(systemMsg.text());
         }
@@ -80,7 +79,7 @@ public final class Lc4jMessageConverter {
     /**
      * 批量转换 AFG AiMessage 列表 → LangChain4j ChatMessage 列表
      */
-    public static List<ChatMessage> toLc4jMessages(@NonNull List<AiMessage> messages) {
+    public static List<ChatMessage> toLc4jMessages(List<AiMessage> messages) {
         var result = new ArrayList<ChatMessage>(messages.size());
         for (AiMessage msg : messages) {
             result.add(toLc4j(msg));
@@ -91,7 +90,7 @@ public final class Lc4jMessageConverter {
     /**
      * 批量转换 LangChain4j ChatMessage 列表 → AFG AiMessage 列表
      */
-    public static List<AiMessage> fromLc4jMessages(@NonNull List<ChatMessage> messages) {
+    public static List<AiMessage> fromLc4jMessages(List<ChatMessage> messages) {
         var result = new ArrayList<AiMessage>(messages.size());
         for (ChatMessage msg : messages) {
             result.add(fromLc4j(msg));

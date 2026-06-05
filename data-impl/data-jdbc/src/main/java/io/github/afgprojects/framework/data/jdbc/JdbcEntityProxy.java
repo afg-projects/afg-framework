@@ -237,7 +237,7 @@ public class JdbcEntityProxy<T> implements EntityProxy<T>, ProxyStateProvider {
     }
 
     @Override
-    public @NonNull Optional<T> findById(@NonNull Object id) {
+    public @NonNull Optional<T> findById(@Nullable Object id) {
         return queryExecutor.findById(id);
     }
 
@@ -327,10 +327,25 @@ public class JdbcEntityProxy<T> implements EntityProxy<T>, ProxyStateProvider {
     }
 
     /**
-     * 获取租户ID
+     * 获取显式设置的租户ID
      */
-    String getTenantId() {
+    @Override
+    public @Nullable String getTenantId() {
         return tenantId;
+    }
+
+    /**
+     * 解析有效的租户ID
+     * <p>
+     * 优先使用通过 withTenant() 显式设置的租户ID，
+     * 其次回退到 TenantContextHolder 中的上下文租户ID。
+     */
+    @Override
+    public @Nullable String resolveEffectiveTenantId() {
+        if (tenantId != null) {
+            return tenantId;
+        }
+        return dataManager.getTenantContextHolder().getTenantId();
     }
 
     /**

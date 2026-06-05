@@ -14,7 +14,6 @@ import io.github.afgprojects.framework.ai.core.api.security.PiiDetector.PiiType;
 import io.github.afgprojects.framework.ai.core.api.security.PiiDetector.MaskingStrategy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jspecify.annotations.NonNull;
 
 import java.util.Collections;
 import java.util.List;
@@ -47,7 +46,7 @@ public class Lc4jPiiAdvisor implements ChatModelListener {
     private final PiiDetector piiDetector;
 
     @Override
-    public void onRequest(@NonNull ChatModelRequestContext requestContext) {
+    public void onRequest(ChatModelRequestContext requestContext) {
         ChatRequest chatRequest = requestContext.chatRequest();
         String userMessage = extractLastUserMessage(chatRequest);
         String modelName = extractModelName(chatRequest);
@@ -75,7 +74,7 @@ public class Lc4jPiiAdvisor implements ChatModelListener {
     }
 
     @Override
-    public void onResponse(@NonNull ChatModelResponseContext responseContext) {
+    public void onResponse(ChatModelResponseContext responseContext) {
         ChatResponse chatResponse = responseContext.chatResponse();
         String responseContent = extractResponseContent(chatResponse);
 
@@ -102,7 +101,7 @@ public class Lc4jPiiAdvisor implements ChatModelListener {
     }
 
     @Override
-    public void onError(@NonNull ChatModelErrorContext errorContext) {
+    public void onError(ChatModelErrorContext errorContext) {
         // PII 检测在请求和响应阶段完成，错误阶段不需要处理
     }
 
@@ -154,5 +153,20 @@ public class Lc4jPiiAdvisor implements ChatModelListener {
         MaskingStrategy maskingStrategy,
         double minConfidence
     ) implements PiiContext {
+
+        @Override
+        public String getUserId() { return userId; }
+
+        @Override
+        public String getTenantId() { return tenantId; }
+
+        @Override
+        public List<PiiType> getDetectTypes() { return detectTypes; }
+
+        @Override
+        public MaskingStrategy getMaskingStrategy() { return maskingStrategy; }
+
+        @Override
+        public double getMinConfidence() { return minConfidence; }
     }
 }

@@ -7,8 +7,6 @@ import io.github.afgprojects.framework.ai.core.api.model.DefaultModelInfo;
 import io.github.afgprojects.framework.ai.core.api.model.ModelInfo;
 import io.github.afgprojects.framework.ai.core.api.model.ModelRegistry;
 import io.github.afgprojects.framework.ai.core.api.model.ModelType;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -36,7 +34,7 @@ public class Lc4jModelRegistry implements ModelRegistry {
      * @param chatModel ChatModel 实例
      * @param provider  提供商（如 openai, anthropic, ollama）
      */
-    public void registerChatModel(@NonNull String name, @NonNull ChatModel chatModel, @Nullable String provider) {
+    public void registerChatModel(String name, ChatModel chatModel, String provider) {
         var info = DefaultModelInfo.of(name, ModelType.CHAT, provider);
         models.put(name, info);
     }
@@ -48,7 +46,7 @@ public class Lc4jModelRegistry implements ModelRegistry {
      * @param streamingChatModel StreamingChatModel 实例
      * @param provider          提供商
      */
-    public void registerStreamingChatModel(@NonNull String name, @NonNull StreamingChatModel streamingChatModel, @Nullable String provider) {
+    public void registerStreamingChatModel(String name, StreamingChatModel streamingChatModel, String provider) {
         var info = new DefaultModelInfo(
             name,
             ModelType.CHAT,
@@ -72,7 +70,7 @@ public class Lc4jModelRegistry implements ModelRegistry {
      * @param embeddingModel EmbeddingModel 实例
      * @param provider       提供商
      */
-    public void registerEmbeddingModel(@NonNull String name, @NonNull EmbeddingModel embeddingModel, @Nullable String provider) {
+    public void registerEmbeddingModel(String name, EmbeddingModel embeddingModel, String provider) {
         var info = new DefaultModelInfo(
             name,
             ModelType.EMBEDDING,
@@ -89,7 +87,7 @@ public class Lc4jModelRegistry implements ModelRegistry {
         models.put(name, info);
     }
 
-    private @Nullable Integer extractDimensions(EmbeddingModel model) {
+    private Integer extractDimensions(EmbeddingModel model) {
         try {
             var dimensions = model.dimension();
             if (dimensions > 0) {
@@ -102,32 +100,29 @@ public class Lc4jModelRegistry implements ModelRegistry {
     }
 
     @Override
-    public void registerModel(@NonNull String name, @NonNull ModelInfo info) {
+    public void registerModel(String name, ModelInfo info) {
         models.put(name, info);
     }
 
     @Override
-    @NonNull
-    public Optional<ModelInfo> getModel(@NonNull String name) {
+    public Optional<ModelInfo> getModel(String name) {
         return Optional.ofNullable(models.get(name));
     }
 
     @Override
-    @NonNull
     public List<ModelInfo> listModels() {
         return List.copyOf(models.values());
     }
 
     @Override
-    @NonNull
-    public List<ModelInfo> listModels(@NonNull ModelType type) {
+    public List<ModelInfo> listModels(ModelType type) {
         return models.values().stream()
                 .filter(info -> info.type() == type)
                 .toList();
     }
 
     @Override
-    public void setDefault(@NonNull String name, @NonNull ModelType type) {
+    public void setDefault(String name, ModelType type) {
         if (!models.containsKey(name)) {
             throw new IllegalArgumentException("Model '" + name + "' not registered");
         }
@@ -135,8 +130,7 @@ public class Lc4jModelRegistry implements ModelRegistry {
     }
 
     @Override
-    @NonNull
-    public Optional<ModelInfo> getDefault(@NonNull ModelType type) {
+    public Optional<ModelInfo> getDefault(ModelType type) {
         var defaultName = defaults.get(type);
         if (defaultName == null) {
             return listModels(type).stream().findFirst();
@@ -145,7 +139,7 @@ public class Lc4jModelRegistry implements ModelRegistry {
     }
 
     @Override
-    public void removeModel(@NonNull String name) {
+    public void removeModel(String name) {
         models.remove(name);
         defaults.entrySet().removeIf(e -> name.equals(e.getValue()));
     }

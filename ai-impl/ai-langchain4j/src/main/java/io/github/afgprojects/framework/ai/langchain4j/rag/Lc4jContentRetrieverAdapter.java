@@ -11,9 +11,9 @@ import dev.langchain4j.store.embedding.EmbeddingSearchResult;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import io.github.afgprojects.framework.ai.core.api.rag.Document;
 import io.github.afgprojects.framework.ai.core.api.rag.KnowledgeBaseService;
-import org.jspecify.annotations.NonNull;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 将 AFG KnowledgeBaseService 适配为 LangChain4j ContentRetriever
@@ -48,12 +48,12 @@ public class Lc4jContentRetrieverAdapter implements ContentRetriever {
      * @param maxResults           最大返回结果数
      * @param minScore             最低相似度分数
      */
-    public Lc4jContentRetrieverAdapter(@NonNull KnowledgeBaseService knowledgeBaseService,
-                                       @NonNull String knowledgeBaseId,
+    public Lc4jContentRetrieverAdapter(KnowledgeBaseService knowledgeBaseService,
+                                       String knowledgeBaseId,
                                        int maxResults,
                                        double minScore) {
-        this.knowledgeBaseService = knowledgeBaseService;
-        this.knowledgeBaseId = knowledgeBaseId;
+        this.knowledgeBaseService = Objects.requireNonNull(knowledgeBaseService, "knowledgeBaseService must not be null");
+        this.knowledgeBaseId = Objects.requireNonNull(knowledgeBaseId, "knowledgeBaseId must not be null");
         this.embeddingStore = null;
         this.embeddingModel = null;
         this.maxResults = maxResults;
@@ -68,21 +68,20 @@ public class Lc4jContentRetrieverAdapter implements ContentRetriever {
      * @param maxResults      最大返回结果数
      * @param minScore        最低相似度分数
      */
-    public Lc4jContentRetrieverAdapter(@NonNull EmbeddingStore<TextSegment> embeddingStore,
-                                       @NonNull EmbeddingModel embeddingModel,
+    public Lc4jContentRetrieverAdapter(EmbeddingStore<TextSegment> embeddingStore,
+                                       EmbeddingModel embeddingModel,
                                        int maxResults,
                                        double minScore) {
         this.knowledgeBaseService = null;
         this.knowledgeBaseId = null;
-        this.embeddingStore = embeddingStore;
-        this.embeddingModel = embeddingModel;
+        this.embeddingStore = Objects.requireNonNull(embeddingStore, "embeddingStore must not be null");
+        this.embeddingModel = Objects.requireNonNull(embeddingModel, "embeddingModel must not be null");
         this.maxResults = maxResults;
         this.minScore = minScore;
     }
 
-    @NonNull
     @Override
-    public List<Content> retrieve(@NonNull Query query) {
+    public List<Content> retrieve(Query query) {
         String queryText = query.text();
 
         if (knowledgeBaseService != null) {

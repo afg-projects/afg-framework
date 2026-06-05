@@ -3,6 +3,7 @@ package io.github.afgprojects.framework.core.invocation;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,7 +42,7 @@ public class DefaultInvocationContext implements InvocationContext {
     @Override public ServiceMetadata<?> serviceMetadata() { return serviceMetadata; }
     @Override public OperationMetadata operationMetadata() { return operationMetadata; }
     @Override public @Nullable Map<String, Object> arguments() { return arguments; }
-    @Override public Object[] resolvedArguments() { return resolvedArguments; }
+    @Override public Object[] resolvedArguments() { return resolvedArguments.clone(); }
     @Override public Object bean() { return bean; }
     @Override public Method method() { return method; }
     @Override public Map<String, Object> attributes() { return attributes; }

@@ -140,16 +140,14 @@ public class AiWorkflowController {
     @PostMapping("/definitions/{id}/execute")
     public Object executeWorkflow(@PathVariable Long id,
                                    @RequestBody(required = false) WorkflowExecuteRequest request) {
-        if (request == null) {
-            request = new WorkflowExecuteRequest();
-        }
+        WorkflowExecuteRequest effectiveRequest = request != null ? request : new WorkflowExecuteRequest();
 
         String userId = getCurrentUserId();
 
-        if (request.isStream()) {
-            return workflowService.executeStream(id, request.getInputs(), userId);
+        if (effectiveRequest.isStream()) {
+            return workflowService.executeStream(id, effectiveRequest.getInputs(), userId);
         } else {
-            return workflowService.execute(id, request.getInputs(), userId);
+            return workflowService.execute(id, effectiveRequest.getInputs(), userId);
         }
     }
 

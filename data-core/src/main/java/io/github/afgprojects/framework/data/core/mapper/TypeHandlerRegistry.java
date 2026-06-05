@@ -52,6 +52,7 @@ public class TypeHandlerRegistry {
         registry.register(new io.github.afgprojects.framework.data.core.mapper.handlers.NumberTypeHandler());
         registry.register(new io.github.afgprojects.framework.data.core.mapper.handlers.BooleanNumberTypeHandler());
         registry.register(new io.github.afgprojects.framework.data.core.mapper.handlers.DateTimeTypeHandler());
+        registry.register(new io.github.afgprojects.framework.data.core.mapper.handlers.InstantTypeHandler());
         registry.register(new io.github.afgprojects.framework.data.core.mapper.handlers.LocalDateTypeHandler());
         registry.register(new io.github.afgprojects.framework.data.core.mapper.handlers.EnumTypeHandler());
         registry.register(new io.github.afgprojects.framework.data.core.mapper.handlers.StringTypeHandler());

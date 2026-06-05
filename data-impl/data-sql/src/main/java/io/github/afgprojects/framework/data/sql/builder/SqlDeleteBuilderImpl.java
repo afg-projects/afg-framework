@@ -19,14 +19,16 @@ public class SqlDeleteBuilderImpl implements SqlDeleteBuilder {
     private final Dialect dialect;
     private String tableName;
     private Condition whereCondition;
-    private final ConditionToSqlConverter conditionConverter = new ConditionToSqlConverter();
+    private final ConditionToSqlConverter conditionConverter;
 
     public SqlDeleteBuilderImpl() {
         this.dialect = new MySQLDialect();
+        this.conditionConverter = new ConditionToSqlConverter(dialect);
     }
 
     public SqlDeleteBuilderImpl(Dialect dialect) {
         this.dialect = dialect;
+        this.conditionConverter = new ConditionToSqlConverter(dialect);
     }
 
     @Override

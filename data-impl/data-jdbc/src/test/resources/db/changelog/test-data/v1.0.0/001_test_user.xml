@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="v1.0.0-001-test-user" author="afg">
+        <createTable tableName="test_user" remarks="测试用户表">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_test_user"/>
+            </column>
+            <column name="username" type="VARCHAR(50)" remarks="用户名"/>
+            <column name="email" type="VARCHAR(100)" remarks="邮箱"/>
+            <column name="status" type="INT" defaultValueNumeric="1" remarks="状态"/>
+            <column name="created_at" type="TIMESTAMP WITHOUT TIME ZONE" remarks="创建时间"/>
+            <column name="updated_at" type="TIMESTAMP WITHOUT TIME ZONE" remarks="更新时间"/>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

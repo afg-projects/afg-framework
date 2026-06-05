@@ -10,6 +10,7 @@ import java.util.List;
 
 @Getter
 @Setter
+@SuppressWarnings("PMD.TooManyFields")
 public class SimpleConfig {
     private String modelId = "";
     private String systemPrompt = "";

@@ -4,6 +4,7 @@ import io.github.afgprojects.framework.data.core.dialect.Dialect;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheHandler;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.JdbcClient;
 
@@ -33,7 +34,7 @@ public class EntityQueryExecutor<T> {
     private final EntitySoftDeleteHandler<T> softDeleteHandler;
 
     /**
-     * Proxy 状态提供者，用于读取 includeDeleted 状态
+     * Proxy 状态提供者，用于读取 includeDeleted 和 tenantId 状态
      */
     private final ProxyStateProvider stateProvider;
 
@@ -78,10 +79,18 @@ public class EntityQueryExecutor<T> {
             appendSoftDeleteFilter(sqlBuilder, true, includeDeleted);
         }
 
-        Optional<T> result = jdbcClient.sql(sqlBuilder.toString())
-                .param("id", id)
-                .query(rowMapper)
-                .optional();
+        // 租户过滤（已有 WHERE id = :id，直接追加 AND）
+        String tenantId = stateProvider.resolveEffectiveTenantId();
+        if (tenantId != null && metadata.getTenantField() != null) {
+            sqlBuilder.append(" AND ").append(metadata.getTenantField().getColumnName()).append(" = :tenantId");
+        }
+
+        // 执行查询
+        var querySpec = jdbcClient.sql(sqlBuilder.toString()).param("id", id);
+        if (tenantId != null && metadata.getTenantField() != null) {
+            querySpec = querySpec.param("tenantId", tenantId);
+        }
+        Optional<T> result = querySpec.query(rowMapper).optional();
 
         // 缓存结果
         result.ifPresentOrElse(
@@ -101,15 +110,31 @@ public class EntityQueryExecutor<T> {
         StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM ")
                 .append(dialect.quoteIdentifier(metadata.getTableName()));
 
+        // 追踪是否有 WHERE 子句
+        boolean hasWhere = false;
+
         // 自动过滤已删除记录
         boolean includeDeleted = stateProvider.isIncludeDeleted();
         if (softDeleteHandler.getSoftDeleteStrategy() != null && !includeDeleted) {
             appendSoftDeleteFilter(sqlBuilder, false, includeDeleted);
+            hasWhere = true;
         }
 
-        return jdbcClient.sql(sqlBuilder.toString())
-                .query(rowMapper)
-                .list();
+        // 租户过滤
+        String tenantId = stateProvider.resolveEffectiveTenantId();
+        if (tenantId != null && metadata.getTenantField() != null) {
+            if (hasWhere) {
+                sqlBuilder.append(" AND ").append(metadata.getTenantField().getColumnName()).append(" = :tenantId");
+            } else {
+                sqlBuilder.append(" WHERE ").append(metadata.getTenantField().getColumnName()).append(" = :tenantId");
+            }
+        }
+
+        var querySpec = jdbcClient.sql(sqlBuilder.toString());
+        if (tenantId != null && metadata.getTenantField() != null) {
+            querySpec = querySpec.param("tenantId", tenantId);
+        }
+        return querySpec.query(rowMapper).list();
     }
 
     /**
@@ -135,10 +160,17 @@ public class EntityQueryExecutor<T> {
             appendSoftDeleteFilter(sqlBuilder, true, includeDeleted);
         }
 
-        return jdbcClient.sql(sqlBuilder.toString())
-                .param("ids", idList)
-                .query(rowMapper)
-                .list();
+        // 租户过滤（已有 WHERE id IN (:ids)，直接追加 AND）
+        String tenantId = stateProvider.resolveEffectiveTenantId();
+        if (tenantId != null && metadata.getTenantField() != null) {
+            sqlBuilder.append(" AND ").append(metadata.getTenantField().getColumnName()).append(" = :tenantId");
+        }
+
+        var querySpec = jdbcClient.sql(sqlBuilder.toString()).param("ids", idList);
+        if (tenantId != null && metadata.getTenantField() != null) {
+            querySpec = querySpec.param("tenantId", tenantId);
+        }
+        return querySpec.query(rowMapper).list();
     }
 
     /**
@@ -150,15 +182,31 @@ public class EntityQueryExecutor<T> {
         StringBuilder sqlBuilder = new StringBuilder("SELECT COUNT(*) FROM ")
                 .append(dialect.quoteIdentifier(metadata.getTableName()));
 
+        // 追踪是否有 WHERE 子句
+        boolean hasWhere = false;
+
         // 自动过滤已删除记录
         boolean includeDeleted = stateProvider.isIncludeDeleted();
         if (softDeleteHandler.getSoftDeleteStrategy() != null && !includeDeleted) {
             appendSoftDeleteFilter(sqlBuilder, false, includeDeleted);
+            hasWhere = true;
         }
 
-        Long result = jdbcClient.sql(sqlBuilder.toString())
-                .query(Long.class)
-                .single();
+        // 租户过滤
+        String tenantId = stateProvider.resolveEffectiveTenantId();
+        if (tenantId != null && metadata.getTenantField() != null) {
+            if (hasWhere) {
+                sqlBuilder.append(" AND ").append(metadata.getTenantField().getColumnName()).append(" = :tenantId");
+            } else {
+                sqlBuilder.append(" WHERE ").append(metadata.getTenantField().getColumnName()).append(" = :tenantId");
+            }
+        }
+
+        var querySpec = jdbcClient.sql(sqlBuilder.toString());
+        if (tenantId != null && metadata.getTenantField() != null) {
+            querySpec = querySpec.param("tenantId", tenantId);
+        }
+        Long result = querySpec.query(Long.class).single();
         return result != null ? result : 0L;
     }
 
@@ -189,14 +237,20 @@ public class EntityQueryExecutor<T> {
             appendSoftDeleteFilter(sqlBuilder, true, includeDeleted);
         }
 
+        // 租户过滤（已有 WHERE id = :id，直接追加 AND）
+        String tenantId = stateProvider.resolveEffectiveTenantId();
+        if (tenantId != null && metadata.getTenantField() != null) {
+            sqlBuilder.append(" AND ").append(metadata.getTenantField().getColumnName()).append(" = :tenantId");
+        }
+
         // 使用 Dialect 生成分页 SQL（LIMIT 1）
         String sql = dialect.getLimitSql(sqlBuilder.toString(), 1);
 
-        return jdbcClient.sql(sql)
-                .param("id", id)
-                .query(Integer.class)
-                .optional()
-                .isPresent();
+        var querySpec = jdbcClient.sql(sql).param("id", id);
+        if (tenantId != null && metadata.getTenantField() != null) {
+            querySpec = querySpec.param("tenantId", tenantId);
+        }
+        return querySpec.query(Integer.class).optional().isPresent();
     }
 
     /**

@@ -98,17 +98,4 @@ public class EntitySchemaExtractor implements SchemaConverter<EntityMetadata<?>,
 
         return null;
     }
-
-    private String inferTableName(Class<?> entityClass) {
-        String className = entityClass.getSimpleName();
-        StringBuilder tableName = new StringBuilder();
-        for (int i = 0; i < className.length(); i++) {
-            char c = className.charAt(i);
-            if (i > 0 && Character.isUpperCase(c)) {
-                tableName.append('_');
-            }
-            tableName.append(Character.toLowerCase(c));
-        }
-        return tableName.toString();
-    }
 }

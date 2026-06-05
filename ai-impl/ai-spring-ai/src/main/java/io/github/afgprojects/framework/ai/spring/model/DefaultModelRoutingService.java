@@ -83,7 +83,7 @@ public class DefaultModelRoutingService {
             .filter(ModelInfo::available)
             .filter(info -> {
                 Object cap = info.capabilities().get(capability);
-                return cap != null && Boolean.TRUE.equals(cap);
+                return Boolean.TRUE.equals(cap);
             })
             .toList();
     }
@@ -97,7 +97,7 @@ public class DefaultModelRoutingService {
             .filter(ModelInfo::available)
             .filter(info -> {
                 Object cap = info.capabilities().get(capability);
-                return cap != null && Boolean.TRUE.equals(cap);
+                return Boolean.TRUE.equals(cap);
             })
             .toList();
     }

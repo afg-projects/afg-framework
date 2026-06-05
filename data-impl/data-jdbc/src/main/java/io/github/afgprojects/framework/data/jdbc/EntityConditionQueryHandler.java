@@ -1,7 +1,6 @@
 package io.github.afgprojects.framework.data.jdbc;
 
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
-import io.github.afgprojects.framework.data.core.entity.SoftDeleteStrategy;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
 import io.github.afgprojects.framework.data.core.page.PageRequest;
 import io.github.afgprojects.framework.data.core.query.Condition;
@@ -11,6 +10,7 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.JdbcClient;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -35,7 +35,7 @@ public class EntityConditionQueryHandler<T> {
     private final EntitySoftDeleteHandler<T> softDeleteHandler;
 
     /**
-     * Proxy 状态提供者，用于读取 includeDeleted 状态
+     * Proxy 状态提供者，用于读取 includeDeleted 和 tenantId 状态
      */
     private final ProxyStateProvider stateProvider;
 
@@ -60,7 +60,7 @@ public class EntityConditionQueryHandler<T> {
      * @return 实体列表
      */
     public @NonNull List<T> findAll(@NonNull Condition condition) {
-        ConditionToSqlConverter converter = new ConditionToSqlConverter();
+        ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
         ConditionToSqlConverter.SqlResult result = converter.convert(condition);
 
         StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM ")
@@ -68,16 +68,29 @@ public class EntityConditionQueryHandler<T> {
 
         // 构建 WHERE 子句
         StringBuilder whereClause = new StringBuilder(result.sql());
+        List<Object> params = new ArrayList<>(result.parameters());
 
         // 自动过滤已删除记录
         appendSoftDeleteFilter(whereClause);
+
+        // 租户过滤
+        String tenantId = stateProvider.resolveEffectiveTenantId();
+        if (tenantId != null && metadata.getTenantField() != null) {
+            String tenantColumn = metadata.getTenantField().getColumnName();
+            if (whereClause.length() > 0) {
+                whereClause.append(" AND ").append(tenantColumn).append(" = ?");
+            } else {
+                whereClause.append(tenantColumn).append(" = ?");
+            }
+            params.add(tenantId);
+        }
 
         if (whereClause.length() > 0) {
             sqlBuilder.append(" WHERE ").append(whereClause);
         }
 
         return jdbcClient.sql(sqlBuilder.toString())
-                .params(result.parameters())
+                .params(params)
                 .query(rowMapper)
                 .list();
     }
@@ -90,28 +103,41 @@ public class EntityConditionQueryHandler<T> {
      * @return 分页结果
      */
     public @NonNull Page<T> findAll(@NonNull Condition condition, @NonNull PageRequest pageable) {
-        ConditionToSqlConverter converter = new ConditionToSqlConverter();
+        ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
         ConditionToSqlConverter.SqlResult whereResult = converter.convert(condition);
 
         // 构建基础 WHERE 子句
         StringBuilder whereClause = new StringBuilder(whereResult.sql());
+        List<Object> params = new ArrayList<>(whereResult.parameters());
 
         // 自动过滤已删除记录
         appendSoftDeleteFilter(whereClause);
+
+        // 租户过滤
+        String tenantId = stateProvider.resolveEffectiveTenantId();
+        if (tenantId != null && metadata.getTenantField() != null) {
+            String tenantColumn = metadata.getTenantField().getColumnName();
+            if (whereClause.length() > 0) {
+                whereClause.append(" AND ").append(tenantColumn).append(" = ?");
+            } else {
+                whereClause.append(tenantColumn).append(" = ?");
+            }
+            params.add(tenantId);
+        }
 
         // 构建完整 SQL
         String whereSql = whereClause.length() > 0 ? " WHERE " + whereClause : "";
 
         // 计数查询
         String countSql = "SELECT COUNT(*) FROM " + dialect.quoteIdentifier(metadata.getTableName()) + whereSql;
-        long total = dataManager.queryForCount(countSql, whereResult.parameters());
+        long total = dataManager.queryForCount(countSql, params);
 
         // 数据查询（使用 Dialect 生成兼容的分页 SQL）
         String dataSql = "SELECT * FROM " + dialect.quoteIdentifier(metadata.getTableName()) +
                 whereSql;
         dataSql = dialect.getPaginationSql(dataSql, pageable.offset(), pageable.size());
         List<T> records = jdbcClient.sql(dataSql)
-                .params(whereResult.parameters())
+                .params(params)
                 .query(rowMapper)
                 .list();
 
@@ -127,14 +153,15 @@ public class EntityConditionQueryHandler<T> {
             return;
         }
 
-        if (whereClause.length() > 0) {
-            whereClause.append(" AND ");
+        String filter = softDeleteHandler.getSoftDeleteFilterCondition();
+        if (filter == null) {
+            return;
         }
 
-        if (softDeleteHandler.getSoftDeleteStrategy() == SoftDeleteStrategy.TIMESTAMP) {
-            whereClause.append("deleted_at IS NULL");
+        if (whereClause.length() > 0) {
+            whereClause.append(" AND ").append(filter);
         } else {
-            whereClause.append("deleted = false");
+            whereClause.append(filter);
         }
     }
 }

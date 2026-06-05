@@ -71,7 +71,10 @@ public class JdbcDataManager implements DataManager {
     private final JdbcTemplate jdbcTemplate;
     private final Dialect dialect;
     private final DatabaseType databaseType;
-    private final TenantContextHolder tenantContextHolder = new TenantContextHolder();
+    /**
+     * 租户上下文持有者（可注入，支持与 TenantContextAutoConfiguration 创建的 Bean 共享）
+     */
+    private TenantContextHolder tenantContextHolder;
 
     /**
      * 事务管理器（可选，用于 executeInTransaction 方法）
@@ -125,6 +128,7 @@ public class JdbcDataManager implements DataManager {
         this.jdbcClient = JdbcClient.create(jdbcTemplate);
         this.databaseType = detectDatabaseType(dataSource);
         this.dialect = createDialect(databaseType);
+        this.tenantContextHolder = new TenantContextHolder();
     }
 
     public JdbcDataManager(DataSource dataSource, DatabaseType databaseType) {
@@ -133,6 +137,7 @@ public class JdbcDataManager implements DataManager {
         this.jdbcClient = JdbcClient.create(jdbcTemplate);
         this.databaseType = databaseType;
         this.dialect = createDialect(databaseType);
+        this.tenantContextHolder = new TenantContextHolder();
     }
 
     /**
@@ -145,6 +150,19 @@ public class JdbcDataManager implements DataManager {
         // 清除缓存的 TransactionTemplate，下次使用时重新创建
         this.cachedTransactionTemplate = null;
         this.cachedReadOnlyTransactionTemplate = null;
+    }
+
+    /**
+     * 设置租户上下文持有者
+     * <p>
+     * 注入与 {@code TenantContextAutoConfiguration} 创建的同一实例，
+     * 确保多租户上下文在整个应用中一致。
+     * 如果不设置，使用构造函数中创建的默认实例。
+     *
+     * @param tenantContextHolder 租户上下文持有者
+     */
+    public void setTenantContextHolder(@NonNull TenantContextHolder tenantContextHolder) {
+        this.tenantContextHolder = tenantContextHolder;
     }
 
     /**
@@ -360,37 +378,6 @@ public class JdbcDataManager implements DataManager {
     // ==================== JdbcClient 便捷方法 ====================
 
     /**
-     * 执行查询并返回列表（Spring RowMapper 版本，保留向后兼容）
-     */
-    public <T> List<T> queryForList(String sql, List<Object> params, RowMapper<T> rowMapper) {
-        return jdbcClient.sql(sql)
-            .params(params)
-            .query(rowMapper)
-            .list();
-    }
-
-    /**
-     * 执行查询并返回单个结果（Spring RowMapper 版本，保留向后兼容）
-     */
-    public <T> T queryForObject(String sql, List<Object> params, RowMapper<T> rowMapper) {
-        return jdbcClient.sql(sql)
-            .params(params)
-            .query(rowMapper)
-            .single();
-    }
-
-    /**
-     * 执行查询并返回可选单个结果
-     */
-    public <T> java.util.Optional<T> queryForOptional(String sql, List<Object> params, RowMapper<T> rowMapper) {
-        rawSqlSecurityGuard.check(sql, "JdbcDataManager.queryForOptional(RowMapper)");
-        return jdbcClient.sql(sql)
-            .params(params)
-            .query(rowMapper)
-            .optional();
-    }
-
-    /**
      * 执行更新操作
      */
     @Override
@@ -414,9 +401,9 @@ public class JdbcDataManager implements DataManager {
 
     /**
      * 执行插入并返回生成的主键
-        rawSqlSecurityGuard.check(sql, "JdbcDataManager.executeInsertAndReturnKey");
      */
     public long executeInsertAndReturnKey(String sql, List<Object> params) {
+        rawSqlSecurityGuard.check(sql, "JdbcDataManager.executeInsertAndReturnKey");
         return isInTransaction()
                 ? executeInsertInTransaction(sql, params)
                 : executeInsertWithoutTransaction(sql, params);
@@ -563,10 +550,10 @@ public class JdbcDataManager implements DataManager {
     }
 
     /**
-        rawSqlSecurityGuard.check(sql, "JdbcDataManager.queryWithMapper");
      * 使用 ResultMapper 执行查询，返回列表
      */
     public <T> List<T> queryWithMapper(String sql, List<Object> params, ResultMapper<T> mapper) {
+        rawSqlSecurityGuard.check(sql, "JdbcDataManager.queryWithMapper");
         return jdbcClient.sql(sql)
                 .params(params)
                 .query(ResultMapperAdapter.adapt(mapper))

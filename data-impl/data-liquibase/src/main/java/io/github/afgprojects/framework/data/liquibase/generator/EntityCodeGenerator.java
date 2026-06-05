@@ -66,7 +66,7 @@ public class EntityCodeGenerator {
         if (useLombok) {
             sb.append("@Data\n");
         }
-        sb.append("public class ").append(className).append(" extends BaseEntity<Long> {\n\n");
+        sb.append("public class ").append(className).append(" extends BaseEntity {\n\n");
 
         // 字段
         for (ColumnMetadata column : schema.getColumns()) {

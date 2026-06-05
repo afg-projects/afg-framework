@@ -309,35 +309,6 @@ class MetadataCodeGenerator {
                 "    .orElse(null)", DATABASE_FIELD_METADATA)
             .build());
 
-        // 特性标记方法
-        classBuilder.addMethod(MethodSpec.methodBuilder("isSoftDeletable")
-            .addAnnotation(Override.class)
-            .addModifiers(Modifier.PUBLIC)
-            .returns(boolean.class)
-            .addStatement("return $L", features.softDeletable())
-            .build());
-
-        classBuilder.addMethod(MethodSpec.methodBuilder("isTenantAware")
-            .addAnnotation(Override.class)
-            .addModifiers(Modifier.PUBLIC)
-            .returns(boolean.class)
-            .addStatement("return $L", features.tenantAware())
-            .build());
-
-        classBuilder.addMethod(MethodSpec.methodBuilder("isAuditable")
-            .addAnnotation(Override.class)
-            .addModifiers(Modifier.PUBLIC)
-            .returns(boolean.class)
-            .addStatement("return $L", features.auditable())
-            .build());
-
-        classBuilder.addMethod(MethodSpec.methodBuilder("isVersioned")
-            .addAnnotation(Override.class)
-            .addModifiers(Modifier.PUBLIC)
-            .returns(boolean.class)
-            .addStatement("return $L", features.versioned())
-            .build());
-
         // 关联方法
         classBuilder.addMethod(MethodSpec.methodBuilder("getRelations")
             .addAnnotation(Override.class)
@@ -425,37 +396,33 @@ class MetadataCodeGenerator {
             .build());
 
         // getTraits
-        classBuilder.addMethod(MethodSpec.methodBuilder("getTraits")
+        MethodSpec.Builder getTraitsBuilder = MethodSpec.methodBuilder("getTraits")
             .addAnnotation(Override.class)
             .addModifiers(Modifier.PUBLIC)
             .returns(ParameterizedTypeName.get(ClassName.get(Set.class), ENTITY_TRAIT))
-            .addStatement("$T<$T> traits = $T.noneOf($T.class)", ClassName.get(EnumSet.class), ENTITY_TRAIT, ClassName.get(EnumSet.class), ENTITY_TRAIT)
-            .beginControlFlow("if (isSoftDeletable())")
-            .beginControlFlow("if (getField(\"deletedAt\") != null)")
-            .addStatement("traits.add($T.TIMESTAMP_SOFT_DELETABLE)", ENTITY_TRAIT)
-            .nextControlFlow("else")
-            .addStatement("traits.add($T.SOFT_DELETABLE)", ENTITY_TRAIT)
-            .endControlFlow()
-            .endControlFlow()
-            .beginControlFlow("if (isTenantAware())")
-            .addStatement("traits.add($T.TENANT_AWARE)", ENTITY_TRAIT)
-            .endControlFlow()
-            .beginControlFlow("if (isAuditable())")
-            .addStatement("traits.add($T.AUDITABLE)", ENTITY_TRAIT)
-            .endControlFlow()
-            .beginControlFlow("if (isVersioned())")
-            .addStatement("traits.add($T.VERSIONED)", ENTITY_TRAIT)
-            .endControlFlow()
-            .addStatement("return traits")
-            .build());
+            .addStatement("$T<$T> traits = $T.noneOf($T.class)", ClassName.get(EnumSet.class), ENTITY_TRAIT, ClassName.get(EnumSet.class), ENTITY_TRAIT);
 
-        // isDataScopeAware
-        classBuilder.addMethod(MethodSpec.methodBuilder("isDataScopeAware")
-            .addAnnotation(Override.class)
-            .addModifiers(Modifier.PUBLIC)
-            .returns(boolean.class)
-            .addStatement("return false")
-            .build());
+        // 基于特性检测结果直接添加 trait（不再调用废弃的 isSoftDeletable/isTenantAware/isAuditable/isVersioned 方法）
+        if (features.softDeletable()) {
+            getTraitsBuilder.addStatement("traits.add($T.SOFT_DELETABLE)", ENTITY_TRAIT);
+        }
+        if (features.timestampSoftDeletable()) {
+            getTraitsBuilder.addStatement("traits.add($T.TIMESTAMP_SOFT_DELETABLE)", ENTITY_TRAIT);
+        }
+        if (features.tenantAware()) {
+            getTraitsBuilder.addStatement("traits.add($T.TENANT_AWARE)", ENTITY_TRAIT);
+        }
+        if (features.auditable()) {
+            getTraitsBuilder.addStatement("traits.add($T.AUDITABLE)", ENTITY_TRAIT);
+        }
+        if (features.versioned()) {
+            getTraitsBuilder.addStatement("traits.add($T.VERSIONED)", ENTITY_TRAIT);
+        }
+        if (features.dataScopeAware()) {
+            getTraitsBuilder.addStatement("traits.add($T.DATA_SCOPE_AWARE)", ENTITY_TRAIT);
+        }
+        getTraitsBuilder.addStatement("return traits");
+        classBuilder.addMethod(getTraitsBuilder.build());
 
         // getDefaultCondition
         classBuilder.addMethod(MethodSpec.methodBuilder("getDefaultCondition")

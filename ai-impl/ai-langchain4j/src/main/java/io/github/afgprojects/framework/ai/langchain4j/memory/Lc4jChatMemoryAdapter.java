@@ -4,9 +4,9 @@ import dev.langchain4j.data.message.ChatMessage;
 import io.github.afgprojects.framework.ai.core.api.chat.AiMessage;
 import io.github.afgprojects.framework.ai.core.api.memory.ConversationMemory;
 import io.github.afgprojects.framework.ai.langchain4j.internal.Lc4jMessageConverter;
-import org.jspecify.annotations.NonNull;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 将 AFG ConversationMemory 适配为 LangChain4j ChatMemory
@@ -29,26 +29,30 @@ public class Lc4jChatMemoryAdapter implements dev.langchain4j.memory.ChatMemory 
      * @param conversationMemory AFG 对话记忆
      * @param sessionId          会话 ID
      */
-    public Lc4jChatMemoryAdapter(@NonNull ConversationMemory conversationMemory,
-                                 @NonNull String sessionId) {
-        this.conversationMemory = conversationMemory;
-        this.sessionId = sessionId;
+    public Lc4jChatMemoryAdapter(ConversationMemory conversationMemory,
+                                 String sessionId) {
+        this.conversationMemory = Objects.requireNonNull(conversationMemory, "conversationMemory must not be null");
+        this.sessionId = Objects.requireNonNull(sessionId, "sessionId must not be null");
     }
 
     @Override
-    public void add(@NonNull ChatMessage message) {
+    public Object id() {
+        return sessionId;
+    }
+
+    @Override
+    public void add(ChatMessage message) {
         AiMessage aiMessage = Lc4jMessageConverter.fromLc4j(message);
         conversationMemory.addMessage(sessionId, aiMessage);
     }
 
     @Override
-    public void add(@NonNull List<ChatMessage> messages) {
+    public void add(Iterable<ChatMessage> messages) {
         for (ChatMessage message : messages) {
             add(message);
         }
     }
 
-    @NonNull
     @Override
     public List<ChatMessage> messages() {
         List<AiMessage> history = conversationMemory.getHistory(sessionId);

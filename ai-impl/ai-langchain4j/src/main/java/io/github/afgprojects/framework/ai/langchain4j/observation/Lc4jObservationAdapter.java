@@ -14,7 +14,6 @@ import io.github.afgprojects.framework.ai.core.api.observability.Tracer.Span;
 import io.github.afgprojects.framework.ai.core.api.observability.Tracer.SpanStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jspecify.annotations.NonNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -49,7 +48,7 @@ public class Lc4jObservationAdapter implements ChatModelListener {
     private final MetricsCollector metricsCollector;
 
     @Override
-    public void onRequest(@NonNull ChatModelRequestContext requestContext) {
+    public void onRequest(ChatModelRequestContext requestContext) {
         ChatRequest chatRequest = requestContext.chatRequest();
         ModelProvider modelProvider = requestContext.modelProvider();
 
@@ -81,7 +80,7 @@ public class Lc4jObservationAdapter implements ChatModelListener {
     }
 
     @Override
-    public void onResponse(@NonNull ChatModelResponseContext responseContext) {
+    public void onResponse(ChatModelResponseContext responseContext) {
         Map<Object, Object> attributes = responseContext.attributes();
         Span span = (Span) attributes.get(ATTR_SPAN);
         MetricsCollector.Timer timer = (MetricsCollector.Timer) attributes.get(ATTR_TIMER);
@@ -137,7 +136,7 @@ public class Lc4jObservationAdapter implements ChatModelListener {
     }
 
     @Override
-    public void onError(@NonNull ChatModelErrorContext errorContext) {
+    public void onError(ChatModelErrorContext errorContext) {
         Map<Object, Object> attributes = errorContext.attributes();
         Span span = (Span) attributes.get(ATTR_SPAN);
         MetricsCollector.Timer timer = (MetricsCollector.Timer) attributes.get(ATTR_TIMER);

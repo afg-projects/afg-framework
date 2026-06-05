@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="v1.0.0-004-test-tenant-item" author="afg">
+        <createTable tableName="test_tenant_item" remarks="测试多租户表">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_test_tenant_item"/>
+            </column>
+            <column name="tenant_id" type="VARCHAR(50)" remarks="租户ID"/>
+            <column name="name" type="VARCHAR(50)" remarks="名称"/>
+            <column name="quantity" type="INT" remarks="数量"/>
+            <column name="created_at" type="TIMESTAMP WITHOUT TIME ZONE" remarks="创建时间"/>
+            <column name="updated_at" type="TIMESTAMP WITHOUT TIME ZONE" remarks="更新时间"/>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

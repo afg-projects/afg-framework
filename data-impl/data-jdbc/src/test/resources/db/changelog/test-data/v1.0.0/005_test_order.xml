@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="v1.0.0-005-test-order" author="afg">
+        <createTable tableName="test_order" remarks="测试订单表">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_test_order"/>
+            </column>
+            <column name="order_no" type="VARCHAR(50)" remarks="订单号"/>
+            <column name="user_id" type="BIGINT" remarks="用户ID"/>
+            <column name="created_at" type="TIMESTAMP WITHOUT TIME ZONE" remarks="创建时间"/>
+            <column name="updated_at" type="TIMESTAMP WITHOUT TIME ZONE" remarks="更新时间"/>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

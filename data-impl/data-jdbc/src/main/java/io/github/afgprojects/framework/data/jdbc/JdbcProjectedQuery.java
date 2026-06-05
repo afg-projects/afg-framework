@@ -2,10 +2,10 @@ package io.github.afgprojects.framework.data.jdbc;
 
 import io.github.afgprojects.framework.data.core.condition.SFunction;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
-import io.github.afgprojects.framework.data.core.entity.SoftDeleteStrategy;
 import io.github.afgprojects.framework.data.core.mapper.Projection;
 import io.github.afgprojects.framework.data.core.mapper.TypeHandlerRegistry;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
+import io.github.afgprojects.framework.data.core.metadata.EntityTrait;
 import io.github.afgprojects.framework.data.core.page.PageRequest;
 import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.query.Page;
@@ -16,6 +16,7 @@ import io.github.afgprojects.framework.data.core.scope.DataScopeType;
 import io.github.afgprojects.framework.data.jdbc.mapper.DtoMapper;
 import io.github.afgprojects.framework.data.jdbc.mapper.ResultMapperAdapter;
 import io.github.afgprojects.framework.data.sql.converter.ConditionToSqlConverter;
+import io.github.afgprojects.framework.data.sql.scope.DataScopeSqlBuilder;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -208,6 +209,82 @@ public class JdbcProjectedQuery<T, R> implements ProjectedQuery<T, R> {
 
     // ==================== 内部方法 ====================
 
+    /**
+     * WHERE 子句构建结果
+     */
+    private record WhereClause(String whereSql, List<Object> parameters) {
+        boolean hasWhere() { return !whereSql.isEmpty(); }
+        String withKeyword() { return hasWhere() ? " WHERE " + whereSql : ""; }
+    }
+
+    /**
+     * 统一构建 WHERE 子句（条件 + 软删除 + 租户过滤 + 数据权限）
+     */
+    private WhereClause buildWhereClause(JdbcEntityProxy<T> proxy, EntityMetadata<T> metadata, Dialect dialect) {
+        StringBuilder whereSql = new StringBuilder();
+        List<Object> params = new ArrayList<>();
+
+        // 1. 用户条件
+        if (!condition.isEmpty()) {
+            ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
+            ConditionToSqlConverter.SqlResult result = converter.convert(condition);
+            whereSql.append(result.sql());
+            params.addAll(result.parameters());
+        }
+
+        // 2. 软删除过滤
+        if (!includeDeleted && (metadata.hasTrait(EntityTrait.SOFT_DELETABLE) || metadata.hasTrait(EntityTrait.TIMESTAMP_SOFT_DELETABLE))) {
+            String filter = proxy.getSoftDeleteHandler().getSoftDeleteFilterCondition();
+            if (filter != null) {
+                if (whereSql.length() > 0) {
+                    whereSql.append(" AND ");
+                }
+                whereSql.append(filter);
+            }
+        }
+
+        // 3. 租户过滤
+        String effectiveTenantId = resolveEffectiveTenantId(proxy);
+        if (effectiveTenantId != null && metadata.getTenantField() != null) {
+            if (whereSql.length() > 0) {
+                whereSql.append(" AND ");
+            }
+            String tenantColumn = metadata.getTenantField().getColumnName();
+            whereSql.append(tenantColumn).append(" = ?");
+            params.add(effectiveTenantId);
+        }
+
+        // 4. 数据权限过滤
+        if (!dataScopes.isEmpty()) {
+            var contextProvider = proxy.dataManager.getDataScopeContextProvider();
+            if (contextProvider != null) {
+                DataScopeSqlBuilder scopeBuilder = new DataScopeSqlBuilder(contextProvider);
+                DataScopeSqlBuilder.SqlResult result = scopeBuilder.buildSql(dataScopes, dialect);
+                if (result != null) {
+                    if (whereSql.length() > 0) {
+                        whereSql.append(" AND ");
+                    }
+                    whereSql.append(result.sql());
+                    params.addAll(result.parameters());
+                }
+            }
+        }
+
+        return new WhereClause(whereSql.toString(), params);
+    }
+
+    /**
+     * 解析有效的租户ID
+     * <p>
+     * 优先使用显式设置的 tenantId，其次使用 TenantContextHolder 中的上下文租户ID
+     */
+    private @Nullable String resolveEffectiveTenantId(JdbcEntityProxy<T> proxy) {
+        if (tenantId != null) {
+            return tenantId;
+        }
+        return proxy.dataManager.getTenantContextHolder().getTenantId();
+    }
+
     private List<R> executeWithDtoMapper() {
         JdbcEntityProxy<T> proxy = entityQuery.getParentProxy();
         JdbcClient jdbcClient = proxy.getJdbcClient();
@@ -215,18 +292,9 @@ public class JdbcProjectedQuery<T, R> implements ProjectedQuery<T, R> {
         EntityMetadata<T> metadata = proxy.dataManager.getEntityMetadata(entityQuery.getEntityClass());
 
         String sql = buildSelectSql(dialect, metadata);
-        List<Object> params = new ArrayList<>();
-
-        if (!condition.isEmpty()) {
-            ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
-            ConditionToSqlConverter.SqlResult result = converter.convert(condition);
-            sql += " WHERE " + result.sql();
-            params.addAll(result.parameters());
-        }
-
-        if (!includeDeleted && proxy.isSoftDeletable()) {
-            sql = appendSoftDeleteFilter(sql, !condition.isEmpty(), proxy);
-        }
+        WhereClause where = buildWhereClause(proxy, metadata, dialect);
+        sql += where.withKeyword();
+        List<Object> params = where.parameters();
 
         if (sort != null && sort.isSorted()) {
             sql += " ORDER BY " + buildOrderByClause(dialect, metadata);
@@ -250,28 +318,9 @@ public class JdbcProjectedQuery<T, R> implements ProjectedQuery<T, R> {
         EntityMetadata<T> metadata = proxy.dataManager.getEntityMetadata(entityQuery.getEntityClass());
 
         String baseSql = buildSelectSql(dialect, metadata);
-        String whereClause = "";
-        List<Object> params = new ArrayList<>();
-
-        if (!condition.isEmpty()) {
-            ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
-            ConditionToSqlConverter.SqlResult result = converter.convert(condition);
-            whereClause = result.sql();
-            params.addAll(result.parameters());
-        }
-
-        if (!includeDeleted && proxy.isSoftDeletable()) {
-            String filter = proxy.getSoftDeleteStrategy() == SoftDeleteStrategy.TIMESTAMP
-                    ? "deleted_at IS NULL"
-                    : "deleted = false";
-            if (!whereClause.isEmpty()) {
-                whereClause += " AND " + filter;
-            } else {
-                whereClause += filter;
-            }
-        }
-
-        String whereSql = !whereClause.isEmpty() ? " WHERE " + whereClause : "";
+        WhereClause where = buildWhereClause(proxy, metadata, dialect);
+        String whereSql = where.withKeyword();
+        List<Object> params = where.parameters();
 
         String countSql = "SELECT COUNT(*) FROM " + dialect.quoteIdentifier(metadata.getTableName()) + whereSql;
         long total = proxy.getJdbcClient().sql(countSql)
@@ -310,10 +359,6 @@ public class JdbcProjectedQuery<T, R> implements ProjectedQuery<T, R> {
             return "SELECT " + columns + " FROM " + dialect.quoteIdentifier(metadata.getTableName());
         }
         return "SELECT * FROM " + dialect.quoteIdentifier(metadata.getTableName());
-    }
-
-    private String appendSoftDeleteFilter(String sql, boolean hasWhere, JdbcEntityProxy<T> proxy) {
-        return sql + proxy.getSoftDeleteHandler().buildSoftDeleteFilterSql(hasWhere, includeDeleted);
     }
 
     private String buildOrderByClause(Dialect dialect, EntityMetadata<T> metadata) {

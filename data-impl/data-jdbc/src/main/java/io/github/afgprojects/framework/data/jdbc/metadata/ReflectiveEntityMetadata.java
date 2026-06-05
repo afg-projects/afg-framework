@@ -137,28 +137,6 @@ public class ReflectiveEntityMetadata<T> implements DatabaseEntityMetadata<T> {
     }
 
     @Override
-    public boolean isSoftDeletable() {
-        return getField("deleted") != null || getField("deletedAt") != null;
-    }
-
-    @Override
-    public boolean isTenantAware() {
-        return getField("tenantId") != null;
-    }
-
-    @Override
-    public boolean isAuditable() {
-        return getField("createdAt") != null && getField("updatedAt") != null;
-    }
-
-    @Override
-    public boolean isVersioned() {
-        return getField("version") != null;
-    }
-
-    // ==================== 关联元数据 ====================
-
-    @Override
     public List<RelationMetadata> getRelations() {
         return relations;
     }
@@ -223,28 +201,29 @@ public class ReflectiveEntityMetadata<T> implements DatabaseEntityMetadata<T> {
     @Override
     public Set<EntityTrait> getTraits() {
         Set<EntityTrait> traits = EnumSet.noneOf(EntityTrait.class);
-        if (isSoftDeletable()) {
-            if (getField("deletedAt") != null) {
-                traits.add(EntityTrait.TIMESTAMP_SOFT_DELETABLE);
-            } else {
-                traits.add(EntityTrait.SOFT_DELETABLE);
-            }
+        // 软删除特性检测
+        if (getField("deleted") != null) {
+            traits.add(EntityTrait.SOFT_DELETABLE);
+        } else if (getField("deletedAt") != null) {
+            traits.add(EntityTrait.TIMESTAMP_SOFT_DELETABLE);
         }
-        if (isTenantAware()) {
+        // 多租户特性检测
+        if (getField("tenantId") != null) {
             traits.add(EntityTrait.TENANT_AWARE);
         }
-        if (isAuditable()) {
+        // 审计特性检测
+        if (getField("createdAt") != null && getField("updatedAt") != null) {
             traits.add(EntityTrait.AUDITABLE);
         }
-        if (isVersioned()) {
+        // 乐观锁特性检测
+        if (getField("version") != null) {
             traits.add(EntityTrait.VERSIONED);
         }
+        // 数据权限特性检测
+        if (inferDataScopeAware()) {
+            traits.add(EntityTrait.DATA_SCOPE_AWARE);
+        }
         return traits;
-    }
-
-    @Override
-    public boolean isDataScopeAware() {
-        return inferDataScopeAware();
     }
 
     @Override
@@ -279,9 +258,7 @@ public class ReflectiveEntityMetadata<T> implements DatabaseEntityMetadata<T> {
             if (entityClass.isAnnotationPresent(dataScopesAnnotationClass)) {
                 return true;
             }
-        } catch (ClassNotFoundException e) {
-            // core 模块不在类路径中，跳过注解检测
-        } catch (NoClassDefFoundError e) {
+        } catch (ClassNotFoundException | NoClassDefFoundError e) {
             // core 模块不在类路径中，跳过注解检测
         }
 
@@ -313,7 +290,8 @@ public class ReflectiveEntityMetadata<T> implements DatabaseEntityMetadata<T> {
         List<Condition> conditions = new ArrayList<>(1);
 
         // 1. 软删除过滤
-        if (isSoftDeletable()) {
+        boolean hasSoftDeleteTrait = hasTrait(EntityTrait.SOFT_DELETABLE) || hasTrait(EntityTrait.TIMESTAMP_SOFT_DELETABLE);
+        if (hasSoftDeleteTrait) {
             FieldMetadata deletedAtField = getField("deletedAt");
             if (deletedAtField != null) {
                 // 时间戳型软删除：deleted_at IS NULL

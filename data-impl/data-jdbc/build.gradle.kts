@@ -34,6 +34,7 @@ dependencies {
     // Test
     testImplementation(libs.bundles.testing)
     testImplementation(libs.spring.boot.starter.test)
+    testImplementation(libs.spring.boot.starter.web)
     testImplementation(libs.h2)
     testImplementation(libs.caffeine)
     // Redisson for cache tests
@@ -44,9 +45,17 @@ dependencies {
     // Lombok for tests
     testCompileOnly(libs.lombok)
     testAnnotationProcessor(libs.lombok)
+        // Liquibase for test schema migration
+    testImplementation(project(":data-impl:data-liquibase"))
+    testImplementation(libs.liquibase.core)
+    testImplementation("org.springframework.boot:spring-boot-starter-liquibase")
+    // PostgreSQL driver for Testcontainers
+    testRuntimeOnly("org.postgresql:postgresql:42.7.5")
     // Testcontainers for integration tests
     testImplementation(libs.testcontainers)
     testImplementation(libs.testcontainers.junit.jupiter)
+    testImplementation(libs.testcontainers.postgresql)
+    testImplementation(libs.testcontainers.mysql)
     // JMH (性能基准测试)
     testImplementation(libs.jmh.core)
     testAnnotationProcessor(libs.jmh.generator.annprocess)

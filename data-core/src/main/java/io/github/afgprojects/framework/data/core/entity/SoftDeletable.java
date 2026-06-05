@@ -28,6 +28,7 @@ package io.github.afgprojects.framework.data.core.entity;
  * @see TimestampSoftDeletable
  * @see SoftDeleteEntity
  */
+@SuppressWarnings("PMD.BooleanGetMethodName")
 public interface SoftDeletable {
 
     /**

@@ -136,9 +136,10 @@ public class DefaultReflectionExecutor implements ReflectionExecutor {
         log.info("Starting reflection execution with quality threshold {} and max {} iterations for task: {}",
                 qualityThreshold, maxIterations, task);
 
-        if (qualityThreshold < 0.0 || qualityThreshold > 1.0) {
-            log.warn("Quality threshold {} out of range [0.0, 1.0], clamping", qualityThreshold);
-            qualityThreshold = Math.max(0.0, Math.min(1.0, qualityThreshold));
+        double effectiveThreshold = qualityThreshold;
+        if (effectiveThreshold < 0.0 || effectiveThreshold > 1.0) {
+            log.warn("Quality threshold {} out of range [0.0, 1.0], clamping", effectiveThreshold);
+            effectiveThreshold = Math.max(0.0, Math.min(1.0, effectiveThreshold));
         }
 
         // 生成初始响应
@@ -159,9 +160,9 @@ public class DefaultReflectionExecutor implements ReflectionExecutor {
             log.debug("Quality score after iteration {}: {}", i + 1, currentQuality);
 
             // 达到质量阈值，停止迭代
-            if (currentQuality >= qualityThreshold) {
+            if (currentQuality >= effectiveThreshold) {
                 log.info("Quality threshold {} reached at iteration {} with score {}",
-                        qualityThreshold, i + 1, currentQuality);
+                        effectiveThreshold, i + 1, currentQuality);
                 break;
             }
 
@@ -170,9 +171,9 @@ public class DefaultReflectionExecutor implements ReflectionExecutor {
             log.debug("Response improved at iteration {}", i + 1);
         }
 
-        if (currentQuality < qualityThreshold) {
+        if (currentQuality < effectiveThreshold) {
             log.warn("Quality threshold {} not reached after {} iterations (final score: {})",
-                    qualityThreshold, maxIterations, currentQuality);
+                    effectiveThreshold, maxIterations, currentQuality);
         }
 
         return ReflectionResult.success(currentResponse, currentReflection);

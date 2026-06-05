@@ -211,11 +211,9 @@ class EntityMetadataProcessorTest {
             assertThat(generatedSource).contains("getFields()");
             assertThat(generatedSource).contains("getField(String propertyName)");
 
-            // 特性标记方法
-            assertThat(generatedSource).contains("isSoftDeletable()");
-            assertThat(generatedSource).contains("isTenantAware()");
-            assertThat(generatedSource).contains("isAuditable()");
-            assertThat(generatedSource).contains("isVersioned()");
+            // 特性方法（基于 EntityTrait 枚举）
+            assertThat(generatedSource).contains("hasTrait");
+            assertThat(generatedSource).contains("getTraits");
 
             // ColumnNameAware 接口方法
             assertThat(generatedSource).contains("getColumnName(String propertyName)");
