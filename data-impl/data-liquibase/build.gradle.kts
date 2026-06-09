@@ -15,6 +15,8 @@ dependencies {
     // Test（版本由 Spring Boot BOM 管理）
     testImplementation(libs.bundles.testing)
     testImplementation(libs.h2)
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-jdbc")
 }
 
 
