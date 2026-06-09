@@ -26,4 +26,5 @@ io.github.afgprojects.framework.core.autoconfigure.CloudNativeAutoConfiguration
 io.github.afgprojects.framework.core.autoconfigure.KubernetesProbeAutoConfiguration
 io.github.afgprojects.framework.core.autoconfigure.LocaleAutoConfiguration
 io.github.afgprojects.framework.core.autoconfigure.BeanInvocationAutoConfiguration
+io.github.afgprojects.framework.core.autoconfigure.ContextAutoConfiguration
 io.github.afgprojects.framework.core.autoconfigure.openapi.AfgOpenApiAutoConfiguration

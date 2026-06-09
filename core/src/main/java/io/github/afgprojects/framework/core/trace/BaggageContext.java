@@ -1,7 +1,8 @@
 package io.github.afgprojects.framework.core.trace;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.jspecify.annotations.Nullable;
 
@@ -21,7 +22,7 @@ import io.micrometer.tracing.Tracer;
  *   <li>支持标准字段：tenantId、userId、traceId</li>
  *   <li>支持自定义字段</li>
  *   <li>支持远程传播和本地传播</li>
- *   <li>线程安全的读写操作</li>
+ *   <li>线程安全的读写操作（基于 ThreadLocal）</li>
  * </ul>
  *
  * <h3>使用示例</h3>
@@ -36,6 +37,13 @@ import io.micrometer.tracing.Tracer;
  * // 获取所有 Baggage
  * Map<String, String> allBaggage = BaggageContext.getAll();
  * }</pre>
+ *
+ * <h3>异步传播</h3>
+ * <p>
+ * 使用 {@link BaggageContextSnapshotProvider} 和 {@link io.github.afgprojects.framework.core.context.ThreadLocalContextPropagator}
+ * 实现跨线程传播。不再使用 static ConcurrentHashMap（有线程共享状态 bug），
+ * 改用 ThreadLocal 确保每个线程有独立的本地存储。
+ * </p>
  */
 public final class BaggageContext {
 
@@ -51,7 +59,14 @@ public final class BaggageContext {
      */
     public static final String BAGGAGE_HEADER_PREFIX = "X-Baggage-";
 
-    private static final Map<String, String> LOCAL_BAGGAGE = new ConcurrentHashMap<>();
+    /**
+     * 线程本地 Baggage 存储。
+     * <p>
+     * 使用 ThreadLocal 替代 static ConcurrentHashMap，确保每个线程有独立的存储，
+     * 避免线程间状态共享和 clear() 影响所有线程的并发 bug。
+     */
+    private static final ThreadLocal<Map<String, String>> LOCAL_BAGGAGE =
+            ThreadLocal.withInitial(HashMap::new);
 
     private BaggageContext() {}
 
@@ -63,10 +78,10 @@ public final class BaggageContext {
      */
     public static void set(String key, @Nullable String value) {
         if (value == null) {
-            LOCAL_BAGGAGE.remove(key);
-            return;
+            LOCAL_BAGGAGE.get().remove(key);
+        } else {
+            LOCAL_BAGGAGE.get().put(key, value);
         }
-        LOCAL_BAGGAGE.put(key, value);
 
         // 如果有 Micrometer Tracer，也设置到 BaggageManager
         Tracer tracer = TraceContext.getTracer();
@@ -74,7 +89,7 @@ public final class BaggageContext {
             var baggage = baggageManager.getBaggage(key);
             if (baggage != null) {
                 baggage.set(value);
-            } else {
+            } else if (value != null) {
                 baggageManager.createBaggage(key, value);
             }
         }
@@ -100,7 +115,7 @@ public final class BaggageContext {
         }
 
         // 回退到本地存储
-        return LOCAL_BAGGAGE.get(key);
+        return LOCAL_BAGGAGE.get().get(key);
     }
 
     /**
@@ -180,10 +195,10 @@ public final class BaggageContext {
      * @return 所有 Baggage 的副本
      */
     public static Map<String, String> getAll() {
-        Map<String, String> result = new ConcurrentHashMap<>();
+        Map<String, String> result = new HashMap<>();
 
         // 从本地存储获取
-        result.putAll(LOCAL_BAGGAGE);
+        result.putAll(LOCAL_BAGGAGE.get());
 
         // 从 Micrometer Baggage 获取（覆盖本地值）
         Tracer tracer = TraceContext.getTracer();
@@ -198,10 +213,45 @@ public final class BaggageContext {
     }
 
     /**
+     * 获取本地 ThreadLocal Baggage（非 Micrometer 部分）。
+     * <p>
+     * 用于 {@link BaggageContextSnapshotProvider} 的快照捕获。
+     *
+     * @return 本地 Baggage 的不可变副本
+     */
+    static Map<String, String> getLocalBaggage() {
+        return Collections.unmodifiableMap(new HashMap<>(LOCAL_BAGGAGE.get()));
+    }
+
+    /**
+     * 恢复本地 ThreadLocal Baggage。
+     * <p>
+     * 用于 {@link BaggageContextSnapshotProvider} 的快照恢复。
+     *
+     * @param baggage 要恢复的 Baggage 数据
+     */
+    static void restoreLocalBaggage(Map<String, String> baggage) {
+        LOCAL_BAGGAGE.get().clear();
+        if (baggage != null) {
+            LOCAL_BAGGAGE.get().putAll(baggage);
+        }
+    }
+
+    /**
      * 清除所有本地 Baggage
      */
     public static void clear() {
-        LOCAL_BAGGAGE.clear();
+        LOCAL_BAGGAGE.get().clear();
+    }
+
+    /**
+     * 清除本地 ThreadLocal Baggage（包括 ThreadLocal 引用）。
+     * <p>
+     * 用于 {@link BaggageContextSnapshotProvider} 的上下文清除，
+     * 比 {@link #clear()} 更彻底，防止线程池复用时的内存泄漏。
+     */
+    static void clearLocalBaggage() {
+        LOCAL_BAGGAGE.remove();
     }
 
     /**
@@ -220,7 +270,7 @@ public final class BaggageContext {
      * @param key 字段名称
      */
     public static void remove(String key) {
-        LOCAL_BAGGAGE.remove(key);
+        LOCAL_BAGGAGE.get().remove(key);
 
         // 同时从 Micrometer Baggage 移除
         Tracer tracer = TraceContext.getTracer();

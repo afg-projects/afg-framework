@@ -1,11 +1,15 @@
 package io.github.afgprojects.framework.security.auth.endpoint;
 
+import io.github.afgprojects.framework.commons.model.Result;
+import io.github.afgprojects.framework.security.core.authentication.AfgAuthentication;
+import io.github.afgprojects.framework.security.core.authentication.AfgUserDetails;
 import io.github.afgprojects.framework.security.core.login.LoginService;
 import io.github.afgprojects.framework.security.core.login.model.CaptchaRequest;
 import io.github.afgprojects.framework.security.core.login.model.CaptchaResponse;
 import io.github.afgprojects.framework.security.core.login.model.LoginRequest;
 import io.github.afgprojects.framework.security.core.login.model.LoginResponse;
 import org.jspecify.annotations.NonNull;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -93,6 +97,32 @@ public class LoginController {
     @PostMapping("/captcha/sms")
     public CaptchaResponse sendSmsCaptcha(@RequestBody SmsCaptchaRequest request) {
         return loginService.generateCaptcha(CaptchaRequest.ofSms(request.mobile(), request.tenantId()));
+    }
+
+    /**
+     * 获取当前登录用户信息。
+     *
+     * <p>需要 Bearer Token 认证，从 SecurityContext 中提取用户信息。
+     *
+     * @return 用户信息响应
+     */
+    @GetMapping("/user-info")
+    public Result<UserInfoResponse> userInfo() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof AfgAuthentication afgAuth) {
+            AfgUserDetails details = afgAuth.getUserDetails();
+            return Result.success(new UserInfoResponse(
+                    details.getUserId(),
+                    details.getUsername(),
+                    details.getDisplayName(),
+                    null,
+                    details.getRoles(),
+                    details.getAuthorities().stream()
+                            .map(auth -> auth.getAuthority())
+                            .collect(java.util.stream.Collectors.toSet()),
+                    details.getTenantId()));
+        }
+        return Result.fail(401, "未认证");
     }
 
     /**

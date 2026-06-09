@@ -27,7 +27,7 @@ import io.github.afgprojects.framework.core.config.AfgCoreProperties;
  * @see <a href="https://owasp.org/www-project-antisamy/">OWASP AntiSamy</a>
  */
 @Slf4j
-public class EnhancedInputSanitizer {
+public class EnhancedInputSanitizer implements InputSecurityChecker {
 
     /**
      * AntiSamy 实例（线程安全）

@@ -4,6 +4,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import io.github.afgprojects.framework.commons.model.PageData;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("PageData")

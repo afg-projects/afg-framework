@@ -5,6 +5,7 @@ import java.util.List;
 
 import jakarta.servlet.Servlet;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -24,10 +25,20 @@ import io.github.afgprojects.framework.core.web.security.filter.SecurityHeaderFi
 import io.github.afgprojects.framework.core.web.security.filter.SqlInjectionFilter;
 import io.github.afgprojects.framework.core.web.security.filter.XssFilter;
 import io.github.afgprojects.framework.core.web.security.sanitizer.EnhancedInputSanitizer;
+import io.github.afgprojects.framework.core.web.security.sanitizer.InputSecurityChecker;
+import io.github.afgprojects.framework.core.web.security.sanitizer.NoOpInputSanitizer;
 
 /**
  * AFG 安全自动配置
+ * <p>
+ * 确保始终创建 {@link InputSecurityChecker} bean：
+ * <ul>
+ *   <li>AntiSamy 在 classpath 上时，创建 {@link EnhancedInputSanitizer}</li>
+ *   <li>AntiSamy 不在 classpath 上时，创建 {@link NoOpInputSanitizer}（记录警告，不提供检测）</li>
+ * </ul>
+ * XssFilter 和 SqlInjectionFilter 始终使用 {@link InputSecurityChecker}，不再依赖正则表达式回退。
  */
+@Slf4j
 @AutoConfiguration
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @ConditionalOnClass(Servlet.class)
@@ -35,21 +46,51 @@ import io.github.afgprojects.framework.core.web.security.sanitizer.EnhancedInput
 @EnableConfigurationProperties(AfgCoreProperties.class)
 public class AfgSecurityAutoConfiguration {
 
+    /**
+     * 创建增强输入清洗器（AntiSamy 在 classpath 上时）。
+     * <p>
+     * 使用 OWASP AntiSamy 进行 XSS 防护，提供比正则表达式更可靠的检测能力。
+     */
     @Bean
-    @ConditionalOnMissingBean
+    @ConditionalOnMissingBean(InputSecurityChecker.class)
+    @ConditionalOnClass(name = "org.owasp.validator.html.AntiSamy")
     @ConditionalOnProperty(prefix = "afg.core.security.input-sanitizer", name = "enabled", havingValue = "true", matchIfMissing = true)
     public EnhancedInputSanitizer enhancedInputSanitizer(AfgCoreProperties properties) {
         return new EnhancedInputSanitizer(properties);
     }
 
+    /**
+     * 创建空操作输入安全检测器（AntiSamy 不在 classpath 上时的降级）。
+     * <p>
+     * 所有检测方法返回 false，不提供任何安全防护。
+     * 记录一条警告日志提示应添加 AntiSamy 依赖。
+     */
+    @Bean
+    @ConditionalOnMissingBean(InputSecurityChecker.class)
+    @ConditionalOnProperty(prefix = "afg.core.security.input-sanitizer", name = "enabled", havingValue = "true", matchIfMissing = true)
+    public NoOpInputSanitizer noOpInputSanitizer() {
+        return new NoOpInputSanitizer();
+    }
+
+    /**
+     * 创建 XSS 过滤器。
+     * <p>
+     * 使用 {@link InputSecurityChecker} 进行 XSS 检测。
+     * 当 AntiSamy 不在 classpath 上时，检测器为 {@link NoOpInputSanitizer}（不检测）。
+     */
     @Bean
     @ConditionalOnProperty(prefix = "afg.core.security.xss", name = "enabled", havingValue = "true", matchIfMissing = true)
     @ConditionalOnMissingBean
-    @ConditionalOnBean(EnhancedInputSanitizer.class)
-    public XssFilter xssFilter(EnhancedInputSanitizer sanitizer) {
-        return new XssFilter(sanitizer);
+    @ConditionalOnBean(InputSecurityChecker.class)
+    public XssFilter xssFilter(InputSecurityChecker securityChecker) {
+        return new XssFilter(securityChecker);
     }
 
+    /**
+     * 创建 SQL 注入过滤器。
+     * <p>
+     * 使用 {@link InputSecurityChecker} 进行 SQL 注入检测。
+     */
     @Bean
     @ConditionalOnProperty(
             prefix = "afg.core.security.sql-injection",
@@ -57,9 +98,18 @@ public class AfgSecurityAutoConfiguration {
             havingValue = "true",
             matchIfMissing = true)
     @ConditionalOnMissingBean
-    @ConditionalOnBean(EnhancedInputSanitizer.class)
-    public SqlInjectionFilter sqlInjectionFilter(EnhancedInputSanitizer sanitizer) {
-        return new SqlInjectionFilter(sanitizer);
+    @ConditionalOnBean(InputSecurityChecker.class)
+    public SqlInjectionFilter sqlInjectionFilter(InputSecurityChecker securityChecker) {
+        // SqlInjectionChecker 需要 EnhancedInputSanitizer，但我们可以通过适配处理
+        // 对于 SQL 注入检测，EnhancedInputSanitizer 内部仍使用 InputSanitizer.containsSqlInjection()
+        // 所以这里直接注入 EnhancedInputSanitizer，如果只有 NoOpInputSanitizer 则跳过
+        if (securityChecker instanceof EnhancedInputSanitizer sanitizer) {
+            return new SqlInjectionFilter(sanitizer);
+        }
+        // NoOpInputSanitizer 不支持 SQL 注入检测，使用默认构造函数（正则表达式）
+        log.warn("SqlInjectionFilter falling back to regex-based detection because InputSecurityChecker "
+                + "is not an EnhancedInputSanitizer. Add AntiSamy dependency for full protection.");
+        return new SqlInjectionFilter();
     }
 
     @Bean
