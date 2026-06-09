@@ -133,7 +133,7 @@ class JdbcDataManagerCrudTest extends BaseDataTest {
         void shouldFilterByMultipleConditions_whenQueryWithAnd() {
             dataManager.save(TestUser.class, createUser("zhang", 1));
             dataManager.save(TestUser.class, createUser("wang", 0));
-            dataManager.save(TestUser.class, createUser("zhao", 1));
+            dataManager.save(TestUser.class, createUser("zhao", 0));
 
             List<TestUser> result = dataManager.entity(TestUser.class)
                 .query()

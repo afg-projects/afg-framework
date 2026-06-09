@@ -8,7 +8,8 @@ version = "1.0.0-SNAPSHOT"
 dependencies {
     api(project(":governance:proto"))
     api(project(":core"))
-    api("io.grpc:grpc-netty-shaded:1.81.0")
+    // 使用 grpc-netty（非 shaded），兼容 Spring Cloud Gateway 等 WebFlux 项目
+    implementation(libs.grpc.netty)
 
     compileOnly(libs.spring.boot.starter)
     compileOnly(libs.spring.boot.autoconfigure)

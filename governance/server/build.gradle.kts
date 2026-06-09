@@ -6,13 +6,14 @@ group = "io.github.afg-projects"
 version = "1.0.0-SNAPSHOT"
 
 dependencies {
-    api(project(":governance:client"))
+    api(project(":governance:proto"))
     implementation(project(":core"))
     implementation(project(":data-impl:data-jdbc"))
     implementation(project(":data-impl:data-liquibase"))
     implementation(project(":security-impl:auth-server"))
-    api("io.grpc:grpc-netty-shaded:1.81.0")
-    implementation("net.devh:grpc-server-spring-boot-starter:3.0.0.RELEASE")
+    // 使用 grpc-netty（非 shaded），兼容 Spring Cloud Gateway 等 WebFlux 项目
+    implementation(libs.grpc.netty)
+    implementation(libs.grpc.server.spring.boot.starter)
     implementation(libs.spring.boot.starter.web)
     implementation(libs.spring.boot.starter.validation)
     implementation(libs.jackson.yaml)

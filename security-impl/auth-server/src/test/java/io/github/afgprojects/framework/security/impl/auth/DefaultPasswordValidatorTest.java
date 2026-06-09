@@ -118,7 +118,7 @@ class DefaultPasswordValidatorTest {
         @Test
         @DisplayName("12 位符合要求的密码应验证通过")
         void shouldPassWithTwelveCharPassword() {
-            PasswordValidator.ValidationResult result = validator.validate("AbcdEfgh1!2");
+            PasswordValidator.ValidationResult result = validator.validate("AbcdEfgh1!2@");
 
             assertThat(result.valid()).isTrue();
         }

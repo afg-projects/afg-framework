@@ -118,6 +118,17 @@ void shouldThrowExceptionWhenEntityNotFound() {
 | JUnit 5 | 测试框架 |
 | AssertJ | 断言（流式断言，比 JUnit assert 更可读） |
 | Mockito | 仅在非核心模块或不可实例化的外部依赖时使用 |
-| H2 | 集成测试数据库（内存模式） |
-| Testcontainers | 中间件集成测试（Redis、RabbitMQ 等） |
+| H2 | 框架内部数据层集成测试（内存模式，见下方说明） |
+| Testcontainers | 中间件集成测试（Redis、RabbitMQ 等）及下游项目 |
 | @SpringBootTest | 仅轻量级 slice 加载 |
+
+### H2 vs Testcontainers 使用范围
+
+| 场景 | 数据库策略 | 说明 |
+|------|-----------|------|
+| 框架内部数据层测试（data-jdbc、data-core） | **H2 允许** | 快速、可移植；验证 SQL 生成和 DataManager 逻辑 |
+| 框架内部中间件测试（ai-core、auth-server） | **H2 或 Testcontainers** | ai-core 使用 MySQL Testcontainers；auth-server 可用 H2 |
+| 中间件集成测试（Redis、RabbitMQ、Kafka） | **必须 Testcontainers** | H2 无法模拟中间件行为 |
+| 下游项目（afg-infra、afg-ai-platform） | **必须 Testcontainers + PostgreSQL** | 生产环境一致性验证 |
+
+**原则**：H2 用于框架内部快速验证 SQL 生成逻辑和 DataManager 行为；Testcontainers 用于需要真实中间件行为或生产环境一致性的场景。

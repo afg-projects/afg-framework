@@ -66,6 +66,7 @@ dependencies {
     testImplementation(libs.testcontainers)
     testImplementation(libs.testcontainers.junit.jupiter)
     testImplementation(libs.testcontainers.mysql)
+    testImplementation(libs.mysql.connector)
     testImplementation(project(":data-impl:data-liquibase"))
     testImplementation(project(":data-impl:data-jdbc"))
     testImplementation(project(":data-impl:data-liquibase"))

@@ -73,6 +73,9 @@ class CasbinAfgEnforcerTest {
         @DisplayName("已添加策略后应允许匹配的请求")
         void shouldAllowMatchingRequest() {
             addPolicyDirectly("user1", "tenant1", "resource1", "read");
+            // RBAC-domain model 的 matcher 使用 g(r.sub, r.dom, p.sub)，
+            // 直接 subject 匹配需要添加 self-referencing grouping policy
+            addRoleDirectly("user1", "tenant1", "user1");
 
             boolean result = enforcer.enforce("user1", "tenant1", "resource1", "read");
 
@@ -83,6 +86,7 @@ class CasbinAfgEnforcerTest {
         @DisplayName("不匹配的动作应被拒绝")
         void shouldDenyNonMatchingAction() {
             addPolicyDirectly("user1", "tenant1", "resource1", "read");
+            addRoleDirectly("user1", "tenant1", "user1");
 
             boolean result = enforcer.enforce("user1", "tenant1", "resource1", "write");
 
@@ -93,6 +97,7 @@ class CasbinAfgEnforcerTest {
         @DisplayName("不匹配的域应被拒绝")
         void shouldDenyNonMatchingDomain() {
             addPolicyDirectly("user1", "tenant1", "resource1", "read");
+            addRoleDirectly("user1", "tenant1", "user1");
 
             boolean result = enforcer.enforce("user1", "tenant2", "resource1", "read");
 
@@ -103,6 +108,7 @@ class CasbinAfgEnforcerTest {
         @DisplayName("不匹配的主体应被拒绝")
         void shouldDenyNonMatchingSubject() {
             addPolicyDirectly("user1", "tenant1", "resource1", "read");
+            addRoleDirectly("user1", "tenant1", "user1");
 
             boolean result = enforcer.enforce("user2", "tenant1", "resource1", "read");
 
@@ -222,6 +228,7 @@ class CasbinAfgEnforcerTest {
         @DisplayName("clearPolicies 应清空所有策略")
         void shouldClearAllPolicies() {
             addPolicyDirectly("user1", "tenant1", "resource1", "read");
+            addRoleDirectly("user1", "tenant1", "user1");
             assertThat(enforcer.enforce("user1", "tenant1", "resource1", "read")).isTrue();
 
             enforcer.clearPolicies();

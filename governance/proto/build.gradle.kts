@@ -17,10 +17,10 @@ configure<com.vanniktech.maven.publish.MavenPublishBaseExtension> {
 }
 
 dependencies {
-    api("io.grpc:grpc-protobuf:1.81.0")
-    api("io.grpc:grpc-stub:1.81.0")
-    api("com.google.protobuf:protobuf-java:4.34.1")
-    api("javax.annotation:javax.annotation-api:1.3.2")
+    api(libs.grpc.protobuf)
+    api(libs.grpc.stub)
+    api(libs.protobuf.java)
+    api(libs.javax.annotation.api)
 
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
