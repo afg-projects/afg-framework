@@ -3,6 +3,8 @@ package io.github.afgprojects.framework.security.resource.tenant;
 import io.github.afgprojects.framework.security.core.tenant.DefaultTenantContext;
 import io.github.afgprojects.framework.security.core.tenant.TenantContext;
 import io.github.afgprojects.framework.security.core.tenant.TenantResolver;
+import io.github.afgprojects.framework.security.core.token.JwtClaimsConfig;
+import io.github.afgprojects.framework.security.core.token.JwtClaimsExtractor;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.jspecify.annotations.NonNull;
@@ -18,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
  * 从 JWT Token 解析租户的解析器。
  *
  * <p>从 Spring Security 上下文中提取 JWT Token，
- * 然后从 Token 的 claim 中获取租户 ID。
+ * 然后使用 {@link JwtClaimsExtractor} 从 Token 的 claim 中获取租户 ID。
  *
  * <p>这是最可信的解析方式，因为 Token 由授权服务器签发。
  *
@@ -28,23 +30,18 @@ import lombok.extern.slf4j.Slf4j;
 public class TokenTenantResolver implements TenantResolver {
 
     /**
-     * 默认租户 ID claim 名称。
-     */
-    private static final String DEFAULT_TENANT_ID_CLAIM = "tenant_id";
-
-    /**
      * 默认优先级。
      */
     private static final int DEFAULT_ORDER = 100;
 
-    private final String tenantIdClaim;
+    private final JwtClaimsExtractor claimsExtractor;
     private int order = DEFAULT_ORDER;
 
     /**
      * 使用默认 claim 名称创建解析器。
      */
     public TokenTenantResolver() {
-        this(DEFAULT_TENANT_ID_CLAIM);
+        this(JwtClaimsConfig.DEFAULT_TENANT_ID_CLAIM);
     }
 
     /**
@@ -53,9 +50,20 @@ public class TokenTenantResolver implements TenantResolver {
      * @param tenantIdClaim 租户 ID claim 名称
      */
     public TokenTenantResolver(@Nullable String tenantIdClaim) {
-        this.tenantIdClaim = (tenantIdClaim != null && !tenantIdClaim.isBlank())
-                ? tenantIdClaim
-                : DEFAULT_TENANT_ID_CLAIM;
+        JwtClaimsConfig claimsConfig = new JwtClaimsConfig();
+        if (tenantIdClaim != null && !tenantIdClaim.isBlank()) {
+            claimsConfig.setTenantIdClaim(tenantIdClaim);
+        }
+        this.claimsExtractor = new JwtClaimsExtractor(claimsConfig);
+    }
+
+    /**
+     * 使用指定 Claims 提取器创建解析器。
+     *
+     * @param claimsExtractor JWT Claims 提取器
+     */
+    public TokenTenantResolver(@NonNull JwtClaimsExtractor claimsExtractor) {
+        this.claimsExtractor = claimsExtractor;
     }
 
     @Override
@@ -79,9 +87,9 @@ public class TokenTenantResolver implements TenantResolver {
      */
     @Nullable
     private TenantContext resolveFromJwt(@NonNull Jwt jwt) {
-        String tenantId = jwt.getClaimAsString(tenantIdClaim);
+        String tenantId = claimsExtractor.extractTenantId(jwt.getClaims());
         if (tenantId == null || tenantId.isBlank()) {
-            log.debug("JWT 中不包含租户 ID claim: {}", tenantIdClaim);
+            log.debug("JWT 中不包含租户 ID claim: {}", claimsExtractor.getClaimsConfig().getTenantIdClaim());
             return null;
         }
 

@@ -17,6 +17,9 @@ dependencies {
     api(libs.spring.security.config)
     api(libs.spring.boot.starter.security)
 
+    // Spring Security OAuth2 Resource Server（JWT Bearer Token 验证）
+    api(libs.spring.boot.starter.oauth2.resource.server)
+
     // Nimbus JOSE JWT（JWT 处理）
     api(libs.nimbus.jose.jwt)
 

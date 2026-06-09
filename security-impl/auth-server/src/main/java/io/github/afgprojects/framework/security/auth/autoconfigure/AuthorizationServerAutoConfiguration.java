@@ -1,7 +1,15 @@
 package io.github.afgprojects.framework.security.auth.autoconfigure;
 
+import io.github.afgprojects.framework.security.auth.oauth2.controller.OAuth2Controller;
+import io.github.afgprojects.framework.security.auth.oauth2.controller.OAuth2ExceptionControllerAdvice;
+import io.github.afgprojects.framework.security.auth.token.AuthServerBearerTokenFilter;
+import io.github.afgprojects.framework.security.auth.token.AuthServerBearerTokenResolver;
+import io.github.afgprojects.framework.security.core.oauth2.OAuth2AuthorizationService;
+import io.github.afgprojects.framework.security.core.oauth2.OAuth2ClientService;
+import io.github.afgprojects.framework.security.core.login.TokenService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
@@ -11,6 +19,8 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+
+import org.springframework.security.config.Customizer;
 
 /**
  * 认证服务器安全自动配置。
@@ -22,7 +32,11 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint;
  *   <li>认证 API 端点 (/auth-api/auth/**) - 登录相关接口</li>
  * </ul>
  *
+ * <p>需要认证的端点通过 {@link AuthServerBearerTokenFilter} 自动解析 Bearer Token
+ * 并填充 SecurityContext，无需依赖 resource-server 模块。
+ *
  * <p>注意：认证服务器模块 context-path 为 /auth-api，所有路径都带此前缀。
+ * 所有 SecurityFilterChain 均禁用 CSRF，因为这是纯 API 服务（无服务端渲染页面）。
  *
  * <p>参考 Spring Authorization Server 的多链配置模式。
  *
@@ -33,24 +47,69 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 @ConditionalOnProperty(prefix = "afg.security.auth-server", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class AuthorizationServerAutoConfiguration {
 
+    /**
+     * 注册 AuthServerBearerTokenResolver Bean。
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public AuthServerBearerTokenResolver authServerBearerTokenResolver(TokenService tokenService) {
+        log.info("Configuring AuthServerBearerTokenResolver");
+        return new AuthServerBearerTokenResolver(tokenService);
+    }
+
+    /**
+     * 注册 AuthServerBearerTokenFilter Bean。
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public AuthServerBearerTokenFilter authServerBearerTokenFilter(AuthServerBearerTokenResolver tokenResolver) {
+        log.info("Configuring AuthServerBearerTokenFilter");
+        return new AuthServerBearerTokenFilter(tokenResolver);
+    }
+
+    /**
+     * 注册 OAuth2Controller Bean。
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public OAuth2Controller oAuth2Controller(
+            OAuth2AuthorizationService authorizationService,
+            OAuth2ClientService clientService) {
+        log.info("Configuring OAuth2 controller");
+        return new OAuth2Controller(authorizationService, clientService);
+    }
+
+    /**
+     * 注册 OAuth2 异常处理器 Bean。
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public OAuth2ExceptionControllerAdvice oAuth2ExceptionControllerAdvice() {
+        log.info("Configuring OAuth2 exception handler");
+        return new OAuth2ExceptionControllerAdvice();
+    }
+
     @Bean
     @Order(1)
-    public SecurityFilterChain oauth2SecurityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain oauth2SecurityFilterChain(
+            HttpSecurity http,
+            AuthServerBearerTokenFilter bearerTokenFilter) throws Exception {
         log.info("Configuring OAuth2 security filter chain");
 
         http
             .securityMatcher("/auth-api/oauth2/**")
+            .addFilterBefore(bearerTokenFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(authorize ->
                 authorize
                     .requestMatchers("/auth-api/oauth2/token", "/auth-api/oauth2/introspect", "/auth-api/oauth2/revoke").permitAll()
                     .requestMatchers("/auth-api/oauth2/authorize").authenticated()
                     .anyRequest().authenticated())
-            .exceptionHandling(exceptions ->
-                exceptions.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+            .csrf(AbstractHttpConfigurer::disable)
             .formLogin(AbstractHttpConfigurer::disable)
             .httpBasic(AbstractHttpConfigurer::disable)
             .logout(AbstractHttpConfigurer::disable)
-            .csrf(csrf -> csrf.ignoringRequestMatchers("/auth-api/oauth2/**"))
+            .exceptionHandling(exceptions ->
+                exceptions.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
             .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));
 
         return http.build();
@@ -65,7 +124,7 @@ public class AuthorizationServerAutoConfiguration {
             .securityMatcher("/auth-api/internal/**")
             .authorizeHttpRequests(authorize ->
                 authorize.anyRequest().permitAll())
-            .csrf(csrf -> csrf.ignoringRequestMatchers("/auth-api/internal/**"))
+            .csrf(AbstractHttpConfigurer::disable)
             .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));
 
         return http.build();
@@ -73,23 +132,27 @@ public class AuthorizationServerAutoConfiguration {
 
     @Bean
     @Order(3)
-    public SecurityFilterChain authApiSecurityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain authApiSecurityFilterChain(
+            HttpSecurity http,
+            AuthServerBearerTokenFilter bearerTokenFilter) throws Exception {
         log.info("Configuring auth API security filter chain");
 
         http
             .securityMatcher("/auth-api/auth/**")
+            .addFilterBefore(bearerTokenFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(authorize ->
                 authorize
-                    .requestMatchers("/auth-api/auth/login", "/auth-api/auth/refresh").permitAll()
+                    .requestMatchers("/auth-api/auth/login", "/auth-api/auth/refresh", "/auth-api/auth/session").permitAll()
                     .requestMatchers("/auth-api/auth/captcha/**").permitAll()
                     .requestMatchers("/auth-api/auth/logout").authenticated()
+                    .requestMatchers("/auth-api/auth/user-info").authenticated()
                     .anyRequest().authenticated())
-            .exceptionHandling(exceptions ->
-                exceptions.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+            .csrf(AbstractHttpConfigurer::disable)
             .formLogin(AbstractHttpConfigurer::disable)
             .httpBasic(AbstractHttpConfigurer::disable)
             .logout(AbstractHttpConfigurer::disable)
-            .csrf(csrf -> csrf.ignoringRequestMatchers("/auth-api/auth/**"))
+            .exceptionHandling(exceptions ->
+                exceptions.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
             .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));
 
         return http.build();

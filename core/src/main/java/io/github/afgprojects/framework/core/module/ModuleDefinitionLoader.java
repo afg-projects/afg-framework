@@ -61,7 +61,12 @@ public final class ModuleDefinitionLoader {
 
     /**
      * 解析模块定义
-     * 格式: moduleId:configFile:className
+     *
+     * <p>支持两种索引格式：
+     * <ul>
+     *   <li>新格式（含 contextPath）: moduleId:configFile:className:contextPath</li>
+     *   <li>旧格式（不含 contextPath）: moduleId:configFile:className，contextPath 默认为 "/{moduleId}-api"</li>
+     * </ul>
      */
     public static ModuleDefinitionInfo parseModuleDefinition(String line) {
         String[] parts = line.split(":");
@@ -71,7 +76,7 @@ public final class ModuleDefinitionLoader {
             String className = parts[2];
 
             String basePackage = extractBasePackage(className);
-            String contextPath = "/" + moduleId + "-api";
+            String contextPath = parts.length >= 4 ? parts[3] : "/" + moduleId + "-api";
 
             return new ModuleDefinitionInfo(moduleId, basePackage, contextPath, configFile, className);
         }

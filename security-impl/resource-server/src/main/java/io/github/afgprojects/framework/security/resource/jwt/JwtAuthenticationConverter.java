@@ -2,6 +2,8 @@ package io.github.afgprojects.framework.security.resource.jwt;
 
 import io.github.afgprojects.framework.security.core.authentication.AfgAuthentication;
 import io.github.afgprojects.framework.security.core.authentication.AfgUserDetails;
+import io.github.afgprojects.framework.security.core.token.JwtClaimsConfig;
+import io.github.afgprojects.framework.security.core.token.JwtClaimsExtractor;
 import io.github.afgprojects.framework.security.resource.properties.jwt.ResourceSecurityJwtProperties;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.GrantedAuthority;
@@ -13,12 +15,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * JWT 认证转换器。
  *
  * <p>将 Spring Security 的 JwtAuthenticationToken 转换为 AfgAuthentication。
+ *
+ * <p>使用 {@link JwtClaimsExtractor} 从 JWT Claims 中提取用户信息，
+ * Claim 名称映射由 {@link JwtClaimsConfig} 统一管理。
  *
  * <p>使用示例：
  * <pre>{@code
@@ -30,15 +34,30 @@ import java.util.stream.Collectors;
  */
 public class JwtAuthenticationConverter {
 
-    private final ResourceSecurityJwtProperties jwtConfig;
+    private final JwtClaimsExtractor claimsExtractor;
 
     /**
-     * 构造转换器。
+     * 使用指定 JWT 配置属性构造转换器。
      *
-     * @param jwtConfig JWT 配置属性
+     * @param jwtConfig JWT 配置属性（用于构建 Claims 提取器）
      */
     public JwtAuthenticationConverter(@NonNull ResourceSecurityJwtProperties jwtConfig) {
-        this.jwtConfig = jwtConfig;
+        JwtClaimsConfig claimsConfig = new JwtClaimsConfig();
+        claimsConfig.setUserIdClaim(jwtConfig.getUserIdClaim());
+        claimsConfig.setUsernameClaim(jwtConfig.getUsernameClaim());
+        claimsConfig.setRolesClaim(jwtConfig.getRolesClaim());
+        claimsConfig.setPermissionsClaim(jwtConfig.getPermissionsClaim());
+        claimsConfig.setTenantIdClaim(jwtConfig.getTenantIdClaim());
+        this.claimsExtractor = new JwtClaimsExtractor(claimsConfig);
+    }
+
+    /**
+     * 使用指定 Claims 提取器构造转换器。
+     *
+     * @param claimsExtractor JWT Claims 提取器
+     */
+    public JwtAuthenticationConverter(@NonNull JwtClaimsExtractor claimsExtractor) {
+        this.claimsExtractor = claimsExtractor;
     }
 
     /**
@@ -63,12 +82,12 @@ public class JwtAuthenticationConverter {
     public AfgUserDetails convertToUserDetails(@NonNull JwtAuthenticationToken jwtToken) {
         Map<String, Object> claims = jwtToken.getToken().getClaims();
 
-        String userId = getClaimAsString(claims, jwtConfig.getUserIdClaim());
-        String username = getClaimAsString(claims, jwtConfig.getUsernameClaim());
-        String tenantId = getClaimAsString(claims, jwtConfig.getTenantIdClaim());
+        String userId = claimsExtractor.extractUserId(claims);
+        String username = claimsExtractor.extractUsername(claims);
+        String tenantId = claimsExtractor.extractTenantId(claims);
 
-        Set<String> roles = getClaimAsStringSet(claims, jwtConfig.getRolesClaim());
-        Set<String> permissions = getClaimAsStringSet(claims, jwtConfig.getPermissionsClaim());
+        Set<String> roles = claimsExtractor.extractRoles(claims);
+        Set<String> permissions = claimsExtractor.extractPermissions(claims);
 
         return new JwtUserDetails(
                 userId,
@@ -78,38 +97,6 @@ public class JwtAuthenticationConverter {
                 permissions,
                 jwtToken.getAuthorities()
         );
-    }
-
-    /**
-     * 从 claims 中获取字符串值。
-     */
-    private String getClaimAsString(Map<String, Object> claims, String claimName) {
-        Object value = claims.get(claimName);
-        if (value == null) {
-            return null;
-        }
-        return String.valueOf(value);
-    }
-
-    /**
-     * 从 claims 中获取字符串集合。
-     */
-    @SuppressWarnings("unchecked")
-    private Set<String> getClaimAsStringSet(Map<String, Object> claims, String claimName) {
-        Object value = claims.get(claimName);
-        if (value == null) {
-            return Set.of();
-        }
-        if (value instanceof Collection<?> collection) {
-            return collection.stream()
-                    .map(String::valueOf)
-                    .collect(Collectors.toSet());
-        }
-        if (value instanceof String str) {
-            // 支持逗号分隔的字符串
-            return Set.of(str.split(","));
-        }
-        return Set.of();
     }
 
     /**

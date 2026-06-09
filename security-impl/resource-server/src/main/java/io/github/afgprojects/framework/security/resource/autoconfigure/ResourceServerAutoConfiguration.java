@@ -2,6 +2,8 @@ package io.github.afgprojects.framework.security.resource.autoconfigure;
 
 import io.github.afgprojects.framework.core.api.config.RemoteConfigClient;
 import io.github.afgprojects.framework.core.cache.CacheManager;
+import io.github.afgprojects.framework.security.core.token.JwtClaimsConfig;
+import io.github.afgprojects.framework.security.core.token.JwtClaimsExtractor;
 import io.github.afgprojects.framework.security.resource.jwt.JwtAuthenticationConverter;
 import io.github.afgprojects.framework.security.resource.permission.CachedPermissionChecker;
 import io.github.afgprojects.framework.security.resource.permission.DynamicApiPermissionInterceptor;
@@ -41,20 +43,41 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ResourceServerAutoConfiguration {
 
+    /**
+     * 注册 JwtClaimsExtractor Bean。
+     *
+     * <p>从 ResourceSecurityJwtProperties 构建 JwtClaimsConfig，
+     * 统一管理 JWT Claim 名称映射。
+     */
     @Bean
     @ConditionalOnProperty(prefix = "afg.security.resource-server.jwt", name = "enabled", havingValue = "true", matchIfMissing = true)
     @ConditionalOnMissingBean
-    public JwtAuthenticationConverter jwtAuthenticationConverter(@NonNull ResourceSecurityProperties properties) {
-        log.info("Configuring JWT authentication converter");
-        return new JwtAuthenticationConverter(properties.getJwt());
+    public JwtClaimsExtractor jwtClaimsExtractor(@NonNull ResourceSecurityProperties properties) {
+        JwtClaimsConfig claimsConfig = new JwtClaimsConfig();
+        claimsConfig.setUserIdClaim(properties.getJwt().getUserIdClaim());
+        claimsConfig.setUsernameClaim(properties.getJwt().getUsernameClaim());
+        claimsConfig.setRolesClaim(properties.getJwt().getRolesClaim());
+        claimsConfig.setPermissionsClaim(properties.getJwt().getPermissionsClaim());
+        claimsConfig.setTenantIdClaim(properties.getJwt().getTenantIdClaim());
+        log.info("Configuring JwtClaimsExtractor with userIdClaim={}, usernameClaim={}, tenantIdClaim={}",
+                claimsConfig.getUserIdClaim(), claimsConfig.getUsernameClaim(), claimsConfig.getTenantIdClaim());
+        return new JwtClaimsExtractor(claimsConfig);
     }
 
     @Bean
     @ConditionalOnProperty(prefix = "afg.security.resource-server.jwt", name = "enabled", havingValue = "true", matchIfMissing = true)
     @ConditionalOnMissingBean
-    public TokenTenantResolver tokenTenantResolver(@NonNull ResourceSecurityProperties properties) {
-        log.info("Configuring token tenant resolver with claim: {}", properties.getJwt().getTenantIdClaim());
-        TokenTenantResolver resolver = new TokenTenantResolver(properties.getJwt().getTenantIdClaim());
+    public JwtAuthenticationConverter jwtAuthenticationConverter(@NonNull JwtClaimsExtractor claimsExtractor) {
+        log.info("Configuring JWT authentication converter");
+        return new JwtAuthenticationConverter(claimsExtractor);
+    }
+
+    @Bean
+    @ConditionalOnProperty(prefix = "afg.security.resource-server.jwt", name = "enabled", havingValue = "true", matchIfMissing = true)
+    @ConditionalOnMissingBean
+    public TokenTenantResolver tokenTenantResolver(@NonNull JwtClaimsExtractor claimsExtractor) {
+        log.info("Configuring token tenant resolver with claim: {}", claimsExtractor.getClaimsConfig().getTenantIdClaim());
+        TokenTenantResolver resolver = new TokenTenantResolver(claimsExtractor);
         resolver.setOrder(100);
         return resolver;
     }
@@ -111,8 +134,11 @@ public class ResourceServerAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public JwtPermissionChecker jwtPermissionChecker() {
+    public JwtPermissionChecker jwtPermissionChecker(@Autowired(required = false) @Nullable JwtClaimsExtractor claimsExtractor) {
         log.info("Configuring JWT permission checker");
+        if (claimsExtractor != null) {
+            return new JwtPermissionChecker(claimsExtractor);
+        }
         return new JwtPermissionChecker();
     }
 

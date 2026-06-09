@@ -69,6 +69,8 @@ public class AfgModuleAnnotationProcessor extends AbstractProcessor {
 
     /**
      * 处理模块元素，提取模块信息
+     *
+     * <p>索引格式: moduleId:configFile:className:contextPath
      */
     private String processModuleElement(TypeElement typeElement) {
         String className = typeElement.getQualifiedName().toString();
@@ -76,16 +78,17 @@ public class AfgModuleAnnotationProcessor extends AbstractProcessor {
         // 获取注解属性
         String moduleId = extractModuleId(typeElement);
         String configFile = extractConfigFile(typeElement);
+        String contextPath = extractContextPath(typeElement);
 
         // 如果没有指定 configFile，使用默认值 module-{moduleId}.yml
         if (configFile == null || configFile.isEmpty()) {
             configFile = "module-" + moduleId + ".yml";
         }
 
-        String entry = moduleId + ":" + configFile + ":" + className;
+        String entry = moduleId + ":" + configFile + ":" + className + ":" + contextPath;
 
         processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE,
-                "Found AFG module: " + className + " (id=" + moduleId + ", config=" + configFile + ")", typeElement);
+                "Found AFG module: " + className + " (id=" + moduleId + ", config=" + configFile + ", contextPath=" + contextPath + ")", typeElement);
 
         return entry;
     }
@@ -149,6 +152,37 @@ public class AfgModuleAnnotationProcessor extends AbstractProcessor {
             // 忽略
         }
         return "";
+    }
+
+    /**
+     * 提取模块 context-path
+     *
+     * <p>如果没有指定，默认为 "/{moduleId}-api"
+     */
+    private String extractContextPath(TypeElement typeElement) {
+        try {
+            var annotationMirror = typeElement.getAnnotationMirrors().stream()
+                    .filter(am -> am.getAnnotationType().toString().contains("AfgModuleAnnotation"))
+                    .findFirst();
+
+            if (annotationMirror.isPresent()) {
+                for (var entry : annotationMirror.get().getElementValues().entrySet()) {
+                    String key = entry.getKey().getSimpleName().toString();
+                    if ("contextPath".equals(key)) {
+                        String value = entry.getValue().getValue().toString();
+                        if (!value.isEmpty()) {
+                            return value;
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // 忽略
+        }
+
+        // 默认: /{moduleId}-api
+        String moduleId = extractModuleId(typeElement);
+        return "/" + moduleId + "-api";
     }
 
     /**

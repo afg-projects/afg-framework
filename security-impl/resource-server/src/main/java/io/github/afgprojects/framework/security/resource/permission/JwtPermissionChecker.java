@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.security.resource.permission;
 
+import io.github.afgprojects.framework.security.core.token.JwtClaimsExtractor;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.Authentication;
@@ -8,6 +9,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -16,31 +18,41 @@ import java.util.Set;
  * <p>从 JWT Token 中解析用户权限和角色信息，进行本地校验。
  * 无需访问数据库，适用于资源服务器场景。
  *
- * <h3>JWT Token Claims 约定</h3>
- * <ul>
- *   <li>permissions: 权限列表，如 ["user:read", "user:write"]</li>
- *   <li>roles: 角色列表，如 ["ADMIN", "USER"]</li>
- *   <li>tenant_id: 租户 ID</li>
- * </ul>
+ * <p>使用 {@link JwtClaimsExtractor} 从 JWT Claims 中提取权限和角色信息，
+ * Claim 名称映射由 {@link io.github.afgprojects.framework.security.core.token.JwtClaimsConfig} 统一管理。
  *
  * @since 1.0.0
  */
 @Component
 public class JwtPermissionChecker {
 
-    private static final String PERMISSIONS_CLAIM = "permissions";
-    private static final String ROLES_CLAIM = "roles";
-    private static final String TENANT_ID_CLAIM = "tenant_id";
+    private final JwtClaimsExtractor claimsExtractor;
+
+    /**
+     * 使用默认配置创建权限校验器。
+     */
+    public JwtPermissionChecker() {
+        this.claimsExtractor = new JwtClaimsExtractor();
+    }
+
+    /**
+     * 使用指定 Claims 提取器创建权限校验器。
+     *
+     * @param claimsExtractor JWT Claims 提取器
+     */
+    public JwtPermissionChecker(@NonNull JwtClaimsExtractor claimsExtractor) {
+        this.claimsExtractor = claimsExtractor;
+    }
 
     /**
      * 检查当前用户是否具有指定权限。
      */
     public boolean hasPermission(@NonNull String permission) {
-        Jwt jwt = getCurrentJwt();
-        if (jwt == null) {
+        Map<String, Object> claims = getCurrentClaims();
+        if (claims == null) {
             return false;
         }
-        Set<String> permissions = getPermissions(jwt);
+        Set<String> permissions = claimsExtractor.extractPermissions(claims);
         return permissions.contains(permission);
     }
 
@@ -48,11 +60,11 @@ public class JwtPermissionChecker {
      * 检查当前用户是否具有指定角色。
      */
     public boolean hasRole(@NonNull String role) {
-        Jwt jwt = getCurrentJwt();
-        if (jwt == null) {
+        Map<String, Object> claims = getCurrentClaims();
+        if (claims == null) {
             return false;
         }
-        Set<String> roles = getRoles(jwt);
+        Set<String> roles = claimsExtractor.extractRoles(claims);
         return roles.contains(role);
     }
 
@@ -60,11 +72,11 @@ public class JwtPermissionChecker {
      * 检查当前用户是否具有任意指定权限。
      */
     public boolean hasAnyPermission(@NonNull Set<String> permissions) {
-        Jwt jwt = getCurrentJwt();
-        if (jwt == null) {
+        Map<String, Object> claims = getCurrentClaims();
+        if (claims == null) {
             return false;
         }
-        Set<String> userPermissions = getPermissions(jwt);
+        Set<String> userPermissions = claimsExtractor.extractPermissions(claims);
         return permissions.stream().anyMatch(userPermissions::contains);
     }
 
@@ -72,11 +84,11 @@ public class JwtPermissionChecker {
      * 检查当前用户是否具有任意指定角色。
      */
     public boolean hasAnyRole(@NonNull Set<String> roles) {
-        Jwt jwt = getCurrentJwt();
-        if (jwt == null) {
+        Map<String, Object> claims = getCurrentClaims();
+        if (claims == null) {
             return false;
         }
-        Set<String> userRoles = getRoles(jwt);
+        Set<String> userRoles = claimsExtractor.extractRoles(claims);
         return roles.stream().anyMatch(userRoles::contains);
     }
 
@@ -85,8 +97,8 @@ public class JwtPermissionChecker {
      */
     @NonNull
     public Set<String> getPermissions() {
-        Jwt jwt = getCurrentJwt();
-        return jwt != null ? getPermissions(jwt) : Collections.emptySet();
+        Map<String, Object> claims = getCurrentClaims();
+        return claims != null ? claimsExtractor.extractPermissions(claims) : Collections.emptySet();
     }
 
     /**
@@ -94,8 +106,8 @@ public class JwtPermissionChecker {
      */
     @NonNull
     public Set<String> getRoles() {
-        Jwt jwt = getCurrentJwt();
-        return jwt != null ? getRoles(jwt) : Collections.emptySet();
+        Map<String, Object> claims = getCurrentClaims();
+        return claims != null ? claimsExtractor.extractRoles(claims) : Collections.emptySet();
     }
 
     /**
@@ -103,8 +115,8 @@ public class JwtPermissionChecker {
      */
     @Nullable
     public String getTenantId() {
-        Jwt jwt = getCurrentJwt();
-        return jwt != null ? jwt.getClaimAsString(TENANT_ID_CLAIM) : null;
+        Map<String, Object> claims = getCurrentClaims();
+        return claims != null ? claimsExtractor.extractTenantId(claims) : null;
     }
 
     /**
@@ -112,8 +124,14 @@ public class JwtPermissionChecker {
      */
     @Nullable
     public String getUserId() {
+        Map<String, Object> claims = getCurrentClaims();
+        return claims != null ? claimsExtractor.extractUserId(claims) : null;
+    }
+
+    @Nullable
+    private Map<String, Object> getCurrentClaims() {
         Jwt jwt = getCurrentJwt();
-        return jwt != null ? jwt.getSubject() : null;
+        return jwt != null ? jwt.getClaims() : null;
     }
 
     @Nullable
@@ -124,29 +142,5 @@ public class JwtPermissionChecker {
         }
         Object principal = authentication.getPrincipal();
         return principal instanceof Jwt jwt ? jwt : null;
-    }
-
-    @SuppressWarnings("unchecked")
-    private Set<String> getPermissions(@NonNull Jwt jwt) {
-        Object claim = jwt.getClaims().get(PERMISSIONS_CLAIM);
-        if (claim instanceof Set<?> set) {
-            return (Set<String>) set;
-        }
-        if (claim instanceof java.util.List<?> list) {
-            return new java.util.HashSet<>((java.util.List<String>) list);
-        }
-        return Collections.emptySet();
-    }
-
-    @SuppressWarnings("unchecked")
-    private Set<String> getRoles(@NonNull Jwt jwt) {
-        Object claim = jwt.getClaims().get(ROLES_CLAIM);
-        if (claim instanceof Set<?> set) {
-            return (Set<String>) set;
-        }
-        if (claim instanceof java.util.List<?> list) {
-            return new java.util.HashSet<>((java.util.List<String>) list);
-        }
-        return Collections.emptySet();
     }
 }

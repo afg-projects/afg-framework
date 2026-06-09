@@ -13,6 +13,7 @@ import io.github.afgprojects.framework.security.auth.key.RsaKeyPairManager;
 import io.github.afgprojects.framework.security.core.login.TokenService;
 import io.github.afgprojects.framework.security.core.storage.AfgRefreshTokenStorage;
 import io.github.afgprojects.framework.security.core.storage.AfgTokenBlacklist;
+import io.github.afgprojects.framework.security.core.token.JwtClaimsConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -57,11 +58,11 @@ import java.util.UUID;
  */
 @Slf4j
 public class DefaultTokenService implements TokenService {
-    private static final String CLAIM_USERNAME = "preferred_username";
-    private static final String CLAIM_ROLES = "roles";
-    private static final String CLAIM_PERMISSIONS = "permissions";
-    private static final String CLAIM_TENANT_ID = "tenant_id";
-    private static final String CLAIM_TOKEN_TYPE = "token_type";
+    private static final String CLAIM_USERNAME = JwtClaimsConfig.DEFAULT_USERNAME_CLAIM;
+    private static final String CLAIM_ROLES = JwtClaimsConfig.DEFAULT_ROLES_CLAIM;
+    private static final String CLAIM_PERMISSIONS = JwtClaimsConfig.DEFAULT_PERMISSIONS_CLAIM;
+    private static final String CLAIM_TENANT_ID = JwtClaimsConfig.DEFAULT_TENANT_ID_CLAIM;
+    private static final String CLAIM_TOKEN_TYPE = JwtClaimsConfig.DEFAULT_TOKEN_TYPE_CLAIM;
     private static final String TOKEN_TYPE_ACCESS = "access";
     private static final String TOKEN_TYPE_REFRESH = "refresh";
     private static final String REVOCATION_REASON = "revoked";
