@@ -30,6 +30,7 @@ langchain4j = "1.15.1"
 # gRPC
 grpc = "1.81.0"
 protobuf = "4.34.1"
+spring-grpc = "1.0.3"
 
 # Gradle 插件版本
 dependency-management = "1.1.7"
@@ -163,9 +164,9 @@ langchain4j-ollama = { module = "dev.langchain4j:langchain4j-ollama", version.re
 grpc-protobuf = { module = "io.grpc:grpc-protobuf", version.ref = "grpc" }
 grpc-stub = { module = "io.grpc:grpc-stub", version.ref = "grpc" }
 grpc-netty = { module = "io.grpc:grpc-netty", version.ref = "grpc" }
+spring-grpc-server-spring-boot-starter = { module = "org.springframework.grpc:spring-grpc-server-spring-boot-starter", version.ref = "spring-grpc" }
 protobuf-java = { module = "com.google.protobuf:protobuf-java", version.ref = "protobuf" }
 javax-annotation-api = { module = "javax.annotation:javax.annotation-api", version = "1.3.2" }
-grpc-server-spring-boot-starter = { module = "net.devh:grpc-server-spring-boot-starter", version = "3.1.0.RELEASE" }
 
 [plugins]
 spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }

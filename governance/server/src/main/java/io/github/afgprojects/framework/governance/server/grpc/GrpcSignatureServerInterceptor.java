@@ -5,7 +5,7 @@ import io.github.afgprojects.framework.core.web.security.signature.SignatureGene
 import io.github.afgprojects.framework.governance.server.properties.GovernanceServerSecurityProperties;
 import io.grpc.*;
 import lombok.extern.slf4j.Slf4j;
-import net.devh.boot.grpc.server.interceptor.GrpcGlobalServerInterceptor;
+import org.springframework.grpc.server.GlobalServerInterceptor;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @Component
-@GrpcGlobalServerInterceptor
+@GlobalServerInterceptor
 public class GrpcSignatureServerInterceptor implements ServerInterceptor {
 
     private static final Metadata.Key<String> KEY_SIGNATURE =

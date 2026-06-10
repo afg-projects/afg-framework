@@ -3,11 +3,11 @@ package io.github.afgprojects.framework.governance.server.config;
 import io.github.afgprojects.framework.governance.server.properties.GovernanceServerProperties;
 import io.github.afgprojects.framework.governance.server.properties.GovernanceServerSecurityProperties;
 import lombok.extern.slf4j.Slf4j;
-import net.devh.boot.grpc.server.config.GrpcServerProperties;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.grpc.server.autoconfigure.GrpcServerProperties;
 import org.springframework.context.annotation.Bean;
 
 /**
@@ -31,7 +31,7 @@ import org.springframework.context.annotation.Bean;
         "org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration"
     },
     beforeName = {
-        "net.devh.boot.grpc.server.autoconfigure.GrpcServerAutoConfiguration"
+        "org.springframework.boot.grpc.server.autoconfigure.GrpcServerAutoConfiguration"
     }
 )
 @ConditionalOnProperty(prefix = "afg.governance.server", name = "enabled", havingValue = "true", matchIfMissing = true)
@@ -41,20 +41,18 @@ public class GovernanceServerAutoConfiguration {
     /**
      * 将 {@link GovernanceServerProperties#port} 映射到 {@link GrpcServerProperties#port}。
      *
-     * <p>grpc-server-spring-boot-starter 使用 {@code grpc.server.port} 配置 gRPC 监听端口（默认 9090），
+     * <p>spring-grpc 使用 {@code spring.grpc.server.port} 配置 gRPC 监听端口（默认 9090），
      * 但 AFG 框架使用 {@code afg.governance.server.port} 作为统一配置入口。此 BeanPostProcessor
-     * 在 {@link GrpcServerProperties} bean 初始化后，将 AFG 配置的端口同步到 gRPC starter 的配置中。
+     * 在 {@link GrpcServerProperties} bean 初始化后，将 AFG 配置的端口同步到 spring-grpc 的配置中。
      *
-     * <p>仅当 {@code afg.governance.server.port} 被显式设置时才覆盖 {@code grpc.server.port}。
-     * 如果未设置（null），则尊重 {@code grpc.server.port} 的值，允许用户通过原生 gRPC 配置控制端口。
+     * <p>仅当 {@code afg.governance.server.port} 被显式设置时才覆盖 {@code spring.grpc.server.port}。
+     * 如果未设置（null），则尊重 {@code spring.grpc.server.port} 的值，允许用户通过原生 gRPC 配置控制端口。
      *
-     * <p>注意：不能使用 {@link net.devh.boot.grpc.server.serverfactory.GrpcServerConfigurer} 来设置端口，
-     * 因为 {@code ServerBuilder} 的端口只能在构造时通过 {@code forPort(int)} 设置，无法在 configurer 回调中修改。
-     * 也不能通过提前注册 {@code GrpcServerProperties} bean 来覆盖，因为 starter 的
+     * <p>注意：不能通过提前注册 {@code GrpcServerProperties} bean 来覆盖，因为 spring-grpc 的
      * {@code GrpcServerAutoConfiguration} 使用 {@code @EnableConfigurationProperties} 绑定
-     * {@code grpc.server.*} 前缀，会覆盖我们手动创建的 bean 的属性值。
+     * {@code spring.grpc.server.*} 前缀，会覆盖我们手动创建的 bean 的属性值。
      *
-     * <p>BeanPostProcessor 方式是最可靠的：在 starter 创建 {@link GrpcServerProperties} 并完成属性绑定后，
+     * <p>BeanPostProcessor 方式是最可靠的：在 spring-grpc 创建 {@link GrpcServerProperties} 并完成属性绑定后，
      * 我们再覆盖 port 字段，确保 gRPC server 使用 AFG 配置的端口。
      *
      * @param governanceServerProperties AFG 服务治理配置
@@ -67,7 +65,7 @@ public class GovernanceServerAutoConfiguration {
     }
 
     /**
-     * 将 AFG 框架的 gRPC 端口配置映射到 grpc-server-spring-boot-starter 的 {@link GrpcServerProperties}。
+     * 将 AFG 框架的 gRPC 端口配置映射到 spring-grpc 的 {@link GrpcServerProperties}。
      *
      * <p>声明为 static 是因为 {@link BeanPostProcessor} 需要提前实例化，不应依赖配置类实例。
      * {@link GovernanceServerProperties} 通过构造函数注入，在 BeanPostProcessor 创建时即已确定。
@@ -91,11 +89,11 @@ public class GovernanceServerAutoConfiguration {
                                 currentPort, afgPort);
                         grpcServerProperties.setPort(afgPort);
                     } else {
-                        log.info("gRPC server port: {} (afg.governance.server.port matches grpc.server.port)",
+                        log.info("gRPC server port: {} (afg.governance.server.port matches spring.grpc.server.port)",
                                 afgPort);
                     }
                 } else {
-                    log.debug("afg.governance.server.port not set, using grpc.server.port: {}",
+                    log.debug("afg.governance.server.port not set, using spring.grpc.server.port: {}",
                             grpcServerProperties.getPort());
                 }
             }
