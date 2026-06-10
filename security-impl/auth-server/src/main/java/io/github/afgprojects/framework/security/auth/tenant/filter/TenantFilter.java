@@ -46,6 +46,7 @@ public class TenantFilter extends OncePerRequestFilter {
             "/auth-api/oauth2/token",
             "/auth-api/oauth2/introspect",
             "/auth-api/oauth2/revoke",
+            "/auth-api/oauth2/authorize",
             "/.well-known/**",
             "/actuator/**"
     );
