@@ -62,10 +62,11 @@ public final class ModuleDefinitionLoader {
     /**
      * 解析模块定义
      *
-     * <p>支持两种索引格式：
+     * <p>支持索引格式：
      * <ul>
-     *   <li>新格式（含 contextPath）: moduleId:configFile:className:contextPath</li>
-     *   <li>旧格式（不含 contextPath）: moduleId:configFile:className，contextPath 默认为 "/{moduleId}-api"</li>
+     *   <li>最新格式: moduleId:configFile:className:contextPath:basePackage</li>
+     *   <li>旧格式（不含 basePath）: moduleId:configFile:className:contextPath，basePackage 从 className 推导</li>
+     *   <li>更旧格式（不含 contextPath）: moduleId:configFile:className，contextPath 默认为 "/{moduleId}-api"</li>
      * </ul>
      */
     public static ModuleDefinitionInfo parseModuleDefinition(String line) {
@@ -75,8 +76,12 @@ public final class ModuleDefinitionLoader {
             String configFile = parts[1];
             String className = parts[2];
 
-            String basePackage = extractBasePackage(className);
             String contextPath = parts.length >= 4 ? parts[3] : "/" + moduleId + "-api";
+            // 优先使用 APT 生成的 basePackage 字段（来自 @AfgModuleAnnotation 的 basePackage 属性）
+            // 降级到从 className 推导（取类所在包名，可能比注解声明的范围更窄）
+            String basePackage = parts.length >= 5 && !parts[4].isEmpty()
+                    ? parts[4]
+                    : extractBasePackage(className);
 
             return new ModuleDefinitionInfo(moduleId, basePackage, contextPath, configFile, className);
         }

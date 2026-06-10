@@ -93,16 +93,17 @@ public class ModuleAutoConfiguration implements ImportSelector {
 
     /**
      * 从索引条目中提取类名
-     * 支持两种格式：
-     * - 新格式: moduleId:configFile:className
-     * - 旧格式: className
+     * 支持格式：
+     * - 最新格式: moduleId:configFile:className:contextPath:basePackage
+     * - 旧格式: moduleId:configFile:className:contextPath
+     * - 最旧格式: className
      */
     private String extractClassName(String entry) {
         String[] parts = entry.split(":");
         if (parts.length >= 3) {
-            return parts[2]; // 新格式
+            return parts[2]; // className 始终在第 3 个位置
         } else if (parts.length == 1) {
-            return parts[0]; // 旧格式
+            return parts[0]; // 最旧格式
         }
         return null;
     }

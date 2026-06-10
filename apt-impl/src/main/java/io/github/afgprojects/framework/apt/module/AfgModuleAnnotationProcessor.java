@@ -70,7 +70,7 @@ public class AfgModuleAnnotationProcessor extends AbstractProcessor {
     /**
      * 处理模块元素，提取模块信息
      *
-     * <p>索引格式: moduleId:configFile:className:contextPath
+     * <p>索引格式: moduleId:configFile:className:contextPath:basePackage
      */
     private String processModuleElement(TypeElement typeElement) {
         String className = typeElement.getQualifiedName().toString();
@@ -79,16 +79,23 @@ public class AfgModuleAnnotationProcessor extends AbstractProcessor {
         String moduleId = extractModuleId(typeElement);
         String configFile = extractConfigFile(typeElement);
         String contextPath = extractContextPath(typeElement);
+        String basePackage = extractBasePackage(typeElement);
 
         // 如果没有指定 configFile，使用默认值 module-{moduleId}.yml
         if (configFile == null || configFile.isEmpty()) {
             configFile = "module-" + moduleId + ".yml";
         }
 
-        String entry = moduleId + ":" + configFile + ":" + className + ":" + contextPath;
+        // 如果没有指定 basePackage，使用注解类所在的包名
+        if (basePackage == null || basePackage.isEmpty()) {
+            PackageElement pkg = processingEnv.getElementUtils().getPackageOf(typeElement);
+            basePackage = pkg.getQualifiedName().toString();
+        }
+
+        String entry = moduleId + ":" + configFile + ":" + className + ":" + contextPath + ":" + basePackage;
 
         processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE,
-                "Found AFG module: " + className + " (id=" + moduleId + ", config=" + configFile + ", contextPath=" + contextPath + ")", typeElement);
+                "Found AFG module: " + className + " (id=" + moduleId + ", config=" + configFile + ", contextPath=" + contextPath + ", basePackage=" + basePackage + ")", typeElement);
 
         return entry;
     }
@@ -183,6 +190,34 @@ public class AfgModuleAnnotationProcessor extends AbstractProcessor {
         // 默认: /{moduleId}-api
         String moduleId = extractModuleId(typeElement);
         return "/" + moduleId + "-api";
+    }
+
+    /**
+     * 提取模块 basePackage
+     *
+     * <p>如果没有指定，返回 null（由调用方使用类所在包名作为默认值）
+     */
+    private String extractBasePackage(TypeElement typeElement) {
+        try {
+            var annotationMirror = typeElement.getAnnotationMirrors().stream()
+                    .filter(am -> am.getAnnotationType().toString().contains("AfgModuleAnnotation"))
+                    .findFirst();
+
+            if (annotationMirror.isPresent()) {
+                for (var entry : annotationMirror.get().getElementValues().entrySet()) {
+                    String key = entry.getKey().getSimpleName().toString();
+                    if ("basePackage".equals(key)) {
+                        String value = entry.getValue().getValue().toString();
+                        if (!value.isEmpty()) {
+                            return value;
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // 忽略
+        }
+        return null;
     }
 
     /**
