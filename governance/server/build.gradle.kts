@@ -12,8 +12,12 @@ dependencies {
     implementation(project(":data-impl:data-liquibase"))
     implementation(project(":security-impl:auth-server"))
     // 使用 grpc-netty（非 shaded），兼容 Spring Cloud Gateway 等 WebFlux 项目
+    // 必须排除 starter 传递的 grpc-netty-shaded，否则与 grpc-core 1.81.0 版本冲突
+    // 导致 AbstractMethodError: NettyServerBuilder$NettyClientTransportServersBuilder
     implementation(libs.grpc.netty)
-    implementation(libs.grpc.server.spring.boot.starter)
+    implementation(libs.grpc.server.spring.boot.starter) {
+        exclude(group = "io.grpc", module = "grpc-netty-shaded")
+    }
     implementation(libs.spring.boot.starter.web)
     implementation(libs.spring.boot.starter.validation)
     implementation(libs.jackson.yaml)

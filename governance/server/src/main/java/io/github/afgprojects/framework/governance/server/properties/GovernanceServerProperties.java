@@ -19,9 +19,12 @@ public class GovernanceServerProperties {
     private boolean enabled = true;
 
     /**
-     * gRPC 服务端口
+     * gRPC 服务端口。
+     *
+     * <p>设置此值将覆盖 {@code grpc.server.port} 配置。如果不设置（null），
+     * 则使用 {@code grpc.server.port} 的值（默认 9090）。
      */
-    private int port = 9090;
+    private Integer port;
 
     /**
      * 配置变更通知是否启用
