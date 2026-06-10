@@ -28,11 +28,11 @@ dependencies {
 
 protobuf {
     protoc {
-        artifact = "com.google.protobuf:protoc:3.25.2"
+        artifact = "com.google.protobuf:protoc:3.25.8"
     }
     plugins {
         create("grpc") {
-            artifact = "io.grpc:protoc-gen-grpc-java:1.62.2"
+            artifact = "io.grpc:protoc-gen-grpc-java:1.81.0"
         }
     }
     generateProtoTasks {
