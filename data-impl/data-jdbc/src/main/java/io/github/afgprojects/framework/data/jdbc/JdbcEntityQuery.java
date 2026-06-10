@@ -312,7 +312,7 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
         String selectSql = buildSelectSql();
         WhereClause where = buildWhereClause();
         String sql = selectSql + where.withKeyword();
-        List<Object> params = where.parameters();
+        List<Object> params = where.jdbcParameters();
 
         // 排序
         if (sort != null && sort.isSorted()) {
@@ -336,7 +336,7 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
     public @NonNull Page<T> page(@NonNull PageRequest pageRequest) {
         WhereClause where = buildWhereClause();
         String whereSql = where.withKeyword();
-        List<Object> params = where.parameters();
+        List<Object> params = where.jdbcParameters();
 
         // 计数查询
         String countSql = "SELECT COUNT(*) FROM " + dialect.quoteIdentifier(metadata.getTableName()) + whereSql;
@@ -362,7 +362,7 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
         String selectSql = buildSelectSql();
         WhereClause where = buildWhereClause();
         String sql = selectSql + where.withKeyword();
-        List<Object> params = where.parameters();
+        List<Object> params = where.jdbcParameters();
 
         sql = dialect.getLimitSql(sql, 2);
 
@@ -382,7 +382,7 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
         String selectSql = buildSelectSql();
         WhereClause where = buildWhereClause();
         String sql = selectSql + where.withKeyword();
-        List<Object> params = where.parameters();
+        List<Object> params = where.jdbcParameters();
 
         sql = dialect.getLimitSql(sql, 1);
 
@@ -395,7 +395,7 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
         String sql = "SELECT COUNT(*) FROM " + dialect.quoteIdentifier(metadata.getTableName());
         WhereClause where = buildWhereClause();
         sql += where.withKeyword();
-        List<Object> params = where.parameters();
+        List<Object> params = where.jdbcParameters();
 
         Long result = jdbcClient.sql(sql)
                 .params(params)
@@ -409,7 +409,7 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
         String sql = "SELECT 1 FROM " + dialect.quoteIdentifier(metadata.getTableName());
         WhereClause where = buildWhereClause();
         sql += where.withKeyword();
-        List<Object> params = where.parameters();
+        List<Object> params = where.jdbcParameters();
 
         sql = dialect.getLimitSql(sql, 1);
 
@@ -435,6 +435,13 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
         static WhereClause empty() { return new WhereClause("", List.of()); }
         boolean hasWhere() { return !whereSql.isEmpty(); }
         String withKeyword() { return hasWhere() ? " WHERE " + whereSql : ""; }
+
+        /**
+         * 返回 JDBC 兼容的参数列表（Java 时间类型已转换为 SQL 类型）
+         */
+        List<Object> jdbcParameters() {
+            return JdbcTypeConverter.convertParamsForJdbc(parameters);
+        }
     }
 
     /**

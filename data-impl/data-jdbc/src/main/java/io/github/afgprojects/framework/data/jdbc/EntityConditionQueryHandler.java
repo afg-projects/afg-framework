@@ -89,8 +89,11 @@ public class EntityConditionQueryHandler<T> {
             sqlBuilder.append(" WHERE ").append(whereClause);
         }
 
+        // 转换条件参数中的 Java 时间类型为 JDBC 兼容类型
+        List<Object> convertedParams = JdbcTypeConverter.convertParamsForJdbc(params);
+
         return jdbcClient.sql(sqlBuilder.toString())
-                .params(params)
+                .params(convertedParams)
                 .query(rowMapper)
                 .list();
     }
@@ -128,16 +131,19 @@ public class EntityConditionQueryHandler<T> {
         // 构建完整 SQL
         String whereSql = whereClause.length() > 0 ? " WHERE " + whereClause : "";
 
+        // 转换条件参数中的 Java 时间类型为 JDBC 兼容类型
+        List<Object> convertedParams = JdbcTypeConverter.convertParamsForJdbc(params);
+
         // 计数查询
         String countSql = "SELECT COUNT(*) FROM " + dialect.quoteIdentifier(metadata.getTableName()) + whereSql;
-        long total = dataManager.queryForCount(countSql, params);
+        long total = dataManager.queryForCount(countSql, convertedParams);
 
         // 数据查询（使用 Dialect 生成兼容的分页 SQL）
         String dataSql = "SELECT * FROM " + dialect.quoteIdentifier(metadata.getTableName()) +
                 whereSql;
         dataSql = dialect.getPaginationSql(dataSql, pageable.offset(), pageable.size());
         List<T> records = jdbcClient.sql(dataSql)
-                .params(params)
+                .params(convertedParams)
                 .query(rowMapper)
                 .list();
 

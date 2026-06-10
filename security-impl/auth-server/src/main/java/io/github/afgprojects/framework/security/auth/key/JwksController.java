@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.security.auth.key;
 
+import io.github.afgprojects.framework.core.annotation.IgnoreModuleContextPath;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -16,6 +17,9 @@ import org.springframework.web.bind.annotation.RestController;
  *   <li>GET /.well-known/jwks.json - 返回 JWK Set</li>
  * </ul>
  *
+ * <p>使用 {@link IgnoreModuleContextPath} 排除模块 context-path 前缀，
+ * 因为 JWKS 端点的标准路径是 /.well-known/jwks.json，不应带 /auth-api 前缀。
+ *
  * <h3>使用示例</h3>
  * <pre>
  * # 获取 JWKS
@@ -26,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @Slf4j
 @RestController
+@IgnoreModuleContextPath
 @RequiredArgsConstructor
 public class JwksController {
 

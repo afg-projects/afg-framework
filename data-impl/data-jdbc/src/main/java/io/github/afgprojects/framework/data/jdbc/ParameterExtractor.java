@@ -63,34 +63,14 @@ class ParameterExtractor<T> {
     }
 
     /**
-     * 将 Java 时间类型转换为 JDBC 兼容的 SQL 类型
+     * 将 Java 时间类型转换为 JDBC 兼容的 SQL类型
      * <p>
+     * 委托给 {@link JdbcTypeConverter#convertForJdbc(Object)} 实现。
      * PostgreSQL JDBC 驱动不支持直接 setObject(Instant)，需要转换为 Timestamp。
      * 其他时间类型同理转换以确保跨数据库兼容性。
      */
     private @Nullable Object convertForJdbc(@Nullable Object value) {
-        if (value == null) {
-            return null;
-        }
-        if (value instanceof java.time.Instant instant) {
-            return java.sql.Timestamp.from(instant);
-        }
-        if (value instanceof java.time.LocalDateTime ldt) {
-            return java.sql.Timestamp.valueOf(ldt);
-        }
-        if (value instanceof java.time.LocalDate ld) {
-            return java.sql.Date.valueOf(ld);
-        }
-        if (value instanceof java.time.LocalTime lt) {
-            return java.sql.Time.valueOf(lt);
-        }
-        if (value instanceof java.time.OffsetDateTime odt) {
-            return java.sql.Timestamp.from(odt.toInstant());
-        }
-        if (value instanceof java.time.ZonedDateTime zdt) {
-            return java.sql.Timestamp.from(zdt.toInstant());
-        }
-        return value;
+        return JdbcTypeConverter.convertForJdbc(value);
     }
 
     void setFieldValue(T entity, String propertyName, Object value) {

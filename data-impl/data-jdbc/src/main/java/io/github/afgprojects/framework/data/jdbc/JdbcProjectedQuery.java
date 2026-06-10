@@ -215,6 +215,13 @@ public class JdbcProjectedQuery<T, R> implements ProjectedQuery<T, R> {
     private record WhereClause(String whereSql, List<Object> parameters) {
         boolean hasWhere() { return !whereSql.isEmpty(); }
         String withKeyword() { return hasWhere() ? " WHERE " + whereSql : ""; }
+
+        /**
+         * 返回 JDBC 兼容的参数列表（Java 时间类型已转换为 SQL 类型）
+         */
+        List<Object> jdbcParameters() {
+            return JdbcTypeConverter.convertParamsForJdbc(parameters);
+        }
     }
 
     /**
@@ -294,7 +301,7 @@ public class JdbcProjectedQuery<T, R> implements ProjectedQuery<T, R> {
         String sql = buildSelectSql(dialect, metadata);
         WhereClause where = buildWhereClause(proxy, metadata, dialect);
         sql += where.withKeyword();
-        List<Object> params = where.parameters();
+        List<Object> params = where.jdbcParameters();
 
         if (sort != null && sort.isSorted()) {
             sql += " ORDER BY " + buildOrderByClause(dialect, metadata);
@@ -320,7 +327,7 @@ public class JdbcProjectedQuery<T, R> implements ProjectedQuery<T, R> {
         String baseSql = buildSelectSql(dialect, metadata);
         WhereClause where = buildWhereClause(proxy, metadata, dialect);
         String whereSql = where.withKeyword();
-        List<Object> params = where.parameters();
+        List<Object> params = where.jdbcParameters();
 
         String countSql = "SELECT COUNT(*) FROM " + dialect.quoteIdentifier(metadata.getTableName()) + whereSql;
         long total = proxy.getJdbcClient().sql(countSql)

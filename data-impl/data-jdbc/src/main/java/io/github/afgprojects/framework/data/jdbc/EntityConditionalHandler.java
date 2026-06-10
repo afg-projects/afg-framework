@@ -104,11 +104,11 @@ public class EntityConditionalHandler<T> {
             String columnName = fieldMetadata != null ? fieldMetadata.getColumnName() : fieldName;
             // 使用 dialect.quoteIdentifier() 对列名进行引用，防止 SQL 注入
             setParts.add(dialect.quoteIdentifier(columnName) + " = ?");
-            params.add(entry.getValue());
+            params.add(JdbcTypeConverter.convertForJdbc(entry.getValue()));
         }
         sql.append(String.join(", ", setParts));
         sql.append(" WHERE ").append(whereResult.sql());
-        params.addAll(whereResult.parameters());
+        params.addAll(JdbcTypeConverter.convertParamsForJdbc(whereResult.parameters()));
 
         return dataManager.executeUpdate(sql.toString(), params);
     }
@@ -120,6 +120,6 @@ public class EntityConditionalHandler<T> {
         ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
         ConditionToSqlConverter.SqlResult result = converter.convert(condition);
         String sql = "DELETE FROM " + dialect.quoteIdentifier(metadata.getTableName()) + " WHERE " + result.sql();
-        return dataManager.executeUpdate(sql, result.parameters());
+        return dataManager.executeUpdate(sql, JdbcTypeConverter.convertParamsForJdbc(result.parameters()));
     }
 }

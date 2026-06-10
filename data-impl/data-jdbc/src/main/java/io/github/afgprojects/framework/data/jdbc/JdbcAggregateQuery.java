@@ -200,7 +200,7 @@ public class JdbcAggregateQuery<T> implements AggregateQuery<T> {
         }
 
         String sql = buildAggregateSql(false);
-        List<Object> params = collectParams();
+        List<Object> params = JdbcTypeConverter.convertParamsForJdbc(collectParams());
         log.debug("Aggregate query SQL: {}", sql);
 
         return jdbcClient.sql(sql)
@@ -216,7 +216,7 @@ public class JdbcAggregateQuery<T> implements AggregateQuery<T> {
         }
 
         String sql = buildAggregateSql(true);
-        List<Object> params = collectParams();
+        List<Object> params = JdbcTypeConverter.convertParamsForJdbc(collectParams());
         log.debug("Aggregate single query SQL: {}", sql);
 
         AggregateResult result = jdbcClient.sql(sql)
