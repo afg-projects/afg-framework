@@ -1,0 +1,7 @@
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "验收检查：6条质量底线、AutoConfiguration规则、SPI设计、禁止/强制模式"}
+{"file": ".trellis/spec/backend/autoconfiguration-guidelines.md", "reason": "验收检查：@AutoConfiguration规范、依赖排序、条件注入、配置属性"}
+{"file": ".trellis/spec/backend/testing-guidelines.md", "reason": "验收检查：测试铁律、覆盖率、命名规范、数据准备"}
+{"file": ".trellis/spec/backend/error-handling.md", "reason": "验收检查：ErrorCode体系完整性、CommonErrorCode 94码、异常处理规范"}
+{"file": ".trellis/spec/backend/entity-design.md", "reason": "验收检查：实体基类体系、特征接口、字段约定"}
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "验收检查：条件构建器、方言覆盖度、SQL监控"}
+{"file": ".trellis/spec/backend/data-manager-api.md", "reason": "验收检查：DataManager API完整性、EntityProxy链式API"}
