@@ -46,3 +46,36 @@
 ### Next Steps
 
 - None - task complete
+
+
+## Session 2: APT 模块精细化打磨 — 注解 Javadoc 增强 + @AfgEnum/@EncryptedField 新增 + 编译期校验 + EnumMetadataProcessor
+
+**Date**: 2026-06-12
+**Task**: APT 模块精细化打磨 — 注解 Javadoc 增强 + @AfgEnum/@EncryptedField 新增 + 编译期校验 + EnumMetadataProcessor
+**Branch**: `main`
+
+### Summary
+
+APT 模块（apt-api + apt-impl）精细化整改：8 个注解 Javadoc 增强、@AfEntity.autoFillTimestamps 和 @AfService.icon/examples 新增属性、@AfgEnum/@EncryptedField 两个新注解、5 条编译期校验规则（缺少@Table/缺少主键/非public/非枚举/非String字段）、EnumMetadataProcessor 新增（枚举元数据生成+索引）、60 个测试全绿、全量构建 BUILD SUCCESSFUL
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `3089ef9` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
