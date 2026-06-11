@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.data.jdbc;
 
+import io.github.afgprojects.framework.commons.model.PageData;
 import io.github.afgprojects.framework.data.core.EntityQuery;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
 import io.github.afgprojects.framework.data.core.mapper.Projection;
@@ -8,7 +9,6 @@ import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
 import io.github.afgprojects.framework.data.core.metadata.EntityTrait;
 import io.github.afgprojects.framework.data.core.page.PageRequest;
 import io.github.afgprojects.framework.data.core.query.Condition;
-import io.github.afgprojects.framework.data.core.query.Page;
 import io.github.afgprojects.framework.data.core.query.ProjectedQuery;
 import io.github.afgprojects.framework.data.core.query.Sort;
 import io.github.afgprojects.framework.data.core.query.AggregateQuery;
@@ -333,7 +333,7 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
     }
 
     @Override
-    public @NonNull Page<T> page(@NonNull PageRequest pageRequest) {
+    public @NonNull PageData<T> page(@NonNull PageRequest pageRequest) {
         WhereClause where = buildWhereClause();
         String whereSql = where.withKeyword();
         List<Object> params = where.jdbcParameters();
@@ -354,7 +354,7 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
         // 急加载关联
         records = loadAssociations(records);
 
-        return new Page<>(records, total, pageRequest.page(), pageRequest.size());
+        return PageData.of(records, total, pageRequest.page(), pageRequest.size());
     }
 
     @Override

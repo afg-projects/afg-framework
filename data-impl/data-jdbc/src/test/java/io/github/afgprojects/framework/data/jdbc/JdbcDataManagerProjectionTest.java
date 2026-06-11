@@ -12,9 +12,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Import;
 
+import io.github.afgprojects.framework.commons.model.PageData;
 import io.github.afgprojects.framework.data.core.condition.Conditions;
 import io.github.afgprojects.framework.data.core.mapper.Projection;
-import io.github.afgprojects.framework.data.core.query.Page;
 import io.github.afgprojects.framework.data.core.page.PageRequest;
 import io.github.afgprojects.framework.data.jdbc.entity.TestOrder;
 import io.github.afgprojects.framework.data.jdbc.entity.TestOrderItem;
@@ -168,14 +168,14 @@ class JdbcDataManagerProjectionTest extends BaseDataTest {
             }
 
             // 执行：分页投影
-            Page<UserDetail> page = dataManager.entity(TestUser.class)
+            PageData<UserDetail> page = dataManager.entity(TestUser.class)
                 .query()
                 .project(UserDetail.class)
                 .page(PageRequest.of(1, 5));
 
             // 验证
-            assertThat(page.getContent()).hasSize(5);
-            assertThat(page.getTotal()).isGreaterThanOrEqualTo(10L);
+            assertThat(page.records()).hasSize(5);
+            assertThat(page.total()).isGreaterThanOrEqualTo(10L);
         }
     }
 

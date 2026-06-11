@@ -4,10 +4,12 @@ import io.github.afgprojects.framework.data.core.entity.LifecycleCallbacks;
 import io.github.afgprojects.framework.data.core.entity.Versioned;
 import io.github.afgprojects.framework.data.core.exception.OptimisticLockException;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
+import io.github.afgprojects.framework.data.core.metadata.EntityTrait;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheHandler;
 import org.jspecify.annotations.NonNull;
 import org.springframework.jdbc.core.simple.JdbcClient;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,6 +49,9 @@ public class EntityUpdateHandler<T> {
      * @throws OptimisticLockException 如果乐观锁检查失败
      */
     public @NonNull T update(@NonNull T entity) {
+        // 自动刷新 updatedAt 时间戳
+        autoFillUpdatedAt(entity);
+
         boolean isVersioned = Versioned.class.isAssignableFrom(entityClass);
         String sql = queryHelper.buildUpdateSql(isVersioned);
         List<Object> params = queryHelper.extractUpdateParams(entity, isVersioned);
@@ -92,5 +97,19 @@ public class EntityUpdateHandler<T> {
         if (id != null) {
             cacheHandler.evict(id);
         }
+    }
+
+    /**
+     * 自动刷新 updatedAt 时间戳。
+     *
+     * <p>当实体具有 TIMESTAMPED 特征时，自动将 updatedAt 设置为当前时间。
+     *
+     * @param entity 实体对象
+     */
+    private void autoFillUpdatedAt(T entity) {
+        if (!metadata.hasTrait(EntityTrait.TIMESTAMPED)) {
+            return;
+        }
+        queryHelper.getParameterExtractor().setFieldValue(entity, "updatedAt", Instant.now());
     }
 }

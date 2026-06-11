@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.data.jdbc;
 
+import io.github.afgprojects.framework.commons.model.PageData;
 import io.github.afgprojects.framework.data.core.EntityProxy;
 import io.github.afgprojects.framework.data.core.EntityQuery;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
@@ -9,7 +10,6 @@ import io.github.afgprojects.framework.data.core.mapper.TypeHandlerRegistry;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
 import io.github.afgprojects.framework.data.core.page.PageRequest;
 import io.github.afgprojects.framework.data.core.query.Condition;
-import io.github.afgprojects.framework.data.core.query.Page;
 import io.github.afgprojects.framework.data.core.query.ProjectedQuery;
 import io.github.afgprojects.framework.data.core.relation.RelationMetadata;
 import io.github.afgprojects.framework.data.core.relation.RelationType;
@@ -301,7 +301,7 @@ public class JdbcEntityProxy<T> implements EntityProxy<T>, ProxyStateProvider {
     }
 
     @Override
-    public @NonNull Page<T> findAll(@NonNull Condition condition, @NonNull PageRequest pageable) {
+    public @NonNull PageData<T> findAll(@NonNull Condition condition, @NonNull PageRequest pageable) {
         return conditionQueryHandler.findAll(condition, pageable);
     }
 

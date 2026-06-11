@@ -3,11 +3,13 @@ package io.github.afgprojects.framework.data.jdbc;
 import io.github.afgprojects.framework.data.core.entity.LifecycleCallbacks;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
+import io.github.afgprojects.framework.data.core.metadata.EntityTrait;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheHandler;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.jdbc.core.simple.JdbcClient;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -56,6 +58,9 @@ public class EntityInsertHandler<T> {
     public @NonNull T insert(@NonNull T entity) {
         // 触发 beforeCreate 生命周期回调（类似 JPA @PrePersist）
         LifecycleCallbacks.ifCallback(entity, LifecycleCallbacks::beforeCreate);
+
+        // 自动填充 createdAt / updatedAt 时间戳
+        autoFillTimestamps(entity, true);
 
         // 自动填充租户ID：当实体的租户字段为空且 TenantContextHolder 设置了租户ID时
         var tenantField = metadata.getTenantField();
@@ -248,5 +253,35 @@ public class EntityInsertHandler<T> {
             params.addAll(queryHelper.extractInsertParams(entity));
         }
         return params;
+    }
+
+    /**
+     * 自动填充 createdAt / updatedAt 时间戳。
+     *
+     * <p>当实体具有 TIMESTAMPED 特征时，如果 createdAt 或 updatedAt 为 null，
+     * 自动填充为当前时间。对于 insert 操作，两个字段都会填充；
+     * 对于 update 操作，仅填充 updatedAt。
+     *
+     * @param entity  实体对象
+     * @param isInsert 是否为插入操作
+     */
+    private void autoFillTimestamps(T entity, boolean isInsert) {
+        if (!metadata.hasTrait(EntityTrait.TIMESTAMPED)) {
+            return;
+        }
+        Instant now = Instant.now();
+        var extractor = queryHelper.getParameterExtractor();
+
+        if (isInsert) {
+            Object createdAt = extractor.getFieldValue(entity, "createdAt");
+            if (createdAt == null) {
+                extractor.setFieldValue(entity, "createdAt", now);
+            }
+        }
+
+        Object updatedAt = extractor.getFieldValue(entity, "updatedAt");
+        if (updatedAt == null) {
+            extractor.setFieldValue(entity, "updatedAt", now);
+        }
     }
 }

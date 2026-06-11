@@ -1,7 +1,7 @@
 package io.github.afgprojects.framework.data.jdbc.metrics;
 
+import io.github.afgprojects.framework.commons.model.PageData;
 import io.github.afgprojects.framework.data.core.EntityProxy;
-import io.github.afgprojects.framework.data.core.query.Page;
 import io.github.afgprojects.framework.data.jdbc.JdbcEntityProxy;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -365,9 +365,9 @@ public class SqlMetricsAspect {
             return i;
         }
 
-        // Page 类型返回记录数
-        if (result instanceof Page<?> page) {
-            return page.getContent().size();
+        // PageData 类型返回记录数
+        if (result instanceof PageData<?> pageData) {
+            return pageData.records().size();
         }
 
         return 0;

@@ -213,6 +213,9 @@ public class ReflectiveEntityMetadata<T> implements DatabaseEntityMetadata<T> {
         }
         // 审计特性检测
         if (getField("createdAt") != null && getField("updatedAt") != null) {
+            traits.add(EntityTrait.TIMESTAMPED);
+        }
+        if (getField("createBy") != null && getField("updateBy") != null) {
             traits.add(EntityTrait.AUDITABLE);
         }
         // 乐观锁特性检测

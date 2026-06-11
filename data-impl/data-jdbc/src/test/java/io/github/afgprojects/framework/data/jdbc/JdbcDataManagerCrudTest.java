@@ -11,9 +11,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 
+import io.github.afgprojects.framework.commons.model.PageData;
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.condition.Conditions;
-import io.github.afgprojects.framework.data.core.query.Page;
 import io.github.afgprojects.framework.data.core.page.PageRequest;
 import io.github.afgprojects.framework.data.core.query.Sort;
 import io.github.afgprojects.framework.data.jdbc.test.BaseDataTest;
@@ -154,13 +154,13 @@ class JdbcDataManagerCrudTest extends BaseDataTest {
                 dataManager.save(TestUser.class, createUser("page-user-" + i));
             }
 
-            Page<TestUser> page = dataManager.entity(TestUser.class)
+            PageData<TestUser> page = dataManager.entity(TestUser.class)
                 .query()
                 .page(PageRequest.of(1, 10));
 
-            assertThat(page.getContent()).hasSize(10);
-            assertThat(page.getTotal()).isGreaterThanOrEqualTo(15);
-            assertThat(page.getTotalPages()).isGreaterThanOrEqualTo(2);
+            assertThat(page.records()).hasSize(10);
+            assertThat(page.total()).isGreaterThanOrEqualTo(15);
+            assertThat(page.pages()).isGreaterThanOrEqualTo(2);
             assertThat(page.isFirst()).isTrue();
         }
     }

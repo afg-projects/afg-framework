@@ -1,12 +1,12 @@
 package io.github.afgprojects.framework.data.sql.builder;
 
+import io.github.afgprojects.framework.commons.model.PageData;
 import io.github.afgprojects.framework.data.core.condition.SFunction;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
 import io.github.afgprojects.framework.data.core.dialect.MySQLDialect;
 import io.github.afgprojects.framework.data.core.mapper.ResultMapper;
 import io.github.afgprojects.framework.data.core.page.PageRequest;
 import io.github.afgprojects.framework.data.core.query.Condition;
-import io.github.afgprojects.framework.data.core.query.Page;
 import io.github.afgprojects.framework.data.core.query.Sort;
 import io.github.afgprojects.framework.data.core.security.SqlIdentifierValidator;
 import io.github.afgprojects.framework.data.core.sql.SqlQueryBuilder;
@@ -677,12 +677,12 @@ public class SqlQueryBuilderImpl implements SqlQueryBuilder {
     }
 
     @Override
-    public <T> @NonNull Page<T> fetchPage(@NonNull Class<T> resultType, @NonNull PageRequest pageable) {
+    public <T> @NonNull PageData<T> fetchPage(@NonNull Class<T> resultType, @NonNull PageRequest pageable) {
         throw new UnsupportedOperationException("Use DataManager to execute query");
     }
 
     @Override
-    public <T> @NonNull Page<T> fetchPage(@NonNull Class<T> resultType, @NonNull PageRequest pageable, @NonNull ResultMapper<T> mapper) {
+    public <T> @NonNull PageData<T> fetchPage(@NonNull Class<T> resultType, @NonNull PageRequest pageable, @NonNull ResultMapper<T> mapper) {
         throw new UnsupportedOperationException("Use DataManager to execute query");
     }
 

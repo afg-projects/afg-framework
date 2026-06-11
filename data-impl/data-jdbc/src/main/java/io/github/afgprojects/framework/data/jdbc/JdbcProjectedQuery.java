@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.data.jdbc;
 
+import io.github.afgprojects.framework.commons.model.PageData;
 import io.github.afgprojects.framework.data.core.condition.SFunction;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
 import io.github.afgprojects.framework.data.core.mapper.Projection;
@@ -8,7 +9,6 @@ import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
 import io.github.afgprojects.framework.data.core.metadata.EntityTrait;
 import io.github.afgprojects.framework.data.core.page.PageRequest;
 import io.github.afgprojects.framework.data.core.query.Condition;
-import io.github.afgprojects.framework.data.core.query.Page;
 import io.github.afgprojects.framework.data.core.query.ProjectedQuery;
 import io.github.afgprojects.framework.data.core.query.Sort;
 import io.github.afgprojects.framework.data.core.scope.DataScope;
@@ -193,11 +193,11 @@ public class JdbcProjectedQuery<T, R> implements ProjectedQuery<T, R> {
     }
 
     @Override
-    public @NonNull Page<R> page(@NonNull PageRequest pageRequest) {
+    public @NonNull PageData<R> page(@NonNull PageRequest pageRequest) {
         if (projection != null) {
-            Page<T> entityPage = entityQuery.page(pageRequest);
-            List<R> mapped = entityPage.getContent().stream().map(projection::map).toList();
-            return new Page<>(mapped, entityPage.getTotal(), entityPage.getPage(), entityPage.getSize());
+            PageData<T> entityPage = entityQuery.page(pageRequest);
+            List<R> mapped = entityPage.records().stream().map(projection::map).toList();
+            return PageData.of(mapped, entityPage.total(), entityPage.page(), entityPage.size());
         }
         return executePageWithDtoMapper(pageRequest);
     }
@@ -319,7 +319,7 @@ public class JdbcProjectedQuery<T, R> implements ProjectedQuery<T, R> {
                 .list();
     }
 
-    private Page<R> executePageWithDtoMapper(PageRequest pageRequest) {
+    private PageData<R> executePageWithDtoMapper(PageRequest pageRequest) {
         JdbcEntityProxy<T> proxy = entityQuery.getParentProxy();
         Dialect dialect = proxy.getDialect();
         EntityMetadata<T> metadata = proxy.dataManager.getEntityMetadata(entityQuery.getEntityClass());
@@ -347,7 +347,7 @@ public class JdbcProjectedQuery<T, R> implements ProjectedQuery<T, R> {
                 .query(ResultMapperAdapter.adapt(dtoMapper))
                 .list();
 
-        return new Page<>(records, total, pageRequest.page(), pageRequest.size());
+        return PageData.of(records, total, pageRequest.page(), pageRequest.size());
     }
 
     private String buildSelectSql(Dialect dialect, EntityMetadata<T> metadata) {
