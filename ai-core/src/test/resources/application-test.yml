@@ -3,11 +3,11 @@ spring:
     hibernate:
       ddl-auto: none
     open-in-view: false
+
+afg:
   liquibase:
     enabled: true
     change-log: classpath:db/changelog/ai/changelog.xml
-
-afg:
   ai:
     enabled: true
     chat:

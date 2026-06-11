@@ -33,39 +33,39 @@ public class AiSkillAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(IntentAnalyzer.class)
-    @ConditionalOnProperty(prefix = "afg.ai.skill", name = "enabled", havingValue = "true")
-    public DefaultIntentAnalyzer defaultIntentAnalyzer(
+    @ConditionalOnProperty(prefix = "afg.ai.skill", name = "enabled", havingValue = "true", matchIfMissing = true)
+    public IntentAnalyzer defaultIntentAnalyzer(
             SkillRegistry skillRegistry,
             @Autowired(required = false) AfgChatClient chatClient) {
         if (chatClient == null) {
-            return null;
+            return new NoOpIntentAnalyzer();
         }
         return new DefaultIntentAnalyzer(skillRegistry, chatClient);
     }
 
     @Bean
     @ConditionalOnMissingBean(SkillExecutor.class)
-    @ConditionalOnProperty(prefix = "afg.ai.skill", name = "enabled", havingValue = "true")
-    public DefaultSkillExecutor defaultSkillExecutor(
+    @ConditionalOnProperty(prefix = "afg.ai.skill", name = "enabled", havingValue = "true", matchIfMissing = true)
+    public SkillExecutor defaultSkillExecutor(
             SkillRegistry skillRegistry,
             @Autowired(required = false) AfgChatClient chatClient,
             @Autowired(required = false) ToolRegistry toolRegistry) {
         if (chatClient == null) {
-            return null;
+            return new NoOpSkillExecutor(skillRegistry);
         }
         return new DefaultSkillExecutor(skillRegistry, chatClient, toolRegistry);
     }
 
     @Bean
     @ConditionalOnMissingBean(SkillDispatcher.class)
-    @ConditionalOnProperty(prefix = "afg.ai.skill", name = "enabled", havingValue = "true")
-    public DefaultSkillDispatcher defaultSkillDispatcher(
+    @ConditionalOnProperty(prefix = "afg.ai.skill", name = "enabled", havingValue = "true", matchIfMissing = true)
+    public SkillDispatcher defaultSkillDispatcher(
             IntentAnalyzer intentAnalyzer,
             SkillExecutor skillExecutor,
             SkillRegistry skillRegistry,
             @Autowired(required = false) AfgChatClient chatClient) {
-        if (chatClient == null || intentAnalyzer == null || skillExecutor == null) {
-            return null;
+        if (chatClient == null) {
+            return new NoOpSkillDispatcher(intentAnalyzer, skillRegistry);
         }
         return new DefaultSkillDispatcher(intentAnalyzer, skillExecutor, skillRegistry, chatClient);
     }

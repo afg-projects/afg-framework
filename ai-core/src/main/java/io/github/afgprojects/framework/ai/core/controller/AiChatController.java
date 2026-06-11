@@ -12,7 +12,10 @@ import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.condition.Conditions;
 import io.github.afgprojects.framework.data.core.condition.TypedConditionBuilder;
 import io.github.afgprojects.framework.data.core.query.Condition;
+import io.github.afgprojects.framework.security.core.authentication.AfgUserDetails;
 import jakarta.validation.Valid;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -250,9 +253,13 @@ public class AiChatController {
     /**
      * 获取当前用户 ID
      *
-     * <p>TODO: 从 SecurityContext 获取实际用户 ID
+     * <p>从 Spring SecurityContext 获取用户 ID，若未认证则返回 "system"。
      */
     private String getCurrentUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof AfgUserDetails userDetails) {
+            return userDetails.getUserId();
+        }
         return "system";
     }
 }

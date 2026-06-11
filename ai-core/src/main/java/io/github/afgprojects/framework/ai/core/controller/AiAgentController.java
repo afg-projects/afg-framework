@@ -4,11 +4,14 @@ import io.github.afgprojects.framework.ai.core.api.agent.AgentRequest;
 import io.github.afgprojects.framework.ai.core.api.agent.AgentResponse;
 import io.github.afgprojects.framework.ai.core.entity.agent.AgentDefinitionEntity;
 import io.github.afgprojects.framework.ai.core.entity.agent.AgentSessionEntity;
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.condition.Conditions;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
@@ -57,9 +60,10 @@ public class AiAgentController {
      * 获取 Agent 定义
      */
     @GetMapping("/definitions/{id}")
-    public AgentDefinitionEntity getDefinition(@PathVariable Long id) {
+    public ResponseEntity<AgentDefinitionEntity> getDefinition(@PathVariable Long id) {
         return dataManager.findById(AgentDefinitionEntity.class, id)
-            .orElseThrow(() -> new IllegalArgumentException("Agent definition not found: " + id));
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
     }
 
     /**
@@ -71,11 +75,12 @@ public class AiAgentController {
     }
 
     /**
-     * 删除 Agent 定义
+     * 删除 Agent 定义（软删除）
      */
     @DeleteMapping("/definitions/{id}")
-    public void deleteDefinition(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteDefinition(@PathVariable Long id) {
         dataManager.deleteById(AgentDefinitionEntity.class, id);
+        return ResponseEntity.noContent().build();
     }
 
     // ==================== Agent 会话 ====================
@@ -92,9 +97,10 @@ public class AiAgentController {
      * 获取会话
      */
     @GetMapping("/sessions/{id}")
-    public AgentSessionEntity getSession(@PathVariable Long id) {
+    public ResponseEntity<AgentSessionEntity> getSession(@PathVariable Long id) {
         return dataManager.findById(AgentSessionEntity.class, id)
-            .orElseThrow(() -> new IllegalArgumentException("Agent session not found: " + id));
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
     }
 
     /**
@@ -110,6 +116,15 @@ public class AiAgentController {
             .list();
     }
 
+    /**
+     * 删除会话（软删除）
+     */
+    @DeleteMapping("/sessions/{id}")
+    public ResponseEntity<Void> deleteSession(@PathVariable Long id) {
+        dataManager.deleteById(AgentSessionEntity.class, id);
+        return ResponseEntity.noContent().build();
+    }
+
     // ==================== Agent 执行 ====================
 
     /**
@@ -121,7 +136,7 @@ public class AiAgentController {
     public AgentResponse executeAgent(@PathVariable Long id, @RequestBody Map<String, String> body) {
         String userInput = body.get("message");
         if (userInput == null || userInput.isBlank()) {
-            throw new IllegalArgumentException("Message is required");
+            throw new BusinessException(CommonErrorCode.PARAM_ERROR, "Message is required");
         }
         return agentService.execute(id, userInput);
     }
@@ -141,7 +156,7 @@ public class AiAgentController {
     public Flux<AgentResponse> executeAgentStream(@PathVariable Long id, @RequestBody Map<String, String> body) {
         String userInput = body.get("message");
         if (userInput == null || userInput.isBlank()) {
-            return Flux.error(new IllegalArgumentException("Message is required"));
+            return Flux.error(new BusinessException(CommonErrorCode.PARAM_ERROR, "Message is required"));
         }
 
         return Flux.<AgentResponse>create(sink -> {

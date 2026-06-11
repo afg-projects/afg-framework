@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.ai.core.api;
 
+import io.github.afgprojects.framework.commons.model.PageData;
 import io.github.afgprojects.framework.ai.core.AbstractAiWebTest;
 import io.github.afgprojects.framework.ai.core.dto.model.CreateModelConfigRequest;
 import io.github.afgprojects.framework.ai.core.dto.model.CreateProviderRequest;
@@ -9,7 +10,6 @@ import io.github.afgprojects.framework.ai.core.entity.model.ModelConfigEntity;
 import io.github.afgprojects.framework.ai.core.entity.model.ModelProviderEntity;
 import io.github.afgprojects.framework.ai.core.entity.model.ModelUsageEntity;
 import io.github.afgprojects.framework.data.core.DataManager;
-import io.github.afgprojects.framework.data.core.query.Page;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * AiModelController 集成测试
@@ -125,14 +126,12 @@ class AiModelControllerTest extends AbstractAiWebTest {
 
     @Test
     void shouldReturn404_whenGetNonExistentProvider() {
-        // Act
-        ResponseEntity<Map> response = restClient().get()
-            .uri("/models/providers/{id}", 999999L)
-            .retrieve()
-            .toEntity(Map.class);
-
-        // Assert
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        // Act & Assert - RestClient throws HttpClientErrorException for 4xx responses
+        assertThatThrownBy(() -> restClient().get()
+                .uri("/models/providers/{id}", 999999L)
+                .retrieve()
+                .toEntity(Map.class))
+            .isInstanceOf(org.springframework.web.client.HttpClientErrorException.NotFound.class);
     }
 
     @Test
@@ -184,11 +183,12 @@ class AiModelControllerTest extends AbstractAiWebTest {
         assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 
         // Assert - GET returns 404 (soft deleted)
-        ResponseEntity<Map> getResponse = restClient().get()
-            .uri("/models/providers/{id}", provider.getId())
-            .retrieve()
-            .toEntity(Map.class);
-        assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        Long deletedId = provider.getId();
+        assertThatThrownBy(() -> restClient().get()
+                .uri("/models/providers/{id}", deletedId)
+                .retrieve()
+                .toEntity(Map.class))
+            .isInstanceOf(org.springframework.web.client.HttpClientErrorException.NotFound.class);
     }
 
     // ==================== Model Config CRUD ====================
@@ -330,11 +330,12 @@ class AiModelControllerTest extends AbstractAiWebTest {
         assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 
         // Assert - GET returns 404 (soft deleted)
-        ResponseEntity<Map> getResponse = restClient().get()
-            .uri("/models/configs/{id}", config.getId())
-            .retrieve()
-            .toEntity(Map.class);
-        assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        Long deletedConfigId = config.getId();
+        assertThatThrownBy(() -> restClient().get()
+                .uri("/models/configs/{id}", deletedConfigId)
+                .retrieve()
+                .toEntity(Map.class))
+            .isInstanceOf(org.springframework.web.client.HttpClientErrorException.NotFound.class);
 
         // Cleanup
         dataManager.deleteById(ModelProviderEntity.class, provider.getId());
@@ -369,15 +370,15 @@ class AiModelControllerTest extends AbstractAiWebTest {
         usage = dataManager.save(ModelUsageEntity.class, usage);
 
         // Act
-        Page<Map> page = restClient().get()
+        PageData<Map> page = restClient().get()
             .uri("/models/usage?modelConfigId={configId}", config.getId())
             .retrieve()
-            .body(Page.class);
+            .body(PageData.class);
 
         // Assert
         assertThat(page).isNotNull();
-        assertThat(page.getContent()).isNotNull();
-        assertThat(page.getContent().size()).isGreaterThanOrEqualTo(1);
+        assertThat(page.records()).isNotNull();
+        assertThat(page.records().size()).isGreaterThanOrEqualTo(1);
 
         // Cleanup
         dataManager.deleteById(ModelUsageEntity.class, usage.getId());

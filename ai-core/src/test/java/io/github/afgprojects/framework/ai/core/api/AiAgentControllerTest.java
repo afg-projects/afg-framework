@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * AiAgentController 集成测试
@@ -165,11 +166,12 @@ class AiAgentControllerTest extends AbstractAiWebTest {
         assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 
         // Assert - GET returns 404 (soft deleted)
-        ResponseEntity<Map> getResponse = restClient().get()
-            .uri("/agents/definitions/{id}", definition.getId())
-            .retrieve()
-            .toEntity(Map.class);
-        assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        Long deletedDefId = definition.getId();
+        assertThatThrownBy(() -> restClient().get()
+                .uri("/agents/definitions/{id}", deletedDefId)
+                .retrieve()
+                .toEntity(Map.class))
+            .isInstanceOf(org.springframework.web.client.HttpClientErrorException.NotFound.class);
     }
 
     // ==================== Session Management (no AI needed) ====================
@@ -302,11 +304,12 @@ class AiAgentControllerTest extends AbstractAiWebTest {
         assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 
         // Assert - GET returns 404 (soft deleted)
-        ResponseEntity<Map> getResponse = restClient().get()
-            .uri("/agents/sessions/{id}", session.getId())
-            .retrieve()
-            .toEntity(Map.class);
-        assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        Long deletedSessionId = session.getId();
+        assertThatThrownBy(() -> restClient().get()
+                .uri("/agents/sessions/{id}", deletedSessionId)
+                .retrieve()
+                .toEntity(Map.class))
+            .isInstanceOf(org.springframework.web.client.HttpClientErrorException.NotFound.class);
 
         // Cleanup definition
         dataManager.deleteById(AgentDefinitionEntity.class, definition.getId());

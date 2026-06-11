@@ -43,6 +43,9 @@ dependencies {
     // APT API (for @AfEntity on RAG entities, compileOnly as it's optional)
     compileOnly(project(":apt-api"))
 
+    // APT 实现 (for annotation processing to generate module index and entity metadata)
+    annotationProcessor(project(":apt-impl"))
+
     // PDF 解析 (ETL)
     implementation("org.apache.pdfbox:pdfbox:3.0.1")
 
@@ -63,6 +66,7 @@ dependencies {
     testImplementation(libs.bundles.testing)
     testImplementation(libs.spring.boot.starter.test)
     testImplementation(libs.spring.webflux)  // SSE/WebClient testing
+    testImplementation("org.springframework.boot:spring-boot-restclient")  // RestClient.Builder for web tests
     testImplementation(libs.testcontainers)
     testImplementation(libs.testcontainers.junit.jupiter)
     testImplementation(libs.testcontainers.mysql)

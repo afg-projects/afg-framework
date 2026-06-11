@@ -77,12 +77,12 @@ public class AiAgentAutoConfiguration {
         @Bean
         @ConditionalOnMissingBean(ReActExecutor.class)
         @ConditionalOnProperty(prefix = "afg.ai.agent.react", name = "enabled", havingValue = "true", matchIfMissing = true)
-        public DefaultReActExecutor defaultReActExecutor(
+        public ReActExecutor defaultReActExecutor(
                 @Autowired(required = false) AfgChatClient chatClient,
                 @Autowired(required = false) ToolRegistry toolRegistry,
                 AfgAiProperties properties) {
             if (chatClient == null) {
-                return null;
+                return new NoOpReActExecutor();
             }
             return new DefaultReActExecutor(chatClient,
                     toolRegistry != null ? toolRegistry : new DefaultToolRegistry(),

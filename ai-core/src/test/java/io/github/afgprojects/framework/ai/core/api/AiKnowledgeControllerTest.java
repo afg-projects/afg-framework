@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * AiKnowledgeController 集成测试
@@ -161,11 +162,12 @@ class AiKnowledgeControllerTest extends AbstractAiWebTest {
         assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 
         // Assert - GET returns 404 (soft deleted)
-        ResponseEntity<Map> getResponse = restClient().get()
-            .uri("/knowledge/bases/{id}", kb.getId())
-            .retrieve()
-            .toEntity(Map.class);
-        assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        Long deletedKbId = kb.getId();
+        assertThatThrownBy(() -> restClient().get()
+                .uri("/knowledge/bases/{id}", deletedKbId)
+                .retrieve()
+                .toEntity(Map.class))
+            .isInstanceOf(org.springframework.web.client.HttpClientErrorException.NotFound.class);
     }
 
     // ==================== Document Management ====================
@@ -306,11 +308,13 @@ class AiKnowledgeControllerTest extends AbstractAiWebTest {
         assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 
         // Assert - GET returns 404 (soft deleted)
-        ResponseEntity<Map> getResponse = restClient().get()
-            .uri("/knowledge/bases/{id}/documents/{docId}", kb.getId(), doc.getId())
-            .retrieve()
-            .toEntity(Map.class);
-        assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        Long deletedKbId2 = kb.getId();
+        Long deletedDocId = doc.getId();
+        assertThatThrownBy(() -> restClient().get()
+                .uri("/knowledge/bases/{id}/documents/{docId}", deletedKbId2, deletedDocId)
+                .retrieve()
+                .toEntity(Map.class))
+            .isInstanceOf(org.springframework.web.client.HttpClientErrorException.NotFound.class);
 
         // Cleanup
         dataManager.deleteById(KnowledgeBaseEntity.class, kb.getId());

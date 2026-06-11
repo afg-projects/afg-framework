@@ -15,7 +15,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
  * @since 1.0.0
  */
 @AutoConfiguration
-@EnableConfigurationProperties(AfgAiProperties.class)
+@EnableConfigurationProperties({AfgAiProperties.class, AiConfigurationProperties.class})
 @ConditionalOnProperty(prefix = "afg.ai", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class AiCoreAutoConfiguration {
 

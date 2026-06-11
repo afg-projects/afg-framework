@@ -20,6 +20,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.Nullable;
 
 import java.util.function.Function;
 
@@ -41,31 +42,35 @@ public class AiWorkflowAutoConfiguration {
     static class WorkflowConfiguration {
 
         @Bean
-        @ConditionalOnMissingBean
-        public DefaultDagEngine defaultDagEngine(Function<String, WorkflowNode> nodeResolver) {
-            return new DefaultDagEngine(nodeResolver);
+        @ConditionalOnMissingBean(DagEngine.class)
+        public DefaultDagEngine defaultDagEngine(@Nullable Function<String, WorkflowNode> nodeResolver) {
+            if (nodeResolver != null) {
+                return new DefaultDagEngine(nodeResolver);
+            }
+            // 如果没有节点解析器，返回一个不做任何事的引擎
+            return new DefaultDagEngine(type -> null);
         }
 
         @Bean
-        @ConditionalOnMissingBean
+        @ConditionalOnMissingBean(NodeTypeRegistry.class)
         public DefaultNodeTypeRegistry defaultNodeTypeRegistry() {
             return new DefaultNodeTypeRegistry();
         }
 
         @Bean
-        @ConditionalOnMissingBean
+        @ConditionalOnMissingBean(DslConverter.class)
         public DefaultDslConverter defaultDslConverter() {
             return new DefaultDslConverter();
         }
 
         @Bean
-        @ConditionalOnMissingBean
+        @ConditionalOnMissingBean(DslValidator.class)
         public DefaultDslValidator defaultDslValidator() {
             return new DefaultDslValidator();
         }
 
         @Bean
-        @ConditionalOnMissingBean
+        @ConditionalOnMissingBean(VariableResolver.class)
         public DefaultVariableResolver defaultVariableResolver() {
             return new DefaultVariableResolver();
         }
@@ -76,7 +81,7 @@ public class AiWorkflowAutoConfiguration {
             return new InMemoryCheckpointManager();
         }
 
-        // TODO: 阶段4添加AOP切面Bean
+        // Future: WorkflowAspect AOP bean to be added
         // @Bean
         // @ConditionalOnMissingBean
         // public WorkflowAspect workflowAspect() {

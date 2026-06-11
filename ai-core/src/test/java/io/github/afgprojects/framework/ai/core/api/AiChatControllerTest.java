@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * AiChatController 集成测试
@@ -169,12 +170,12 @@ class AiChatControllerTest extends AbstractAiWebTest {
         // Assert - delete succeeded
         assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 
-        // Assert - GET returns 404
-        ResponseEntity<Map> getResponse = restClient().get()
-            .uri("/chat/conversations/{id}", conversationId)
-            .retrieve()
-            .toEntity(Map.class);
-        assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        // Assert - GET returns 404 (soft deleted)
+        assertThatThrownBy(() -> restClient().get()
+                .uri("/chat/conversations/{id}", conversationId)
+                .retrieve()
+                .toEntity(Map.class))
+            .isInstanceOf(org.springframework.web.client.HttpClientErrorException.NotFound.class);
     }
 
     // ==================== Chat (needs Ollama) ====================

@@ -12,7 +12,10 @@ import io.github.afgprojects.framework.ai.core.entity.workflow.WorkflowExecution
 import io.github.afgprojects.framework.ai.core.service.WorkflowService;
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.condition.Conditions;
+import io.github.afgprojects.framework.security.core.authentication.AfgUserDetails;
 import jakarta.validation.Valid;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -87,10 +90,13 @@ public class AiWorkflowController {
      */
     @PutMapping("/definitions/{id}")
     @Transactional
-    public WorkflowDefinitionEntity updateDefinition(@PathVariable Long id,
+    public ResponseEntity<WorkflowDefinitionEntity> updateDefinition(@PathVariable Long id,
                                                       @Valid @RequestBody UpdateWorkflowRequest request) {
         WorkflowDefinitionEntity entity = dataManager.findById(WorkflowDefinitionEntity.class, id)
-            .orElseThrow(() -> new IllegalArgumentException("Workflow definition not found: " + id));
+            .orElse(null);
+        if (entity == null) {
+            return ResponseEntity.notFound().build();
+        }
 
         if (request.getName() != null) {
             entity.setName(request.getName());
@@ -111,7 +117,7 @@ public class AiWorkflowController {
             entity.setApplicationId(request.getApplicationId());
         }
 
-        return dataManager.save(WorkflowDefinitionEntity.class, entity);
+        return ResponseEntity.ok(dataManager.save(WorkflowDefinitionEntity.class, entity));
     }
 
     /**
@@ -220,10 +226,14 @@ public class AiWorkflowController {
 
     /**
      * 获取当前用户 ID
-     * <p>
-     * TODO: 从 SecurityContext 获取实际用户 ID
+     *
+     * <p>从 Spring SecurityContext 获取用户 ID，若未认证则返回 "system"。
      */
     private String getCurrentUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof AfgUserDetails userDetails) {
+            return userDetails.getUserId();
+        }
         return "system";
     }
 }

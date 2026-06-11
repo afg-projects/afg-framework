@@ -1,20 +1,27 @@
 package io.github.afgprojects.framework.ai.core.controller;
 
+import io.github.afgprojects.framework.commons.model.PageData;
 import io.github.afgprojects.framework.ai.core.api.model.ModelInfo;
 import io.github.afgprojects.framework.ai.core.api.model.ModelRegistry;
 import io.github.afgprojects.framework.ai.core.api.model.ModelType;
 import io.github.afgprojects.framework.ai.core.dto.model.CreateModelConfigRequest;
 import io.github.afgprojects.framework.ai.core.dto.model.CreateProviderRequest;
+import io.github.afgprojects.framework.ai.core.dto.model.DiscoveredModel;
 import io.github.afgprojects.framework.ai.core.dto.model.ModelUsageQuery;
+import io.github.afgprojects.framework.ai.core.dto.model.ConnectionTestResponse;
 import io.github.afgprojects.framework.ai.core.dto.model.UpdateModelConfigRequest;
 import io.github.afgprojects.framework.ai.core.dto.model.UpdateProviderRequest;
 import io.github.afgprojects.framework.ai.core.entity.model.ModelConfigEntity;
 import io.github.afgprojects.framework.ai.core.entity.model.ModelProviderEntity;
 import io.github.afgprojects.framework.ai.core.entity.model.ModelUsageEntity;
+import io.github.afgprojects.framework.ai.core.provider.ProviderTemplate;
+import io.github.afgprojects.framework.ai.core.provider.ProviderTemplateRegistry;
+import io.github.afgprojects.framework.ai.core.service.CredentialService;
+import io.github.afgprojects.framework.ai.core.service.ModelDiscoveryService;
+import io.github.afgprojects.framework.ai.core.service.ModelTestService;
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.condition.Conditions;
 import io.github.afgprojects.framework.data.core.page.PageRequest;
-import io.github.afgprojects.framework.data.core.query.Page;
 import io.github.afgprojects.framework.data.core.query.Sort;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * AI 模型管理控制器
@@ -41,6 +49,10 @@ public class AiModelController {
 
     private final DataManager dataManager;
     private final ModelRegistry modelRegistry;
+    private final ProviderTemplateRegistry providerTemplateRegistry;
+    private final ModelDiscoveryService modelDiscoveryService;
+    private final ModelTestService modelTestService;
+    private final CredentialService credentialService;
 
     // ==================== 模型提供商 CRUD ====================
 
@@ -86,10 +98,13 @@ public class AiModelController {
      */
     @PutMapping("/providers/{id}")
     @Transactional
-    public ModelProviderEntity updateProvider(@PathVariable Long id,
+    public ResponseEntity<ModelProviderEntity> updateProvider(@PathVariable Long id,
                                                @Valid @RequestBody UpdateProviderRequest request) {
         ModelProviderEntity entity = dataManager.findById(ModelProviderEntity.class, id)
-            .orElseThrow(() -> new IllegalArgumentException("Provider not found: " + id));
+            .orElse(null);
+        if (entity == null) {
+            return ResponseEntity.notFound().build();
+        }
 
         if (request.getProviderName() != null) {
             entity.setProviderName(request.getProviderName());
@@ -110,7 +125,7 @@ public class AiModelController {
             entity.setConfig(request.getConfig());
         }
 
-        return dataManager.save(ModelProviderEntity.class, entity);
+        return ResponseEntity.ok(dataManager.save(ModelProviderEntity.class, entity));
     }
 
     /**
@@ -180,10 +195,13 @@ public class AiModelController {
      */
     @PutMapping("/configs/{id}")
     @Transactional
-    public ModelConfigEntity updateModelConfig(@PathVariable Long id,
+    public ResponseEntity<ModelConfigEntity> updateModelConfig(@PathVariable Long id,
                                                 @Valid @RequestBody UpdateModelConfigRequest request) {
         ModelConfigEntity entity = dataManager.findById(ModelConfigEntity.class, id)
-            .orElseThrow(() -> new IllegalArgumentException("Model config not found: " + id));
+            .orElse(null);
+        if (entity == null) {
+            return ResponseEntity.notFound().build();
+        }
 
         if (request.getModelName() != null) {
             entity.setModelName(request.getModelName());
@@ -204,7 +222,7 @@ public class AiModelController {
             entity.setEnabled(request.getEnabled());
         }
 
-        return dataManager.save(ModelConfigEntity.class, entity);
+        return ResponseEntity.ok(dataManager.save(ModelConfigEntity.class, entity));
     }
 
     /**
@@ -226,7 +244,7 @@ public class AiModelController {
      * 查询模型用量（分页 + 筛选）
      */
     @GetMapping("/usage")
-    public Page<ModelUsageEntity> queryUsage(ModelUsageQuery query) {
+    public PageData<ModelUsageEntity> queryUsage(ModelUsageQuery query) {
         var builder = Conditions.builder(ModelUsageEntity.class);
 
         if (query.getModelConfigId() != null) {
@@ -282,5 +300,116 @@ public class AiModelController {
         return modelRegistry.getModel(modelId)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
+    }
+
+    // ==================== 供应商模板 ====================
+
+    /**
+     * 获取所有供应商模板
+     */
+    @GetMapping("/templates")
+    public List<ProviderTemplate> listTemplates() {
+        return providerTemplateRegistry.getTemplates();
+    }
+
+    /**
+     * 获取单个供应商模板
+     */
+    @GetMapping("/templates/{type}")
+    public ResponseEntity<ProviderTemplate> getTemplate(@PathVariable String type) {
+        ProviderTemplate template = providerTemplateRegistry.getByType(type);
+        if (template == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(template);
+    }
+
+    // ==================== 模型发现 ====================
+
+    /**
+     * 发现供应商可用的模型列表
+     *
+     * @param id 供应商 ID
+     * @return 发现的模型列表
+     */
+    @PostMapping("/providers/{id}/discover-models")
+    public ResponseEntity<List<DiscoveredModel>> discoverModels(@PathVariable Long id) {
+        List<DiscoveredModel> models = modelDiscoveryService.discoverModels(id);
+        return ResponseEntity.ok(models);
+    }
+
+    /**
+     * 预览供应商可用模型（创建供应商前）
+     *
+     * @param baseUrl          供应商 API 基础 URL
+     * @param apiKey           API Key
+     * @param providerCategory 供应商类别
+     * @return 发现的模型列表
+     */
+    @PostMapping("/discover-models")
+    public ResponseEntity<List<DiscoveredModel>> previewModels(
+            @RequestParam String baseUrl,
+            @RequestParam(required = false) String apiKey,
+            @RequestParam String providerCategory) {
+        List<DiscoveredModel> models = modelDiscoveryService.discoverModels(baseUrl, apiKey, providerCategory);
+        return ResponseEntity.ok(models);
+    }
+
+    // ==================== 模型连接测试 ====================
+
+    /**
+     * 测试供应商连接
+     *
+     * @param id 供应商 ID
+     * @return 测试结果
+     */
+    @PostMapping("/providers/{id}/test")
+    public ResponseEntity<ConnectionTestResponse> verifyConnection(@PathVariable Long id) {
+        ConnectionTestResponse response = modelTestService.verifyConnection(id);
+        return ResponseEntity.ok(response);
+    }
+
+    // ==================== 凭证管理 ====================
+
+    /**
+     * 获取供应商的脱敏 API Key
+     *
+     * @param id 供应商 ID
+     * @return 脱敏后的 API Key
+     */
+    @GetMapping("/providers/{id}/masked-api-key")
+    public ResponseEntity<Map<String, String>> getMaskedApiKey(@PathVariable Long id) {
+        return dataManager.findById(ModelProviderEntity.class, id)
+            .map(provider -> {
+                String maskedKey = credentialService.mask(provider.getApiKey());
+                return ResponseEntity.ok(Map.of("maskedApiKey", maskedKey));
+            })
+            .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * 加密 API Key
+     *
+     * @param request 包含 plaintext 的请求体
+     * @return 加密后的值
+     */
+    @PostMapping("/credentials/encrypt")
+    public Map<String, String> encrypt(@RequestBody Map<String, String> request) {
+        String plaintext = request.get("plaintext");
+        String encrypted = credentialService.encrypt(plaintext);
+        return Map.of("encrypted", encrypted);
+    }
+
+    /**
+     * 解密 API Key
+     *
+     * @param request 包含 ciphertext 的请求体
+     * @return 解密后的值
+     */
+    @PostMapping("/credentials/decrypt")
+    public Map<String, String> decrypt(@RequestBody Map<String, String> request) {
+        String ciphertext = request.get("ciphertext");
+        String decrypted = credentialService.decrypt(ciphertext);
+        return Map.of("decrypted", decrypted);
     }
 }

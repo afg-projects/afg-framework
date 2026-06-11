@@ -9,7 +9,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.springframework.web.client.RestClient;
 
@@ -26,6 +25,9 @@ import static org.assertj.core.api.Assumptions.assumeThat;
  * <p>使用真实的 MySQL 容器，启动完整的 Spring Boot Web 上下文，
  * 提供 RestClient 用于 API 端到端测试。
  *
+ * <p>使用 Singleton 容器模式确保 MySQL 容器在所有测试类之间共享，
+ * 避免 Spring Context 重建时容器被停止导致后续测试连接失败。
+ *
  * <p>注意：不要在继承类上使用 @Transactional，因为 HTTP 请求在不同线程执行，
  * 事务不会共享。
  */
@@ -34,18 +36,27 @@ import static org.assertj.core.api.Assumptions.assumeThat;
 @Testcontainers
 public abstract class AbstractAiWebTest {
 
-    @Container
-    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.4")
+    /**
+     * Singleton MySQL 容器 — 在所有测试类之间共享，只启动一次。
+     *
+     * <p>使用 static final 字段 + 手动 start() 确保 JVM 级别单例，
+     * 避免 @Container 注解在每个测试类中独立管理容器生命周期。
+     */
+    static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.4")
         .withDatabaseName("ai_test")
         .withUsername("test")
         .withPassword("test");
 
+    static {
+        MYSQL.start();
+    }
+
     @DynamicPropertySource
     static void configureDatabase(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", mysql::getJdbcUrl);
-        registry.add("spring.datasource.username", mysql::getUsername);
-        registry.add("spring.datasource.password", mysql::getPassword);
-        registry.add("spring.datasource.driver-class-name", mysql::getDriverClassName);
+        registry.add("spring.datasource.url", MYSQL::getJdbcUrl);
+        registry.add("spring.datasource.username", MYSQL::getUsername);
+        registry.add("spring.datasource.password", MYSQL::getPassword);
+        registry.add("spring.datasource.driver-class-name", MYSQL::getDriverClassName);
     }
 
     @LocalServerPort

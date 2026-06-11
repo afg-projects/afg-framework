@@ -12,7 +12,10 @@ import io.github.afgprojects.framework.ai.core.dto.resource.UpdateApplicationReq
 import io.github.afgprojects.framework.ai.core.dto.resource.UpdateToolRequest;
 import io.github.afgprojects.framework.ai.core.entity.application.ApplicationEntity;
 import io.github.afgprojects.framework.ai.core.entity.application.ApplicationVersionEntity;
+import io.github.afgprojects.framework.ai.core.entity.chat.ChatLogEntity;
 import io.github.afgprojects.framework.ai.core.entity.tool.ToolRegistryEntity;
+import io.github.afgprojects.framework.ai.core.service.ApplicationPublishService;
+import io.github.afgprojects.framework.ai.core.service.ToolManagementService;
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.condition.Conditions;
 import jakarta.validation.Valid;
@@ -42,6 +45,8 @@ public class AiResourceController {
     private final DataManager dataManager;
     private final ToolRegistry toolRegistry;
     private final SkillDispatcher skillDispatcher;
+    private final ToolManagementService toolManagementService;
+    private final ApplicationPublishService applicationPublishService;
 
     // ==================== 工具注册 CRUD ====================
 
@@ -97,10 +102,13 @@ public class AiResourceController {
      */
     @PutMapping("/tools/{id}")
     @Transactional
-    public ToolRegistryEntity updateTool(@PathVariable Long id,
+    public ResponseEntity<ToolRegistryEntity> updateTool(@PathVariable Long id,
                                          @Valid @RequestBody UpdateToolRequest request) {
         ToolRegistryEntity entity = dataManager.findById(ToolRegistryEntity.class, id)
-            .orElseThrow(() -> new IllegalArgumentException("Tool not found: " + id));
+            .orElse(null);
+        if (entity == null) {
+            return ResponseEntity.notFound().build();
+        }
 
         if (request.getName() != null) {
             entity.setName(request.getName());
@@ -124,7 +132,7 @@ public class AiResourceController {
             entity.setEnabled(request.getEnabled());
         }
 
-        return dataManager.save(ToolRegistryEntity.class, entity);
+        return ResponseEntity.ok(dataManager.save(ToolRegistryEntity.class, entity));
     }
 
     /**
@@ -152,7 +160,10 @@ public class AiResourceController {
     public ResponseEntity<Object> executeTool(@PathVariable String name,
                                               @RequestBody(required = false) ToolExecuteRequest request) {
         Tool<?, ?> tool = toolRegistry.getTool(name)
-            .orElseThrow(() -> new IllegalArgumentException("Runtime tool not found: " + name));
+            .orElse(null);
+        if (tool == null) {
+            return ResponseEntity.notFound().build();
+        }
 
         Map<String, Object> params = (request != null && request.getParameters() != null)
             ? request.getParameters()
@@ -228,10 +239,13 @@ public class AiResourceController {
      */
     @PutMapping("/applications/{id}")
     @Transactional
-    public ApplicationEntity updateApplication(@PathVariable Long id,
+    public ResponseEntity<ApplicationEntity> updateApplication(@PathVariable Long id,
                                                 @Valid @RequestBody UpdateApplicationRequest request) {
         ApplicationEntity entity = dataManager.findById(ApplicationEntity.class, id)
-            .orElseThrow(() -> new IllegalArgumentException("Application not found: " + id));
+            .orElse(null);
+        if (entity == null) {
+            return ResponseEntity.notFound().build();
+        }
 
         if (request.getName() != null) {
             entity.setName(request.getName());
@@ -258,7 +272,7 @@ public class AiResourceController {
             entity.setSort(request.getSort());
         }
 
-        return dataManager.save(ApplicationEntity.class, entity);
+        return ResponseEntity.ok(dataManager.save(ApplicationEntity.class, entity));
     }
 
     /**
@@ -298,10 +312,10 @@ public class AiResourceController {
      */
     @PostMapping("/applications/{id}/versions")
     @Transactional
-    public ApplicationVersionEntity createApplicationVersion(@PathVariable Long id,
+    public ResponseEntity<ApplicationVersionEntity> createApplicationVersion(@PathVariable Long id,
                                                               @Valid @RequestBody CreateApplicationVersionRequest request) {
         if (!dataManager.existsById(ApplicationEntity.class, id)) {
-            throw new IllegalArgumentException("Application not found: " + id);
+            return ResponseEntity.notFound().build();
         }
 
         ApplicationVersionEntity entity = new ApplicationVersionEntity();
@@ -311,6 +325,70 @@ public class AiResourceController {
         entity.setDescription(request.getDescription());
         entity.setPublishedAt(request.getPublishedAt());
         entity.setUserId(request.getUserId());
-        return dataManager.save(ApplicationVersionEntity.class, entity);
+        return ResponseEntity.ok(dataManager.save(ApplicationVersionEntity.class, entity));
+    }
+
+    /**
+     * 发布应用
+     *
+     * <p>将应用状态从 DRAFT 转换为 PUBLISHED。
+     */
+    @PostMapping("/applications/{id}/publish")
+    @Transactional
+    public ResponseEntity<ApplicationEntity> publishApplication(@PathVariable Long id) {
+        return ResponseEntity.ok(applicationPublishService.publish(id));
+    }
+
+    /**
+     * 取消发布应用
+     *
+     * <p>将应用状态从 PUBLISHED 转换为 DRAFT。
+     */
+    @PostMapping("/applications/{id}/unpublish")
+    @Transactional
+    public ResponseEntity<ApplicationEntity> unpublishApplication(@PathVariable Long id) {
+        return ResponseEntity.ok(applicationPublishService.unpublish(id));
+    }
+
+    /**
+     * 按应用查询对话日志
+     *
+     * <p>查询指定应用下的所有对话日志，按创建时间倒序排列。
+     */
+    @GetMapping("/applications/{id}/chat-logs")
+    public List<ChatLogEntity> listChatLogsByApplication(@PathVariable Long id) {
+        return dataManager.entity(ChatLogEntity.class)
+            .query()
+            .where(Conditions.builder(ChatLogEntity.class)
+                .eq(ChatLogEntity::getApplicationId, id)
+                .build())
+            .orderByDesc(ChatLogEntity::getCreatedAt)
+            .list();
+    }
+
+    // ==================== 工具管理扩展 ====================
+
+    /**
+     * 启用工具
+     */
+    @PostMapping("/tools/{id}/enable")
+    public ResponseEntity<ToolRegistryEntity> enableTool(@PathVariable Long id) {
+        return ResponseEntity.ok(toolManagementService.enableTool(id));
+    }
+
+    /**
+     * 禁用工具
+     */
+    @PostMapping("/tools/{id}/disable")
+    public ResponseEntity<ToolRegistryEntity> disableTool(@PathVariable Long id) {
+        return ResponseEntity.ok(toolManagementService.disableTool(id));
+    }
+
+    /**
+     * 同步运行时注册表到数据库
+     */
+    @PostMapping("/tools/sync-registry")
+    public ResponseEntity<Integer> syncToolRegistry() {
+        return ResponseEntity.ok(toolManagementService.syncRegistry());
     }
 }

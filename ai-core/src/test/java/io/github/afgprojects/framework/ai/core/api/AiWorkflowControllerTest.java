@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * AiWorkflowController 集成测试
@@ -176,11 +177,12 @@ class AiWorkflowControllerTest extends AbstractAiWebTest {
         assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 
         // Assert - GET returns 404 (soft deleted)
-        ResponseEntity<Map> getResponse = restClient().get()
-            .uri("/workflows/definitions/{id}", wf.getId())
-            .retrieve()
-            .toEntity(Map.class);
-        assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        Long deletedWfId = wf.getId();
+        assertThatThrownBy(() -> restClient().get()
+                .uri("/workflows/definitions/{id}", deletedWfId)
+                .retrieve()
+                .toEntity(Map.class))
+            .isInstanceOf(org.springframework.web.client.HttpClientErrorException.NotFound.class);
     }
 
     // ==================== Workflow Execution ====================

@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * AiResourceController 集成测试
@@ -208,11 +209,12 @@ class AiResourceControllerTest extends AbstractAiWebTest {
         assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 
         // Assert - GET returns 404 (soft deleted)
-        ResponseEntity<Map> getResponse = restClient().get()
-            .uri("/resources/tools/{id}", tool.getId())
-            .retrieve()
-            .toEntity(Map.class);
-        assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        Long deletedToolId = tool.getId();
+        assertThatThrownBy(() -> restClient().get()
+                .uri("/resources/tools/{id}", deletedToolId)
+                .retrieve()
+                .toEntity(Map.class))
+            .isInstanceOf(org.springframework.web.client.HttpClientErrorException.NotFound.class);
     }
 
     // ==================== Application CRUD ====================
@@ -359,11 +361,12 @@ class AiResourceControllerTest extends AbstractAiWebTest {
         assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 
         // Assert - GET returns 404 (soft deleted)
-        ResponseEntity<Map> getResponse = restClient().get()
-            .uri("/resources/applications/{id}", app.getId())
-            .retrieve()
-            .toEntity(Map.class);
-        assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        Long deletedAppId = app.getId();
+        assertThatThrownBy(() -> restClient().get()
+                .uri("/resources/applications/{id}", deletedAppId)
+                .retrieve()
+                .toEntity(Map.class))
+            .isInstanceOf(org.springframework.web.client.HttpClientErrorException.NotFound.class);
     }
 
     // ==================== Application Version ====================
@@ -415,11 +418,13 @@ class AiResourceControllerTest extends AbstractAiWebTest {
         ApplicationVersionEntity version1 = new ApplicationVersionEntity();
         version1.setApplicationId(app.getId());
         version1.setVersion("1.0.0");
+        version1.setConfig("{}");
         version1 = dataManager.save(ApplicationVersionEntity.class, version1);
 
         ApplicationVersionEntity version2 = new ApplicationVersionEntity();
         version2.setApplicationId(app.getId());
         version2.setVersion("1.1.0");
+        version2.setConfig("{}");
         version2 = dataManager.save(ApplicationVersionEntity.class, version2);
 
         // Act

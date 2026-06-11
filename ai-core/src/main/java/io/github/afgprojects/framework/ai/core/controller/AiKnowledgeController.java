@@ -9,6 +9,7 @@ import io.github.afgprojects.framework.ai.core.entity.knowledge.DocumentChunkEnt
 import io.github.afgprojects.framework.ai.core.entity.knowledge.DocumentEntity;
 import io.github.afgprojects.framework.ai.core.entity.knowledge.KnowledgeBaseEntity;
 import io.github.afgprojects.framework.ai.core.service.KnowledgeDocumentService;
+import io.github.afgprojects.framework.ai.core.service.KnowledgeExtensionService;
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.condition.Conditions;
 import jakarta.validation.Valid;
@@ -21,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * AI 知识库管理控制器
@@ -39,6 +41,7 @@ public class AiKnowledgeController {
     private final DataManager dataManager;
     private final KnowledgeDocumentService knowledgeDocumentService;
     private final KnowledgeBaseService knowledgeBaseService;
+    private final KnowledgeExtensionService knowledgeExtensionService;
 
     // ==================== 知识库 CRUD ====================
 
@@ -79,10 +82,13 @@ public class AiKnowledgeController {
      */
     @PutMapping("/bases/{id}")
     @Transactional
-    public KnowledgeBaseEntity updateKnowledgeBase(@PathVariable Long id,
+    public ResponseEntity<KnowledgeBaseEntity> updateKnowledgeBase(@PathVariable Long id,
                                                     @Valid @RequestBody UpdateKnowledgeBaseRequest request) {
         KnowledgeBaseEntity entity = dataManager.findById(KnowledgeBaseEntity.class, id)
-            .orElseThrow(() -> new IllegalArgumentException("Knowledge base not found: " + id));
+            .orElse(null);
+        if (entity == null) {
+            return ResponseEntity.notFound().build();
+        }
 
         if (request.getName() != null) {
             entity.setName(request.getName());
@@ -97,7 +103,7 @@ public class AiKnowledgeController {
             entity.setConfig(request.getConfig());
         }
 
-        return dataManager.save(KnowledgeBaseEntity.class, entity);
+        return ResponseEntity.ok(dataManager.save(KnowledgeBaseEntity.class, entity));
     }
 
     /**
@@ -217,5 +223,54 @@ public class AiKnowledgeController {
             allResults.addAll(results);
         }
         return allResults;
+    }
+
+    // ==================== 知识库扩展 ====================
+
+    /**
+     * 基于知识库的 QA 问答
+     *
+     * <p>基于 Embedding + VectorStore 检索知识库中最相关的文档片段。
+     */
+    @PostMapping("/bases/{baseId}/qa")
+    public ResponseEntity<List<Document>> questionAnswer(
+            @PathVariable Long baseId,
+            @RequestBody Map<String, Object> request) {
+        String question = (String) request.get("question");
+        int topK = request.containsKey("topK") ? ((Number) request.get("topK")).intValue() : 5;
+        double threshold = request.containsKey("threshold") ? ((Number) request.get("threshold")).doubleValue() : 0.7;
+
+        List<Document> results = knowledgeExtensionService.questionAnswer(baseId, question, topK, threshold);
+        return ResponseEntity.ok(results);
+    }
+
+    /**
+     * 通过 URL 上传文档到知识库
+     */
+    @PostMapping("/bases/{baseId}/documents/url")
+    public ResponseEntity<DocumentEntity> uploadFromUrl(
+            @PathVariable Long baseId,
+            @RequestBody Map<String, String> request) {
+        String url = request.get("url");
+        String title = request.get("title");
+        return ResponseEntity.ok(knowledgeExtensionService.uploadFromUrl(baseId, url, title));
+    }
+
+    /**
+     * 查询知识库下指定状态的文档
+     */
+    @GetMapping("/bases/{baseId}/documents/status")
+    public ResponseEntity<List<DocumentEntity>> listDocumentsByStatus(
+            @PathVariable Long baseId,
+            @RequestParam(required = false) String status) {
+        return ResponseEntity.ok(knowledgeExtensionService.listDocumentsByStatus(baseId, status));
+    }
+
+    /**
+     * 重试处理失败的文档
+     */
+    @PostMapping("/documents/{docId}/retry")
+    public ResponseEntity<DocumentEntity> retryDocument(@PathVariable Long docId) {
+        return ResponseEntity.ok(knowledgeExtensionService.retryDocument(docId));
     }
 }
