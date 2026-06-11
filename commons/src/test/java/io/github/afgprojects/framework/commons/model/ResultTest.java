@@ -1,5 +1,8 @@
 package io.github.afgprojects.framework.commons.model;
 
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
+import io.github.afgprojects.framework.commons.exception.ErrorCode;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -40,6 +43,21 @@ class ResultTest {
     }
 
     @Nested
+    @DisplayName("success() 无参方法")
+    class SuccessNoArgTests {
+
+        @Test
+        @DisplayName("应返回 code=0, message=success, data=null")
+        void shouldReturnSuccessResultWithNoData() {
+            Result<Object> result = Result.success();
+
+            assertThat(result.code()).isEqualTo(0);
+            assertThat(result.message()).isEqualTo("success");
+            assertThat(result.data()).isNull();
+        }
+    }
+
+    @Nested
     @DisplayName("success(message, data) 方法")
     class SuccessMessageDataTests {
 
@@ -68,6 +86,36 @@ class ResultTest {
             assertThat(result.data()).isNull();
             assertThat(result.traceId()).isNull();
             assertThat(result.requestId()).isNull();
+        }
+    }
+
+    @Nested
+    @DisplayName("fail(ErrorCode) 方法")
+    class FailErrorCodeTests {
+
+        @Test
+        @DisplayName("应从 ErrorCode 提取 code 和 message")
+        void shouldReturnFailResultFromErrorCode() {
+            Result<Object> result = Result.fail(CommonErrorCode.NOT_FOUND);
+
+            assertThat(result.code()).isEqualTo(CommonErrorCode.NOT_FOUND.getCode());
+            assertThat(result.message()).isEqualTo(CommonErrorCode.NOT_FOUND.getMessage());
+            assertThat(result.data()).isNull();
+        }
+    }
+
+    @Nested
+    @DisplayName("fail(ErrorCode, message) 方法")
+    class FailErrorCodeMessageTests {
+
+        @Test
+        @DisplayName("应使用 ErrorCode 的 code 和自定义 message")
+        void shouldReturnFailResultWithCustomMessage() {
+            Result<Object> result = Result.fail(CommonErrorCode.ENTITY_NOT_FOUND, "用户 123 不存在");
+
+            assertThat(result.code()).isEqualTo(CommonErrorCode.ENTITY_NOT_FOUND.getCode());
+            assertThat(result.message()).isEqualTo("用户 123 不存在");
+            assertThat(result.data()).isNull();
         }
     }
 

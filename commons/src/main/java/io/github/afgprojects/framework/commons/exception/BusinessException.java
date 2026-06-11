@@ -84,6 +84,41 @@ public class BusinessException extends AfgException {
         this.customMessage = false;
     }
 
+    // ==================== 静态工厂方法 ====================
+
+    /**
+     * 从错误码创建业务异常
+     *
+     * @param errorCode 错误码
+     * @return 业务异常
+     */
+    public static BusinessException of(ErrorCode errorCode) {
+        return new BusinessException(errorCode);
+    }
+
+    /**
+     * 从错误码和自定义消息创建业务异常
+     *
+     * @param errorCode 错误码
+     * @param message 自定义消息
+     * @return 业务异常
+     */
+    public static BusinessException of(ErrorCode errorCode, String message) {
+        return new BusinessException(errorCode, message);
+    }
+
+    /**
+     * 从错误码和消息模板参数创建业务异常
+     * <p>消息模板使用 {0}、{1} 等占位符
+     *
+     * @param errorCode 错误码
+     * @param args 消息模板参数
+     * @return 业务异常
+     */
+    public static BusinessException of(ErrorCode errorCode, Object... args) {
+        return new BusinessException(errorCode, args);
+    }
+
     /**
      * 获取业务消息
      * @return 业务消息
