@@ -1,6 +1,8 @@
 package io.github.afgprojects.framework.security.core.tenant;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.Getter;
+import lombok.Setter;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -42,6 +44,13 @@ public class TenantResolverChain implements TenantResolver {
 
     private final List<TenantResolver> resolvers = new ArrayList<>();
     private final TenantValidator validator;
+    /**
+     * 判断是否在无法解析时抛出异常。
+     *
+     * @return 如果抛出异常则返回 true
+     */
+    @Setter
+    @Getter
     private boolean failIfUnresolved = true;
 
     /**
@@ -215,24 +224,6 @@ public class TenantResolverChain implements TenantResolver {
     @NonNull
     public List<TenantResolver> getResolvers() {
         return new ArrayList<>(resolvers);
-    }
-
-    /**
-     * 设置是否在无法解析时抛出异常。
-     *
-     * @param failIfUnresolved true 表示抛出异常，false 表示返回 null
-     */
-    public void setFailIfUnresolved(boolean failIfUnresolved) {
-        this.failIfUnresolved = failIfUnresolved;
-    }
-
-    /**
-     * 判断是否在无法解析时抛出异常。
-     *
-     * @return 如果抛出异常则返回 true
-     */
-    public boolean isFailIfUnresolved() {
-        return failIfUnresolved;
     }
 
     /**

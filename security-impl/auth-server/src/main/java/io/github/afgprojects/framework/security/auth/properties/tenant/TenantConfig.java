@@ -36,7 +36,7 @@ public class TenantConfig {
     /**
      * 无法解析租户时是否抛出异常。
      */
-    private boolean failIfUnresolved = true;
+    private boolean failIfUnresolved = false;
 
     /**
      * 租户验证配置。

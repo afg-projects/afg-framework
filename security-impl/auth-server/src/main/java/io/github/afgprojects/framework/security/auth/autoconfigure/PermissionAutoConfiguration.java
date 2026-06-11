@@ -119,13 +119,12 @@ public class PermissionAutoConfiguration {
      * 配置角色服务。
      *
      * @param dataManager 数据管理器
-     * @param enforcer    Casbin 执行器
      * @return JdbcRoleService 实例
      */
     @Bean
     @ConditionalOnMissingBean
-    public JdbcRoleService jdbcRoleService(DataManager dataManager, Enforcer enforcer) {
-        return new JdbcRoleService(dataManager, enforcer);
+    public JdbcRoleService jdbcRoleService(DataManager dataManager) {
+        return new JdbcRoleService(dataManager);
     }
 
     /**
@@ -227,4 +226,5 @@ public class PermissionAutoConfiguration {
         log.info("Initializing PermissionQueryController");
         return new PermissionQueryController(rbacService);
     }
+
 }

@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.security.auth.api;
 
+import io.github.afgprojects.framework.commons.model.Result;
 import io.github.afgprojects.framework.security.auth.permission.entity.SecRole;
 import io.github.afgprojects.framework.security.auth.permission.service.JdbcRoleService;
 import org.jspecify.annotations.Nullable;
@@ -22,43 +23,46 @@ public class RoleController {
     }
 
     @PostMapping
-    public SecRole create(@RequestBody SecRole role) {
-        return roleService.create(role);
+    public Result<SecRole> create(@RequestBody SecRole role) {
+        return Result.success(roleService.create(role));
     }
 
     @PutMapping("/{id}")
-    public SecRole update(@PathVariable Long id, @RequestBody SecRole role) {
+    public Result<SecRole> update(@PathVariable Long id, @RequestBody SecRole role) {
         role.setId(id);
-        return roleService.update(role);
+        return Result.success(roleService.update(role));
     }
 
     @GetMapping("/{id}")
-    public SecRole getById(@PathVariable Long id) {
-        return roleService.findById(id).orElse(null);
+    public Result<SecRole> getById(@PathVariable Long id) {
+        return Result.success(roleService.findById(id).orElse(null));
     }
 
     @GetMapping
-    public List<SecRole> list(@RequestParam @Nullable String tenantId) {
-        return roleService.findAll(tenantId);
+    public Result<List<SecRole>> list(@RequestParam @Nullable String tenantId) {
+        return Result.success(roleService.findAll(tenantId));
     }
 
     @PostMapping("/{id}/permissions")
-    public void setPermissions(@PathVariable Long id, @RequestBody Set<Long> permissionIds, @RequestParam @Nullable String tenantId) {
+    public Result<Boolean> setPermissions(@PathVariable Long id, @RequestBody Set<Long> permissionIds, @RequestParam @Nullable String tenantId) {
         roleService.setRolePermissions(id, permissionIds, tenantId);
+        return Result.success(true);
     }
 
     @GetMapping("/{id}/permissions")
-    public Set<Long> getPermissions(@PathVariable Long id) {
-        return roleService.getRolePermissions(id);
+    public Result<Set<Long>> getPermissions(@PathVariable Long id) {
+        return Result.success(roleService.getRolePermissions(id));
     }
 
     @PostMapping("/{id}/parent/{parentId}")
-    public void setParent(@PathVariable Long id, @PathVariable Long parentId, @RequestParam @Nullable String tenantId) {
+    public Result<Boolean> setParent(@PathVariable Long id, @PathVariable Long parentId, @RequestParam @Nullable String tenantId) {
         roleService.setParentRole(id, parentId, tenantId);
+        return Result.success(true);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
+    public Result<Boolean> delete(@PathVariable Long id) {
         roleService.delete(id);
+        return Result.success(true);
     }
 }

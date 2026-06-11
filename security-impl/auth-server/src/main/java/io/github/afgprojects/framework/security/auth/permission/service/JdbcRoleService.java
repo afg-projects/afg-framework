@@ -4,7 +4,6 @@ import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.condition.Conditions;
 import io.github.afgprojects.framework.security.auth.permission.entity.*;
 import lombok.extern.slf4j.Slf4j;
-import org.casbin.jcasbin.main.Enforcer;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,11 +18,9 @@ import java.util.stream.Collectors;
 public class JdbcRoleService {
 
     private final DataManager dataManager;
-    private final Enforcer enforcer;
 
-    public JdbcRoleService(DataManager dataManager, Enforcer enforcer) {
+    public JdbcRoleService(DataManager dataManager) {
         this.dataManager = dataManager;
-        this.enforcer = enforcer;
     }
 
     public SecRole create(@NonNull SecRole role) {

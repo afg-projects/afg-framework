@@ -51,7 +51,7 @@ public class OAuth2ExceptionControllerAdvice {
      * OAuth2 错误响应（RFC 6749 §5.2）。
      *
      * @param error 错误码
-     * @param errorDescription 错误描述
+     * @param error_description 错误描述
      */
     public record OAuth2ErrorResponse(
             @NonNull String error,
