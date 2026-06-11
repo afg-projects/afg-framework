@@ -1,0 +1,6 @@
+{"_example": "Fill with {\"file\": \"<path>\", \"reason\": \"<why>\"}. Put spec/research files only — no code paths. Run `python3 .trellis/scripts/get_context.py --mode packages` to list available specs. Delete this line once real entries are added."}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "6条质量底线、AutoConfiguration编写规则、SPI设计模式"}
+{"file": ".trellis/spec/backend/autoconfiguration-guidelines.md", "reason": "@AutoConfiguration + @AutoConfigureAfter + @ConditionalOnMissingBean规范"}
+{"file": ".trellis/spec/backend/testing-guidelines.md", "reason": "禁止Mockito铁律、compile-testing框架、单元测试模式"}
+{"file": ".trellis/spec/backend/entity-design.md", "reason": "实体基类体系、@AfEntity注解、特征接口、EntityTrait检测"}
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "条件构建器、字段加密、SQL构建"}
