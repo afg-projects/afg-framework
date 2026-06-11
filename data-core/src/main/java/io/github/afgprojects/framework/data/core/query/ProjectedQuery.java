@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.data.core.query;
 
+import io.github.afgprojects.framework.commons.model.PageData;
 import io.github.afgprojects.framework.data.core.condition.SFunction;
 import io.github.afgprojects.framework.data.core.page.PageRequest;
 import io.github.afgprojects.framework.data.core.scope.DataScopeType;
@@ -26,7 +27,7 @@ import java.util.Optional;
  *     .list();
  *
  * // 投影查询 + 分页
- * Page&lt;UserDTO&gt; page = dataManager.entity(User.class)
+ * PageData&lt;UserDTO&gt; page = dataManager.entity(User.class)
  *     .query()
  *     .project(UserDTO.class)
  *     .where(condition)
@@ -209,7 +210,7 @@ public interface ProjectedQuery<T, R> extends BaseQuery<ProjectedQuery<T, R>, R>
      * @return 分页结果
      */
     @Override
-    @NonNull Page<R> page(@NonNull PageRequest pageRequest);
+    @NonNull PageData<R> page(@NonNull PageRequest pageRequest);
 
     /**
      * 执行查询，统计数量

@@ -1,8 +1,8 @@
 package io.github.afgprojects.framework.data.core;
 
+import io.github.afgprojects.framework.commons.model.PageData;
 import io.github.afgprojects.framework.data.core.page.PageRequest;
 import io.github.afgprojects.framework.data.core.query.Condition;
-import io.github.afgprojects.framework.data.core.query.Page;
 import io.github.afgprojects.framework.data.core.scope.DataScope;
 import org.jspecify.annotations.NonNull;
 
@@ -29,7 +29,7 @@ import java.util.Optional;
  *     .list();
  *
  * // 分页查询
- * Page&lt;User&gt; page = dataManager.entity(User.class)
+ * PageData&lt;User&gt; page = dataManager.entity(User.class)
  *     .query()
  *     .where(condition)
  *     .page(PageRequest.of(1, 10));
@@ -206,7 +206,7 @@ public interface EntityProxy<T> extends EntityReader<T>, EntityWriter<T> {
      * @param pageRequest 分页参数
      * @return 分页结果
      */
-    default @NonNull Page<T> findAll(@NonNull Condition condition, @NonNull PageRequest pageRequest) {
+    default @NonNull PageData<T> findAll(@NonNull Condition condition, @NonNull PageRequest pageRequest) {
         return query().where(condition).page(pageRequest);
     }
 

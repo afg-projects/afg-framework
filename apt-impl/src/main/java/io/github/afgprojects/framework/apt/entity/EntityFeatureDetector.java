@@ -9,7 +9,8 @@ import java.util.List;
  * <ul>
  *   <li>软删除（softDeletable）- 检测 deleted 或 deletedAt 字段</li>
  *   <li>多租户（tenantAware）- 检测 tenantId 字段</li>
- *   <li>审计（auditable）- 检测 createdAt 和 updatedAt 字段</li>
+ *   <li>时间戳（timestamped）- 检测 createdAt 和 updatedAt 字段</li>
+ *   <li>审计（auditable）- 检测 createBy 和 updateBy 字段</li>
  *   <li>版本化（versioned）- 检测 version 字段</li>
  * </ul>
  */
@@ -22,6 +23,7 @@ class EntityFeatureDetector {
         boolean softDeletable,
         boolean timestampSoftDeletable,
         boolean tenantAware,
+        boolean timestamped,
         boolean auditable,
         boolean versioned,
         boolean dataScopeAware
@@ -38,6 +40,8 @@ class EntityFeatureDetector {
             boolean hasTenantId = false;
             boolean hasCreatedAt = false;
             boolean hasUpdatedAt = false;
+            boolean hasCreateBy = false;
+            boolean hasUpdateBy = false;
             boolean hasVersion = false;
 
             // 单次遍历检测所有特性
@@ -49,18 +53,21 @@ class EntityFeatureDetector {
                     case "tenantId" -> hasTenantId = true;
                     case "createdAt" -> hasCreatedAt = true;
                     case "updatedAt" -> hasUpdatedAt = true;
+                    case "createBy" -> hasCreateBy = true;
+                    case "updateBy" -> hasUpdateBy = true;
                     case "version" -> hasVersion = true;
                     default -> { /* 其他字段不参与特性检测 */ }
                 }
             }
 
             return new FeatureDetectionResult(
-                hasDeleted,                   // softDeletable (Boolean deleted)
-                hasDeletedAt,                 // timestampSoftDeletable (Instant deletedAt)
-                hasTenantId,                  // tenantAware
-                hasCreatedAt && hasUpdatedAt,  // auditable
-                hasVersion,                   // versioned
-                false                         // dataScopeAware (需要注解配置，默认 false)
+                hasDeleted,                       // softDeletable (Boolean deleted)
+                hasDeletedAt,                     // timestampSoftDeletable (Instant deletedAt)
+                hasTenantId,                      // tenantAware
+                hasCreatedAt && hasUpdatedAt,      // timestamped (createdAt/updatedAt from BaseEntity)
+                hasCreateBy && hasUpdateBy,        // auditable (createBy/updateBy from FullEntity)
+                hasVersion,                       // versioned
+                false                             // dataScopeAware (需要注解配置，默认 false)
             );
         }
     }

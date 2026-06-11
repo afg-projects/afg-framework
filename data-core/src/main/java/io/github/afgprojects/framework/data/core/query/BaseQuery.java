@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.data.core.query;
 
+import io.github.afgprojects.framework.commons.model.PageData;
 import io.github.afgprojects.framework.data.core.page.PageRequest;
 import io.github.afgprojects.framework.data.core.scope.DataScopeType;
 import org.jspecify.annotations.NonNull;
@@ -151,7 +152,7 @@ public interface BaseQuery<Q, R> {
      * @param pageRequest 分页参数
      * @return 分页结果
      */
-    @NonNull Page<R> page(@NonNull PageRequest pageRequest);
+    @NonNull PageData<R> page(@NonNull PageRequest pageRequest);
 
     /**
      * 执行查询，统计数量

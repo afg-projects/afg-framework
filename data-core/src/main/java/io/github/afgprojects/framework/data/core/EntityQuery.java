@@ -1,11 +1,11 @@
 package io.github.afgprojects.framework.data.core;
 
+import io.github.afgprojects.framework.commons.model.PageData;
 import io.github.afgprojects.framework.data.core.condition.SFunction;
 import io.github.afgprojects.framework.data.core.mapper.Projection;
 import io.github.afgprojects.framework.data.core.page.PageRequest;
 import io.github.afgprojects.framework.data.core.query.BaseQuery;
 import io.github.afgprojects.framework.data.core.query.Condition;
-import io.github.afgprojects.framework.data.core.query.Page;
 import io.github.afgprojects.framework.data.core.query.ProjectedQuery;
 import io.github.afgprojects.framework.data.core.query.Sort;
 import io.github.afgprojects.framework.data.core.query.AggregateQuery;
@@ -32,7 +32,7 @@ import java.util.Optional;
  *     .list();
  *
  * // 分页查询
- * Page&lt;User&gt; page = dataManager.entity(User.class)
+ * PageData&lt;User&gt; page = dataManager.entity(User.class)
  *     .query()
  *     .where(condition)
  *     .page(PageRequest.of(1, 10, Sort.by(Sort.Order.desc("createdAt"))))
@@ -214,7 +214,7 @@ public interface EntityQuery<T> extends BaseQuery<EntityQuery<T>, T> {
      * @return 分页结果
      */
     @Override
-    @NonNull Page<T> page(@NonNull PageRequest pageRequest);
+    @NonNull PageData<T> page(@NonNull PageRequest pageRequest);
 
     /**
      * 执行查询，返回唯一结果

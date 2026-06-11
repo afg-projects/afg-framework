@@ -412,6 +412,9 @@ class MetadataCodeGenerator {
         if (features.tenantAware()) {
             getTraitsBuilder.addStatement("traits.add($T.TENANT_AWARE)", ENTITY_TRAIT);
         }
+        if (features.timestamped()) {
+            getTraitsBuilder.addStatement("traits.add($T.TIMESTAMPED)", ENTITY_TRAIT);
+        }
         if (features.auditable()) {
             getTraitsBuilder.addStatement("traits.add($T.AUDITABLE)", ENTITY_TRAIT);
         }

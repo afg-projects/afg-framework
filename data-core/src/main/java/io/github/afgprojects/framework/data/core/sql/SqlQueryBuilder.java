@@ -1,10 +1,10 @@
 package io.github.afgprojects.framework.data.core.sql;
 
+import io.github.afgprojects.framework.commons.model.PageData;
 import io.github.afgprojects.framework.data.core.condition.SFunction;
 import io.github.afgprojects.framework.data.core.mapper.ResultMapper;
 import io.github.afgprojects.framework.data.core.page.PageRequest;
 import io.github.afgprojects.framework.data.core.query.Condition;
-import io.github.afgprojects.framework.data.core.query.Page;
 import io.github.afgprojects.framework.data.core.query.Sort;
 import org.jspecify.annotations.NonNull;
 
@@ -453,12 +453,12 @@ public interface SqlQueryBuilder {
     /**
      * 执行分页查询
      */
-    <T> @NonNull Page<T> fetchPage(@NonNull Class<T> resultType, @NonNull PageRequest pageable);
+    <T> @NonNull PageData<T> fetchPage(@NonNull Class<T> resultType, @NonNull PageRequest pageable);
 
     /**
      * 使用自定义映射器执行分页查询
      */
-    <T> @NonNull Page<T> fetchPage(@NonNull Class<T> resultType, @NonNull PageRequest pageable, @NonNull ResultMapper<T> mapper);
+    <T> @NonNull PageData<T> fetchPage(@NonNull Class<T> resultType, @NonNull PageRequest pageable, @NonNull ResultMapper<T> mapper);
 
     /**
      * 执行 COUNT 查询
