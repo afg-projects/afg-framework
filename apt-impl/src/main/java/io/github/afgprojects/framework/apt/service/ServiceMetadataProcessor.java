@@ -124,6 +124,8 @@ public class ServiceMetadataProcessor extends AbstractProcessor {
         String category = "";
         List<String> tags = List.of();
         boolean deprecated = false;
+        String icon = "";
+        List<String> examples = List.of();
 
         for (AnnotationMirror am : typeElement.getAnnotationMirrors()) {
             if (am.getAnnotationType().toString().endsWith("AfService")) {
@@ -141,6 +143,12 @@ public class ServiceMetadataProcessor extends AbstractProcessor {
                             tags = tagValues.stream().map(tv -> tv.getValue().toString()).toList();
                         }
                         case "deprecated" -> deprecated = (Boolean) value;
+                        case "icon" -> icon = value.toString();
+                        case "examples" -> {
+                            @SuppressWarnings("unchecked")
+                            List<? extends AnnotationValue> exampleValues = (List<? extends AnnotationValue>) value;
+                            examples = exampleValues.stream().map(ev -> ev.getValue().toString()).toList();
+                        }
                         default -> {} // ignore unknown annotation attributes
                     }
                 }
@@ -153,7 +161,7 @@ public class ServiceMetadataProcessor extends AbstractProcessor {
             name = decapitalize(typeElement.getSimpleName().toString());
         }
 
-        return new AfServiceConfig(name, description, category, tags, deprecated);
+        return new AfServiceConfig(name, description, category, tags, deprecated, icon, examples);
     }
 
     /**
@@ -381,7 +389,8 @@ public class ServiceMetadataProcessor extends AbstractProcessor {
      * @AfService annotation configuration.
      */
     record AfServiceConfig(String name, String description, String category,
-                           List<String> tags, boolean deprecated) {}
+                           List<String> tags, boolean deprecated,
+                           String icon, List<String> examples) {}
 
     /**
      * @AfOperation annotation configuration.

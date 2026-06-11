@@ -581,6 +581,7 @@ class MetadataCodeGenerator {
     AfEntityConfig extractAfEntityConfig(TypeElement typeElement) {
         String tableName = null;
         boolean generateRelations = true;
+        boolean autoFillTimestamps = true;
 
         for (AnnotationMirror am : typeElement.getAnnotationMirrors()) {
             if (am.getAnnotationType().toString().endsWith("AfEntity")) {
@@ -592,13 +593,15 @@ class MetadataCodeGenerator {
                         tableName = value.toString();
                     } else if ("generateRelations".equals(key)) {
                         generateRelations = (Boolean) value;
+                    } else if ("autoFillTimestamps".equals(key)) {
+                        autoFillTimestamps = (Boolean) value;
                     }
                 }
                 break;
             }
         }
 
-        return new AfEntityConfig(tableName, generateRelations);
+        return new AfEntityConfig(tableName, generateRelations, autoFillTimestamps);
     }
 
     /**
@@ -606,6 +609,7 @@ class MetadataCodeGenerator {
      */
     record AfEntityConfig(
         String tableName,
-        boolean generateRelations
+        boolean generateRelations,
+        boolean autoFillTimestamps
     ) {}
 }

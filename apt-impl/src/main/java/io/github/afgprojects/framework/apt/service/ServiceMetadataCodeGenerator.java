@@ -302,6 +302,22 @@ class ServiceMetadataCodeGenerator {
             .addStatement("return $L", buildStringList(serviceConfig.tags()))
             .build());
 
+        // icon()
+        classBuilder.addMethod(MethodSpec.methodBuilder("icon")
+            .addAnnotation(Override.class)
+            .addModifiers(Modifier.PUBLIC)
+            .returns(String.class)
+            .addStatement("return $S", serviceConfig.icon())
+            .build());
+
+        // examples()
+        classBuilder.addMethod(MethodSpec.methodBuilder("examples")
+            .addAnnotation(Override.class)
+            .addModifiers(Modifier.PUBLIC)
+            .returns(ParameterizedTypeName.get(ClassName.get(List.class), ClassName.get(String.class)))
+            .addStatement("return $L", buildStringList(serviceConfig.examples()))
+            .build());
+
         // serviceType()
         classBuilder.addMethod(MethodSpec.methodBuilder("serviceType")
             .addAnnotation(Override.class)

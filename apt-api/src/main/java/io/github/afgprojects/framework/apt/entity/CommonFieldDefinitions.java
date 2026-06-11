@@ -3,11 +3,12 @@ package io.github.afgprojects.framework.apt.entity;
 import java.lang.annotation.*;
 
 /**
- * CommonFieldDefinition 的容器注解
+ * 通用字段定义容器注解。
  * <p>
  * 支持在同一个元素上使用多个 @CommonFieldDefinition 注解。
+ * 这是 @CommonFieldDefinition 的 @Repeatable 容器。
  *
- * <p>示例：
+ * <h2>用法</h2>
  * <pre>{@code
  * @CommonFieldDefinitions({
  *     @CommonFieldDefinition(name = "ORG_ID", propertyName = "orgId", fieldType = String.class),

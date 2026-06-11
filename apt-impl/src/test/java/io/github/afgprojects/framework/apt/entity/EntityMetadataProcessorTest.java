@@ -102,6 +102,7 @@ class EntityMetadataProcessorTest {
                 import jakarta.persistence.Column;
 
                 @AfEntity
+                @jakarta.persistence.Table(name = "col_test")
                 public class ColumnTestEntity {
                     private Long id;
 
@@ -126,6 +127,7 @@ class EntityMetadataProcessorTest {
                 import jakarta.persistence.Id;
 
                 @AfEntity
+                @jakarta.persistence.Table(name = "id_test")
                 public class IdTestEntity {
                     @Id
                     private Long userId;
@@ -149,6 +151,7 @@ class EntityMetadataProcessorTest {
                 import io.github.afgprojects.framework.apt.entity.AfEntity;
 
                 @AfEntity
+                @jakarta.persistence.Table(name = "camel_case_test")
                 public class CamelCaseTestEntity {
                     private Long id;
                     private String userName;
@@ -177,6 +180,7 @@ class EntityMetadataProcessorTest {
                 import io.github.afgprojects.framework.apt.entity.AfEntity;
 
                 @AfEntity
+                @jakarta.persistence.Table(name = "interface_test")
                 public class InterfaceTestEntity {
                     private Long id;
                 }
@@ -197,6 +201,7 @@ class EntityMetadataProcessorTest {
                 import io.github.afgprojects.framework.apt.entity.AfEntity;
 
                 @AfEntity
+                @jakarta.persistence.Table(name = "methods_test")
                 public class MethodsTestEntity {
                     private Long id;
                     private String name;
@@ -230,6 +235,7 @@ class EntityMetadataProcessorTest {
                 import io.github.afgprojects.framework.apt.entity.AfEntity;
 
                 @AfEntity
+                @jakarta.persistence.Table(name = "field_meta_test")
                 public class FieldMetadataTestEntity {
                     private Long id;
                     private String firstName;
@@ -260,6 +266,7 @@ class EntityMetadataProcessorTest {
                 import jakarta.persistence.Column;
 
                 @AfEntity
+                @jakarta.persistence.Table(name = "boolean_test")
                 public class BooleanTestEntity {
                     private Long id;
 
@@ -287,6 +294,7 @@ class EntityMetadataProcessorTest {
                 import io.github.afgprojects.framework.apt.entity.AfEntity;
 
                 @AfEntity
+                @jakarta.persistence.Table(name = "bool_no_ann_test")
                 public class BooleanNoAnnotationTestEntity {
                     private Long id;
                     private Boolean isEnabled;
@@ -304,8 +312,8 @@ class EntityMetadataProcessorTest {
     class EdgeCaseTests {
 
         @Test
-        @DisplayName("应该处理无 @Table 注解的实体")
-        void shouldHandleEntityWithoutTableAnnotation() throws IOException {
+        @DisplayName("应该处理通过 tableName 属性指定表名的实体")
+        void shouldHandleEntityWithTableNameAttribute() throws IOException {
             String generatedSource = compileAndExtractGeneratedSource(
                 "NoTableTestEntity",
                 """
@@ -313,14 +321,14 @@ class EntityMetadataProcessorTest {
 
                 import io.github.afgprojects.framework.apt.entity.AfEntity;
 
-                @AfEntity
+                @AfEntity(tableName = "no_table_test_entity")
                 public class NoTableTestEntity {
                     private Long id;
                 }
                 """
             );
 
-            // 类名转 snake_case: NoTableTestEntity -> no_table_test_entity
+            // 使用 @AfEntity(tableName) 指定表名
             assertThat(generatedSource).contains("TABLE_NAME = \"no_table_test_entity\"");
         }
 
@@ -335,6 +343,7 @@ class EntityMetadataProcessorTest {
                 import io.github.afgprojects.framework.apt.entity.AfEntity;
 
                 @AfEntity
+                @jakarta.persistence.Table(name = "empty_test")
                 public class EmptyTestEntity {
                 }
                 """
@@ -357,6 +366,7 @@ class EntityMetadataProcessorTest {
                 import io.github.afgprojects.framework.apt.entity.AfEntity;
 
                 @AfEntity
+                @jakarta.persistence.Table(name = "static_field_test")
                 public class StaticFieldTestEntity {
                     private static final String CONSTANT = "constant";
                     private Long id;
@@ -388,6 +398,7 @@ class EntityMetadataProcessorTest {
                 import java.time.LocalDateTime;
 
                 @AfEntity
+                @jakarta.persistence.Table(name = "cf_created_at_test")
                 public class CommonFieldCreatedAtTestEntity {
                     private Long id;
                     private LocalDateTime createdAt;
@@ -414,6 +425,7 @@ class EntityMetadataProcessorTest {
                 import java.time.LocalDateTime;
 
                 @AfEntity
+                @jakarta.persistence.Table(name = "cf_updated_at_test")
                 public class CommonFieldUpdatedAtTestEntity {
                     private Long id;
                     private LocalDateTime updatedAt;
@@ -436,6 +448,7 @@ class EntityMetadataProcessorTest {
                 import io.github.afgprojects.framework.apt.entity.AfEntity;
 
                 @AfEntity
+                @jakarta.persistence.Table(name = "cf_deleted_test")
                 public class CommonFieldDeletedTestEntity {
                     private Long id;
                     private Boolean deleted;
@@ -458,6 +471,7 @@ class EntityMetadataProcessorTest {
                 import io.github.afgprojects.framework.apt.entity.AfEntity;
 
                 @AfEntity
+                @jakarta.persistence.Table(name = "cf_tenant_id_test")
                 public class CommonFieldTenantIdTestEntity {
                     private Long id;
                     private String tenantId;
@@ -480,6 +494,7 @@ class EntityMetadataProcessorTest {
                 import io.github.afgprojects.framework.apt.entity.AfEntity;
 
                 @AfEntity
+                @jakarta.persistence.Table(name = "cf_version_long_test")
                 public class CommonFieldVersionLongTestEntity {
                     private Long id;
                     private Long version;
@@ -502,6 +517,7 @@ class EntityMetadataProcessorTest {
                 import io.github.afgprojects.framework.apt.entity.AfEntity;
 
                 @AfEntity
+                @jakarta.persistence.Table(name = "cf_version_int_test")
                 public class CommonFieldVersionIntegerTestEntity {
                     private Long id;
                     private Integer version;
@@ -526,6 +542,7 @@ class EntityMetadataProcessorTest {
                 import java.time.LocalDateTime;
 
                 @AfEntity
+                @jakarta.persistence.Table(name = "custom_col_test")
                 public class CustomColumnNameTestEntity {
                     private Long id;
 
@@ -553,6 +570,7 @@ class EntityMetadataProcessorTest {
                 import io.github.afgprojects.framework.apt.entity.AfEntity;
 
                 @AfEntity
+                @jakarta.persistence.Table(name = "mismatched_type_test")
                 public class MismatchedTypeTestEntity {
                     private Long id;
                     // createdAt 应该是 LocalDateTime，但这里是 String
@@ -578,6 +596,7 @@ class EntityMetadataProcessorTest {
                 import java.time.LocalDateTime;
 
                 @AfEntity
+                @jakarta.persistence.Table(name = "multi_cf_test")
                 public class MultipleCommonFieldsTestEntity {
                     private Long id;
                     private String tenantId;
@@ -623,6 +642,7 @@ class EntityMetadataProcessorTest {
                 import io.github.afgprojects.framework.apt.entity.AfEntity;
 
                 @AfEntity
+                @jakarta.persistence.Table(name = "config_field_test")
                 public class ConfigFieldTestEntity {
                     private Long id;
                     private String orgId;  // 从配置文件注册
@@ -652,6 +672,7 @@ class EntityMetadataProcessorTest {
                 import io.github.afgprojects.framework.apt.entity.CommonFieldDefinition;
 
                 @AfEntity
+                @jakarta.persistence.Table(name = "ann_field_test")
                 public class AnnotationFieldTestEntity {
                     private Long id;
 
@@ -680,6 +701,7 @@ class EntityMetadataProcessorTest {
                 import io.github.afgprojects.framework.apt.entity.CommonFieldDefinitions;
 
                 @AfEntity
+                @jakarta.persistence.Table(name = "ann_class_test")
                 @CommonFieldDefinitions({
                     @CommonFieldDefinition(name = "REGION_CODE", propertyName = "regionCode", fieldType = String.class),
                     @CommonFieldDefinition(name = "BIZ_LINE", propertyName = "bizLine", fieldType = String.class)
@@ -715,6 +737,7 @@ class EntityMetadataProcessorTest {
                 import java.time.LocalDateTime;
 
                 @AfEntity
+                @jakarta.persistence.Table(name = "override_fw_test")
                 public class OverrideFrameworkTestEntity {
                     private Long id;
 
@@ -729,6 +752,216 @@ class EntityMetadataProcessorTest {
             assertThat(generatedSource).contains("CommonFieldMetadata.CREATED_AT");
             // 不应该生成 CreatedAtFieldMetadata 内部类
             assertThat(generatedSource).doesNotContain("class CreatedAtFieldMetadata");
+        }
+    }
+
+    @Nested
+    @DisplayName("编译期校验规则")
+    class CompileTimeValidationTests {
+
+        @Test
+        @DisplayName("@AfEntity 类缺少 @Table 注解应该编译失败")
+        void shouldFailWhenMissingTableAnnotation() {
+            JavaFileObject entitySource = JavaFileObjects.forSourceString(
+                "io.github.afgprojects.framework.apt.entity.test.NoTableValidationEntity",
+                """
+                package io.github.afgprojects.framework.apt.entity.test;
+
+                import io.github.afgprojects.framework.apt.entity.AfEntity;
+
+                @AfEntity
+                public class NoTableValidationEntity {
+                    private Long id;
+                }
+                """
+            );
+
+            var compilation = javac()
+                .withProcessors(new EntityMetadataProcessor())
+                .withClasspath(classpathFiles)
+                .compile(entitySource);
+
+            assertThat(compilation.errors()).isNotEmpty();
+            assertThat(compilation.diagnostics().stream()
+                .anyMatch(d -> d.getMessage(null).contains("缺少 @Table 注解")))
+                .isTrue();
+        }
+
+        @Test
+        @DisplayName("@AfEntity 类有 @Table 注解时应该编译成功")
+        void shouldSucceedWithTableAnnotation() {
+            JavaFileObject entitySource = JavaFileObjects.forSourceString(
+                "io.github.afgprojects.framework.apt.entity.test.WithTableValidationEntity",
+                """
+                package io.github.afgprojects.framework.apt.entity.test;
+
+                import io.github.afgprojects.framework.apt.entity.AfEntity;
+                import jakarta.persistence.Table;
+
+                @AfEntity
+                @Table(name = "sys_user")
+                public class WithTableValidationEntity {
+                    private Long id;
+                }
+                """
+            );
+
+            var compilation = javac()
+                .withProcessors(new EntityMetadataProcessor())
+                .withClasspath(classpathFiles)
+                .compile(entitySource);
+
+            assertThat(compilation.errors()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("@AfEntity 显式指定 tableName 时即使没有 @Table 也应编译成功")
+        void shouldSucceedWithExplicitTableName() {
+            JavaFileObject entitySource = JavaFileObjects.forSourceString(
+                "io.github.afgprojects.framework.apt.entity.test.ExplicitTableNameEntity",
+                """
+                package io.github.afgprojects.framework.apt.entity.test;
+
+                import io.github.afgprojects.framework.apt.entity.AfEntity;
+
+                @AfEntity(tableName = "sys_explicit")
+                public class ExplicitTableNameEntity {
+                    private Long id;
+                }
+                """
+            );
+
+            var compilation = javac()
+                .withProcessors(new EntityMetadataProcessor())
+                .withClasspath(classpathFiles)
+                .compile(entitySource);
+
+            assertThat(compilation.errors()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("@AfEntity 类缺少主键字段应该产生编译警告")
+        void shouldWarnWhenMissingIdField() {
+            JavaFileObject entitySource = JavaFileObjects.forSourceString(
+                "io.github.afgprojects.framework.apt.entity.test.NoIdFieldEntity",
+                """
+                package io.github.afgprojects.framework.apt.entity.test;
+
+                import io.github.afgprojects.framework.apt.entity.AfEntity;
+                import jakarta.persistence.Table;
+
+                @AfEntity
+                @Table(name = "sys_no_id")
+                public class NoIdFieldEntity {
+                    private String name;
+                }
+                """
+            );
+
+            var compilation = javac()
+                .withProcessors(new EntityMetadataProcessor())
+                .withClasspath(classpathFiles)
+                .compile(entitySource);
+
+            // 应该有警告
+            assertThat(compilation.diagnostics().stream()
+                .anyMatch(d -> d.getMessage(null).contains("未定义主键字段")))
+                .isTrue();
+        }
+
+        @Test
+        @DisplayName("非 public 的 @AfEntity 类应该编译失败")
+        void shouldFailWhenEntityIsNotPublic() {
+            JavaFileObject entitySource = JavaFileObjects.forSourceString(
+                "io.github.afgprojects.framework.apt.entity.test.PackagePrivateEntity",
+                """
+                package io.github.afgprojects.framework.apt.entity.test;
+
+                import io.github.afgprojects.framework.apt.entity.AfEntity;
+                import jakarta.persistence.Table;
+
+                @AfEntity
+                @Table(name = "sys_pkg_private")
+                class PackagePrivateEntity {
+                    private Long id;
+                }
+                """
+            );
+
+            var compilation = javac()
+                .withProcessors(new EntityMetadataProcessor())
+                .withClasspath(classpathFiles)
+                .compile(entitySource);
+
+            assertThat(compilation.errors()).isNotEmpty();
+            assertThat(compilation.diagnostics().stream()
+                .anyMatch(d -> d.getMessage(null).contains("必须是 public")))
+                .isTrue();
+        }
+
+        @Test
+        @DisplayName("@EncryptedField 标注非 String 字段应该编译失败")
+        void shouldFailWhenEncryptedFieldIsNotString() {
+            JavaFileObject entitySource = JavaFileObjects.forSourceString(
+                "io.github.afgprojects.framework.apt.entity.test.NonStringEncryptedEntity",
+                """
+                package io.github.afgprojects.framework.apt.entity.test;
+
+                import io.github.afgprojects.framework.apt.entity.AfEntity;
+                import io.github.afgprojects.framework.apt.entity.EncryptedField;
+                import jakarta.persistence.Table;
+
+                @AfEntity
+                @Table(name = "sys_encrypted_test")
+                public class NonStringEncryptedEntity {
+                    private Long id;
+
+                    @EncryptedField
+                    private Integer salary;  // 非 String 类型，应该编译失败
+                }
+                """
+            );
+
+            var compilation = javac()
+                .withProcessors(new EntityMetadataProcessor())
+                .withClasspath(classpathFiles)
+                .compile(entitySource);
+
+            assertThat(compilation.errors()).isNotEmpty();
+            assertThat(compilation.diagnostics().stream()
+                .anyMatch(d -> d.getMessage(null).contains("@EncryptedField 只能标注 String 字段")))
+                .isTrue();
+        }
+
+        @Test
+        @DisplayName("@EncryptedField 标注 String 字段应该编译成功")
+        void shouldSucceedWhenEncryptedFieldIsString() {
+            JavaFileObject entitySource = JavaFileObjects.forSourceString(
+                "io.github.afgprojects.framework.apt.entity.test.StringEncryptedEntity",
+                """
+                package io.github.afgprojects.framework.apt.entity.test;
+
+                import io.github.afgprojects.framework.apt.entity.AfEntity;
+                import io.github.afgprojects.framework.apt.entity.EncryptedField;
+                import jakarta.persistence.Table;
+
+                @AfEntity
+                @Table(name = "sys_str_encrypted")
+                public class StringEncryptedEntity {
+                    private Long id;
+
+                    @EncryptedField(algorithm = "AES", keyRef = "user-key")
+                    private String idCard;  // String 类型，应该编译成功
+                }
+                """
+            );
+
+            var compilation = javac()
+                .withProcessors(new EntityMetadataProcessor())
+                .withClasspath(classpathFiles)
+                .compile(entitySource);
+
+            assertThat(compilation.errors()).isEmpty();
         }
     }
 
