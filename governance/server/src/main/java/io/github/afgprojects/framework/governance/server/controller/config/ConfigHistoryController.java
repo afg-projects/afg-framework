@@ -1,9 +1,9 @@
 package io.github.afgprojects.framework.governance.server.controller.config;
 
+import io.github.afgprojects.framework.commons.model.PageData;
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.condition.Conditions;
 import io.github.afgprojects.framework.data.core.page.PageRequest;
-import io.github.afgprojects.framework.data.core.query.Page;
 import io.github.afgprojects.framework.data.core.query.Sort;
 import io.github.afgprojects.framework.governance.server.entity.config.ConfigHistory;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ public class ConfigHistoryController {
     private final DataManager dataManager;
 
     @GetMapping
-    public Page<ConfigHistory> list(@RequestParam(defaultValue = "1") int page,
+    public PageData<ConfigHistory> list(@RequestParam(defaultValue = "1") int page,
                                      @RequestParam(defaultValue = "10") int size) {
         return dataManager.entity(ConfigHistory.class)
             .query()
@@ -35,7 +35,7 @@ public class ConfigHistoryController {
     }
 
     @GetMapping("/item/{itemId}/paged")
-    public Page<ConfigHistory> listByItemPaged(@PathVariable Long itemId,
+    public PageData<ConfigHistory> listByItemPaged(@PathVariable Long itemId,
                                                 @RequestParam(defaultValue = "1") int page,
                                                 @RequestParam(defaultValue = "10") int size) {
         return dataManager.entity(ConfigHistory.class)

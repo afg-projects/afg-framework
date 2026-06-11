@@ -76,6 +76,7 @@ public class EnhancedInputSanitizer implements InputSecurityChecker {
      * @param input 输入字符串
      * @return 如果检测到 XSS 攻击返回 true
      */
+    @Override
     public boolean containsXss(@Nullable String input) {
         if (input == null || input.isBlank()) {
             return false;
@@ -104,6 +105,7 @@ public class EnhancedInputSanitizer implements InputSecurityChecker {
      * @param input 输入字符串
      * @return 清洗后的安全字符串
      */
+    @Override
     public @Nullable String sanitizeHtml(@Nullable String input) {
         if (input == null || input.isBlank()) {
             return input;

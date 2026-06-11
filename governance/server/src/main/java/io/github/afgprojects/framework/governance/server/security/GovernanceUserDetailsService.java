@@ -90,7 +90,7 @@ public class GovernanceUserDetailsService implements AfgUserDetailsService {
      */
     private AfgUserDetails buildUserDetails(GovUser user) {
         // 获取用户角色
-        Set<String> roles = new HashSet<>();
+        Set<String> roles = getUserRoles(user.getId());
 
         // 获取权限（角色对应的权限）
         Collection<GrantedAuthority> authorities = roles.stream()
