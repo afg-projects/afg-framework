@@ -1,10 +1,10 @@
 package io.github.afgprojects.framework.data.jdbc;
 
+import io.github.afgprojects.framework.commons.model.PageData;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
 import io.github.afgprojects.framework.data.core.page.PageRequest;
 import io.github.afgprojects.framework.data.core.query.Condition;
-import io.github.afgprojects.framework.data.core.query.Page;
 import io.github.afgprojects.framework.data.sql.converter.ConditionToSqlConverter;
 import org.jspecify.annotations.NonNull;
 import org.springframework.jdbc.core.RowMapper;
@@ -105,7 +105,7 @@ public class EntityConditionQueryHandler<T> {
      * @param pageable  分页参数
      * @return 分页结果
      */
-    public @NonNull Page<T> findAll(@NonNull Condition condition, @NonNull PageRequest pageable) {
+    public @NonNull PageData<T> findAll(@NonNull Condition condition, @NonNull PageRequest pageable) {
         ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
         ConditionToSqlConverter.SqlResult whereResult = converter.convert(condition);
 
@@ -147,7 +147,7 @@ public class EntityConditionQueryHandler<T> {
                 .query(rowMapper)
                 .list();
 
-        return new Page<>(records, total, pageable.page(), pageable.size());
+        return PageData.of(records, total, pageable.page(), pageable.size());
     }
 
     /**
