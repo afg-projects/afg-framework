@@ -63,5 +63,21 @@ public enum EntityTrait {
     /**
      * 时间戳特征（createdAt/updatedAt 字段）
      */
-    TIMESTAMPED
+    TIMESTAMPED,
+
+    /**
+     * 树形结构特征（parentId + path 字段）
+     *
+     * @see io.github.afgprojects.framework.data.core.entity.Treeable
+     * @see io.github.afgprojects.framework.data.core.entity.TreeEntity
+     */
+    TREEABLE,
+
+    /**
+     * 加密字段特征（实体包含 @EncryptedField 标注的字段）
+     *
+     * @see io.github.afgprojects.framework.data.core.entity.FieldEncryptor
+     * @see io.github.afgprojects.framework.data.core.entity.EncryptedFieldMetadata
+     */
+    ENCRYPTED
 }

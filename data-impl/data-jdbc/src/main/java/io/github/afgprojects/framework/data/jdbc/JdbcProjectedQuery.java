@@ -155,6 +155,12 @@ public class JdbcProjectedQuery<T, R> implements ProjectedQuery<T, R> {
         return this;
     }
 
+    @Override
+    public @NonNull ProjectedQuery<T, R> withPessimisticLock() {
+        entityQuery.withPessimisticLock();
+        return this;
+    }
+
     // ==================== 执行方法 ====================
 
     @Override

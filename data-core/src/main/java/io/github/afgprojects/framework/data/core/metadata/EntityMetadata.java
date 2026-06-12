@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import io.github.afgprojects.framework.data.core.entity.EncryptedFieldMetadata;
 import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.relation.RelationMetadata;
 
@@ -144,6 +145,25 @@ public interface EntityMetadata<T> {
      * @return 关联关系元数据列表
      */
     List<RelationMetadata> getRelations();
+
+    /**
+     * 判断指定字段是否为加密字段
+     *
+     * @param fieldName 字段名（Java 属性名）
+     * @return 如果字段标注了 @EncryptedField 则返回 true
+     */
+    default boolean isEncrypted(String fieldName) {
+        return false;
+    }
+
+    /**
+     * 获取所有加密字段的元数据
+     *
+     * @return 加密字段元数据列表，如果没有加密字段则返回空列表
+     */
+    default List<EncryptedFieldMetadata> getEncryptedFields() {
+        return List.of();
+    }
 
     /**
      * 根据字段名获取关联关系元数据

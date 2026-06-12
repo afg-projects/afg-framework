@@ -227,6 +227,181 @@ public interface TypedConditionBuilder<T> {
      */
     TypedConditionBuilder<T> jsonPath(SFunction<T, String> getter, @Nullable String path);
 
+    // ==================== IfPresent 操作符 ====================
+
+    /**
+     * 添加等于条件（值存在时），值不存在时跳过该条件
+     * <p>
+     * 与 {@link #eq(SFunction, Object)} 不同：当 value 为 null 时，
+     * {@code eq} 会转换为 IS NULL 条件，而 {@code eqIfPresent} 会直接跳过（不添加任何条件）。
+     * 适用于动态查询场景，前端搜索条件可能为空时避免手动 null 判断。
+     *
+     * @param getter 字段 getter 方法引用
+     * @param value  字段值，为 null 时跳过该条件
+     * @param <R>    字段类型
+     * @return 条件构建器（支持链式调用）
+     */
+    <R> TypedConditionBuilder<T> eqIfPresent(SFunction<T, R> getter, @Nullable Object value);
+
+    /**
+     * 添加不等于条件（值存在时），值不存在时跳过该条件
+     * <p>
+     * 与 {@link #ne(SFunction, Object)} 不同：当 value 为 null 时，
+     * {@code ne} 会转换为 IS NOT NULL 条件，而 {@code neIfPresent} 会直接跳过。
+     *
+     * @param getter 字段 getter 方法引用
+     * @param value  字段值，为 null 时跳过该条件
+     * @param <R>    字段类型
+     * @return 条件构建器（支持链式调用）
+     */
+    <R> TypedConditionBuilder<T> neIfPresent(SFunction<T, R> getter, @Nullable Object value);
+
+    /**
+     * 添加 LIKE 条件（值存在时），值不存在时跳过该条件
+     * <p>
+     * 与 {@link #like(SFunction, String)} 不同：当 value 为 null 或空字符串时，
+     * {@code like} 会转换为 IS NULL 条件，而 {@code likeIfPresent} 会直接跳过。
+     * 空字符串 {@code ""} 也视为"不存在"而跳过，与 MyBatis-Plus IfPresent 行为一致。
+     *
+     * @param getter 字段 getter 方法引用（字段类型为 String）
+     * @param value  匹配值，为 null 或空字符串时跳过该条件
+     * @return 条件构建器（支持链式调用）
+     */
+    TypedConditionBuilder<T> likeIfPresent(SFunction<T, String> getter, @Nullable String value);
+
+    /**
+     * 添加前缀匹配条件（值存在时），值不存在时跳过该条件
+     * <p>
+     * 当 value 为 null 或空字符串时直接跳过，不添加任何条件。
+     *
+     * @param getter 字段 getter 方法引用（字段类型为 String）
+     * @param value  匹配值，为 null 或空字符串时跳过该条件
+     * @return 条件构建器（支持链式调用）
+     */
+    TypedConditionBuilder<T> likeStartsWithIfPresent(SFunction<T, String> getter, @Nullable String value);
+
+    /**
+     * 添加后缀匹配条件（值存在时），值不存在时跳过该条件
+     * <p>
+     * 当 value 为 null 或空字符串时直接跳过，不添加任何条件。
+     *
+     * @param getter 字段 getter 方法引用（字段类型为 String）
+     * @param value  匹配值，为 null 或空字符串时跳过该条件
+     * @return 条件构建器（支持链式调用）
+     */
+    TypedConditionBuilder<T> likeEndsWithIfPresent(SFunction<T, String> getter, @Nullable String value);
+
+    /**
+     * 添加 NOT LIKE 条件（值存在时），值不存在时跳过该条件
+     * <p>
+     * 当 value 为 null 或空字符串时直接跳过，不添加任何条件。
+     *
+     * @param getter 字段 getter 方法引用（字段类型为 String）
+     * @param value  匹配值，为 null 或空字符串时跳过该条件
+     * @return 条件构建器（支持链式调用）
+     */
+    TypedConditionBuilder<T> notLikeIfPresent(SFunction<T, String> getter, @Nullable String value);
+
+    /**
+     * 添加 IN 条件（值存在时），值不存在时跳过该条件
+     * <p>
+     * 与 {@link #in(SFunction, Iterable)} 不同：当 values 为 null 或空集合时，
+     * {@code in} 会转换为 IS NULL 或 none()，而 {@code inIfPresent} 会直接跳过。
+     * 空集合也视为"不存在"而跳过。
+     *
+     * @param getter 字段 getter 方法引用
+     * @param values 值集合，为 null 或空集合时跳过该条件
+     * @param <R>    字段类型
+     * @return 条件构建器（支持链式调用）
+     */
+    <R> TypedConditionBuilder<T> inIfPresent(SFunction<T, R> getter, @Nullable Iterable<?> values);
+
+    /**
+     * 添加 NOT IN 条件（值存在时），值不存在时跳过该条件
+     * <p>
+     * 当 values 为 null 或空集合时直接跳过，不添加任何条件。
+     *
+     * @param getter 字段 getter 方法引用
+     * @param values 值集合，为 null 或空集合时跳过该条件
+     * @param <R>    字段类型
+     * @return 条件构建器（支持链式调用）
+     */
+    <R> TypedConditionBuilder<T> notInIfPresent(SFunction<T, R> getter, @Nullable Iterable<?> values);
+
+    /**
+     * 添加 BETWEEN 条件（值存在时），值不存在时跳过该条件
+     * <p>
+     * from 和 to 都不为 null 时才添加条件。部分为 null 时无法构成有效 BETWEEN，直接跳过。
+     *
+     * @param getter 字段 getter 方法引用
+     * @param from   起始值，from 和 to 都不为 null 时才添加条件
+     * @param to     结束值，from 和 to 都不为 null 时才添加条件
+     * @param <R>    可比较的字段类型
+     * @return 条件构建器（支持链式调用）
+     */
+    <R extends Comparable<?>> TypedConditionBuilder<T> betweenIfPresent(SFunction<T, R> getter, @Nullable R from, @Nullable R to);
+
+    /**
+     * 添加 NOT BETWEEN 条件（值存在时），值不存在时跳过该条件
+     * <p>
+     * from 和 to 都不为 null 时才添加条件。部分为 null 时无法构成有效 NOT BETWEEN，直接跳过。
+     *
+     * @param getter 字段 getter 方法引用
+     * @param from   起始值，from 和 to 都不为 null 时才添加条件
+     * @param to     结束值，from 和 to 都不为 null 时才添加条件
+     * @param <R>    可比较的字段类型
+     * @return 条件构建器（支持链式调用）
+     */
+    <R extends Comparable<?>> TypedConditionBuilder<T> notBetweenIfPresent(SFunction<T, R> getter, @Nullable R from, @Nullable R to);
+
+    /**
+     * 添加大于条件（值存在时），值不存在时跳过该条件
+     * <p>
+     * 当 value 为 null 时直接跳过，不添加任何条件。
+     *
+     * @param getter 字段 getter 方法引用
+     * @param value  比较值，为 null 时跳过该条件
+     * @param <R>    可比较的字段类型
+     * @return 条件构建器（支持链式调用）
+     */
+    <R extends Comparable<?>> TypedConditionBuilder<T> gtIfPresent(SFunction<T, R> getter, @Nullable R value);
+
+    /**
+     * 添加大于等于条件（值存在时），值不存在时跳过该条件
+     * <p>
+     * 当 value 为 null 时直接跳过，不添加任何条件。
+     *
+     * @param getter 字段 getter 方法引用
+     * @param value  比较值，为 null 时跳过该条件
+     * @param <R>    可比较的字段类型
+     * @return 条件构建器（支持链式调用）
+     */
+    <R extends Comparable<?>> TypedConditionBuilder<T> geIfPresent(SFunction<T, R> getter, @Nullable R value);
+
+    /**
+     * 添加小于条件（值存在时），值不存在时跳过该条件
+     * <p>
+     * 当 value 为 null 时直接跳过，不添加任何条件。
+     *
+     * @param getter 字段 getter 方法引用
+     * @param value  比较值，为 null 时跳过该条件
+     * @param <R>    可比较的字段类型
+     * @return 条件构建器（支持链式调用）
+     */
+    <R extends Comparable<?>> TypedConditionBuilder<T> ltIfPresent(SFunction<T, R> getter, @Nullable R value);
+
+    /**
+     * 添加小于等于条件（值存在时），值不存在时跳过该条件
+     * <p>
+     * 当 value 为 null 时直接跳过，不添加任何条件。
+     *
+     * @param getter 字段 getter 方法引用
+     * @param value  比较值，为 null 时跳过该条件
+     * @param <R>    可比较的字段类型
+     * @return 条件构建器（支持链式调用）
+     */
+    <R extends Comparable<?>> TypedConditionBuilder<T> leIfPresent(SFunction<T, R> getter, @Nullable R value);
+
     /**
      * 添加 AND 嵌套条件
      *

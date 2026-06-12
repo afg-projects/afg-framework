@@ -197,6 +197,22 @@ public interface EntityQuery<T> extends BaseQuery<EntityQuery<T>, T> {
     @Override
     @NonNull EntityQuery<T> offset(int offset);
 
+    /**
+     * 启用悲观锁（SELECT ... FOR UPDATE）
+     * <p>
+     * 在查询时添加 {@code FOR UPDATE} 子句，对查询结果加排他锁，
+     * 防止其他事务修改或删除这些记录，直到当前事务提交或回滚。
+     * <p>
+     * 典型使用场景：读取后立即修改（如库存扣减、余额更新），
+     * 确保读取和修改之间不会有其他事务干扰。
+     * <p>
+     * <b>注意：</b>必须在事务内使用，否则 FOR UPDATE 无效。
+     *
+     * @return 查询构建器（支持链式调用）
+     */
+    @Override
+    @NonNull EntityQuery<T> withPessimisticLock();
+
     // ==================== 执行方法覆写 ====================
 
     /**

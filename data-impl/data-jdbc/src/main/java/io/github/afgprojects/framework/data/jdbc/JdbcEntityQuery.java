@@ -53,6 +53,7 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
     private boolean readOnly = false;
     private boolean includeDeleted = false;
     private boolean distinct = false;
+    private boolean pessimisticLock = false;
     private final Set<String> eagerFetchAssociations = new LinkedHashSet<>();
     private Integer limit;
     private Integer offset;
@@ -305,6 +306,12 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
         return this;
     }
 
+    @Override
+    public @NonNull EntityQuery<T> withPessimisticLock() {
+        this.pessimisticLock = true;
+        return this;
+    }
+
     // ==================== 查询执行方法 ====================
 
     @Override
@@ -518,12 +525,13 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
      * 执行查询（支持只读模式）
      */
     private List<T> executeQuery(String sql, List<Object> params) {
+        String finalSql = pessimisticLock ? sql + " " + dialect.getForUpdateSyntax() : sql;
         if (readOnly) {
             return dataManager.executeInReadOnly(() ->
-                jdbcClient.sql(sql).params(params).query(rowMapper).list()
+                jdbcClient.sql(finalSql).params(params).query(rowMapper).list()
             );
         }
-        return jdbcClient.sql(sql).params(params).query(rowMapper).list();
+        return jdbcClient.sql(finalSql).params(params).query(rowMapper).list();
     }
 
     /**

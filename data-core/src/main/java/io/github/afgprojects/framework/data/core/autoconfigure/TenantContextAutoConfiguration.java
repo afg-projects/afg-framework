@@ -47,7 +47,7 @@ import org.springframework.core.task.TaskDecorator;
  * @see TenantContextHolder
  * @see TenantContextTaskDecorator
  */
-@AutoConfiguration
+@AutoConfiguration(afterName = "org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration")
 @ConditionalOnClass(TaskDecorator.class)
 public class TenantContextAutoConfiguration {
 

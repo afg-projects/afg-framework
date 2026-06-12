@@ -19,6 +19,47 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 条件工厂类
+ * <p>
+ * 提供条件构建的静态工厂方法和快捷方法，是 AFG 框架条件查询的主要入口。
+ * 支持两种构建方式：
+ * <ul>
+ *   <li><b>字符串字段名</b>：{@code Conditions.builder().eq("username", "admin").build()}</li>
+ *   <li><b>Lambda 字段引用</b>：{@code Conditions.builder(User.class).eq(User::getUsername, "admin").build()}</li>
+ * </ul>
+ *
+ * <h3>推荐使用 Lambda 方式</h3>
+ * <p>
+ * Lambda 方式提供编译时字段名检查和运行时类型安全，避免字段名拼写错误和类型不匹配。
+ * 字符串方式仅用于动态字段名场景（如泛型查询、用户自定义查询）。
+ *
+ * <h3>null 值语义</h3>
+ * <p>
+ * 普通方法（eq、ne、like 等）对 null 值有智能转换：
+ * <ul>
+ *   <li>{@code eq(field, null)} → {@code IS NULL}</li>
+ *   <li>{@code ne(field, null)} → {@code IS NOT NULL}</li>
+ *   <li>{@code in(field, emptyList)} → {@code 1 = 0}（不匹配任何记录）</li>
+ * </ul>
+ *
+ * <h3>IfPresent 方法</h3>
+ * <p>
+ * IfPresent 系列方法用于动态查询场景，null 值时跳过条件（不添加到查询中）：
+ * <ul>
+ *   <li>{@code eqIfPresent(field, null)} → 跳过（不添加条件）</li>
+ *   <li>{@code likeIfPresent(field, "")} → 跳过（空字符串也不添加条件）</li>
+ *   <li>{@code inIfPresent(field, emptyList)} → 跳过（空集合也不添加条件）</li>
+ * </ul>
+ *
+ * <h3>组合条件</h3>
+ * <p>
+ * 使用 {@link #allOf} 和 {@link #anyOf} 组合多个条件：
+ * <pre>
+ * Condition condition = allOf(nameCondition, statusCondition);  // AND
+ * Condition condition = anyOf(cond1, cond2, cond3);            // OR
+ * </pre>
+ *
+ * @see ConditionBuilder 字符串字段名条件构建器
+ * @see TypedConditionBuilder Lambda 字段引用条件构建器
  */
 @SuppressWarnings("PMD.AvoidCatchingGenericException")
 public final class Conditions {
@@ -380,6 +421,237 @@ public final class Conditions {
         return builder().jsonPath(field, path).build();
     }
 
+    // ==================== IfPresent 静态方法（字符串字段名） ====================
+
+    /**
+     * 创建等于条件（值存在时），值不存在时返回空条件
+     * <p>
+     * 当 value 为 null 时，跳过该条件（返回空条件），而非转换为 IS NULL。
+     * 适用于动态查询场景，前端搜索条件可能为空时避免手动 null 判断。
+     *
+     * @param field 字段名
+     * @param value 字段值，为 null 时跳过
+     * @return 等于条件或空条件
+     */
+    public static Condition eqIfPresent(String field, @Nullable Object value) {
+        if (value == null) {
+            return empty();
+        }
+        return builder().eq(field, value).build();
+    }
+
+    /**
+     * 创建不等于条件（值存在时），值不存在时返回空条件
+     *
+     * @param field 字段名
+     * @param value 字段值，为 null 时跳过
+     * @return 不等于条件或空条件
+     */
+    public static Condition neIfPresent(String field, @Nullable Object value) {
+        if (value == null) {
+            return empty();
+        }
+        return builder().ne(field, value).build();
+    }
+
+    /**
+     * 创建 LIKE 条件（值存在时），值不存在时返回空条件
+     * <p>
+     * 当 value 为 null 或空字符串时跳过，不添加任何条件。
+     * 空字符串 {@code ""} 也视为"不存在"而跳过。
+     *
+     * @param field 字段名
+     * @param value 匹配值，为 null 或空字符串时跳过
+     * @return LIKE 条件或空条件
+     */
+    public static Condition likeIfPresent(String field, @Nullable String value) {
+        if (value == null || value.isEmpty()) {
+            return empty();
+        }
+        return builder().like(field, value).build();
+    }
+
+    /**
+     * 创建前缀匹配条件（值存在时），值不存在时返回空条件
+     * <p>
+     * 当 value 为 null 或空字符串时跳过。
+     *
+     * @param field 字段名
+     * @param value 匹配值，为 null 或空字符串时跳过
+     * @return LIKE 条件或空条件
+     */
+    public static Condition likeStartsWithIfPresent(String field, @Nullable String value) {
+        if (value == null || value.isEmpty()) {
+            return empty();
+        }
+        return builder().likeStartsWith(field, value).build();
+    }
+
+    /**
+     * 创建后缀匹配条件（值存在时），值不存在时返回空条件
+     * <p>
+     * 当 value 为 null 或空字符串时跳过。
+     *
+     * @param field 字段名
+     * @param value 匹配值，为 null 或空字符串时跳过
+     * @return LIKE 条件或空条件
+     */
+    public static Condition likeEndsWithIfPresent(String field, @Nullable String value) {
+        if (value == null || value.isEmpty()) {
+            return empty();
+        }
+        return builder().likeEndsWith(field, value).build();
+    }
+
+    /**
+     * 创建 NOT LIKE 条件（值存在时），值不存在时返回空条件
+     * <p>
+     * 当 value 为 null 或空字符串时跳过。
+     *
+     * @param field 字段名
+     * @param value 匹配值，为 null 或空字符串时跳过
+     * @return NOT LIKE 条件或空条件
+     */
+    public static Condition notLikeIfPresent(String field, @Nullable String value) {
+        if (value == null || value.isEmpty()) {
+            return empty();
+        }
+        return builder().notLike(field, value).build();
+    }
+
+    /**
+     * 创建 IN 条件（值存在时），值不存在时返回空条件
+     * <p>
+     * 当 values 为 null 或空集合时跳过。空集合也视为"不存在"而跳过，
+     * 与 {@link #in(String, Iterable)} 的空集合返回 none() 语义不同。
+     *
+     * @param field  字段名
+     * @param values 值集合，为 null 或空集合时跳过
+     * @return IN 条件或空条件
+     */
+    public static Condition inIfPresent(String field, @Nullable Iterable<?> values) {
+        if (values == null) {
+            return empty();
+        }
+        List<Object> list = new ArrayList<>();
+        values.forEach(list::add);
+        if (list.isEmpty()) {
+            return empty();
+        }
+        return builder().in(field, list).build();
+    }
+
+    /**
+     * 创建 NOT IN 条件（值存在时），值不存在时返回空条件
+     * <p>
+     * 当 values 为 null 或空集合时跳过。
+     *
+     * @param field  字段名
+     * @param values 值集合，为 null 或空集合时跳过
+     * @return NOT IN 条件或空条件
+     */
+    public static Condition notInIfPresent(String field, @Nullable Iterable<?> values) {
+        if (values == null) {
+            return empty();
+        }
+        List<Object> list = new ArrayList<>();
+        values.forEach(list::add);
+        if (list.isEmpty()) {
+            return empty();
+        }
+        return builder().notIn(field, list).build();
+    }
+
+    /**
+     * 创建 BETWEEN 条件（值存在时），值不存在时返回空条件
+     * <p>
+     * from 和 to 都不为 null 时才创建条件。部分为 null 时无法构成有效 BETWEEN，直接跳过。
+     *
+     * @param field 字段名
+     * @param from  起始值
+     * @param to    结束值
+     * @return BETWEEN 条件或空条件
+     */
+    public static Condition betweenIfPresent(String field, @Nullable Comparable<?> from, @Nullable Comparable<?> to) {
+        if (from == null || to == null) {
+            return empty();
+        }
+        return builder().between(field, from, to).build();
+    }
+
+    /**
+     * 创建 NOT BETWEEN 条件（值存在时），值不存在时返回空条件
+     * <p>
+     * from 和 to 都不为 null 时才创建条件。部分为 null 时无法构成有效 NOT BETWEEN，直接跳过。
+     *
+     * @param field 字段名
+     * @param from  起始值
+     * @param to    结束值
+     * @return NOT BETWEEN 条件或空条件
+     */
+    public static Condition notBetweenIfPresent(String field, @Nullable Comparable<?> from, @Nullable Comparable<?> to) {
+        if (from == null || to == null) {
+            return empty();
+        }
+        return builder().notBetween(field, from, to).build();
+    }
+
+    /**
+     * 创建大于条件（值存在时），值不存在时返回空条件
+     *
+     * @param field 字段名
+     * @param value 比较值，为 null 时跳过
+     * @return 大于条件或空条件
+     */
+    public static Condition gtIfPresent(String field, @Nullable Comparable<?> value) {
+        if (value == null) {
+            return empty();
+        }
+        return builder().gt(field, value).build();
+    }
+
+    /**
+     * 创建大于等于条件（值存在时），值不存在时返回空条件
+     *
+     * @param field 字段名
+     * @param value 比较值，为 null 时跳过
+     * @return 大于等于条件或空条件
+     */
+    public static Condition geIfPresent(String field, @Nullable Comparable<?> value) {
+        if (value == null) {
+            return empty();
+        }
+        return builder().ge(field, value).build();
+    }
+
+    /**
+     * 创建小于条件（值存在时），值不存在时返回空条件
+     *
+     * @param field 字段名
+     * @param value 比较值，为 null 时跳过
+     * @return 小于条件或空条件
+     */
+    public static Condition ltIfPresent(String field, @Nullable Comparable<?> value) {
+        if (value == null) {
+            return empty();
+        }
+        return builder().lt(field, value).build();
+    }
+
+    /**
+     * 创建小于等于条件（值存在时），值不存在时返回空条件
+     *
+     * @param field 字段名
+     * @param value 比较值，为 null 时跳过
+     * @return 小于等于条件或空条件
+     */
+    public static Condition leIfPresent(String field, @Nullable Comparable<?> value) {
+        if (value == null) {
+            return empty();
+        }
+        return builder().le(field, value).build();
+    }
+
     // ==================== 类型化静态方法 ====================
 
     /**
@@ -582,6 +854,246 @@ public final class Conditions {
         return builder(entityClass).jsonPath(getter, path).build();
     }
 
+    // ==================== IfPresent 类型化静态方法 ====================
+
+    /**
+     * 创建类型化等于条件（值存在时），值不存在时返回空条件
+     *
+     * @param entityClass 实体类
+     * @param getter      Lambda 方法引用
+     * @param value       字段值，为 null 时跳过
+     * @return 等于条件或空条件
+     */
+    public static <T, R> Condition eqIfPresent(Class<T> entityClass, SFunction<T, R> getter, @Nullable Object value) {
+        if (value == null) {
+            return empty();
+        }
+        return builder(entityClass).eq(getter, value).build();
+    }
+
+    /**
+     * 创建类型化不等于条件（值存在时），值不存在时返回空条件
+     *
+     * @param entityClass 实体类
+     * @param getter      Lambda 方法引用
+     * @param value       字段值，为 null 时跳过
+     * @return 不等于条件或空条件
+     */
+    public static <T, R> Condition neIfPresent(Class<T> entityClass, SFunction<T, R> getter, @Nullable Object value) {
+        if (value == null) {
+            return empty();
+        }
+        return builder(entityClass).ne(getter, value).build();
+    }
+
+    /**
+     * 创建类型化 LIKE 条件（值存在时），值不存在时返回空条件
+     * <p>
+     * 当 value 为 null 或空字符串时跳过。
+     *
+     * @param entityClass 实体类
+     * @param getter      Lambda 方法引用
+     * @param value       匹配值，为 null 或空字符串时跳过
+     * @return LIKE 条件或空条件
+     */
+    public static <T> Condition likeIfPresent(Class<T> entityClass, SFunction<T, String> getter, @Nullable String value) {
+        if (value == null || value.isEmpty()) {
+            return empty();
+        }
+        return builder(entityClass).like(getter, value).build();
+    }
+
+    /**
+     * 创建类型化前缀匹配条件（值存在时），值不存在时返回空条件
+     * <p>
+     * 当 value 为 null 或空字符串时跳过。
+     *
+     * @param entityClass 实体类
+     * @param getter      Lambda 方法引用
+     * @param value       匹配值，为 null 或空字符串时跳过
+     * @return LIKE 条件或空条件
+     */
+    public static <T> Condition likeStartsWithIfPresent(Class<T> entityClass, SFunction<T, String> getter, @Nullable String value) {
+        if (value == null || value.isEmpty()) {
+            return empty();
+        }
+        return builder(entityClass).likeStartsWith(getter, value).build();
+    }
+
+    /**
+     * 创建类型化后缀匹配条件（值存在时），值不存在时返回空条件
+     * <p>
+     * 当 value 为 null 或空字符串时跳过。
+     *
+     * @param entityClass 实体类
+     * @param getter      Lambda 方法引用
+     * @param value       匹配值，为 null 或空字符串时跳过
+     * @return LIKE 条件或空条件
+     */
+    public static <T> Condition likeEndsWithIfPresent(Class<T> entityClass, SFunction<T, String> getter, @Nullable String value) {
+        if (value == null || value.isEmpty()) {
+            return empty();
+        }
+        return builder(entityClass).likeEndsWith(getter, value).build();
+    }
+
+    /**
+     * 创建类型化 NOT LIKE 条件（值存在时），值不存在时返回空条件
+     * <p>
+     * 当 value 为 null 或空字符串时跳过。
+     *
+     * @param entityClass 实体类
+     * @param getter      Lambda 方法引用
+     * @param value       匹配值，为 null 或空字符串时跳过
+     * @return NOT LIKE 条件或空条件
+     */
+    public static <T> Condition notLikeIfPresent(Class<T> entityClass, SFunction<T, String> getter, @Nullable String value) {
+        if (value == null || value.isEmpty()) {
+            return empty();
+        }
+        return builder(entityClass).notLike(getter, value).build();
+    }
+
+    /**
+     * 创建类型化 IN 条件（值存在时），值不存在时返回空条件
+     * <p>
+     * 当 values 为 null 或空集合时跳过。
+     *
+     * @param entityClass 实体类
+     * @param getter      Lambda 方法引用
+     * @param values      值集合，为 null 或空集合时跳过
+     * @return IN 条件或空条件
+     */
+    public static <T, R> Condition inIfPresent(Class<T> entityClass, SFunction<T, R> getter, @Nullable Iterable<?> values) {
+        if (values == null) {
+            return empty();
+        }
+        List<Object> list = new ArrayList<>();
+        values.forEach(list::add);
+        if (list.isEmpty()) {
+            return empty();
+        }
+        return builder(entityClass).in(getter, list).build();
+    }
+
+    /**
+     * 创建类型化 NOT IN 条件（值存在时），值不存在时返回空条件
+     * <p>
+     * 当 values 为 null 或空集合时跳过。
+     *
+     * @param entityClass 实体类
+     * @param getter      Lambda 方法引用
+     * @param values      值集合，为 null 或空集合时跳过
+     * @return NOT IN 条件或空条件
+     */
+    public static <T, R> Condition notInIfPresent(Class<T> entityClass, SFunction<T, R> getter, @Nullable Iterable<?> values) {
+        if (values == null) {
+            return empty();
+        }
+        List<Object> list = new ArrayList<>();
+        values.forEach(list::add);
+        if (list.isEmpty()) {
+            return empty();
+        }
+        return builder(entityClass).notIn(getter, list).build();
+    }
+
+    /**
+     * 创建类型化 BETWEEN 条件（值存在时），值不存在时返回空条件
+     * <p>
+     * from 和 to 都不为 null 时才创建条件。
+     *
+     * @param entityClass 实体类
+     * @param getter      Lambda 方法引用
+     * @param from        起始值
+     * @param to          结束值
+     * @return BETWEEN 条件或空条件
+     */
+    public static <T, R extends Comparable<?>> Condition betweenIfPresent(Class<T> entityClass, SFunction<T, R> getter, @Nullable R from, @Nullable R to) {
+        if (from == null || to == null) {
+            return empty();
+        }
+        return builder(entityClass).between(getter, from, to).build();
+    }
+
+    /**
+     * 创建类型化 NOT BETWEEN 条件（值存在时），值不存在时返回空条件
+     * <p>
+     * from 和 to 都不为 null 时才创建条件。
+     *
+     * @param entityClass 实体类
+     * @param getter      Lambda 方法引用
+     * @param from        起始值
+     * @param to          结束值
+     * @return NOT BETWEEN 条件或空条件
+     */
+    public static <T, R extends Comparable<?>> Condition notBetweenIfPresent(Class<T> entityClass, SFunction<T, R> getter, @Nullable R from, @Nullable R to) {
+        if (from == null || to == null) {
+            return empty();
+        }
+        return builder(entityClass).notBetween(getter, from, to).build();
+    }
+
+    /**
+     * 创建类型化大于条件（值存在时），值不存在时返回空条件
+     *
+     * @param entityClass 实体类
+     * @param getter      Lambda 方法引用
+     * @param value       比较值，为 null 时跳过
+     * @return 大于条件或空条件
+     */
+    public static <T, R extends Comparable<?>> Condition gtIfPresent(Class<T> entityClass, SFunction<T, R> getter, @Nullable R value) {
+        if (value == null) {
+            return empty();
+        }
+        return builder(entityClass).gt(getter, value).build();
+    }
+
+    /**
+     * 创建类型化大于等于条件（值存在时），值不存在时返回空条件
+     *
+     * @param entityClass 实体类
+     * @param getter      Lambda 方法引用
+     * @param value       比较值，为 null 时跳过
+     * @return 大于等于条件或空条件
+     */
+    public static <T, R extends Comparable<?>> Condition geIfPresent(Class<T> entityClass, SFunction<T, R> getter, @Nullable R value) {
+        if (value == null) {
+            return empty();
+        }
+        return builder(entityClass).ge(getter, value).build();
+    }
+
+    /**
+     * 创建类型化小于条件（值存在时），值不存在时返回空条件
+     *
+     * @param entityClass 实体类
+     * @param getter      Lambda 方法引用
+     * @param value       比较值，为 null 时跳过
+     * @return 小于条件或空条件
+     */
+    public static <T, R extends Comparable<?>> Condition ltIfPresent(Class<T> entityClass, SFunction<T, R> getter, @Nullable R value) {
+        if (value == null) {
+            return empty();
+        }
+        return builder(entityClass).lt(getter, value).build();
+    }
+
+    /**
+     * 创建类型化小于等于条件（值存在时），值不存在时返回空条件
+     *
+     * @param entityClass 实体类
+     * @param getter      Lambda 方法引用
+     * @param value       比较值，为 null 时跳过
+     * @return 小于等于条件或空条件
+     */
+    public static <T, R extends Comparable<?>> Condition leIfPresent(Class<T> entityClass, SFunction<T, R> getter, @Nullable R value) {
+        if (value == null) {
+            return empty();
+        }
+        return builder(entityClass).le(getter, value).build();
+    }
+
     /**
      * 从 Lambda 获取字段名（带缓存）
      */
@@ -749,6 +1261,130 @@ public final class Conditions {
                 criteria.add(new Criterion(field, Operator.JSON_PATH, path, null, null));
             }
             return this;
+        }
+
+        // ==================== IfPresent 操作符实现 ====================
+
+        @Override
+        public ConditionBuilder eqIfPresent(String field, @Nullable Object value) {
+            if (value == null) {
+                return this;
+            }
+            return eq(field, value);
+        }
+
+        @Override
+        public ConditionBuilder neIfPresent(String field, @Nullable Object value) {
+            if (value == null) {
+                return this;
+            }
+            return ne(field, value);
+        }
+
+        @Override
+        public ConditionBuilder likeIfPresent(String field, @Nullable String value) {
+            if (value == null || value.isEmpty()) {
+                return this;
+            }
+            return like(field, value);
+        }
+
+        @Override
+        public ConditionBuilder likeStartsWithIfPresent(String field, @Nullable String value) {
+            if (value == null || value.isEmpty()) {
+                return this;
+            }
+            return likeStartsWith(field, value);
+        }
+
+        @Override
+        public ConditionBuilder likeEndsWithIfPresent(String field, @Nullable String value) {
+            if (value == null || value.isEmpty()) {
+                return this;
+            }
+            return likeEndsWith(field, value);
+        }
+
+        @Override
+        public ConditionBuilder notLikeIfPresent(String field, @Nullable String value) {
+            if (value == null || value.isEmpty()) {
+                return this;
+            }
+            return notLike(field, value);
+        }
+
+        @Override
+        public ConditionBuilder inIfPresent(String field, @Nullable Iterable<?> values) {
+            if (values == null) {
+                return this;
+            }
+            List<Object> list = new ArrayList<>();
+            values.forEach(list::add);
+            if (list.isEmpty()) {
+                return this;
+            }
+            return in(field, list);
+        }
+
+        @Override
+        public ConditionBuilder notInIfPresent(String field, @Nullable Iterable<?> values) {
+            if (values == null) {
+                return this;
+            }
+            List<Object> list = new ArrayList<>();
+            values.forEach(list::add);
+            if (list.isEmpty()) {
+                return this;
+            }
+            return notIn(field, list);
+        }
+
+        @Override
+        public ConditionBuilder betweenIfPresent(String field, @Nullable Comparable<?> from, @Nullable Comparable<?> to) {
+            if (from == null || to == null) {
+                return this;
+            }
+            return between(field, from, to);
+        }
+
+        @Override
+        public ConditionBuilder notBetweenIfPresent(String field, @Nullable Comparable<?> from, @Nullable Comparable<?> to) {
+            if (from == null || to == null) {
+                return this;
+            }
+            return notBetween(field, from, to);
+        }
+
+        @Override
+        public ConditionBuilder gtIfPresent(String field, @Nullable Comparable<?> value) {
+            if (value == null) {
+                return this;
+            }
+            return gt(field, value);
+        }
+
+        @Override
+        public ConditionBuilder geIfPresent(String field, @Nullable Comparable<?> value) {
+            if (value == null) {
+                return this;
+            }
+            return ge(field, value);
+        }
+
+        @Override
+        public ConditionBuilder ltIfPresent(String field, @Nullable Comparable<?> value) {
+            if (value == null) {
+                return this;
+            }
+            return lt(field, value);
+        }
+
+        @Override
+        public ConditionBuilder leIfPresent(String field, @Nullable Comparable<?> value) {
+            if (value == null) {
+                return this;
+            }
+            return le(field, value);
         }
 
         @Override
@@ -919,6 +1555,130 @@ public final class Conditions {
         public TypedConditionBuilder<T> jsonPath(SFunction<T, String> getter, @Nullable String path) {
             delegate.jsonPath(resolveColumnName(getter), path);
             return this;
+        }
+
+        // ==================== IfPresent 操作符实现 ====================
+
+        @Override
+        public <R> TypedConditionBuilder<T> eqIfPresent(SFunction<T, R> getter, @Nullable Object value) {
+            if (value == null) {
+                return this;
+            }
+            return eq(getter, value);
+        }
+
+        @Override
+        public <R> TypedConditionBuilder<T> neIfPresent(SFunction<T, R> getter, @Nullable Object value) {
+            if (value == null) {
+                return this;
+            }
+            return ne(getter, value);
+        }
+
+        @Override
+        public TypedConditionBuilder<T> likeIfPresent(SFunction<T, String> getter, @Nullable String value) {
+            if (value == null || value.isEmpty()) {
+                return this;
+            }
+            return like(getter, value);
+        }
+
+        @Override
+        public TypedConditionBuilder<T> likeStartsWithIfPresent(SFunction<T, String> getter, @Nullable String value) {
+            if (value == null || value.isEmpty()) {
+                return this;
+            }
+            return likeStartsWith(getter, value);
+        }
+
+        @Override
+        public TypedConditionBuilder<T> likeEndsWithIfPresent(SFunction<T, String> getter, @Nullable String value) {
+            if (value == null || value.isEmpty()) {
+                return this;
+            }
+            return likeEndsWith(getter, value);
+        }
+
+        @Override
+        public TypedConditionBuilder<T> notLikeIfPresent(SFunction<T, String> getter, @Nullable String value) {
+            if (value == null || value.isEmpty()) {
+                return this;
+            }
+            return notLike(getter, value);
+        }
+
+        @Override
+        public <R> TypedConditionBuilder<T> inIfPresent(SFunction<T, R> getter, @Nullable Iterable<?> values) {
+            if (values == null) {
+                return this;
+            }
+            List<Object> list = new ArrayList<>();
+            values.forEach(list::add);
+            if (list.isEmpty()) {
+                return this;
+            }
+            return in(getter, list);
+        }
+
+        @Override
+        public <R> TypedConditionBuilder<T> notInIfPresent(SFunction<T, R> getter, @Nullable Iterable<?> values) {
+            if (values == null) {
+                return this;
+            }
+            List<Object> list = new ArrayList<>();
+            values.forEach(list::add);
+            if (list.isEmpty()) {
+                return this;
+            }
+            return notIn(getter, list);
+        }
+
+        @Override
+        public <R extends Comparable<?>> TypedConditionBuilder<T> betweenIfPresent(SFunction<T, R> getter, @Nullable R from, @Nullable R to) {
+            if (from == null || to == null) {
+                return this;
+            }
+            return between(getter, from, to);
+        }
+
+        @Override
+        public <R extends Comparable<?>> TypedConditionBuilder<T> notBetweenIfPresent(SFunction<T, R> getter, @Nullable R from, @Nullable R to) {
+            if (from == null || to == null) {
+                return this;
+            }
+            return notBetween(getter, from, to);
+        }
+
+        @Override
+        public <R extends Comparable<?>> TypedConditionBuilder<T> gtIfPresent(SFunction<T, R> getter, @Nullable R value) {
+            if (value == null) {
+                return this;
+            }
+            return gt(getter, value);
+        }
+
+        @Override
+        public <R extends Comparable<?>> TypedConditionBuilder<T> geIfPresent(SFunction<T, R> getter, @Nullable R value) {
+            if (value == null) {
+                return this;
+            }
+            return ge(getter, value);
+        }
+
+        @Override
+        public <R extends Comparable<?>> TypedConditionBuilder<T> ltIfPresent(SFunction<T, R> getter, @Nullable R value) {
+            if (value == null) {
+                return this;
+            }
+            return lt(getter, value);
+        }
+
+        @Override
+        public <R extends Comparable<?>> TypedConditionBuilder<T> leIfPresent(SFunction<T, R> getter, @Nullable R value) {
+            if (value == null) {
+                return this;
+            }
+            return le(getter, value);
         }
 
         @Override
