@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 4
+- **Total Sessions**: 5
 - **Last Active**: 2026-06-12
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~147 | Active |
+| `journal-1.md` | ~180 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 5 | 2026-06-12 | Session 5: core 模块精细化打磨（阶段7） | `98baee0` | `main` |
 | 4 | 2026-06-12 | data-impl 模块精细化打磨 | `0c237b3` | `main` |
 | 3 | 2026-06-12 | data-core 模块精细化打磨 | `2ff3a77` | `main` |
 | 2 | 2026-06-12 | APT 模块精细化打磨 — 注解 Javadoc 增强 + @AfgEnum/@EncryptedField 新增 + 编译期校验 + EnumMetadataProcessor | `3089ef9` | `main` |
