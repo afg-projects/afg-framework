@@ -5,6 +5,10 @@ import io.github.afgprojects.framework.data.core.EntityProxy;
 import io.github.afgprojects.framework.data.jdbc.metrics.RawSqlSecurityGuard;
 import io.github.afgprojects.framework.data.core.context.TenantContextHolder;
 import io.github.afgprojects.framework.data.core.dialect.*;
+import io.github.afgprojects.framework.data.core.entity.AuditableContext;
+import io.github.afgprojects.framework.data.core.entity.FieldEncryptor;
+import io.github.afgprojects.framework.data.core.entity.NoOpAuditableContext;
+import io.github.afgprojects.framework.data.core.entity.NoOpFieldEncryptor;
 import io.github.afgprojects.framework.data.core.exception.EntityMappingException;
 import io.github.afgprojects.framework.data.core.mapper.ResultMapper;
 import io.github.afgprojects.framework.data.core.mapper.TypeHandlerRegistry;
@@ -118,6 +122,16 @@ public class JdbcDataManager implements DataManager {
     private volatile @Nullable DataScopeContextProvider dataScopeContextProvider;
 
     /**
+     * 审计上下文（可注入，支持与 AuditableContext Bean 共享）
+     */
+    private AuditableContext auditableContext;
+
+    /**
+     * 字段加密器（可注入，支持与 FieldEncryptor Bean 共享）
+     */
+    private FieldEncryptor fieldEncryptor;
+
+    /**
      * 类型处理器注册表
      */
     private volatile TypeHandlerRegistry typeHandlerRegistry = TypeHandlerRegistry.defaultRegistry();
@@ -129,6 +143,8 @@ public class JdbcDataManager implements DataManager {
         this.databaseType = detectDatabaseType(dataSource);
         this.dialect = createDialect(databaseType);
         this.tenantContextHolder = new TenantContextHolder();
+        this.auditableContext = new NoOpAuditableContext();
+        this.fieldEncryptor = new NoOpFieldEncryptor();
     }
 
     public JdbcDataManager(DataSource dataSource, DatabaseType databaseType) {
@@ -138,6 +154,8 @@ public class JdbcDataManager implements DataManager {
         this.databaseType = databaseType;
         this.dialect = createDialect(databaseType);
         this.tenantContextHolder = new TenantContextHolder();
+        this.auditableContext = new NoOpAuditableContext();
+        this.fieldEncryptor = new NoOpFieldEncryptor();
     }
 
     /**
@@ -163,6 +181,50 @@ public class JdbcDataManager implements DataManager {
      */
     public void setTenantContextHolder(@NonNull TenantContextHolder tenantContextHolder) {
         this.tenantContextHolder = tenantContextHolder;
+    }
+
+    /**
+     * 设置审计上下文
+     * <p>
+     * 注入与 AutoConfiguration 创建的同一实例，
+     * 确保审计用户信息在整个应用中一致。
+     * 如果不设置，使用构造函数中创建的 NoOp 默认实例。
+     *
+     * @param auditableContext 审计上下文
+     */
+    public void setAuditableContext(@NonNull AuditableContext auditableContext) {
+        this.auditableContext = auditableContext;
+    }
+
+    /**
+     * 获取审计上下文
+     *
+     * @return 审计上下文
+     */
+    public AuditableContext getAuditableContext() {
+        return auditableContext;
+    }
+
+    /**
+     * 设置字段加密器
+     * <p>
+     * 注入与 AutoConfiguration 创建的同一实例，
+     * 确保加密/解密行为在整个应用中一致。
+     * 如果不设置，使用构造函数中创建的 NoOp 默认实例（不加密）。
+     *
+     * @param fieldEncryptor 字段加密器
+     */
+    public void setFieldEncryptor(@NonNull FieldEncryptor fieldEncryptor) {
+        this.fieldEncryptor = fieldEncryptor;
+    }
+
+    /**
+     * 获取字段加密器
+     *
+     * @return 字段加密器
+     */
+    public FieldEncryptor getFieldEncryptor() {
+        return fieldEncryptor;
     }
 
     /**

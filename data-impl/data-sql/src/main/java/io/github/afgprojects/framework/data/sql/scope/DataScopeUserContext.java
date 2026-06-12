@@ -21,6 +21,11 @@ import java.util.Set;
 public final class DataScopeUserContext {
 
     /**
+     * 不可能匹配的 ID 值，用于数据权限拒绝所有访问
+     */
+    public static final long IMPOSSIBLE_MATCH_ID = Long.MIN_VALUE;
+
+    /**
      * 当前用户 ID
      */
     private final @Nullable Long userId;

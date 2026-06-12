@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Import;
 
+import io.github.afgprojects.framework.commons.exception.BusinessException;
 import io.github.afgprojects.framework.data.jdbc.entity.TestOrder;
 import io.github.afgprojects.framework.data.jdbc.entity.TestOrderItem;
 import io.github.afgprojects.framework.data.jdbc.entity.TestUser;
@@ -109,7 +110,7 @@ class JdbcDataManagerAssociationTest extends BaseDataTest {
             TestOrder order = dataManager.save(TestOrder.class, TestOrder.create("ORD-004", null));
 
             assertThatThrownBy(() -> dataManager.entity(TestOrder.class).fetch(order, "nonExisting"))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("Association 'nonExisting' not found");
         }
 
@@ -120,7 +121,7 @@ class JdbcDataManagerAssociationTest extends BaseDataTest {
             newOrder.setOrderNo("ORD-NEW");
 
             assertThatThrownBy(() -> dataManager.entity(TestOrder.class).fetch(newOrder, "items"))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("must have an ID");
         }
     }

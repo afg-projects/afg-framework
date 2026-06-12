@@ -42,6 +42,6 @@ public interface DataScopeContextProvider {
      * @return 返回一个返回空上下文的提供者
      */
     static DataScopeContextProvider empty() {
-        return () -> null;
+        return () -> DataScopeUserContext.empty();
     }
 }

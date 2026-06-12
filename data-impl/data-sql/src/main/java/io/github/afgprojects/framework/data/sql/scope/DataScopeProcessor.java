@@ -205,7 +205,7 @@ public class DataScopeProcessor {
             return new LongValue(userId);
         }
         // 如果无法获取用户ID，返回一个不可能匹配的值
-        return new LongValue(Long.MIN_VALUE);
+        return new LongValue(DataScopeUserContext.IMPOSSIBLE_MATCH_ID);
     }
 
     /**
@@ -217,7 +217,7 @@ public class DataScopeProcessor {
             return new LongValue(deptId);
         }
         // 如果无法获取部门ID，返回一个不可能匹配的值
-        return new LongValue(Long.MIN_VALUE);
+        return new LongValue(DataScopeUserContext.IMPOSSIBLE_MATCH_ID);
     }
 
     /**
@@ -237,7 +237,7 @@ public class DataScopeProcessor {
                 return new LongValue(deptId);
             }
             // 返回一个不可能匹配的值
-            return new LongValue(Long.MIN_VALUE);
+            return new LongValue(DataScopeUserContext.IMPOSSIBLE_MATCH_ID);
         }
 
         // 将部门ID列表转换为表达式列表
@@ -258,7 +258,7 @@ public class DataScopeProcessor {
             return new LongValue(tenantId);
         }
         // 如果无法获取租户ID，返回一个不可能匹配的值
-        return new LongValue(Long.MIN_VALUE);
+        return new LongValue(DataScopeUserContext.IMPOSSIBLE_MATCH_ID);
     }
 
     /**

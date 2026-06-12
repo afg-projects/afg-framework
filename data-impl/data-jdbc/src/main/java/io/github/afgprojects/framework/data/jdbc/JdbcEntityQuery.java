@@ -1,5 +1,7 @@
 package io.github.afgprojects.framework.data.jdbc;
 
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import io.github.afgprojects.framework.commons.model.PageData;
 import io.github.afgprojects.framework.data.core.EntityQuery;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
@@ -158,7 +160,7 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
                     }
                 }
                 if (!found) {
-                    throw new IllegalArgumentException(
+                    throw new BusinessException(CommonErrorCode.FIELD_NOT_FOUND,
                             "Invalid field '" + field + "' for entity " + entityClass.getSimpleName()
                     );
                 }
@@ -182,7 +184,7 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
                     }
                 }
                 if (!found) {
-                    throw new IllegalArgumentException(
+                    throw new BusinessException(CommonErrorCode.FIELD_NOT_FOUND,
                             "Invalid field '" + field + "' for entity " + entityClass.getSimpleName()
                     );
                 }
@@ -634,7 +636,7 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
 
     private void validateAssociation(String name) {
         if (!metadata.hasRelation(name)) {
-            throw new IllegalArgumentException(
+            throw new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND,
                     "Association '" + name + "' not found in entity " + entityClass.getSimpleName()
             );
         }

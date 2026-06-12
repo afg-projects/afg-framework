@@ -196,9 +196,9 @@ public class EntityCodeGenerator {
         String upper = sqlType.toUpperCase();
 
         if (upper.contains("BIGINT")) return "Long";
-        if (upper.contains("INT")) return "Integer";
-        if (upper.contains("SMALLINT")) return "Short";
         if (upper.contains("TINYINT")) return "Boolean";
+        if (upper.contains("SMALLINT")) return "Short";
+        if (upper.contains("INT")) return "Integer";
         if (upper.contains("BIT")) return "Boolean";
         if (upper.contains("BOOLEAN")) return "Boolean";
         if (upper.contains("DECIMAL") || upper.contains("NUMERIC")) return "BigDecimal";

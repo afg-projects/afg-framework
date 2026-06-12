@@ -45,7 +45,7 @@ import org.springframework.context.annotation.Bean;
  *
  * @since 1.0.0
  */
-@AutoConfiguration
+@AutoConfiguration(after = DataManagerAutoConfiguration.class)
 @ConditionalOnBean(MeterRegistry.class)
 @ConditionalOnProperty(prefix = "afg.jdbc.metrics", name = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(SqlMetricsProperties.class)

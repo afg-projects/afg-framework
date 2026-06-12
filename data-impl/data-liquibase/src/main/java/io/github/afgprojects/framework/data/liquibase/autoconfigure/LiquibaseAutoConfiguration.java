@@ -28,7 +28,10 @@ import javax.sql.DataSource;
  * - labels: 执行标签过滤
  * - default-schema: 默认 Schema
  */
-@AutoConfiguration(afterName = "org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration")
+@AutoConfiguration(afterName = {
+    "org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration",
+    "io.github.afgprojects.framework.data.jdbc.autoconfigure.DataManagerAutoConfiguration"
+})
 @ConditionalOnClass(SpringLiquibase.class)
 @ConditionalOnProperty(prefix = "afg.liquibase", name = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(LiquibaseProperties.class)

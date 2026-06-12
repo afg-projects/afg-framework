@@ -1,9 +1,12 @@
 package io.github.afgprojects.framework.data.jdbc;
 
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import io.github.afgprojects.framework.commons.model.PageData;
 import io.github.afgprojects.framework.data.core.EntityProxy;
 import io.github.afgprojects.framework.data.core.EntityQuery;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
+import io.github.afgprojects.framework.data.core.entity.AuditableContext;
 import io.github.afgprojects.framework.data.core.entity.SoftDeleteStrategy;
 import io.github.afgprojects.framework.data.core.mapper.Projection;
 import io.github.afgprojects.framework.data.core.mapper.TypeHandlerRegistry;
@@ -145,13 +148,20 @@ public class JdbcEntityProxy<T> implements EntityProxy<T>, ProxyStateProvider {
         this.rowMapper = queryHelper::mapRow;
         this.typeHandlerRegistry = typeHandlerRegistry;
         this.insertHandler = new EntityInsertHandler<>(entityClass, jdbcClient, dialect, metadata, queryHelper, dataManager, cacheHandler);
+        this.insertHandler.setAuditableContext(dataManager.getAuditableContext());
+        this.insertHandler.setFieldEncryptor(dataManager.getFieldEncryptor());
         this.updateHandler = new EntityUpdateHandler<>(entityClass, jdbcClient, metadata, queryHelper, dataManager, cacheHandler);
+        this.updateHandler.setAuditableContext(dataManager.getAuditableContext());
+        this.updateHandler.setFieldEncryptor(dataManager.getFieldEncryptor());
         this.softDeleteHandler = new EntitySoftDeleteHandler<>(entityClass, dialect, metadata, jdbcClient, cacheManager);
         this.queryExecutor = new EntityQueryExecutor<>(entityClass, jdbcClient, dialect, metadata, rowMapper, cacheHandler, softDeleteHandler, this);
         this.deleteHandler = new EntityDeleteHandler<>(entityClass, jdbcClient, dialect, metadata, softDeleteHandler, cacheHandler, queryHelper);
         this.conditionQueryHandler = new EntityConditionQueryHandler<>(entityClass, jdbcClient, dialect, metadata, rowMapper, dataManager, softDeleteHandler, this);
         this.conditionalHandler = new EntityConditionalHandler<>(entityClass, dialect, metadata, dataManager, cacheHandler);
         this.associationLoader = new AssociationLoader(dialect, dataManager);
+
+        // 将 FieldEncryptor 注入到 EntityMapper（用于 SELECT 后自动解密）
+        this.queryHelper.getEntityMapper().setFieldEncryptor(dataManager.getFieldEncryptor());
     }
 
     // ==================== 基础 CRUD ====================
@@ -364,7 +374,7 @@ public class JdbcEntityProxy<T> implements EntityProxy<T>, ProxyStateProvider {
      */
     public @NonNull EntityProxy<T> withBatchSize(int batchSize) {
         if (batchSize <= 0) {
-            throw new IllegalArgumentException("batchSize must be greater than 0");
+            throw new BusinessException(CommonErrorCode.PARAM_ERROR, "batchSize must be greater than 0");
         }
         this.insertHandler.setBatchSize(batchSize);
         return this;
@@ -507,13 +517,13 @@ public class JdbcEntityProxy<T> implements EntityProxy<T>, ProxyStateProvider {
     @SuppressWarnings("unchecked")
     public <R> @NonNull R fetch(@NonNull T entity, @NonNull String name) {
         RelationMetadata relation = metadata.getRelation(name)
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND,
                         "Association '" + name + "' not found in entity " + entityClass.getSimpleName()
                 ));
 
         Object idValue = getIdValue(entity);
         if (idValue == null) {
-            throw new IllegalArgumentException("Entity must have an ID to fetch associations");
+            throw new BusinessException(CommonErrorCode.PARAM_ERROR, "Entity must have an ID to fetch associations");
         }
 
         return (R) doFetchAssociation(entity, idValue, relation);
@@ -534,7 +544,7 @@ public class JdbcEntityProxy<T> implements EntityProxy<T>, ProxyStateProvider {
     @Override
     public void fetchAll(@NonNull Iterable<T> entities, @NonNull String name) {
         RelationMetadata relation = metadata.getRelation(name)
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND,
                         "Association '" + name + "' not found in entity " + entityClass.getSimpleName()
                 ));
 

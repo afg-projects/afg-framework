@@ -1,5 +1,7 @@
 package io.github.afgprojects.framework.data.jdbc;
 
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import io.github.afgprojects.framework.apt.module.AfgModuleAnnotation;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
@@ -70,11 +72,11 @@ public class EntityConditionalHandler<T> {
      * 验证字段名是否在元数据中存在
      *
      * @param fieldName 字段名
-     * @throws IllegalArgumentException 如果字段名无效
+     * @throws BusinessException 如果字段名无效
      */
     private void validateFieldName(String fieldName) {
         if (metadata.getField(fieldName) == null) {
-            throw new IllegalArgumentException(
+            throw new BusinessException(CommonErrorCode.FIELD_NOT_FOUND,
                 String.format("Invalid field name '%s' for entity '%s'. Field does not exist in entity metadata.",
                     fieldName, entityClass.getSimpleName()));
         }

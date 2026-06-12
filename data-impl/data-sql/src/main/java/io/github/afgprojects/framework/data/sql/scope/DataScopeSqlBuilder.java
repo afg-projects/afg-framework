@@ -94,7 +94,7 @@ public class DataScopeSqlBuilder {
                 Long userId = userContext.getUserId();
                 if (userId == null) {
                     log.warn("SELF data scope requires userId, but current user context has no userId");
-                    yield new SqlResult(quotedColumn + " = " + Long.MIN_VALUE, List.of());
+                    yield new SqlResult(quotedColumn + " = " + DataScopeUserContext.IMPOSSIBLE_MATCH_ID, List.of());
                 }
                 yield new SqlResult(quotedColumn + " = ?", List.of(userId));
             }
@@ -103,7 +103,7 @@ public class DataScopeSqlBuilder {
                 Long deptId = userContext.getDeptId();
                 if (deptId == null) {
                     log.warn("DEPT data scope requires deptId, but current user context has no deptId");
-                    yield new SqlResult(quotedColumn + " = " + Long.MIN_VALUE, List.of());
+                    yield new SqlResult(quotedColumn + " = " + DataScopeUserContext.IMPOSSIBLE_MATCH_ID, List.of());
                 }
                 yield new SqlResult(quotedColumn + " = ?", List.of(deptId));
             }
@@ -119,7 +119,7 @@ public class DataScopeSqlBuilder {
                 }
                 if (deptIds.isEmpty()) {
                     log.warn("DEPT_AND_CHILD data scope requires accessibleDeptIds, but current user context has none");
-                    yield new SqlResult(quotedColumn + " = " + Long.MIN_VALUE, List.of());
+                    yield new SqlResult(quotedColumn + " = " + DataScopeUserContext.IMPOSSIBLE_MATCH_ID, List.of());
                 }
                 if (deptIds.size() == 1) {
                     yield new SqlResult(quotedColumn + " = ?", List.of(deptIds.get(0)));

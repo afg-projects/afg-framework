@@ -24,7 +24,7 @@ import javax.sql.DataSource;
  * </ul>
  * </p>
  */
-@AutoConfiguration
+@AutoConfiguration(after = DataManagerAutoConfiguration.class)
 @ConditionalOnClass({DataSource.class, DefaultCacheManager.class})
 @ConditionalOnProperty(prefix = "afg.jdbc.cache", name = "enabled", havingValue = "true")
 @EnableConfigurationProperties(EntityCacheProperties.class)

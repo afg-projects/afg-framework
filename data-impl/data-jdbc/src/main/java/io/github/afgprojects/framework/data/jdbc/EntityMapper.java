@@ -1,8 +1,12 @@
 package io.github.afgprojects.framework.data.jdbc;
 
+import io.github.afgprojects.framework.data.core.entity.EncryptedFieldMetadata;
+import io.github.afgprojects.framework.data.core.entity.FieldEncryptor;
 import io.github.afgprojects.framework.data.core.entity.LifecycleCallbacks;
+import io.github.afgprojects.framework.data.core.entity.NoOpFieldEncryptor;
 import io.github.afgprojects.framework.data.core.exception.EntityMappingException;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
+import io.github.afgprojects.framework.data.core.metadata.EntityTrait;
 import io.github.afgprojects.framework.data.core.metadata.FieldAccessor;
 import io.github.afgprojects.framework.data.core.metadata.FieldMetadata;
 import io.github.afgprojects.framework.data.core.mapper.TypeHandlerRegistry;
@@ -10,6 +14,7 @@ import io.github.afgprojects.framework.data.jdbc.mapper.AbstractResultSetMapper;
 import io.github.afgprojects.framework.data.jdbc.metadata.ReflectiveFieldMetadata;
 import io.github.afgprojects.framework.data.jdbc.util.NamingUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -42,6 +47,11 @@ public class EntityMapper<T> extends AbstractResultSetMapper<T> {
     private final EntityMetadata<T> metadata;
 
     /**
+     * 字段加密器（可注入，用于 afterLoad 后自动解密加密字段）
+     */
+    private FieldEncryptor fieldEncryptor;
+
+    /**
      * 缓存的构造器（线程安全）
      */
     private final Constructor<T> cachedConstructor;
@@ -62,10 +72,24 @@ public class EntityMapper<T> extends AbstractResultSetMapper<T> {
         this.entityClass = entityClass;
         this.metadata = metadata;
         this.cachedConstructor = getDeclaredConstructor(entityClass);
+        this.fieldEncryptor = new NoOpFieldEncryptor();
     }
 
     public EntityMapper(Class<T> entityClass, EntityMetadata<T> metadata) {
         this(entityClass, metadata, TypeHandlerRegistry.defaultRegistry());
+    }
+
+    /**
+     * 设置字段加密器
+     * <p>
+     * 注入与 AutoConfiguration 创建的同一实例，
+     * 确保解密行为在整个应用中一致。
+     * 如果不设置，使用 NoOp 默认实例（不解密）。
+     *
+     * @param fieldEncryptor 字段加密器
+     */
+    public void setFieldEncryptor(@NonNull FieldEncryptor fieldEncryptor) {
+        this.fieldEncryptor = fieldEncryptor;
     }
 
     /**
@@ -113,6 +137,10 @@ public class EntityMapper<T> extends AbstractResultSetMapper<T> {
                     }
                 }
             }
+
+            // 解密加密字段：afterLoad 之前，将密文转换为明文
+            decryptFields(entity);
+
             // 触发 afterLoad 生命周期回调（类似 JPA @PostLoad）
             LifecycleCallbacks.ifCallback(entity, LifecycleCallbacks::afterLoad);
             return entity;
@@ -122,6 +150,59 @@ public class EntityMapper<T> extends AbstractResultSetMapper<T> {
             throw new EntityMappingException(
                 "Failed to map ResultSet row to entity " + entityClass.getSimpleName(), null, e);
         }
+    }
+
+    /**
+     * 解密实体中的加密字段。
+     *
+     * <p>当实体具有 ENCRYPTED 特征时，遍历所有加密字段，
+     * 对非 null 的字段值调用 {@link FieldEncryptor#decrypt(String, String, String)} 进行解密，
+     * 然后将解密后的明文设置回实体。此操作在 afterLoad 生命周期回调之前执行，
+     * 确保业务代码看到的是明文。
+     *
+     * @param entity 实体对象
+     */
+    private void decryptFields(T entity) {
+        if (!metadata.hasTrait(EntityTrait.ENCRYPTED)) {
+            return;
+        }
+        for (EncryptedFieldMetadata encryptedField : metadata.getEncryptedFields()) {
+            try {
+                Object value = getFieldValueFromEntity(entity, encryptedField.fieldName());
+                if (value != null) {
+                    String ciphertext = value.toString();
+                    String plaintext = fieldEncryptor.decrypt(ciphertext, encryptedField.algorithm(), encryptedField.keyRef());
+                    setFieldValue(entity, encryptedField.fieldName(), plaintext);
+                }
+            } catch (Exception e) {
+                log.warn("Failed to decrypt field '{}' of entity {}: {}",
+                         encryptedField.fieldName(), entityClass.getSimpleName(), e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * 从实体获取字段值（用于解密场景）
+     */
+    private Object getFieldValueFromEntity(T entity, String propertyName) {
+        FieldMetadata field = metadata.getField(propertyName);
+        if (field instanceof ReflectiveFieldMetadata reflective) {
+            FieldAccessor accessor = reflective.getFieldAccessor();
+            if (accessor != null) {
+                return accessor.getValue(entity);
+            }
+        }
+        // APT 生成的元数据回退到原始反射
+        try {
+            Field declaredField = findDeclaredFieldCached(entityClass, propertyName);
+            if (declaredField != null) {
+                declaredField.setAccessible(true);
+                return declaredField.get(entity);
+            }
+        } catch (Exception e) {
+            return null;
+        }
+        return null;
     }
 
     /**

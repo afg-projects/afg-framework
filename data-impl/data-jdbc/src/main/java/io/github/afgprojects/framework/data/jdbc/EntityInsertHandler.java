@@ -1,10 +1,13 @@
 package io.github.afgprojects.framework.data.jdbc;
 
-import io.github.afgprojects.framework.data.core.entity.LifecycleCallbacks;
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
+import io.github.afgprojects.framework.data.core.entity.*;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
 import io.github.afgprojects.framework.data.core.metadata.EntityTrait;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheHandler;
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -22,6 +25,7 @@ import java.util.List;
  *
  * @param <T> 实体类型
  */
+@Slf4j
 public class EntityInsertHandler<T> {
 
     private final Class<T> entityClass;
@@ -31,6 +35,16 @@ public class EntityInsertHandler<T> {
     private final EntityQueryHelper<T> queryHelper;
     private final JdbcDataManager dataManager;
     private final EntityCacheHandler<T> cacheHandler;
+
+    /**
+     * 审计上下文（可注入，支持与 AuditableContext Bean 共享）
+     */
+    private AuditableContext auditableContext;
+
+    /**
+     * 字段加密器（可注入，支持与 FieldEncryptor Bean 共享）
+     */
+    private FieldEncryptor fieldEncryptor;
 
     /**
      * 默认批次大小（使用 volatile 确保多线程可见性）
@@ -47,6 +61,34 @@ public class EntityInsertHandler<T> {
         this.queryHelper = queryHelper;
         this.dataManager = dataManager;
         this.cacheHandler = cacheHandler;
+        this.auditableContext = new NoOpAuditableContext();
+        this.fieldEncryptor = new NoOpFieldEncryptor();
+    }
+
+    /**
+     * 设置审计上下文
+     * <p>
+     * 注入与 AutoConfiguration 创建的同一实例，
+     * 确保审计用户信息在整个应用中一致。
+     * 如果不设置，使用构造函数中创建的 NoOp 默认实例。
+     *
+     * @param auditableContext 审计上下文
+     */
+    public void setAuditableContext(@NonNull AuditableContext auditableContext) {
+        this.auditableContext = auditableContext;
+    }
+
+    /**
+     * 设置字段加密器
+     * <p>
+     * 注入与 AutoConfiguration 创建的同一实例，
+     * 确保加密/解密行为在整个应用中一致。
+     * 如果不设置，使用构造函数中创建的 NoOp 默认实例（不加密）。
+     *
+     * @param fieldEncryptor 字段加密器
+     */
+    public void setFieldEncryptor(@NonNull FieldEncryptor fieldEncryptor) {
+        this.fieldEncryptor = fieldEncryptor;
     }
 
     /**
@@ -62,6 +104,12 @@ public class EntityInsertHandler<T> {
         // 自动填充 createdAt / updatedAt 时间戳
         autoFillTimestamps(entity, true);
 
+        // 自动填充 createBy / updateBy 审计字段
+        autoFillAuditable(entity);
+
+        // 自动填充树形路径（level + path）
+        autoFillTreePath(entity);
+
         // 自动填充租户ID：当实体的租户字段为空且 TenantContextHolder 设置了租户ID时
         var tenantField = metadata.getTenantField();
         if (tenantField != null) {
@@ -73,6 +121,9 @@ public class EntityInsertHandler<T> {
                 }
             }
         }
+
+        // 加密字段：在 SQL INSERT 之前对加密字段执行加密
+        encryptFields(entity);
 
         // 检查实体是否已有ID（应用主动传入）
         Object existingId = queryHelper.getIdValue(entity);
@@ -131,7 +182,7 @@ public class EntityInsertHandler<T> {
      */
     public void setBatchSize(int batchSize) {
         if (batchSize <= 0) {
-            throw new IllegalArgumentException("batchSize must be greater than 0");
+            throw new BusinessException(CommonErrorCode.PARAM_ERROR, "batchSize must be greater than 0");
         }
         this.batchSize = batchSize;
     }
@@ -282,6 +333,120 @@ public class EntityInsertHandler<T> {
         Object updatedAt = extractor.getFieldValue(entity, "updatedAt");
         if (updatedAt == null) {
             extractor.setFieldValue(entity, "updatedAt", now);
+        }
+    }
+
+    /**
+     * 自动填充 createBy / updateBy 审计字段。
+     *
+     * <p>当实体具有 AUDITABLE 特征且 {@link AuditableContext#getCurrentUserId()} 不为 null 时，
+     * 如果 createBy 或 updateBy 为 null，自动填充为当前用户 ID。
+     *
+     * @param entity 实体对象
+     */
+    private void autoFillAuditable(T entity) {
+        if (!metadata.hasTrait(EntityTrait.AUDITABLE)) {
+            return;
+        }
+        String currentUserId = auditableContext.getCurrentUserId();
+        if (currentUserId == null) {
+            return;
+        }
+        var extractor = queryHelper.getParameterExtractor();
+
+        Object createBy = extractor.getFieldValue(entity, "createBy");
+        if (createBy == null) {
+            extractor.setFieldValue(entity, "createBy", currentUserId);
+        }
+
+        Object updateBy = extractor.getFieldValue(entity, "updateBy");
+        if (updateBy == null) {
+            extractor.setFieldValue(entity, "updateBy", currentUserId);
+        }
+    }
+
+    /**
+     * 加密实体中的加密字段。
+     *
+     * <p>当实体具有 ENCRYPTED 特征时，遍历所有加密字段，
+     * 对非 null 的字段值调用 {@link FieldEncryptor#encrypt(String, String, String)} 进行加密，
+     * 然后将加密后的密文设置回实体。此操作在 SQL INSERT 之前执行，
+     * 确保数据库中存储的是密文。
+     *
+     * @param entity 实体对象
+     */
+    private void encryptFields(T entity) {
+        if (!metadata.hasTrait(EntityTrait.ENCRYPTED)) {
+            return;
+        }
+        var extractor = queryHelper.getParameterExtractor();
+        for (EncryptedFieldMetadata encryptedField : metadata.getEncryptedFields()) {
+            Object value = extractor.getFieldValue(entity, encryptedField.fieldName());
+            if (value != null) {
+                String plaintext = value.toString();
+                String ciphertext = fieldEncryptor.encrypt(plaintext, encryptedField.algorithm(), encryptedField.keyRef());
+                extractor.setFieldValue(entity, encryptedField.fieldName(), ciphertext);
+            }
+        }
+    }
+
+    /**
+     * 自动填充树形实体的 level 和 path 字段。
+     *
+     * <p>当实体具有 TREEABLE 特征时，根据 parentId 自动计算层级和路径：
+     * <ul>
+     *   <li>parentId 为 null（根节点）：level=1, path="/"</li>
+     *   <li>parentId 不为 null（子节点）：查询父节点，level=parent.level+1, path=parent.path+parent.id+"/"</li>
+     * </ul>
+     *
+     * @param entity 实体对象
+     */
+    @SuppressWarnings("unchecked")
+    private void autoFillTreePath(T entity) {
+        if (!metadata.hasTrait(EntityTrait.TREEABLE)) {
+            return;
+        }
+        if (!(entity instanceof Treeable<?> treeable)) {
+            return;
+        }
+
+        Long parentId = treeable.getParentId();
+        if (parentId == null) {
+            // 根节点
+            treeable.setLevel(1);
+            treeable.setPath("/");
+        } else {
+            // 子节点：查询父节点以计算 level 和 path
+            T parentEntity = findParentEntity(parentId);
+            if (parentEntity instanceof Treeable<?> parent) {
+                int parentLevel = parent.getLevel() != null ? parent.getLevel() : 1;
+                String parentPath = parent.getPath() != null ? parent.getPath() : "/";
+                Long parentIdValue = parentEntity instanceof BaseEntity be ? be.getId() : parentId;
+                treeable.setLevel(parentLevel + 1);
+                treeable.setPath(parentPath + parentIdValue + "/");
+            } else {
+                // 无法查询到父节点，使用保守默认值
+                log.warn("Parent entity not found for tree entity {} with parentId={}, " +
+                         "using default level=2 and path=/{}/", entityClass.getSimpleName(), parentId, parentId);
+                treeable.setLevel(2);
+                treeable.setPath("/" + parentId + "/");
+            }
+        }
+    }
+
+    /**
+     * 查询父实体
+     *
+     * @param parentId 父节点 ID
+     * @return 父实体，可能为 null
+     */
+    private @Nullable T findParentEntity(Long parentId) {
+        try {
+            return dataManager.entity(entityClass).findById(parentId).orElse(null);
+        } catch (Exception e) {
+            log.debug("Failed to find parent entity with id={} for tree entity {}: {}",
+                      parentId, entityClass.getSimpleName(), e.getMessage());
+            return null;
         }
     }
 }
