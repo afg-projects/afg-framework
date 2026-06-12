@@ -1,5 +1,7 @@
 package io.github.afgprojects.framework.governance.server.controller.config;
 
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.condition.Conditions;
 import io.github.afgprojects.framework.governance.proto.ChangeType;
@@ -68,7 +70,7 @@ public class ConfigValueController {
     public ConfigValue update(@PathVariable Long itemId, @RequestBody UpdateValueRequest request) {
         ConfigItem item = dataManager.findById(ConfigItem.class, itemId)
             .filter(i -> !i.isDeleted())
-            .orElseThrow(() -> new IllegalArgumentException("Config item not found: " + itemId));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Config item not found: " + itemId));
 
         ConfigValue value = dataManager.findOneByField(ConfigValue.class, ConfigValue::getItemId, itemId)
             .orElseGet(() -> {
@@ -119,7 +121,7 @@ public class ConfigValueController {
     public ResponseEntity<Void> delete(@PathVariable Long itemId) {
         ConfigItem item = dataManager.findById(ConfigItem.class, itemId)
             .filter(i -> !i.isDeleted())
-            .orElseThrow(() -> new IllegalArgumentException("Config item not found: " + itemId));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Config item not found: " + itemId));
 
         ConfigValue value = dataManager.findOneByField(ConfigValue.class, ConfigValue::getItemId, itemId)
             .orElse(null);

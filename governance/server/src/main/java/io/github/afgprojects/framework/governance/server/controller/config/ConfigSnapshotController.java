@@ -2,6 +2,8 @@ package io.github.afgprojects.framework.governance.server.controller.config;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.governance.server.dto.config.ConfigDiffDTO;
 import io.github.afgprojects.framework.governance.server.dto.config.ConfigSnapshotDTO;
@@ -59,7 +61,7 @@ public class ConfigSnapshotController {
         try {
             jsonData = objectMapper.writeValueAsString(configData);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to serialize config data", e);
+            throw new BusinessException(CommonErrorCode.PARAM_FORMAT_ERROR, "Failed to serialize config data", e);
         }
 
         ConfigSnapshot snapshot = new ConfigSnapshot();
@@ -80,7 +82,7 @@ public class ConfigSnapshotController {
     @PostMapping("/{id}/rollback")
     public ResponseEntity<Void> rollback(@PathVariable Long id, @RequestBody(required = false) RollbackRequest request) {
         ConfigSnapshot snapshot = dataManager.findById(ConfigSnapshot.class, id)
-            .orElseThrow(() -> new IllegalArgumentException("Snapshot not found: " + id));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Snapshot not found: " + id));
 
         try {
             @SuppressWarnings("unchecked")
@@ -92,16 +94,16 @@ public class ConfigSnapshotController {
             log.info("Rolled back to snapshot: id={}, name={}", id, snapshot.getName());
             return ResponseEntity.ok().build();
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to parse snapshot data", e);
+            throw new BusinessException(CommonErrorCode.PARAM_FORMAT_ERROR, "Failed to parse snapshot data", e);
         }
     }
 
     @GetMapping("/compare/{id1}/{id2}")
     public ConfigDiffDTO compare(@PathVariable Long id1, @PathVariable Long id2) {
         ConfigSnapshot snapshot1 = dataManager.findById(ConfigSnapshot.class, id1)
-            .orElseThrow(() -> new IllegalArgumentException("Snapshot not found: " + id1));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Snapshot not found: " + id1));
         ConfigSnapshot snapshot2 = dataManager.findById(ConfigSnapshot.class, id2)
-            .orElseThrow(() -> new IllegalArgumentException("Snapshot not found: " + id2));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Snapshot not found: " + id2));
 
         try {
             @SuppressWarnings("unchecked")
@@ -111,7 +113,7 @@ public class ConfigSnapshotController {
 
             return calculateDiff(snapshot1, snapshot2, data1, data2);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to parse snapshot data", e);
+            throw new BusinessException(CommonErrorCode.PARAM_FORMAT_ERROR, "Failed to parse snapshot data", e);
         }
     }
 

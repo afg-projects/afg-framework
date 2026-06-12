@@ -1,5 +1,7 @@
 package io.github.afgprojects.framework.governance.server.service.config;
 
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.condition.Conditions;
 import io.github.afgprojects.framework.data.core.query.Sort;
@@ -68,7 +70,7 @@ public class ConfigGroupService {
             .one();
 
         if (existing.isPresent()) {
-            throw new IllegalArgumentException("配置分组编码已存在: " + group.getCode());
+            throw new BusinessException(CommonErrorCode.ENTITY_ALREADY_EXISTS, "配置分组编码已存在: " + group.getCode());
         }
 
         return dataManager.save(ConfigGroup.class, group);
@@ -77,7 +79,7 @@ public class ConfigGroupService {
     @Transactional
     public ConfigGroup update(Long id, ConfigGroup group) {
         ConfigGroup existing = dataManager.findById(ConfigGroup.class, id)
-            .orElseThrow(() -> new IllegalArgumentException("配置分组不存在: " + id));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "配置分组不存在: " + id));
 
         existing.setName(group.getName());
         existing.setDescription(group.getDescription());
@@ -91,7 +93,7 @@ public class ConfigGroupService {
     @Transactional
     public void delete(Long id) {
         ConfigGroup group = dataManager.findById(ConfigGroup.class, id)
-            .orElseThrow(() -> new IllegalArgumentException("配置分组不存在: " + id));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "配置分组不存在: " + id));
         group.markDeleted();
         dataManager.save(ConfigGroup.class, group);
     }

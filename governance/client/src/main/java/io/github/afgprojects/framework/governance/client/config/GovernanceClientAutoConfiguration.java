@@ -32,7 +32,7 @@ import jakarta.annotation.PreDestroy;
  * @author afg-projects
  */
 @Slf4j
-@AutoConfiguration
+@AutoConfiguration(afterName = "io.github.afgprojects.framework.core.autoconfigure.AfgAutoConfiguration")
 @EnableConfigurationProperties({
         GovernanceCommonProperties.class,
         GovernanceConfigProperties.class,

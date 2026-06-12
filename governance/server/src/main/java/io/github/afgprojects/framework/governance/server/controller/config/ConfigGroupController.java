@@ -1,5 +1,7 @@
 package io.github.afgprojects.framework.governance.server.controller.config;
 
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.condition.Conditions;
 import io.github.afgprojects.framework.governance.server.entity.config.ConfigGroup;
@@ -51,7 +53,7 @@ public class ConfigGroupController {
     public ConfigGroup create(@RequestBody ConfigGroup group) {
         // Check if code already exists
         if (dataManager.findOneByField(ConfigGroup.class, ConfigGroup::getCode, group.getCode()).isPresent()) {
-            throw new IllegalArgumentException("Config group code already exists: " + group.getCode());
+            throw new BusinessException(CommonErrorCode.ENTITY_ALREADY_EXISTS, "Config group code already exists: " + group.getCode());
         }
                 return dataManager.save(ConfigGroup.class, group);
     }
@@ -61,7 +63,7 @@ public class ConfigGroupController {
     public ConfigGroup update(@PathVariable Long id, @RequestBody ConfigGroup group) {
         ConfigGroup existing = dataManager.findById(ConfigGroup.class, id)
             .filter(g -> !g.isDeleted())
-            .orElseThrow(() -> new IllegalArgumentException("Config group not found: " + id));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Config group not found: " + id));
 
         existing.setName(group.getName());
         existing.setDescription(group.getDescription());
@@ -77,7 +79,7 @@ public class ConfigGroupController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         ConfigGroup group = dataManager.findById(ConfigGroup.class, id)
             .filter(g -> !g.isDeleted())
-            .orElseThrow(() -> new IllegalArgumentException("Config group not found: " + id));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Config group not found: " + id));
         group.markDeleted();
         dataManager.save(ConfigGroup.class, group);
         return ResponseEntity.ok().build();

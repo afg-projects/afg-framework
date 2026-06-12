@@ -2,6 +2,8 @@ package io.github.afgprojects.framework.governance.server.service.config;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.condition.Conditions;
 import io.github.afgprojects.framework.governance.server.entity.config.ConfigItem;
@@ -82,7 +84,7 @@ public class ConfigSnapshotService {
         try {
             dataJson = objectMapper.writeValueAsString(configData);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("序列化配置数据失败", e);
+            throw new BusinessException(CommonErrorCode.PARAM_FORMAT_ERROR, "序列化配置数据失败", e);
         }
 
         ConfigSnapshot snapshot = new ConfigSnapshot();
@@ -99,14 +101,14 @@ public class ConfigSnapshotService {
     @Transactional
     public void rollbackToSnapshot(Long snapshotId, String operatorName) {
         ConfigSnapshot snapshot = dataManager.findById(ConfigSnapshot.class, snapshotId)
-            .orElseThrow(() -> new IllegalArgumentException("快照不存在: " + snapshotId));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "快照不存在: " + snapshotId));
 
         Map<String, String> configData;
         try {
             configData = objectMapper.readValue(snapshot.getData(),
                 objectMapper.getTypeFactory().constructMapType(HashMap.class, String.class, String.class));
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("反序列化配置数据失败", e);
+            throw new BusinessException(CommonErrorCode.PARAM_FORMAT_ERROR, "反序列化配置数据失败", e);
         }
 
         // 恢复配置值
@@ -120,9 +122,9 @@ public class ConfigSnapshotService {
 
     public Map<String, String> compareSnapshots(Long snapshotId1, Long snapshotId2) {
         ConfigSnapshot snapshot1 = dataManager.findById(ConfigSnapshot.class, snapshotId1)
-            .orElseThrow(() -> new IllegalArgumentException("快照不存在: " + snapshotId1));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "快照不存在: " + snapshotId1));
         ConfigSnapshot snapshot2 = dataManager.findById(ConfigSnapshot.class, snapshotId2)
-            .orElseThrow(() -> new IllegalArgumentException("快照不存在: " + snapshotId2));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "快照不存在: " + snapshotId2));
 
         Map<String, String> data1 = parseSnapshotData(snapshot1);
         Map<String, String> data2 = parseSnapshotData(snapshot2);
@@ -158,7 +160,7 @@ public class ConfigSnapshotService {
             return objectMapper.readValue(snapshot.getData(),
                 objectMapper.getTypeFactory().constructMapType(HashMap.class, String.class, String.class));
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("反序列化配置数据失败", e);
+            throw new BusinessException(CommonErrorCode.PARAM_FORMAT_ERROR, "反序列化配置数据失败", e);
         }
     }
 }

@@ -1,5 +1,7 @@
 package io.github.afgprojects.framework.governance.server.service.management;
 
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.condition.Conditions;
 import io.github.afgprojects.framework.data.core.query.Sort;
@@ -84,7 +86,7 @@ public class EnvironmentService {
     public Environment update(Long id, Environment environment) {
         log.info("Updating environment: {}", id);
         Environment existing = dataManager.findById(Environment.class, id)
-                .orElseThrow(() -> new IllegalArgumentException("Environment not found: " + id));
+                .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Environment not found: " + id));
 
         existing.setCode(environment.getCode());
         existing.setName(environment.getName());

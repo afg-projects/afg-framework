@@ -1,5 +1,7 @@
 package io.github.afgprojects.framework.governance.server.controller.config;
 
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.condition.Conditions;
 import io.github.afgprojects.framework.governance.server.dto.config.ConfigItemResponse;
@@ -112,7 +114,7 @@ public class ConfigItemController {
                 .build())
             .one();
         if (existing.isPresent()) {
-            throw new IllegalArgumentException("Config item code already exists in this group: " + item.getCode());
+            throw new BusinessException(CommonErrorCode.ENTITY_ALREADY_EXISTS, "Config item code already exists in this group: " + item.getCode());
         }
                 return dataManager.save(ConfigItem.class, item);
     }
@@ -122,7 +124,7 @@ public class ConfigItemController {
     public ConfigItem update(@PathVariable Long id, @RequestBody ConfigItem item) {
         ConfigItem existing = dataManager.findById(ConfigItem.class, id)
             .filter(i -> !i.isDeleted())
-            .orElseThrow(() -> new IllegalArgumentException("Config item not found: " + id));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Config item not found: " + id));
 
         existing.setName(item.getName());
         existing.setDescription(item.getDescription());
@@ -146,7 +148,7 @@ public class ConfigItemController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         ConfigItem item = dataManager.findById(ConfigItem.class, id)
             .filter(i -> !i.isDeleted())
-            .orElseThrow(() -> new IllegalArgumentException("Config item not found: " + id));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Config item not found: " + id));
         item.markDeleted();
         dataManager.save(ConfigItem.class, item);
         return ResponseEntity.ok().build();

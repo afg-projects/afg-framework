@@ -1,5 +1,7 @@
 package io.github.afgprojects.framework.governance.server.controller.service;
 
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.condition.Conditions;
 import io.github.afgprojects.framework.governance.server.entity.service.ServiceInstance;
@@ -64,11 +66,11 @@ public class ServiceInstanceController {
     public ResponseEntity<ServiceInstance> updateWeight(@PathVariable Long id, @RequestBody Map<String, Integer> body) {
         ServiceInstance instance = dataManager.findById(ServiceInstance.class, id)
             .filter(i -> !i.isDeleted())
-            .orElseThrow(() -> new IllegalArgumentException("Service instance not found: " + id));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Service instance not found: " + id));
 
         Integer weight = body.get("weight");
         if (weight == null || weight < 0 || weight > 1000) {
-            throw new IllegalArgumentException("Weight must be between 0 and 1000");
+            throw new BusinessException(CommonErrorCode.PARAM_ERROR, "Weight must be between 0 and 1000");
         }
 
         instance.setWeight(weight);
@@ -85,7 +87,7 @@ public class ServiceInstanceController {
     public ResponseEntity<Void> deregister(@PathVariable Long id) {
         ServiceInstance instance = dataManager.findById(ServiceInstance.class, id)
             .filter(i -> !i.isDeleted())
-            .orElseThrow(() -> new IllegalArgumentException("Service instance not found: " + id));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Service instance not found: " + id));
 
         serviceRegistryService.deregister(instance.getInstanceId());
         log.info("Deregistered instance: {}", instance.getInstanceId());

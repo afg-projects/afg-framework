@@ -1,5 +1,7 @@
 package io.github.afgprojects.framework.governance.server.service.config;
 
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.condition.Conditions;
 import io.github.afgprojects.framework.data.core.query.Sort;
@@ -99,7 +101,7 @@ public class ConfigItemService {
             .one();
 
         if (existing.isPresent()) {
-            throw new IllegalArgumentException("配置项编码在此分组中已存在: " + item.getCode());
+            throw new BusinessException(CommonErrorCode.ENTITY_ALREADY_EXISTS, "配置项编码在此分组中已存在: " + item.getCode());
         }
 
         return dataManager.save(ConfigItem.class, item);
@@ -108,7 +110,7 @@ public class ConfigItemService {
     @Transactional
     public ConfigItem update(Long id, ConfigItem item) {
         ConfigItem existing = dataManager.findById(ConfigItem.class, id)
-            .orElseThrow(() -> new IllegalArgumentException("配置项不存在: " + id));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "配置项不存在: " + id));
 
         existing.setName(item.getName());
         existing.setDescription(item.getDescription());
@@ -129,7 +131,7 @@ public class ConfigItemService {
     @Transactional
     public void delete(Long id) {
         ConfigItem item = dataManager.findById(ConfigItem.class, id)
-            .orElseThrow(() -> new IllegalArgumentException("配置项不存在: " + id));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "配置项不存在: " + id));
         item.markDeleted();
         dataManager.save(ConfigItem.class, item);
     }

@@ -1,5 +1,7 @@
 package io.github.afgprojects.framework.governance.server.service.config;
 
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.condition.Conditions;
 import io.github.afgprojects.framework.governance.server.entity.config.ConfigHistory;
@@ -88,7 +90,7 @@ public class ConfigValueService {
     @Transactional
     public ConfigValue updateValue(Long itemId, String newValue, String reason, String operatorName) {
         ConfigItem item = itemService.findById(itemId)
-            .orElseThrow(() -> new IllegalArgumentException("配置项不存在: " + itemId));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "配置项不存在: " + itemId));
 
         var condition = Conditions.eq(ConfigValue.class, ConfigValue::getItemId, itemId);
         ConfigValue value = dataManager.entity(ConfigValue.class)
@@ -130,7 +132,7 @@ public class ConfigValueService {
     @Transactional
     public void deleteByItemId(Long itemId) {
         ConfigItem item = itemService.findById(itemId)
-            .orElseThrow(() -> new IllegalArgumentException("配置项不存在: " + itemId));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "配置项不存在: " + itemId));
 
         var condition = Conditions.eq(ConfigValue.class, ConfigValue::getItemId, itemId);
         ConfigValue value = dataManager.entity(ConfigValue.class)

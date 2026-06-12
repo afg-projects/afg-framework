@@ -1,5 +1,7 @@
 package io.github.afgprojects.framework.governance.client.common;
 
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import io.grpc.*;
 import lombok.extern.slf4j.Slf4j;
 
@@ -82,7 +84,7 @@ public class SignatureClientInterceptor implements ClientInterceptor {
             byte[] signature = mac.doFinal(signingString.getBytes(StandardCharsets.UTF_8));
             return Base64.getEncoder().encodeToString(signature);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to generate signature", e);
+            throw new BusinessException(CommonErrorCode.ENCRYPTION_ERROR, "Failed to generate signature", e);
         }
     }
 }
