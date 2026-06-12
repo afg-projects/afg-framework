@@ -310,3 +310,36 @@ ai-impl 模块打磨：ai-spring-ai 源码恢复（19个文件）+ ai-langchain4
 ### Next Steps
 
 - None - task complete
+
+
+## Session 10: Phase 12: integration 模块精细化打磨
+
+**Date**: 2026-06-12
+**Task**: Phase 12: integration 模块精细化打磨
+**Branch**: `main`
+
+### Summary
+
+integration 模块（afg-redis/afg-jdbc/afg-rabbitmq/afg-websocket/afg-storage）精细化打磨：5 个 AutoConfiguration 添加 @AutoConfigureAfter 依赖排序，6 处 IAE→StorageException（OssClientBuilder+MinioClientBuilder），6 个 NoOp 降级实现（EventPublisher/RateLimitStorage/FileStorageFactory/DelayQueue/DistributedTaskScheduler/TaskExecutionLogStorage）+ AutoConfiguration 注册。全量构建+测试通过。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `3dc0a35ecf207be6f92757b872dd684d74d8a5d2` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
