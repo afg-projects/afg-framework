@@ -43,7 +43,7 @@ import org.springframework.security.config.Customizer;
  * @since 1.0.0
  */
 @Slf4j
-@AutoConfiguration
+@AutoConfiguration(after = LoginAutoConfiguration.class, afterName = "io.github.afgprojects.framework.core.autoconfigure.AfgAutoConfiguration")
 @ConditionalOnProperty(prefix = "afg.security.auth-server", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class AuthorizationServerAutoConfiguration {
 

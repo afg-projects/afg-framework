@@ -49,7 +49,7 @@ import lombok.extern.slf4j.Slf4j;
  * @since 1.0.0
  */
 @Slf4j
-@AutoConfiguration
+@AutoConfiguration(after = AuthorizationServerAutoConfiguration.class, afterName = "io.github.afgprojects.framework.core.autoconfigure.AfgAutoConfiguration")
 @EnableConfigurationProperties(AuthSecurityProperties.class)
 @ConditionalOnProperty(prefix = "afg.security.auth-server.tenant", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class TenantAutoConfiguration {

@@ -37,7 +37,7 @@ import lombok.extern.slf4j.Slf4j;
  *
  * @since 1.0.0
  */
-@AutoConfiguration
+@AutoConfiguration(afterName = "io.github.afgprojects.framework.core.autoconfigure.AfgAutoConfiguration")
 @EnableConfigurationProperties(ResourceSecurityProperties.class)
 @ConditionalOnProperty(prefix = "afg.security.resource-server", name = "enabled", havingValue = "true", matchIfMissing = true)
 @Slf4j

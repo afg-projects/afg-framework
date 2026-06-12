@@ -33,7 +33,7 @@ import org.springframework.context.annotation.Bean;
  *
  * @since 1.0.0
  */
-@AutoConfiguration
+@AutoConfiguration(after = AuthorizationServerAutoConfiguration.class, afterName = "io.github.afgprojects.framework.core.autoconfigure.AfgAutoConfiguration")
 @EnableConfigurationProperties(AuthSecurityProperties.class)
 @ConditionalOnProperty(prefix = "afg.security.auth-server.casbin", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class CasbinAutoConfiguration {

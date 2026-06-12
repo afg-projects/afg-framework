@@ -61,7 +61,7 @@ import io.github.afgprojects.framework.security.core.storage.AfgDeviceStorage;
  * @since 1.0.0
  */
 @Slf4j
-@AutoConfiguration
+@AutoConfiguration(after = LoginAutoConfiguration.class, afterName = "io.github.afgprojects.framework.core.autoconfigure.AfgAutoConfiguration")
 @EnableConfigurationProperties(AuthSecurityProperties.class)
 @ConditionalOnProperty(prefix = "afg.security.auth-server.security", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class SecurityStrategyAutoConfiguration {

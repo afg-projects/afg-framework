@@ -2,7 +2,6 @@ package io.github.afgprojects.framework.security.auth.autoconfigure;
 
 import lombok.extern.slf4j.Slf4j;
 import io.github.afgprojects.framework.data.core.DataManager;
-import io.github.afgprojects.framework.data.jdbc.autoconfigure.DataManagerAutoConfiguration;
 import io.github.afgprojects.framework.security.auth.captcha.DefaultCaptchaService;
 import io.github.afgprojects.framework.security.auth.key.JwksController;
 import io.github.afgprojects.framework.security.auth.key.RsaKeyPairManager;
@@ -53,7 +52,7 @@ import java.util.List;
  * @since 1.0.0
  */
 @Slf4j
-@AutoConfiguration(after = DataManagerAutoConfiguration.class)
+@AutoConfiguration(afterName = {"io.github.afgprojects.framework.core.autoconfigure.AfgAutoConfiguration", "io.github.afgprojects.framework.data.jdbc.autoconfigure.DataManagerAutoConfiguration"})
 @EnableConfigurationProperties(AuthSecurityProperties.class)
 @ConditionalOnProperty(prefix = "afg.security.auth-server", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class LoginAutoConfiguration {

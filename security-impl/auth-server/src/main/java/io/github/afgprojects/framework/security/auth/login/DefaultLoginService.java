@@ -1,6 +1,8 @@
 package io.github.afgprojects.framework.security.auth.login;
 
 import lombok.extern.slf4j.Slf4j;
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import io.github.afgprojects.framework.security.core.authentication.AfgUserDetails;
 import io.github.afgprojects.framework.security.core.authentication.AfgUserDetailsService;
 import io.github.afgprojects.framework.security.core.audit.LoginLogService;
@@ -191,7 +193,7 @@ public class DefaultLoginService implements LoginService {
         if (ipRestrictionChecker != null && !ipRestrictionChecker.isAllowed(ctx.ip, null, ctx.tenantId)) {
             log.warn("Login rejected: IP {} is restricted", ctx.ip);
             recordFailureLog(ctx.username, ctx, "IP 已被限制");
-            throw new IllegalArgumentException("IP 已被限制");
+            throw new BusinessException(CommonErrorCode.FORBIDDEN, "IP 已被限制");
         }
     }
 
@@ -200,7 +202,7 @@ public class DefaultLoginService implements LoginService {
      */
     private AfgUserDetails authenticate(LoginRequest request, LoginContext ctx) {
         LoginStrategy strategy = strategyFactory.getStrategy(request)
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new BusinessException(CommonErrorCode.PARAM_ERROR,
                         "不支持的登录类型: " + request.loginType()));
 
         try {
@@ -219,7 +221,7 @@ public class DefaultLoginService implements LoginService {
         if (loginFailureTracker != null && loginFailureTracker.isLocked(userDetails.getUserId(), ctx.tenantId)) {
             log.warn("Login rejected: account {} is locked", userDetails.getUserId());
             recordFailureLog(userDetails.getUsername(), ctx, "账户已被锁定");
-            throw new IllegalArgumentException("账户已被锁定");
+            throw new BusinessException(CommonErrorCode.ACCOUNT_LOCKED, "账户已被锁定");
         }
     }
 
@@ -362,16 +364,16 @@ public class DefaultLoginService implements LoginService {
      */
     private void validateAccountStatus(AfgUserDetails userDetails) {
         if (!userDetails.isEnabled()) {
-            throw new IllegalArgumentException("账号已被禁用");
+            throw new BusinessException(CommonErrorCode.ACCOUNT_DISABLED, "账号已被禁用");
         }
         if (!userDetails.isAccountNonLocked()) {
-            throw new IllegalArgumentException("账号已被锁定");
+            throw new BusinessException(CommonErrorCode.ACCOUNT_LOCKED, "账号已被锁定");
         }
         if (!userDetails.isAccountNonExpired()) {
-            throw new IllegalArgumentException("账号已过期");
+            throw new BusinessException(CommonErrorCode.ACCOUNT_DISABLED, "账号已过期");
         }
         if (!userDetails.isCredentialsNonExpired()) {
-            throw new IllegalArgumentException("凭证已过期");
+            throw new BusinessException(CommonErrorCode.PASSWORD_EXPIRED, "凭证已过期");
         }
     }
 

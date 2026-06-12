@@ -21,7 +21,7 @@ import org.springframework.security.web.SecurityFilterChain;
  *
  * @since 1.0.0
  */
-@AutoConfiguration
+@AutoConfiguration(after = ResourceServerAutoConfiguration.class)
 @ConditionalOnClass(SecurityFilterChain.class)
 @ConditionalOnProperty(prefix = "afg.security.resource-server", name = "default-security", havingValue = "true", matchIfMissing = true)
 @EnableWebSecurity

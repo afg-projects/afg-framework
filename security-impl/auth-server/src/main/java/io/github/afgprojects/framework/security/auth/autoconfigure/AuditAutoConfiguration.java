@@ -1,7 +1,6 @@
 package io.github.afgprojects.framework.security.auth.autoconfigure;
 
 import io.github.afgprojects.framework.data.core.DataManager;
-import io.github.afgprojects.framework.data.jdbc.autoconfigure.DataManagerAutoConfiguration;
 import io.github.afgprojects.framework.security.auth.audit.alert.AlertChannel;
 import io.github.afgprojects.framework.security.auth.audit.alert.LogAlertChannel;
 import io.github.afgprojects.framework.security.auth.audit.service.DefaultAlertService;
@@ -36,7 +35,7 @@ import java.util.List;
  * @since 1.0.0
  */
 @Slf4j
-@AutoConfiguration(after = DataManagerAutoConfiguration.class)
+@AutoConfiguration(afterName = {"io.github.afgprojects.framework.core.autoconfigure.AfgAutoConfiguration", "io.github.afgprojects.framework.data.jdbc.autoconfigure.DataManagerAutoConfiguration"})
 @EnableConfigurationProperties(AuthSecurityProperties.class)
 @ConditionalOnProperty(prefix = "afg.security.auth-server.audit", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class AuditAutoConfiguration {

@@ -1,5 +1,7 @@
 package io.github.afgprojects.framework.security.auth.endpoint;
 
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import io.github.afgprojects.framework.commons.model.Result;
 import io.github.afgprojects.framework.security.core.authentication.AfgAuthentication;
 import io.github.afgprojects.framework.security.core.authentication.AfgUserDetails;
@@ -79,7 +81,7 @@ public class LoginController {
     public void logout(@RequestHeader("Authorization") String authorization) {
         String token = JwtClaimsExtractor.extractBearerToken(authorization);
         if (token == null) {
-            throw new IllegalArgumentException("Invalid authorization header");
+            throw new BusinessException(CommonErrorCode.UNAUTHORIZED, "Invalid authorization header");
         }
         loginService.logout(token);
     }

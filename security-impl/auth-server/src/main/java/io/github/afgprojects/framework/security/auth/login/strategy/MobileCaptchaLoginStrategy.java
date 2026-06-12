@@ -1,5 +1,7 @@
 package io.github.afgprojects.framework.security.auth.login.strategy;
 
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import io.github.afgprojects.framework.security.core.authentication.AfgUserDetails;
 import io.github.afgprojects.framework.security.core.authentication.AfgUserDetailsService;
 import io.github.afgprojects.framework.security.core.login.CaptchaService;
@@ -43,7 +45,7 @@ public class MobileCaptchaLoginStrategy implements LoginStrategy {
         // 验证验证码
         String captchaKey = "sms:" + mobile;
         if (!captchaService.validate(captchaKey, captchaValue)) {
-            throw new IllegalArgumentException("验证码错误");
+            throw new BusinessException(CommonErrorCode.UNAUTHORIZED, "验证码错误");
         }
 
         // 加载用户详情
@@ -60,13 +62,13 @@ public class MobileCaptchaLoginStrategy implements LoginStrategy {
      */
     private void validateAccountStatus(AfgUserDetails userDetails) {
         if (!userDetails.isEnabled()) {
-            throw new IllegalArgumentException("账号已被禁用");
+            throw new BusinessException(CommonErrorCode.ACCOUNT_DISABLED, "账号已被禁用");
         }
         if (!userDetails.isAccountNonLocked()) {
-            throw new IllegalArgumentException("账号已被锁定");
+            throw new BusinessException(CommonErrorCode.ACCOUNT_LOCKED, "账号已被锁定");
         }
         if (!userDetails.isAccountNonExpired()) {
-            throw new IllegalArgumentException("账号已过期");
+            throw new BusinessException(CommonErrorCode.ACCOUNT_DISABLED, "账号已过期");
         }
     }
 }

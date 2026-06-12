@@ -1,5 +1,7 @@
 package io.github.afgprojects.framework.security.auth.login.strategy;
 
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import io.github.afgprojects.framework.security.core.authentication.AfgUserDetails;
 import io.github.afgprojects.framework.security.core.authentication.AfgUserDetailsService;
 import io.github.afgprojects.framework.security.core.login.CaptchaService;
@@ -50,7 +52,7 @@ public class UsernamePasswordLoginStrategy implements LoginStrategy {
         // 验证验证码（如果提供）
         if (request.captchaKey() != null && request.captchaValue() != null) {
             if (captchaService != null && !captchaService.validate(request.captchaKey(), request.captchaValue())) {
-                throw new IllegalArgumentException("验证码错误");
+                throw new BusinessException(CommonErrorCode.UNAUTHORIZED, "验证码错误");
             }
         }
 
@@ -59,7 +61,7 @@ public class UsernamePasswordLoginStrategy implements LoginStrategy {
 
         // 验证密码
         if (!passwordEncoder.matches(password, userDetails.getPassword())) {
-            throw new IllegalArgumentException("密码错误");
+            throw new BusinessException(CommonErrorCode.UNAUTHORIZED, "密码错误");
         }
 
         // 检查账号状态
@@ -73,16 +75,16 @@ public class UsernamePasswordLoginStrategy implements LoginStrategy {
      */
     private void validateAccountStatus(AfgUserDetails userDetails) {
         if (!userDetails.isEnabled()) {
-            throw new IllegalArgumentException("账号已被禁用");
+            throw new BusinessException(CommonErrorCode.ACCOUNT_DISABLED, "账号已被禁用");
         }
         if (!userDetails.isAccountNonLocked()) {
-            throw new IllegalArgumentException("账号已被锁定");
+            throw new BusinessException(CommonErrorCode.ACCOUNT_LOCKED, "账号已被锁定");
         }
         if (!userDetails.isAccountNonExpired()) {
-            throw new IllegalArgumentException("账号已过期");
+            throw new BusinessException(CommonErrorCode.ACCOUNT_DISABLED, "账号已过期");
         }
         if (!userDetails.isCredentialsNonExpired()) {
-            throw new IllegalArgumentException("凭证已过期");
+            throw new BusinessException(CommonErrorCode.PASSWORD_EXPIRED, "凭证已过期");
         }
     }
 }
