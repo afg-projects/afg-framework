@@ -402,6 +402,8 @@ public class Application {
         return """
 package $pkg.security;
 
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.security.core.authentication.AfgUserDetails;
 import io.github.afgprojects.framework.security.core.authentication.AfgUserDetailsService;
@@ -440,7 +442,7 @@ public class UserDetailsServiceImpl implements AfgUserDetailsService {
         //     .tenantId(user.getTenantId())
         //     .build();
 
-        throw new UnsupportedOperationException("请实现 loadUserByUsername 方法");
+        throw new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "请实现 loadUserByUsername 方法");
     }
 
     @Override
@@ -452,7 +454,7 @@ public class UserDetailsServiceImpl implements AfgUserDetailsService {
         //     .orElseThrow(() -> new UsernameNotFoundException("User not found: " + userId));
         // return loadUserByUsername(user.getUsername());
 
-        throw new UnsupportedOperationException("请实现 loadUserByUserId 方法");
+        throw new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "请实现 loadUserByUserId 方法");
     }
 }
 
