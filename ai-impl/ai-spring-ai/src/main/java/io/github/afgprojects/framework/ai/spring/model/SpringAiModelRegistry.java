@@ -1,14 +1,15 @@
-package io.github.afgprojects.framework.ai.langchain4j.model;
+package io.github.afgprojects.framework.ai.spring.model;
 
-import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.model.chat.StreamingChatModel;
-import dev.langchain4j.model.embedding.EmbeddingModel;
 import io.github.afgprojects.framework.ai.core.api.model.DefaultModelInfo;
 import io.github.afgprojects.framework.ai.core.api.model.ModelInfo;
 import io.github.afgprojects.framework.ai.core.api.model.ModelRegistry;
 import io.github.afgprojects.framework.ai.core.api.model.ModelType;
 import io.github.afgprojects.framework.commons.exception.BusinessException;
 import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.embedding.EmbeddingModel;
 
 import java.util.List;
 import java.util.Map;
@@ -16,15 +17,15 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * LangChain4j 模型注册表实现
+ * Spring AI 模型注册表实现
  *
- * <p>自动检测 LangChain4j 的 {@link ChatModel}、{@link StreamingChatModel}
- * 和 {@link EmbeddingModel} Bean，并将其注册到 AFG 框架的 {@link ModelRegistry} 中。
+ * <p>自动检测 Spring AI 的 {@link ChatModel} 和 {@link EmbeddingModel} Bean，
+ * 并将其注册到 AFG 框架的 {@link ModelRegistry} 中。
  *
  * @author afg-projects
  * @since 1.0.0
  */
-public class Lc4jModelRegistry implements ModelRegistry {
+public class SpringAiModelRegistry implements ModelRegistry {
 
     private final Map<String, ModelInfo> models = new ConcurrentHashMap<>();
     private final Map<ModelType, String> defaults = new ConcurrentHashMap<>();
@@ -36,32 +37,8 @@ public class Lc4jModelRegistry implements ModelRegistry {
      * @param chatModel ChatModel 实例
      * @param provider  提供商（如 openai, anthropic, ollama）
      */
-    public void registerChatModel(String name, ChatModel chatModel, String provider) {
+    public void registerChatModel(@NonNull String name, @NonNull ChatModel chatModel, @Nullable String provider) {
         var info = DefaultModelInfo.of(name, ModelType.CHAT, provider);
-        models.put(name, info);
-    }
-
-    /**
-     * 注册 StreamingChatModel
-     *
-     * @param name              模型名称
-     * @param streamingChatModel StreamingChatModel 实例
-     * @param provider          提供商
-     */
-    public void registerStreamingChatModel(String name, StreamingChatModel streamingChatModel, String provider) {
-        var info = new DefaultModelInfo(
-            name,
-            ModelType.CHAT,
-            provider,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            true,
-            Map.of("streaming", true)
-        );
         models.put(name, info);
     }
 
@@ -72,7 +49,7 @@ public class Lc4jModelRegistry implements ModelRegistry {
      * @param embeddingModel EmbeddingModel 实例
      * @param provider       提供商
      */
-    public void registerEmbeddingModel(String name, EmbeddingModel embeddingModel, String provider) {
+    public void registerEmbeddingModel(@NonNull String name, @NonNull EmbeddingModel embeddingModel, @Nullable String provider) {
         var info = new DefaultModelInfo(
             name,
             ModelType.EMBEDDING,
@@ -89,9 +66,10 @@ public class Lc4jModelRegistry implements ModelRegistry {
         models.put(name, info);
     }
 
-    private Integer extractDimensions(EmbeddingModel model) {
+    private @Nullable Integer extractDimensions(EmbeddingModel model) {
+        // 尝试从模型获取维度信息，如果不可用则返回 null
         try {
-            var dimensions = model.dimension();
+            var dimensions = model.dimensions();
             if (dimensions > 0) {
                 return dimensions;
             }
@@ -102,29 +80,32 @@ public class Lc4jModelRegistry implements ModelRegistry {
     }
 
     @Override
-    public void registerModel(String name, ModelInfo info) {
+    public void registerModel(@NonNull String name, @NonNull ModelInfo info) {
         models.put(name, info);
     }
 
     @Override
-    public Optional<ModelInfo> getModel(String name) {
+    @NonNull
+    public Optional<ModelInfo> getModel(@NonNull String name) {
         return Optional.ofNullable(models.get(name));
     }
 
     @Override
+    @NonNull
     public List<ModelInfo> listModels() {
         return List.copyOf(models.values());
     }
 
     @Override
-    public List<ModelInfo> listModels(ModelType type) {
+    @NonNull
+    public List<ModelInfo> listModels(@NonNull ModelType type) {
         return models.values().stream()
                 .filter(info -> info.type() == type)
                 .toList();
     }
 
     @Override
-    public void setDefault(String name, ModelType type) {
+    public void setDefault(@NonNull String name, @NonNull ModelType type) {
         if (!models.containsKey(name)) {
             throw new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Model '" + name + "' not registered");
         }
@@ -132,7 +113,8 @@ public class Lc4jModelRegistry implements ModelRegistry {
     }
 
     @Override
-    public Optional<ModelInfo> getDefault(ModelType type) {
+    @NonNull
+    public Optional<ModelInfo> getDefault(@NonNull ModelType type) {
         var defaultName = defaults.get(type);
         if (defaultName == null) {
             return listModels(type).stream().findFirst();
@@ -141,7 +123,7 @@ public class Lc4jModelRegistry implements ModelRegistry {
     }
 
     @Override
-    public void removeModel(String name) {
+    public void removeModel(@NonNull String name) {
         models.remove(name);
         defaults.entrySet().removeIf(e -> name.equals(e.getValue()));
     }

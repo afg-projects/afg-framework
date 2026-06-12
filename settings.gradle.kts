@@ -31,6 +31,7 @@ include("core")
 // AI 模块
 include("ai-core")
 include("ai-impl:ai-langchain4j")
+include("ai-impl:ai-spring-ai")
 
 // 数据访问模块
 include("data-core")

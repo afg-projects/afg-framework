@@ -25,7 +25,10 @@ import org.springframework.context.annotation.Bean;
  * @since 1.0.0
  */
 @Slf4j
-@AutoConfiguration
+@AutoConfiguration(afterName = {
+    "io.github.afgprojects.framework.core.autoconfigure.AfgAutoConfiguration",
+    "io.github.afgprojects.framework.ai.core.autoconfigure.AiCoreAutoConfiguration"
+})
 @EnableConfigurationProperties(Lc4jProperties.class)
 @ConditionalOnClass(name = "dev.langchain4j.model.chat.ChatModel")
 @ConditionalOnProperty(prefix = "afg.ai.langchain4j", name = "enabled", havingValue = "true", matchIfMissing = true)
