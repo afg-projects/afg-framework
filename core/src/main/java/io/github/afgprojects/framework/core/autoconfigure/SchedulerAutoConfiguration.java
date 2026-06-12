@@ -55,7 +55,7 @@ import io.micrometer.core.instrument.MeterRegistry;
  *       enabled: true
  * </pre>
  */
-@AutoConfiguration
+@AutoConfiguration(after = AfgAutoConfiguration.class)
 @ConditionalOnProperty(prefix = "afg.core.scheduler", name = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(AfgCoreProperties.class)
 public class SchedulerAutoConfiguration {

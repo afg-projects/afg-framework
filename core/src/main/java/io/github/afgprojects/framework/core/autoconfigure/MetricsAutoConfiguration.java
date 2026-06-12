@@ -54,7 +54,7 @@ import io.micrometer.core.instrument.distribution.DistributionStatisticConfig;
  *       percentiles: 0.5,0.95,0.99
  * </pre>
  */
-@AutoConfiguration
+@AutoConfiguration(after = AfgAutoConfiguration.class)
 @ConditionalOnBean(MeterRegistry.class)
 @ConditionalOnProperty(prefix = "afg.core.metrics", name = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(AfgCoreProperties.class)

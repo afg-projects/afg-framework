@@ -8,12 +8,14 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplicat
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
+import io.github.afgprojects.framework.core.autoconfigure.AfgAutoConfiguration;
+
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
 
-@AutoConfiguration
+@AutoConfiguration(after = AfgAutoConfiguration.class)
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @ConditionalOnClass(name = "io.swagger.v3.oas.models.OpenAPI")
 @ConditionalOnProperty(prefix = "afg.openapi", name = "enabled", havingValue = "true", matchIfMissing = true)

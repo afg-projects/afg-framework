@@ -18,7 +18,7 @@ import io.micrometer.tracing.Tracer;
 /**
  * Web 自动配置类
  */
-@AutoConfiguration
+@AutoConfiguration(after = AfgAutoConfiguration.class)
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @ConditionalOnClass(Servlet.class)
 public class WebAutoConfiguration {

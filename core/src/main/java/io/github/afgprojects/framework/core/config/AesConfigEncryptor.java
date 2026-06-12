@@ -9,6 +9,9 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
+
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 
@@ -37,8 +40,8 @@ public class AesConfigEncryptor implements ConfigEncryptor {
     public AesConfigEncryptor(@NonNull String secretKey) {
         byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
         if (keyBytes.length != 16 && keyBytes.length != 24 && keyBytes.length != 32) {
-            throw new IllegalArgumentException(
-                    "Secret key must be 16, 24, or 32 bytes for AES-128, AES-192, or AES-256");
+            throw new BusinessException(
+                    CommonErrorCode.INVALID_SECRET_KEY, "Secret key must be 16, 24, or 32 bytes for AES-128, AES-192, or AES-256");
         }
         this.secretKey = new SecretKeySpec(keyBytes, "AES");
         this.secureRandom = new SecureRandom();
@@ -84,7 +87,7 @@ public class AesConfigEncryptor implements ConfigEncryptor {
 
             // 验证长度：必须至少包含 IV（12字节）和一个 AES 块（16字节）的认证标签
             if (combined.length < GCM_IV_LENGTH + 16) {
-                throw new IllegalArgumentException("Ciphertext too short");
+                throw new BusinessException(CommonErrorCode.ENCRYPTION_ERROR, "Ciphertext too short");
             }
 
             // 分离 IV 和密文
@@ -101,10 +104,10 @@ public class AesConfigEncryptor implements ConfigEncryptor {
             // 解密
             byte[] plaintext = cipher.doFinal(encrypted);
             return new String(plaintext, StandardCharsets.UTF_8);
-        } catch (GeneralSecurityException | IllegalArgumentException e) {
+        } catch (GeneralSecurityException | IllegalArgumentException | BusinessException e) {
             // 处理加解密异常、Base64 解码错误或密文验证错误
             log.error("Decryption failed", e);
-            throw new IllegalArgumentException("Decryption failed", e);
+            throw new BusinessException(CommonErrorCode.ENCRYPTION_ERROR, "Decryption failed", e);
         }
     }
 

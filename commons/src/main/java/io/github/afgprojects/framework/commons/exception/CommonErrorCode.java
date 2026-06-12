@@ -80,6 +80,8 @@ public enum CommonErrorCode implements ErrorCode {
     // ==================== 配置错误 (16000-16999) ====================
     CONFIG_NOT_FOUND(16000, "配置不存在", ErrorCategory.SYSTEM),
     CONFIG_BINDING_ERROR(16001, "配置绑定失败", ErrorCategory.SYSTEM),
+    ENCRYPTION_ERROR(16002, "加密/解密失败", ErrorCategory.SYSTEM),
+    INVALID_SECRET_KEY(16003, "密钥无效", ErrorCategory.SECURITY),
 
     // ==================== 功能开关错误 (17000-17999) ====================
     FEATURE_DISABLED(17000, "功能已禁用", ErrorCategory.BUSINESS),

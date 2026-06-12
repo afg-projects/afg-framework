@@ -27,7 +27,7 @@ import io.micrometer.tracing.Tracer;
  * <p>支持重试和熔断功能
  * <p>提供同步和异步两种弹性拦截器
  */
-@AutoConfiguration
+@AutoConfiguration(after = AfgAutoConfiguration.class)
 @ConditionalOnClass(RestClient.class)
 @EnableConfigurationProperties(AfgCoreProperties.class)
 public class HttpClientAutoConfiguration {

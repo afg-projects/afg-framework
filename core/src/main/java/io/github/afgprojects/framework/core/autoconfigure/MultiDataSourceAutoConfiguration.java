@@ -148,7 +148,7 @@ import io.github.afgprojects.framework.core.datasource.lb.WeightedStrategy;
  * @see com.baomidou.dynamic.datasource.annotation.DS
  * @since 1.0.0
  */
-@AutoConfiguration(before = DynamicDataSourceAutoConfiguration.class)
+@AutoConfiguration(after = AfgAutoConfiguration.class, before = DynamicDataSourceAutoConfiguration.class)
 @ConditionalOnClass(name = "com.baomidou.dynamic.datasource.DynamicRoutingDataSource")
 @ConditionalOnProperty(prefix = "afg.core.datasource", name = "enabled", havingValue = "true")
 @EnableConfigurationProperties(AfgCoreProperties.class)

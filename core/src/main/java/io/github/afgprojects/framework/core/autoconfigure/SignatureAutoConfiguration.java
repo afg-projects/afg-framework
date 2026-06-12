@@ -33,7 +33,7 @@ import io.github.afgprojects.framework.core.web.security.signature.SignatureInte
  *           enabled: true
  * </pre>
  */
-@AutoConfiguration
+@AutoConfiguration(after = {AfgAutoConfiguration.class, AfgSecurityAutoConfiguration.class})
 @EnableConfigurationProperties(AfgCoreProperties.class)
 @ConditionalOnProperty(prefix = "afg.core.security.signature", name = "enabled", havingValue = "true", matchIfMissing = false)
 public class SignatureAutoConfiguration implements WebMvcConfigurer {

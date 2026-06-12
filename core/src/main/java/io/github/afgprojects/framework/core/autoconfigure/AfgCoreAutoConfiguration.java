@@ -12,7 +12,7 @@ import io.github.afgprojects.framework.core.config.AfgCoreProperties;
  *
  * @since 1.1.0
  */
-@AutoConfiguration
+@AutoConfiguration(after = AfgAutoConfiguration.class)
 @EnableConfigurationProperties(AfgCoreProperties.class)
 public class AfgCoreAutoConfiguration {
 }

@@ -6,6 +6,9 @@ import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
+
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -36,7 +39,7 @@ public class WeightedStrategy implements LoadBalanceStrategy {
     @NonNull
     public String select(@NonNull List<String> candidates) {
         if (candidates.isEmpty()) {
-            throw new IllegalArgumentException("Candidates list cannot be empty");
+            throw new BusinessException(CommonErrorCode.PARAM_ERROR, "Candidates list cannot be empty");
         }
         if (candidates.size() == 1) {
             return candidates.getFirst();

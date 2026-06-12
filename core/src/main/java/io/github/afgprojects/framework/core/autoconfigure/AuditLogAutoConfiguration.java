@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Bean;
  *
  * <p>注意：RedisAuditLogStorage 已移至 afg-redis 模块，DatabaseAuditLogStorage 已移至 afg-jdbc 模块</p>
  */
-@AutoConfiguration
+@AutoConfiguration(after = AfgAutoConfiguration.class)
 @ConditionalOnProperty(prefix = "afg.core.audit", name = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(AfgCoreProperties.class)
 public class AuditLogAutoConfiguration {

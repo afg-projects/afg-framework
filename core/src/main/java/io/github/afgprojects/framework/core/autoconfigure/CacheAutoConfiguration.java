@@ -9,6 +9,8 @@ import org.springframework.context.annotation.Bean;
 
 import io.github.afgprojects.framework.core.cache.CacheAspect;
 import io.github.afgprojects.framework.core.cache.DefaultCacheManager;
+import io.github.afgprojects.framework.core.cache.spi.CacheStorageProvider;
+import io.github.afgprojects.framework.core.cache.spi.NoOpCacheStorageProvider;
 import io.github.afgprojects.framework.core.properties.AfgCoreProperties;
 
 /**
@@ -29,10 +31,24 @@ import io.github.afgprojects.framework.core.properties.AfgCoreProperties;
  * 默认使用本地缓存，当配置分布式缓存且 RedissonClient 存在时自动切换。
  * </p>
  */
-@AutoConfiguration
+@AutoConfiguration(after = AfgAutoConfiguration.class)
 @ConditionalOnProperty(prefix = "afg.core.cache", name = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(AfgCoreProperties.class)
 public class CacheAutoConfiguration {
+
+    /**
+     * NoOp 缓存存储提供者降级实现
+     * <p>
+     * 当没有 Redis 等分布式缓存后端时，提供本地降级。
+     * 创建的存储实例不执行任何实际缓存操作。
+     *
+     * @return NoOp 缓存存储提供者实例
+     */
+    @Bean
+    @ConditionalOnMissingBean(CacheStorageProvider.class)
+    public CacheStorageProvider noOpCacheStorageProvider() {
+        return new NoOpCacheStorageProvider();
+    }
 
     /**
      * 配置本地缓存管理器

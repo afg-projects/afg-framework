@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
  *   <li>afg.module.scan-fallback=true - 启用扫描回退（索引文件不存在时扫描 classpath）</li>
  * </ul>
  */
-@AutoConfiguration
+@AutoConfiguration(after = AfgAutoConfiguration.class)
 @Slf4j
 public class ModuleAutoConfiguration implements ImportSelector {
 

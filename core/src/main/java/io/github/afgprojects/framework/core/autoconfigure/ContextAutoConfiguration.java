@@ -31,7 +31,7 @@ import io.github.afgprojects.framework.core.invocation.InvocationContextTaskDeco
  * @see ContextSnapshotProvider
  */
 @Slf4j
-@AutoConfiguration
+@AutoConfiguration(after = AfgAutoConfiguration.class)
 public class ContextAutoConfiguration {
 
     /**

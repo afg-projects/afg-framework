@@ -43,7 +43,7 @@ import io.github.afgprojects.framework.core.event.LocalEventPublisher;
  *
  * @since 1.0.0
  */
-@AutoConfiguration
+@AutoConfiguration(after = AfgAutoConfiguration.class)
 @EnableConfigurationProperties(AfgCoreProperties.class)
 @ConditionalOnProperty(prefix = "afg.core.event", name = "enabled", havingValue = "true", matchIfMissing = true)
 @Slf4j

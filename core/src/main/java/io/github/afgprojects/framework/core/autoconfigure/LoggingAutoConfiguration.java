@@ -16,7 +16,7 @@ import io.github.afgprojects.framework.core.web.logging.MdcFilter;
 /**
  * 日志自动配置类
  */
-@AutoConfiguration
+@AutoConfiguration(after = AfgAutoConfiguration.class)
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @ConditionalOnClass(Servlet.class)
 @EnableConfigurationProperties(AfgCoreProperties.class)

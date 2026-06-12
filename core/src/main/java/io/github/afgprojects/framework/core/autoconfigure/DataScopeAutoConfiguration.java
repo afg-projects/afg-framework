@@ -30,7 +30,7 @@ import io.github.afgprojects.framework.core.web.security.AfgSecurityContextBridg
  *     dept-table: sys_dept
  * </pre>
  */
-@AutoConfiguration
+@AutoConfiguration(after = {AfgAutoConfiguration.class, AfgSecurityAutoConfiguration.class})
 @EnableConfigurationProperties(AfgCoreProperties.class)
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 public class DataScopeAutoConfiguration implements WebMvcConfigurer {

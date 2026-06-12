@@ -1,5 +1,7 @@
 package io.github.afgprojects.framework.core.config;
 
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -44,7 +46,7 @@ class AesConfigEncryptorTest {
         @DisplayName("should reject invalid key length")
         void shouldRejectInvalidKeyLength() {
             assertThatThrownBy(() -> new AesConfigEncryptor("short"))
-                    .isInstanceOf(IllegalArgumentException.class)
+                    .isInstanceOf(BusinessException.class)
                     .hasMessageContaining("Secret key must be 16, 24, or 32 bytes");
         }
     }
@@ -137,7 +139,7 @@ class AesConfigEncryptorTest {
         @DisplayName("should throw on invalid ciphertext format")
         void shouldThrowOnInvalidCiphertextFormat() {
             assertThatThrownBy(() -> encryptor.decrypt("ENC(invalid-base64!!!)"))
-                    .isInstanceOf(IllegalArgumentException.class)
+                    .isInstanceOf(BusinessException.class)
                     .hasMessageContaining("Decryption failed");
         }
 
@@ -146,7 +148,7 @@ class AesConfigEncryptorTest {
         void shouldThrowOnTooShortCiphertext() {
             // Base64 of 10 bytes (less than IV 12 + tag 16 = 28 minimum)
             assertThatThrownBy(() -> encryptor.decrypt("ENC(YWJjZGVmZ2hp)"))
-                    .isInstanceOf(IllegalArgumentException.class)
+                    .isInstanceOf(BusinessException.class)
                     .hasMessageContaining("Decryption failed");
         }
     }
@@ -234,7 +236,7 @@ class AesConfigEncryptorTest {
             String encrypted = encryptor1.encrypt("test-data");
 
             assertThatThrownBy(() -> encryptor2.decrypt(encrypted))
-                    .isInstanceOf(IllegalArgumentException.class);
+                    .isInstanceOf(BusinessException.class);
         }
     }
 }

@@ -12,7 +12,7 @@ import io.github.afgprojects.framework.core.web.shutdown.ShutdownHook;
 /**
  * Auto-configuration for graceful shutdown.
  */
-@AutoConfiguration
+@AutoConfiguration(after = AfgAutoConfiguration.class)
 @ConditionalOnProperty(prefix = "afg.core.shutdown", name = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(AfgCoreProperties.class)
 public class ShutdownAutoConfiguration {

@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
+
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -74,13 +77,13 @@ public class CodeGeneratorManager {
      * @param templateType 模板类型
      * @param context      生成上下文
      * @return 生成的代码
-     * @throws IllegalArgumentException 如果模板类型不支持
+     * @throws BusinessException 如果模板类型不支持
      */
     @NonNull
     public String generate(@NonNull String templateType, @NonNull GeneratorContext context) {
         CodeGenerator generator = generators.get(templateType);
         if (generator == null) {
-            throw new IllegalArgumentException("Unsupported template type: " + templateType);
+            throw new BusinessException(CommonErrorCode.PARAM_ERROR, "Unsupported template type: " + templateType);
         }
         return generator.generate(context);
     }
@@ -118,7 +121,7 @@ public class CodeGeneratorManager {
         for (String type : templateTypes) {
             try {
                 result.put(type, generate(type, context));
-            } catch (IllegalArgumentException e) {
+            } catch (BusinessException e) {
                 // 跳过不支持的类型
             }
         }

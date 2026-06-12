@@ -6,6 +6,9 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.regex.Pattern;
 
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
+
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -121,8 +124,8 @@ public final class CronUtils {
         String[] fields = cron.trim().split("\\s+");
 
         if (fields.length != 6) {
-            throw new IllegalArgumentException(
-                "Invalid cron expression: expected 6 fields but got " + fields.length);
+            throw new BusinessException(
+                CommonErrorCode.PARAM_FORMAT_ERROR, "Invalid cron expression: expected 6 fields but got " + fields.length);
         }
 
         return new CronExpression(

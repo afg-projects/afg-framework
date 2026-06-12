@@ -13,7 +13,7 @@ import io.github.afgprojects.framework.core.api.config.RemoteConfigClient;
  * 远程配置自动配置类
  * 当启用远程配置时，提供默认的 NoOp 实现
  */
-@AutoConfiguration
+@AutoConfiguration(after = AfgAutoConfiguration.class)
 @ConditionalOnProperty(prefix = "afg.remote-config", name = "enabled", havingValue = "true")
 public class RemoteConfigAutoConfiguration {
 

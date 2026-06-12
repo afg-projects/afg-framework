@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.lock.DistributedLock;
 import io.github.afgprojects.framework.core.lock.LockAspect;
+import io.github.afgprojects.framework.core.lock.NoOpDistributedLock;
 
 /**
  * 分布式锁自动配置
@@ -32,10 +33,24 @@ import io.github.afgprojects.framework.core.lock.LockAspect;
  * </pre>
  * </p>
  */
-@AutoConfiguration
+@AutoConfiguration(after = AfgAutoConfiguration.class)
 @ConditionalOnProperty(prefix = "afg.core.lock", name = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(AfgCoreProperties.class)
 public class LockAutoConfiguration {
+
+    /**
+     * NoOp 分布式锁降级实现
+     * <p>
+     * 当没有 Redis 等分布式锁后端时，提供本地降级。
+     * 所有锁操作总是成功获取并立即释放，注解式加锁会"透传"。
+     *
+     * @return NoOp 分布式锁实例
+     */
+    @Bean
+    @ConditionalOnMissingBean(DistributedLock.class)
+    public DistributedLock noOpDistributedLock() {
+        return new NoOpDistributedLock();
+    }
 
     /**
      * 配置锁切面

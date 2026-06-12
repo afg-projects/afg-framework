@@ -8,6 +8,9 @@ import java.util.Base64;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
+
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -122,7 +125,7 @@ public class SignatureGenerator {
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException("Unsupported algorithm: " + algorithm, e);
         } catch (InvalidKeyException e) {
-            throw new IllegalArgumentException("Invalid secret key", e);
+            throw new BusinessException(CommonErrorCode.INVALID_SECRET_KEY, "Invalid secret key", e);
         }
     }
 

@@ -1,5 +1,8 @@
 package io.github.afgprojects.framework.core.model.version;
 
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
+
 import org.jspecify.annotations.NonNull;
 
 /**
@@ -13,17 +16,17 @@ public record ApiVersion(int major, int minor, int patch) implements Comparable<
      *
      * @param version 版本字符串，如 "1.2.3"
      * @return ApiVersion 实例
-     * @throws IllegalArgumentException 如果版本格式无效
+     * @throws BusinessException 如果版本格式无效
      */
     @NonNull public static ApiVersion parse(@NonNull String version) {
         String[] parts = version.split("\\.");
         if (parts.length != 3) {
-            throw new IllegalArgumentException("Invalid version format: " + version + ", expected: major.minor.patch");
+            throw new BusinessException(CommonErrorCode.PARAM_FORMAT_ERROR, "Invalid version format: " + version + ", expected: major.minor.patch");
         }
         try {
             return new ApiVersion(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), Integer.parseInt(parts[2]));
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid version format: " + version, e);
+            throw new BusinessException(CommonErrorCode.PARAM_FORMAT_ERROR, "Invalid version format: " + version, e);
         }
     }
 

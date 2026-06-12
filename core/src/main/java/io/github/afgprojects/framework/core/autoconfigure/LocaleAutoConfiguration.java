@@ -17,7 +17,7 @@ import io.github.afgprojects.framework.core.web.i18n.LocaleFilter;
  * 国际化自动配置
  * 配置 MessageSource 和 LocaleFilter
  */
-@AutoConfiguration
+@AutoConfiguration(after = AfgAutoConfiguration.class)
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @ConditionalOnClass(Servlet.class)
 public class LocaleAutoConfiguration {

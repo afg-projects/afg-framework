@@ -25,7 +25,7 @@ import io.micrometer.core.instrument.MeterRegistry;
  * 配置项: afg.rate-limit.enabled=true
  * </p>
  */
-@AutoConfiguration
+@AutoConfiguration(after = AfgAutoConfiguration.class)
 @ConditionalOnProperty(prefix = "afg.core.rate-limit", name = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(AfgCoreProperties.class)
 public class RateLimitAutoConfiguration {

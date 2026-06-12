@@ -17,7 +17,7 @@ import io.github.afgprojects.framework.core.feature.FeatureToggleAspect;
  * 如需使用 Redis 分布式存储，请引入 afg-redis 模块并使用其自动配置。
  * </p>
  */
-@AutoConfiguration
+@AutoConfiguration(after = AfgAutoConfiguration.class)
 @ConditionalOnProperty(prefix = "afg.core.feature", name = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(AfgCoreProperties.class)
 public class FeatureFlagAutoConfiguration {

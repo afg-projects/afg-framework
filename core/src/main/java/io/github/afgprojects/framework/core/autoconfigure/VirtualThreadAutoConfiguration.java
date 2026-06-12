@@ -65,7 +65,7 @@ import org.springframework.core.task.support.TaskExecutorAdapter;
  *
  * @see AfgCoreProperties.VirtualThreadConfig
  */
-@AutoConfiguration
+@AutoConfiguration(after = AfgAutoConfiguration.class)
 @ConditionalOnClass(name = "java.lang.VirtualThread")
 @EnableConfigurationProperties(AfgCoreProperties.class)
 public class VirtualThreadAutoConfiguration {

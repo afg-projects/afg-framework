@@ -16,7 +16,7 @@ import io.github.afgprojects.framework.core.web.feature.FeatureFlagController;
  * 当存在 FeatureFlagManager 且为 Web 应用时，自动装配 REST API Controller
  * </p>
  */
-@AutoConfiguration
+@AutoConfiguration(after = {AfgAutoConfiguration.class, FeatureFlagAutoConfiguration.class})
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @ConditionalOnBean(FeatureFlagManager.class)
 @ConditionalOnProperty(prefix = "afg.feature.api", name = "enabled", havingValue = "true", matchIfMissing = true)

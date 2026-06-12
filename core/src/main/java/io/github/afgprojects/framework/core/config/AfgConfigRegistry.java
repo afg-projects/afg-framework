@@ -8,6 +8,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
+
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -90,7 +93,7 @@ public class AfgConfigRegistry {
     public void updateConfig(@NonNull String prefix, @NonNull Object newConfig) {
         withWriteLock(() -> {
             if (!sourceManager.contains(prefix)) {
-                throw new IllegalArgumentException("Config with prefix [" + prefix + "] does not exist");
+                throw new BusinessException(CommonErrorCode.CONFIG_NOT_FOUND, "Config with prefix [" + prefix + "] does not exist");
             }
             Object oldConfig = sourceManager.getConfig(prefix);
             sourceManager.updateConfig(prefix, newConfig);
@@ -248,7 +251,7 @@ public class AfgConfigRegistry {
         void refreshFromConfigCenter(@NonNull String prefix, @NonNull Object newConfig) {
             Map<ConfigSource, ConfigEntry> sources = configSources.get(prefix);
             if (sources == null) {
-                throw new IllegalArgumentException("Config with prefix [" + prefix + "] does not exist");
+                throw new BusinessException(CommonErrorCode.CONFIG_NOT_FOUND, "Config with prefix [" + prefix + "] does not exist");
             }
 
             ConfigEntry entry = sources.get(ConfigSource.CONFIG_CENTER);

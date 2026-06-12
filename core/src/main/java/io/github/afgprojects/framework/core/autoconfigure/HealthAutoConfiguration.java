@@ -43,7 +43,7 @@ import io.github.afgprojects.framework.core.web.health.spi.RedisHealthChecker;
  *
  * @since 1.0.0
  */
-@AutoConfiguration
+@AutoConfiguration(after = AfgAutoConfiguration.class)
 @ConditionalOnClass(HealthIndicator.class)
 @EnableConfigurationProperties(AfgCoreProperties.class)
 public class HealthAutoConfiguration {

@@ -38,7 +38,7 @@ import io.github.afgprojects.framework.core.module.ModuleRegistry;
  *   <li>监控端点（如 /actuator/mappings）只显示带前缀的路径</li>
  * </ul>
  */
-@AutoConfiguration
+@AutoConfiguration(after = {AfgAutoConfiguration.class, ModuleAutoConfiguration.class})
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @ConditionalOnClass(DispatcherServlet.class)
 @Slf4j

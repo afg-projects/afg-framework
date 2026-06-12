@@ -13,7 +13,7 @@ import io.github.afgprojects.framework.core.config.ConfigEncryptor;
 /**
  * 配置加密自动配置类
  */
-@AutoConfiguration
+@AutoConfiguration(after = AfgAutoConfiguration.class)
 @EnableConfigurationProperties(AfgCoreProperties.class)
 @ConditionalOnProperty(prefix = "afg.core.encryption", name = "enabled", havingValue = "true", matchIfMissing = false)
 public class EncryptionAutoConfiguration {

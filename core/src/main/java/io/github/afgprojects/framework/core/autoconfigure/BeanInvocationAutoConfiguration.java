@@ -20,7 +20,7 @@ import org.springframework.context.annotation.Bean;
 import java.util.ArrayList;
 import java.util.List;
 
-@AutoConfiguration
+@AutoConfiguration(after = AfgAutoConfiguration.class)
 @EnableConfigurationProperties(BeanInvocationProperties.class)
 @ConditionalOnProperty(prefix = "afg.invocation", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class BeanInvocationAutoConfiguration {

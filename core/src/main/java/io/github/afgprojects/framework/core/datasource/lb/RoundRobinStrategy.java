@@ -3,6 +3,9 @@ package io.github.afgprojects.framework.core.datasource.lb;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
+
 import org.jspecify.annotations.NonNull;
 
 /**
@@ -20,7 +23,7 @@ public class RoundRobinStrategy implements LoadBalanceStrategy {
     @NonNull
     public String select(@NonNull List<String> candidates) {
         if (candidates.isEmpty()) {
-            throw new IllegalArgumentException("Candidates list cannot be empty");
+            throw new BusinessException(CommonErrorCode.PARAM_ERROR, "Candidates list cannot be empty");
         }
         if (candidates.size() == 1) {
             return candidates.getFirst();
