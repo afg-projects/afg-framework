@@ -22,7 +22,7 @@ class OAuth2ExceptionTest {
         void shouldCreateException() {
             OAuth2Exception exception = new OAuth2Exception("invalid_request", "Missing parameter");
 
-            assertThat(exception.getErrorCode()).isEqualTo("invalid_request");
+            assertThat(exception.getOauth2ErrorCode()).isEqualTo("invalid_request");
             assertThat(exception.getErrorDescription()).isEqualTo("Missing parameter");
             assertThat(exception.getMessage()).isEqualTo("invalid_request: Missing parameter");
         }
@@ -33,7 +33,7 @@ class OAuth2ExceptionTest {
             Throwable cause = new RuntimeException("Original error");
             OAuth2Exception exception = new OAuth2Exception("server_error", "Internal error", cause);
 
-            assertThat(exception.getErrorCode()).isEqualTo("server_error");
+            assertThat(exception.getOauth2ErrorCode()).isEqualTo("server_error");
             assertThat(exception.getErrorDescription()).isEqualTo("Internal error");
             assertThat(exception.getCause()).isEqualTo(cause);
         }
@@ -48,7 +48,7 @@ class OAuth2ExceptionTest {
         void shouldCreateInvalidClientError() {
             OAuth2Exception exception = OAuth2Exception.invalidClient("Client not found");
 
-            assertThat(exception.getErrorCode()).isEqualTo("invalid_client");
+            assertThat(exception.getOauth2ErrorCode()).isEqualTo("invalid_client");
             assertThat(exception.getErrorDescription()).isEqualTo("Client not found");
         }
 
@@ -57,7 +57,7 @@ class OAuth2ExceptionTest {
         void shouldCreateInvalidGrantError() {
             OAuth2Exception exception = OAuth2Exception.invalidGrant("Invalid authorization code");
 
-            assertThat(exception.getErrorCode()).isEqualTo("invalid_grant");
+            assertThat(exception.getOauth2ErrorCode()).isEqualTo("invalid_grant");
             assertThat(exception.getErrorDescription()).isEqualTo("Invalid authorization code");
         }
 
@@ -66,7 +66,7 @@ class OAuth2ExceptionTest {
         void shouldCreateInvalidRequestError() {
             OAuth2Exception exception = OAuth2Exception.invalidRequest("Missing redirect_uri");
 
-            assertThat(exception.getErrorCode()).isEqualTo("invalid_request");
+            assertThat(exception.getOauth2ErrorCode()).isEqualTo("invalid_request");
             assertThat(exception.getErrorDescription()).isEqualTo("Missing redirect_uri");
         }
 
@@ -75,7 +75,7 @@ class OAuth2ExceptionTest {
         void shouldCreateUnsupportedGrantTypeError() {
             OAuth2Exception exception = OAuth2Exception.unsupportedGrantType("Grant type not supported");
 
-            assertThat(exception.getErrorCode()).isEqualTo("unsupported_grant_type");
+            assertThat(exception.getOauth2ErrorCode()).isEqualTo("unsupported_grant_type");
             assertThat(exception.getErrorDescription()).isEqualTo("Grant type not supported");
         }
 
@@ -84,7 +84,7 @@ class OAuth2ExceptionTest {
         void shouldCreateUnsupportedResponseTypeError() {
             OAuth2Exception exception = OAuth2Exception.unsupportedResponseType("Response type not supported");
 
-            assertThat(exception.getErrorCode()).isEqualTo("unsupported_response_type");
+            assertThat(exception.getOauth2ErrorCode()).isEqualTo("unsupported_response_type");
             assertThat(exception.getErrorDescription()).isEqualTo("Response type not supported");
         }
 
@@ -93,7 +93,7 @@ class OAuth2ExceptionTest {
         void shouldCreateUnauthorizedClientError() {
             OAuth2Exception exception = OAuth2Exception.unauthorizedClient("Client not authorized");
 
-            assertThat(exception.getErrorCode()).isEqualTo("unauthorized_client");
+            assertThat(exception.getOauth2ErrorCode()).isEqualTo("unauthorized_client");
             assertThat(exception.getErrorDescription()).isEqualTo("Client not authorized");
         }
 
@@ -102,7 +102,7 @@ class OAuth2ExceptionTest {
         void shouldCreateAccessDeniedError() {
             OAuth2Exception exception = OAuth2Exception.accessDenied("User denied access");
 
-            assertThat(exception.getErrorCode()).isEqualTo("access_denied");
+            assertThat(exception.getOauth2ErrorCode()).isEqualTo("access_denied");
             assertThat(exception.getErrorDescription()).isEqualTo("User denied access");
         }
 
@@ -111,7 +111,7 @@ class OAuth2ExceptionTest {
         void shouldCreateServerError() {
             OAuth2Exception exception = OAuth2Exception.serverError("Internal server error");
 
-            assertThat(exception.getErrorCode()).isEqualTo("server_error");
+            assertThat(exception.getOauth2ErrorCode()).isEqualTo("server_error");
             assertThat(exception.getErrorDescription()).isEqualTo("Internal server error");
         }
     }

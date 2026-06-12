@@ -1,5 +1,8 @@
 package io.github.afgprojects.framework.security.core.token;
 
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
+
 /**
  * Token 验证异常类。
  *
@@ -7,7 +10,7 @@ package io.github.afgprojects.framework.security.core.token;
  *
  * @since 1.0.0
  */
-public class TokenValidationException extends RuntimeException {
+public class TokenValidationException extends BusinessException {
 
     /**
      * 构造 Token 验证异常。
@@ -15,7 +18,7 @@ public class TokenValidationException extends RuntimeException {
      * @param message 错误消息
      */
     public TokenValidationException(String message) {
-        super(message);
+        super(CommonErrorCode.TOKEN_INVALID, message);
     }
 
     /**
@@ -25,7 +28,7 @@ public class TokenValidationException extends RuntimeException {
      * @param cause 原因
      */
     public TokenValidationException(String message, Throwable cause) {
-        super(message, cause);
+        super(CommonErrorCode.TOKEN_INVALID, message, cause);
     }
 
     /**

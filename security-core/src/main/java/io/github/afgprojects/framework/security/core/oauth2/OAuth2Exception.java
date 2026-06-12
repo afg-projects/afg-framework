@@ -1,5 +1,7 @@
 package io.github.afgprojects.framework.security.core.oauth2;
 
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -10,44 +12,44 @@ import org.jspecify.annotations.Nullable;
  *
  * @since 1.0.0
  */
-public class OAuth2Exception extends RuntimeException {
+public class OAuth2Exception extends BusinessException {
 
-    private final String errorCode;
+    private final String oauth2ErrorCode;
     private final String errorDescription;
 
     /**
      * 构造函数。
      *
-     * @param errorCode 错误码
+     * @param oauth2ErrorCode OAuth2 错误码
      * @param errorDescription 错误描述
      */
-    public OAuth2Exception(@NonNull String errorCode, @Nullable String errorDescription) {
-        super(errorCode + ": " + errorDescription);
-        this.errorCode = errorCode;
+    public OAuth2Exception(@NonNull String oauth2ErrorCode, @Nullable String errorDescription) {
+        super(CommonErrorCode.UNAUTHORIZED, oauth2ErrorCode + ": " + errorDescription);
+        this.oauth2ErrorCode = oauth2ErrorCode;
         this.errorDescription = errorDescription;
     }
 
     /**
      * 构造函数。
      *
-     * @param errorCode 错误码
+     * @param oauth2ErrorCode OAuth2 错误码
      * @param errorDescription 错误描述
      * @param cause 原因
      */
-    public OAuth2Exception(@NonNull String errorCode, @Nullable String errorDescription, @Nullable Throwable cause) {
-        super(errorCode + ": " + errorDescription, cause);
-        this.errorCode = errorCode;
+    public OAuth2Exception(@NonNull String oauth2ErrorCode, @Nullable String errorDescription, @Nullable Throwable cause) {
+        super(CommonErrorCode.UNAUTHORIZED, oauth2ErrorCode + ": " + errorDescription, cause);
+        this.oauth2ErrorCode = oauth2ErrorCode;
         this.errorDescription = errorDescription;
     }
 
     /**
-     * 获取错误码。
+     * 获取 OAuth2 错误码。
      *
-     * @return 错误码
+     * @return OAuth2 错误码
      */
     @NonNull
-    public String getErrorCode() {
-        return errorCode;
+    public String getOauth2ErrorCode() {
+        return oauth2ErrorCode;
     }
 
     /**

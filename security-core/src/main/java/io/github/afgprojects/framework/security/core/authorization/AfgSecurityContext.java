@@ -1,10 +1,11 @@
 package io.github.afgprojects.framework.security.core.authorization;
 
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
-
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import io.github.afgprojects.framework.security.core.authentication.AfgAuthentication;
 import io.github.afgprojects.framework.security.core.authentication.AfgUserDetails;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 /**
  * AFG 安全上下文接口。
@@ -69,13 +70,13 @@ public interface AfgSecurityContext {
      * 获取当前用户详情，抛出异常如果未认证。
      *
      * @return 用户详情，永不为 null
-     * @throws IllegalStateException 如果未认证
+     * @throws BusinessException 如果未认证
      */
     @NonNull
     default AfgUserDetails getRequiredCurrentUser() {
         AfgUserDetails user = getCurrentUser();
         if (user == null) {
-            throw new IllegalStateException("No authenticated user found");
+            throw new BusinessException(CommonErrorCode.UNAUTHORIZED, "No authenticated user found");
         }
         return user;
     }
@@ -95,13 +96,13 @@ public interface AfgSecurityContext {
      * 获取当前用户 ID，抛出异常如果未认证。
      *
      * @return 用户 ID，永不为 null
-     * @throws IllegalStateException 如果未认证
+     * @throws BusinessException 如果未认证
      */
     @NonNull
     default String getRequiredCurrentUserId() {
         String userId = getCurrentUserId();
         if (userId == null) {
-            throw new IllegalStateException("No authenticated user found");
+            throw new BusinessException(CommonErrorCode.UNAUTHORIZED, "No authenticated user found");
         }
         return userId;
     }

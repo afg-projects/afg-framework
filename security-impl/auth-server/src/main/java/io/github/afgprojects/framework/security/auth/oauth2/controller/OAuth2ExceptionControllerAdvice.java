@@ -28,10 +28,10 @@ public class OAuth2ExceptionControllerAdvice {
      */
     @ExceptionHandler(OAuth2Exception.class)
     public ResponseEntity<OAuth2ErrorResponse> handleOAuth2Exception(@NonNull OAuth2Exception ex) {
-        log.warn("OAuth2 error: {} - {}", ex.getErrorCode(), ex.getErrorDescription());
+        log.warn("OAuth2 error: {} - {}", ex.getOauth2ErrorCode(), ex.getErrorDescription());
 
-        HttpStatus status = mapErrorCodeToHttpStatus(ex.getErrorCode());
-        OAuth2ErrorResponse body = new OAuth2ErrorResponse(ex.getErrorCode(), ex.getErrorDescription());
+        HttpStatus status = mapErrorCodeToHttpStatus(ex.getOauth2ErrorCode());
+        OAuth2ErrorResponse body = new OAuth2ErrorResponse(ex.getOauth2ErrorCode(), ex.getErrorDescription());
         return ResponseEntity.status(status).body(body);
     }
 
