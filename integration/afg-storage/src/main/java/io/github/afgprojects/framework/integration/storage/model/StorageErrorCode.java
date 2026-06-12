@@ -33,6 +33,7 @@ public enum StorageErrorCode implements ErrorCode {
     STORAGE_BUCKET_ALREADY_EXISTS(40203, "存储桶已存在", ErrorCategory.SYSTEM),
     STORAGE_ACCESS_DENIED(40204, "存储访问被拒绝", ErrorCategory.SECURITY),
     STORAGE_CONNECTION_FAILED(40205, "存储连接失败", ErrorCategory.NETWORK),
+    STORAGE_CONFIG_INCOMPLETE(40206, "存储配置不完整", ErrorCategory.SYSTEM),
 
     // ==================== 存储空间错误 (40300-40399) ====================
     STORAGE_FULL(40300, "存储空间不足", ErrorCategory.SYSTEM),

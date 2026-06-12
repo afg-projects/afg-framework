@@ -7,6 +7,7 @@ import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
 
 import io.github.afgprojects.framework.core.api.storage.FileStorage;
+import io.github.afgprojects.framework.integration.storage.model.StorageException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -60,13 +61,13 @@ public class OssClientBuilder {
 
     private void validate() {
         if (endpoint == null || endpoint.isEmpty()) {
-            throw new IllegalArgumentException("endpoint is required");
+            throw StorageException.configIncomplete("OSS endpoint is required");
         }
         if (accessKeyId == null || accessKeyId.isEmpty()) {
-            throw new IllegalArgumentException("accessKeyId is required");
+            throw StorageException.configIncomplete("OSS accessKeyId is required");
         }
         if (accessKeySecret == null || accessKeySecret.isEmpty()) {
-            throw new IllegalArgumentException("accessKeySecret is required");
+            throw StorageException.configIncomplete("OSS accessKeySecret is required");
         }
     }
 

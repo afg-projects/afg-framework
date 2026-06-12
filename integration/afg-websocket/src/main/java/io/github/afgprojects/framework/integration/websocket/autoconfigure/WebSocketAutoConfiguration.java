@@ -89,7 +89,7 @@ import org.springframework.web.socket.server.HandshakeInterceptor;
  * });
  * </pre>
  */
-@AutoConfiguration
+@AutoConfiguration(afterName = "io.github.afgprojects.framework.core.autoconfigure.AfgAutoConfiguration")
 @ConditionalOnProperty(prefix = "afg.websocket", name = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(WebSocketProperties.class)
 @Import(WebSocketInterceptorConfiguration.class)

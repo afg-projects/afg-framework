@@ -13,6 +13,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import io.github.afgprojects.framework.core.api.event.EventPublisher;
+import io.github.afgprojects.framework.core.api.event.NoOpEventPublisher;
 import io.github.afgprojects.framework.core.config.AfgCoreProperties;
 import io.github.afgprojects.framework.core.event.DomainEventPublisher;
 import io.github.afgprojects.framework.core.event.EventRetryHandler;
@@ -85,6 +87,30 @@ public class EventAutoConfiguration {
             log.info("Initializing LocalEventPublisher");
             return new LocalEventPublisher(applicationEventPublisher, eventAsyncExecutor);
         }
+    }
+
+    /**
+     * NoOp 事件发布器降级实现
+     * <p>
+     * 当没有 RabbitMQ 等分布式事件后端时，提供本地降级。
+     * 所有发布操作静默丢弃，异步发布返回已完成的 Future。
+     * <p>
+     * 仅当显式启用降级模式时注册：
+     * <pre>
+     * afg:
+     *   core:
+     *     event:
+     *       fallback: true
+     * </pre>
+     * 默认不启用，以避免阻止 RabbitMQ 等集成模块注册真实实现。
+     *
+     * @return NoOp 事件发布器实例
+     */
+    @Bean
+    @ConditionalOnMissingBean(EventPublisher.class)
+    @ConditionalOnProperty(prefix = "afg.core.event", name = "fallback", havingValue = "true", matchIfMissing = false)
+    public EventPublisher<Object> noOpEventPublisher() {
+        return new NoOpEventPublisher<>();
     }
 
     /**

@@ -42,7 +42,11 @@ import io.github.afgprojects.framework.integration.event.rabbitmq.health.RabbitM
  *
  * @since 1.0.0
  */
-@AutoConfiguration
+@AutoConfiguration(afterName = {
+        "io.github.afgprojects.framework.core.autoconfigure.AfgAutoConfiguration",
+        "io.github.afgprojects.framework.core.autoconfigure.EventAutoConfiguration",
+        "io.github.afgprojects.framework.core.autoconfigure.HealthAutoConfiguration"
+})
 @ConditionalOnClass(RabbitTemplate.class)
 @ConditionalOnBean(RabbitTemplate.class)
 @ConditionalOnProperty(prefix = "afg.rabbitmq.event", name = "enabled", havingValue = "true", matchIfMissing = true)

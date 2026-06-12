@@ -10,7 +10,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
+import io.github.afgprojects.framework.core.api.scheduler.DelayQueue;
+import io.github.afgprojects.framework.core.api.scheduler.DistributedTaskScheduler;
 import io.github.afgprojects.framework.core.api.scheduler.InMemoryTaskExecutionLogStorage;
+import io.github.afgprojects.framework.core.api.scheduler.NoOpDelayQueue;
+import io.github.afgprojects.framework.core.api.scheduler.NoOpDistributedTaskScheduler;
 import io.github.afgprojects.framework.core.api.scheduler.TaskExecutionLogStorage;
 import io.github.afgprojects.framework.core.api.scheduler.TaskExecutionMetrics;
 import io.github.afgprojects.framework.core.config.AfgCoreProperties;
@@ -59,6 +63,34 @@ import io.micrometer.core.instrument.MeterRegistry;
 @ConditionalOnProperty(prefix = "afg.core.scheduler", name = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(AfgCoreProperties.class)
 public class SchedulerAutoConfiguration {
+
+    /**
+     * NoOp 分布式任务调度器降级实现
+     * <p>
+     * 当没有 Redis 等调度后端时，提供本地降级。
+     * 所有调度操作返回空句柄，查询返回 null/false。
+     *
+     * @return NoOp 分布式任务调度器实例
+     */
+    @Bean
+    @ConditionalOnMissingBean(DistributedTaskScheduler.class)
+    public DistributedTaskScheduler noOpDistributedTaskScheduler() {
+        return new NoOpDistributedTaskScheduler();
+    }
+
+    /**
+     * NoOp 延迟队列降级实现
+     * <p>
+     * 当没有 Redis 等延迟队列后端时，提供本地降级。
+     * 所有入队操作返回 taskId（但不会执行），查询返回 0。
+     *
+     * @return NoOp 延迟队列实例
+     */
+    @Bean
+    @ConditionalOnMissingBean(DelayQueue.class)
+    public DelayQueue<Object> noOpDelayQueue() {
+        return new NoOpDelayQueue<>();
+    }
 
     /**
      * 配置任务执行日志存储（内存模式）

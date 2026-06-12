@@ -92,7 +92,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *         batch-size: 10
  * </pre>
  */
-@AutoConfiguration
+@AutoConfiguration(afterName = {
+        "io.github.afgprojects.framework.core.autoconfigure.AfgAutoConfiguration",
+        "io.github.afgprojects.framework.core.autoconfigure.CacheAutoConfiguration",
+        "io.github.afgprojects.framework.core.autoconfigure.LockAutoConfiguration",
+        "io.github.afgprojects.framework.core.autoconfigure.SchedulerAutoConfiguration",
+        "io.github.afgprojects.framework.core.autoconfigure.AuditLogAutoConfiguration",
+        "io.github.afgprojects.framework.core.autoconfigure.RateLimitAutoConfiguration",
+        "io.github.afgprojects.framework.core.autoconfigure.HealthAutoConfiguration",
+        "io.github.afgprojects.framework.core.autoconfigure.FeatureFlagAutoConfiguration"
+})
 @ConditionalOnBean(RedissonClient.class)
 @EnableConfigurationProperties({
         RedisCacheProperties.class,

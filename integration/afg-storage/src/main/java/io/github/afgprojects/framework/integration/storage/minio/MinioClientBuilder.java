@@ -6,6 +6,7 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import io.github.afgprojects.framework.core.api.storage.FileStorage;
+import io.github.afgprojects.framework.integration.storage.model.StorageException;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -122,13 +123,13 @@ public class MinioClientBuilder {
 
     private void validate() {
         if (endpoint == null || endpoint.isEmpty()) {
-            throw new IllegalArgumentException("endpoint is required");
+            throw StorageException.configIncomplete("MinIO endpoint is required");
         }
         if (accessKey == null || accessKey.isEmpty()) {
-            throw new IllegalArgumentException("accessKey is required");
+            throw StorageException.configIncomplete("MinIO accessKey is required");
         }
         if (secretKey == null || secretKey.isEmpty()) {
-            throw new IllegalArgumentException("secretKey is required");
+            throw StorageException.configIncomplete("MinIO secretKey is required");
         }
     }
 

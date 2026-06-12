@@ -84,4 +84,11 @@ public class StorageException extends BusinessException {
     public static StorageException connectionFailed(String message, Throwable cause) {
         return new StorageException(StorageErrorCode.STORAGE_CONNECTION_FAILED, message, cause);
     }
+
+    /**
+     * 创建配置不完整异常
+     */
+    public static StorageException configIncomplete(String detail) {
+        return new StorageException(StorageErrorCode.STORAGE_CONFIG_INCOMPLETE, detail);
+    }
 }

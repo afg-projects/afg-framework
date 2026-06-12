@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 
 import io.github.afgprojects.framework.core.api.storage.FileStorage;
 import io.github.afgprojects.framework.core.api.storage.FileStorageFactory;
+import io.github.afgprojects.framework.core.api.storage.NoOpFileStorageFactory;
 import io.github.afgprojects.framework.core.api.storage.model.StorageType;
 import io.github.afgprojects.framework.integration.storage.local.LocalFileStorage;
 import io.github.afgprojects.framework.integration.storage.minio.MinioClientBuilder;
@@ -20,11 +21,26 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * 存储自动配置
  */
-@AutoConfiguration
+@AutoConfiguration(afterName = "io.github.afgprojects.framework.core.autoconfigure.AfgAutoConfiguration")
 @EnableConfigurationProperties(StorageProperties.class)
 @ConditionalOnProperty(prefix = "afg.storage", name = "enabled", havingValue = "true", matchIfMissing = true)
 @Slf4j
 public class StorageAutoConfiguration {
+
+    /**
+     * NoOp 文件存储工厂降级实现
+     * <p>
+     * 当没有配置任何存储后端时，提供本地降级。
+     * 所有注册操作静默丢弃，查询返回 null/false。
+     *
+     * @return NoOp 文件存储工厂实例
+     */
+    @Bean
+    @ConditionalOnMissingBean(FileStorageFactory.class)
+    @ConditionalOnProperty(prefix = "afg.storage.noop", name = "enabled", havingValue = "true", matchIfMissing = true)
+    public FileStorageFactory noOpFileStorageFactory() {
+        return new NoOpFileStorageFactory();
+    }
 
     /**
      * 创建文件存储工厂

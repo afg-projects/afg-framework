@@ -79,7 +79,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * CREATE INDEX idx_audit_log_trace_id ON audit_log(trace_id);
  * </pre>
  */
-@AutoConfiguration
+@AutoConfiguration(afterName = {
+        "io.github.afgprojects.framework.core.autoconfigure.AfgAutoConfiguration",
+        "io.github.afgprojects.framework.core.autoconfigure.AuditLogAutoConfiguration"
+})
 @ConditionalOnBean(DataSource.class)
 @EnableConfigurationProperties({
         AfgCoreProperties.class,
