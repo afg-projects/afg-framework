@@ -211,3 +211,36 @@ security-core 模块 6 质量基线落地：12 个 SPI NoOp 降级实现（login
 ### Next Steps
 
 - None - task complete
+
+
+## Session 7: Session 7: security-impl 模块精细化打磨（阶段9）
+
+**Date**: 2026-06-12
+**Task**: Session 7: security-impl 模块精细化打磨（阶段9）
+**Branch**: `main`
+
+### Summary
+
+security-impl 模块打磨：auth-server 9个 AutoConfiguration 添加 @AutoConfigureAfter + resource-server 2个 AutoConfiguration 添加 @AutoConfigureAfter + auth-server 22处 IllegalArgumentException→BusinessException 替换（登录策略/DefaultLoginService/LoginController）
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `485e5ee` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
