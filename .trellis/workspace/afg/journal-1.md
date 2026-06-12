@@ -376,3 +376,36 @@ governance 模块（client+server）精细化打磨：1 个 AutoConfiguration �
 ### Next Steps
 
 - None - task complete
+
+
+## Session 12: Phase 14: gradle-plugin 模块精细化打磨
+
+**Date**: 2026-06-12
+**Task**: Phase 14: gradle-plugin 模块精细化打磨
+**Branch**: `main`
+
+### Summary
+
+gradle-plugin 模块精细化打磨：AfgInitTask 生成模板中 2 处 UnsupportedOperationException → BusinessException(CommonErrorCode.ENTITY_NOT_FOUND)，添加 BusinessException + CommonErrorCode import。gradle-plugin 是 Gradle 插件模块，无 AutoConfiguration 和 SPI NoOp 需求。全量构建+测试通过。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `924a90ac3c4c886b6cbf45c15f5e5e440a3e3e9e` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
