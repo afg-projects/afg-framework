@@ -343,3 +343,36 @@ integration 模块（afg-redis/afg-jdbc/afg-rabbitmq/afg-websocket/afg-storage�
 ### Next Steps
 
 - None - task complete
+
+
+## Session 11: Phase 13: governance 模块精细化打磨
+
+**Date**: 2026-06-12
+**Task**: Phase 13: governance 模块精细化打磨
+**Branch**: `main`
+
+### Summary
+
+governance 模块（client+server）精细化打磨：1 个 AutoConfiguration 添加 @AutoConfigureAfter，27 处异常替换（26 IAE + 7 RuntimeException → BusinessException，使用 ENTITY_NOT_FOUND/ENTITY_ALREADY_EXISTS/PARAM_ERROR/PARAM_FORMAT_ERROR/ENCRYPTION_ERROR）。全量构建+测试通过。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `28e4e667e6dd06457e1f7ebd7cc4ce8a34abc600` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
