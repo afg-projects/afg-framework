@@ -244,3 +244,36 @@ security-impl 模块打磨：auth-server 9个 AutoConfiguration 添加 @AutoConf
 ### Next Steps
 
 - None - task complete
+
+
+## Session 8: Session 8: ai-core 模块精细化打磨（阶段10）
+
+**Date**: 2026-06-12
+**Task**: Session 8: ai-core 模块精细化打磨（阶段10）
+**Branch**: `main`
+
+### Summary
+
+ai-core 模块打磨：18 个 AutoConfiguration 添加 @AutoConfigureAfter + 3 个 SPI NoOp（ToolAuditLogger/ToolPermissionChecker/HumanInteraction）+ 32 处 IllegalArgumentException→BusinessException（服务层18+基础设施层14）+ 测试断言同步更新
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `590706c` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
