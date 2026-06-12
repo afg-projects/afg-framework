@@ -178,3 +178,36 @@ core 模块 6 质量基线落地：@AutoConfiguration 注解规范(2类) + @Auto
 ### Next Steps
 
 - None - task complete
+
+
+## Session 6: Session 6: security-core 模块精细化打磨（阶段8）
+
+**Date**: 2026-06-12
+**Task**: Session 6: security-core 模块精细化打磨（阶段8）
+**Branch**: `main`
+
+### Summary
+
+security-core 模块 6 质量基线落地：12 个 SPI NoOp 降级实现（login/security/storage）+ AfgSecurityContext IllegalStateException→BusinessException(UNAUTHORIZED) 2处 + OAuth2Exception extends BusinessException + TokenValidationException extends BusinessException + 12 个 NoOp 单元测试
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `71883e7` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
