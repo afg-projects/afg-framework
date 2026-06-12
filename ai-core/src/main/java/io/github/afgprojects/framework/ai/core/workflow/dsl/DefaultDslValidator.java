@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.afgprojects.framework.ai.core.api.workflow.definition.EdgeDefinition;
 import io.github.afgprojects.framework.ai.core.api.workflow.definition.WorkflowDefinition;
 import io.github.afgprojects.framework.ai.core.api.workflow.dsl.DslValidator;
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -32,7 +34,7 @@ public class DefaultDslValidator implements DslValidator {
     public void validate(WorkflowDefinition workflow) {
         // Check at least one node
         if (workflow.nodes() == null || workflow.nodes().isEmpty()) {
-            throw new IllegalArgumentException("Workflow must have at least one node");
+            throw new BusinessException(CommonErrorCode.PARAM_ERROR, "Workflow must have at least one node");
         }
 
         // Check node IDs are unique
@@ -44,18 +46,18 @@ public class DefaultDslValidator implements DslValidator {
             }
         }
         if (!duplicates.isEmpty()) {
-            throw new IllegalArgumentException("Duplicate node IDs: " + duplicates);
+            throw new BusinessException(CommonErrorCode.PARAM_ERROR, "Duplicate node IDs: " + duplicates);
         }
 
         // Check edge references exist
         if (workflow.edges() != null) {
             for (EdgeDefinition edge : workflow.edges()) {
                 if (!nodeIds.contains(edge.source())) {
-                    throw new IllegalArgumentException(
+                    throw new BusinessException(CommonErrorCode.PARAM_ERROR,
                         "Edge '" + edge.id() + "' references non-existent source node: " + edge.source());
                 }
                 if (!nodeIds.contains(edge.target())) {
-                    throw new IllegalArgumentException(
+                    throw new BusinessException(CommonErrorCode.PARAM_ERROR,
                         "Edge '" + edge.id() + "' references non-existent target node: " + edge.target());
                 }
             }
@@ -66,7 +68,7 @@ public class DefaultDslValidator implements DslValidator {
             .filter(n -> "start".equals(n.type()))
             .count();
         if (startCount != 1) {
-            throw new IllegalArgumentException(
+            throw new BusinessException(CommonErrorCode.PARAM_ERROR,
                 "Workflow must have exactly one start node, found: " + startCount);
         }
     }

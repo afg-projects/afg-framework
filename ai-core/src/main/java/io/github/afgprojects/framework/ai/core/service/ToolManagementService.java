@@ -2,6 +2,8 @@ package io.github.afgprojects.framework.ai.core.service;
 
 import io.github.afgprojects.framework.ai.core.api.tool.ToolRegistry;
 import io.github.afgprojects.framework.ai.core.entity.tool.ToolRegistryEntity;
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import io.github.afgprojects.framework.data.core.DataManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +38,7 @@ public class ToolManagementService {
     @Transactional
     public ToolRegistryEntity enableTool(Long toolId) {
         ToolRegistryEntity tool = dataManager.findById(ToolRegistryEntity.class, toolId)
-            .orElseThrow(() -> new IllegalArgumentException("工具不存在: " + toolId));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "工具不存在: " + toolId));
         tool.setEnabled(true);
         log.info("Tool enabled: id={}, name={}", toolId, tool.getName());
         return dataManager.save(ToolRegistryEntity.class, tool);
@@ -51,7 +53,7 @@ public class ToolManagementService {
     @Transactional
     public ToolRegistryEntity disableTool(Long toolId) {
         ToolRegistryEntity tool = dataManager.findById(ToolRegistryEntity.class, toolId)
-            .orElseThrow(() -> new IllegalArgumentException("工具不存在: " + toolId));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "工具不存在: " + toolId));
         tool.setEnabled(false);
         log.info("Tool disabled: id={}, name={}", toolId, tool.getName());
         return dataManager.save(ToolRegistryEntity.class, tool);

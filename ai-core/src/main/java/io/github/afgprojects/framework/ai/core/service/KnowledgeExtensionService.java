@@ -4,6 +4,8 @@ import io.github.afgprojects.framework.ai.core.api.rag.Document;
 import io.github.afgprojects.framework.ai.core.api.rag.KnowledgeBaseService;
 import io.github.afgprojects.framework.ai.core.entity.knowledge.DocumentEntity;
 import io.github.afgprojects.framework.ai.core.entity.knowledge.KnowledgeBaseEntity;
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.condition.Conditions;
 import lombok.RequiredArgsConstructor;
@@ -44,7 +46,7 @@ public class KnowledgeExtensionService {
     public List<Document> questionAnswer(Long knowledgeBaseId, String question, int topK, double threshold) {
         // 验证知识库存在
         dataManager.findById(KnowledgeBaseEntity.class, knowledgeBaseId)
-            .orElseThrow(() -> new IllegalArgumentException("知识库不存在: " + knowledgeBaseId));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "知识库不存在: " + knowledgeBaseId));
 
         // 使用 KnowledgeBaseService 进行向量检索
         return knowledgeBaseService.search(
@@ -66,7 +68,7 @@ public class KnowledgeExtensionService {
     public DocumentEntity uploadFromUrl(Long knowledgeBaseId, String url, String title) {
         // 验证知识库存在
         dataManager.findById(KnowledgeBaseEntity.class, knowledgeBaseId)
-            .orElseThrow(() -> new IllegalArgumentException("知识库不存在: " + knowledgeBaseId));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "知识库不存在: " + knowledgeBaseId));
 
         // 创建文档实体
         DocumentEntity document = new DocumentEntity();
@@ -91,7 +93,7 @@ public class KnowledgeExtensionService {
     @Transactional
     public DocumentEntity retryDocument(Long documentId) {
         DocumentEntity document = dataManager.findById(DocumentEntity.class, documentId)
-            .orElseThrow(() -> new IllegalArgumentException("文档不存在: " + documentId));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "文档不存在: " + documentId));
 
         if (!"FAILED".equals(document.getStatus())) {
             throw new IllegalStateException("只能重试失败的文档，当前状态: " + document.getStatus());

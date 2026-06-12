@@ -22,7 +22,8 @@ import org.springframework.context.annotation.Bean;
  * @see PersistenceProperties
  */
 @Slf4j
-@AutoConfiguration
+@AutoConfiguration(after = PersistenceAutoConfiguration.class,
+        afterName = "io.github.afgprojects.framework.data.jdbc.autoconfigure.DataManagerAutoConfiguration")
 @EnableConfigurationProperties(PersistenceProperties.class)
 @ConditionalOnBean(DataManager.class)
 @ConditionalOnProperty(prefix = "afg.ai.persistence", name = "type", havingValue = "jdbc", matchIfMissing = true)

@@ -1,6 +1,8 @@
 package io.github.afgprojects.framework.ai.core.service;
 
 import io.github.afgprojects.framework.ai.core.entity.application.ApplicationEntity;
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import io.github.afgprojects.framework.data.core.DataManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,13 +31,13 @@ public class ApplicationPublishService {
      *
      * @param applicationId 应用 ID
      * @return 更新后的应用实体
-     * @throws IllegalArgumentException 应用不存在
+     * @throws BusinessException   应用不存在
      * @throws IllegalStateException    应用配置不完整
      */
     @Transactional
     public ApplicationEntity publish(Long applicationId) {
         ApplicationEntity app = dataManager.findById(ApplicationEntity.class, applicationId)
-            .orElseThrow(() -> new IllegalArgumentException("应用不存在: " + applicationId));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "应用不存在: " + applicationId));
 
         // 验证应用配置完整性
         if (app.getName() == null || app.getName().isBlank()) {
@@ -58,12 +60,12 @@ public class ApplicationPublishService {
      *
      * @param applicationId 应用 ID
      * @return 更新后的应用实体
-     * @throws IllegalArgumentException 应用不存在
+     * @throws BusinessException 应用不存在
      */
     @Transactional
     public ApplicationEntity unpublish(Long applicationId) {
         ApplicationEntity app = dataManager.findById(ApplicationEntity.class, applicationId)
-            .orElseThrow(() -> new IllegalArgumentException("应用不存在: " + applicationId));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "应用不存在: " + applicationId));
 
         // 更新状态为 DRAFT
         app.setStatus("DRAFT");

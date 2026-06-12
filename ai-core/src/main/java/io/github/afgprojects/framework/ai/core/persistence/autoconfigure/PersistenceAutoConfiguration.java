@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.ai.core.persistence.autoconfigure;
 
+import io.github.afgprojects.framework.ai.core.autoconfigure.AiCoreAutoConfiguration;
 import io.github.afgprojects.framework.ai.core.api.persistence.MessageHistoryStore;
 import io.github.afgprojects.framework.ai.core.api.persistence.SessionStore;
 import io.github.afgprojects.framework.ai.core.persistence.DefaultMessageHistoryStore;
@@ -21,7 +22,8 @@ import org.springframework.context.annotation.Bean;
  * @see PersistenceProperties
  */
 @Slf4j
-@AutoConfiguration
+@AutoConfiguration(after = AiCoreAutoConfiguration.class,
+        afterName = "io.github.afgprojects.framework.core.autoconfigure.AfgAutoConfiguration")
 @EnableConfigurationProperties(PersistenceProperties.class)
 @ConditionalOnClass(DefaultSessionStore.class)
 @ConditionalOnProperty(prefix = "afg.ai.persistence", name = "enabled", havingValue = "true", matchIfMissing = true)

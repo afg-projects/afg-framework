@@ -32,7 +32,8 @@ import java.util.function.Function;
  * @author afg-projects
  * @since 1.0.0
  */
-@AutoConfiguration
+@AutoConfiguration(after = AiAgentAutoConfiguration.class,
+        afterName = "io.github.afgprojects.framework.core.autoconfigure.AfgAutoConfiguration")
 @EnableConfigurationProperties(AfgAiProperties.class)
 @ConditionalOnProperty(prefix = "afg.ai.workflow", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class AiWorkflowAutoConfiguration {

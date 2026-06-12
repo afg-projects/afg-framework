@@ -5,6 +5,7 @@ import io.github.afgprojects.framework.ai.core.api.model.ModelInfo;
 import io.github.afgprojects.framework.ai.core.api.model.ModelRegistry;
 import io.github.afgprojects.framework.ai.core.api.model.ModelType;
 import io.github.afgprojects.framework.ai.core.model.DefaultModelRegistry;
+import io.github.afgprojects.framework.commons.exception.BusinessException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -123,7 +124,7 @@ class DefaultModelRegistryTest {
         @DisplayName("设置未注册的模型为默认应抛异常")
         void shouldThrow_whenSettingUnregisteredModelAsDefault() {
             assertThatThrownBy(() -> registry.setDefault("nonexistent", ModelType.CHAT))
-                    .isInstanceOf(IllegalArgumentException.class)
+                    .isInstanceOf(BusinessException.class)
                     .hasMessageContaining("not registered");
         }
 

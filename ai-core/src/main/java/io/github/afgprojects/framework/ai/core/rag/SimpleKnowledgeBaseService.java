@@ -4,6 +4,8 @@ import io.github.afgprojects.framework.ai.core.api.rag.Document;
 import io.github.afgprojects.framework.ai.core.api.rag.EmbeddingService;
 import io.github.afgprojects.framework.ai.core.api.rag.KnowledgeBaseService;
 import io.github.afgprojects.framework.ai.core.api.rag.VectorStore;
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
@@ -74,7 +76,7 @@ public class SimpleKnowledgeBaseService implements KnowledgeBaseService {
                                     @Nullable String description) {
         KnowledgeBaseInfo existing = knowledgeBases.get(knowledgeBaseId);
         if (existing == null) {
-            throw new IllegalArgumentException("Knowledge base not found: " + knowledgeBaseId);
+            throw new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Knowledge base not found: " + knowledgeBaseId);
         }
         KnowledgeBaseInfo updated = new KnowledgeBaseInfo(
             knowledgeBaseId,
@@ -99,7 +101,7 @@ public class SimpleKnowledgeBaseService implements KnowledgeBaseService {
                             @NonNull String content, @Nullable Map<String, Object> metadata) {
         KnowledgeBaseInfo kb = knowledgeBases.get(knowledgeBaseId);
         if (kb == null) {
-            throw new IllegalArgumentException("Knowledge base not found: " + knowledgeBaseId);
+            throw new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Knowledge base not found: " + knowledgeBaseId);
         }
 
         Map<String, Object> docMetadata = metadata != null ? new HashMap<>(metadata) : new HashMap<>();

@@ -6,6 +6,8 @@ import io.github.afgprojects.framework.ai.core.api.workflow.definition.EdgeDefin
 import io.github.afgprojects.framework.ai.core.api.workflow.definition.WorkflowDefinition;
 import io.github.afgprojects.framework.ai.core.api.workflow.definition.WorkflowDefinition.NodeInstance;
 import io.github.afgprojects.framework.ai.core.api.workflow.definition.WorkflowDefinition.Position;
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 
 import java.util.*;
 
@@ -78,7 +80,7 @@ public class JsonDslParser {
 
             return new WorkflowDefinition(version, nodes, edges);
         } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to parse workflow JSON: " + e.getMessage(), e);
+            throw new BusinessException(CommonErrorCode.PARAM_FORMAT_ERROR, "Failed to parse workflow JSON: " + e.getMessage(), e);
         }
     }
 

@@ -3,6 +3,7 @@ package io.github.afgprojects.framework.ai.core;
 import io.github.afgprojects.framework.ai.core.api.chat.AfgChatClient;
 import io.github.afgprojects.framework.ai.core.api.chat.AiChatResponse;
 import io.github.afgprojects.framework.ai.core.chat.DefaultChatClientRegistry;
+import io.github.afgprojects.framework.commons.exception.BusinessException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -102,7 +103,7 @@ class DefaultChatClientRegistryTest {
         @DisplayName("设置未注册的名称为默认应抛异常")
         void shouldThrow_whenSettingUnregisteredAsDefault() {
             assertThatThrownBy(() -> registry.setDefault("nonexistent"))
-                    .isInstanceOf(IllegalArgumentException.class)
+                    .isInstanceOf(BusinessException.class)
                     .hasMessageContaining("not registered");
         }
     }

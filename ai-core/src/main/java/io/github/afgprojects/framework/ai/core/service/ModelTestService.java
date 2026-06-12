@@ -3,6 +3,8 @@ package io.github.afgprojects.framework.ai.core.service;
 import io.github.afgprojects.framework.ai.core.dto.model.ConnectionTestResponse;
 import io.github.afgprojects.framework.ai.core.entity.model.ModelProviderEntity;
 import io.github.afgprojects.framework.ai.core.provider.ProviderTemplateRegistry;
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import io.github.afgprojects.framework.data.core.DataManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +30,7 @@ public class ModelTestService {
      */
     public ConnectionTestResponse verifyConnection(Long providerId) {
         ModelProviderEntity provider = dataManager.findById(ModelProviderEntity.class, providerId)
-            .orElseThrow(() -> new IllegalArgumentException("供应商不存在: " + providerId));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "供应商不存在: " + providerId));
 
         String baseUrl = provider.getBaseUrl();
         String apiKey = provider.getApiKey();

@@ -2,6 +2,8 @@ package io.github.afgprojects.framework.ai.core.chat;
 
 import io.github.afgprojects.framework.ai.core.api.chat.AfgChatClient;
 import io.github.afgprojects.framework.ai.core.api.chat.ChatClientRegistry;
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -51,7 +53,7 @@ public class DefaultChatClientRegistry implements ChatClientRegistry {
     @Override
     public void setDefault(@NonNull String name) {
         if (!clients.containsKey(name)) {
-            throw new IllegalArgumentException("ChatClient '" + name + "' not registered");
+            throw new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "ChatClient '" + name + "' not registered");
         }
         this.defaultName = name;
     }

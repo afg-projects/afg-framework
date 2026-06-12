@@ -4,6 +4,8 @@ import io.github.afgprojects.framework.ai.core.api.model.DefaultModelInfo;
 import io.github.afgprojects.framework.ai.core.api.model.ModelInfo;
 import io.github.afgprojects.framework.ai.core.api.model.ModelRegistry;
 import io.github.afgprojects.framework.ai.core.api.model.ModelType;
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -51,7 +53,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     @Override
     public void setDefault(@NonNull String name, @NonNull ModelType type) {
         if (!models.containsKey(name)) {
-            throw new IllegalArgumentException("Model '" + name + "' not registered");
+            throw new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Model '" + name + "' not registered");
         }
         defaults.put(type, name);
     }

@@ -24,7 +24,8 @@ import java.util.List;
  * @author afg-projects
  * @since 1.0.0
  */
-@AutoConfiguration
+@AutoConfiguration(after = {AiChatAutoConfiguration.class, AiRagAutoConfiguration.class},
+        afterName = "io.github.afgprojects.framework.core.autoconfigure.AfgAutoConfiguration")
 @EnableConfigurationProperties(AfgAiProperties.class)
 @ConditionalOnProperty(prefix = "afg.ai.pipeline", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class AiPipelineAutoConfiguration {

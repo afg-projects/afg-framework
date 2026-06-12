@@ -1,6 +1,8 @@
 package io.github.afgprojects.framework.ai.core.agent;
 
 import io.github.afgprojects.framework.ai.core.api.multiagent.state.*;
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import org.jspecify.annotations.NonNull;
 
 import java.time.Duration;
@@ -93,10 +95,10 @@ public class InMemoryStateManager implements StateManager {
     @NonNull
     public WorkflowState restoreFromCheckpoint(@NonNull String workflowId, @NonNull String checkpointId) {
         WorkflowState current = getState(workflowId)
-                .orElseThrow(() -> new IllegalArgumentException("Workflow not found: " + workflowId));
+                .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Workflow not found: " + workflowId));
 
         Checkpoint checkpoint = getCheckpoint(workflowId, checkpointId)
-                .orElseThrow(() -> new IllegalArgumentException("Checkpoint not found: " + checkpointId));
+                .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Checkpoint not found: " + checkpointId));
 
         WorkflowState restored = new WorkflowState(checkpoint.state())
                 .with("_workflowId", current.get("_workflowId"))

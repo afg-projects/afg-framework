@@ -2,6 +2,8 @@ package io.github.afgprojects.framework.ai.core.model;
 
 import io.github.afgprojects.framework.ai.core.api.model.ModelRegistry;
 import io.github.afgprojects.framework.ai.core.model.annotation.ModelRoute;
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -30,7 +32,7 @@ public class ModelRouteAspect {
 
         // 验证模型是否存在
         modelRegistry.getModel(modelName)
-                .orElseThrow(() -> new IllegalArgumentException("Model not found: " + modelName));
+                .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Model not found: " + modelName));
 
         // 将模型路由信息放入 ThreadLocal
         try {

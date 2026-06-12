@@ -20,7 +20,8 @@ import org.springframework.context.annotation.Bean;
  * @author afg-projects
  * @since 1.0.0
  */
-@AutoConfiguration
+@AutoConfiguration(after = AiToolAutoConfiguration.class,
+        afterName = "io.github.afgprojects.framework.core.autoconfigure.AfgAutoConfiguration")
 @EnableConfigurationProperties(AfgAiProperties.class)
 @ConditionalOnProperty(prefix = "afg.ai.skill", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class AiSkillAutoConfiguration {

@@ -7,6 +7,8 @@ import io.github.afgprojects.framework.ai.core.entity.knowledge.DocumentChunkEnt
 import io.github.afgprojects.framework.ai.core.entity.knowledge.DocumentEntity;
 import io.github.afgprojects.framework.ai.core.entity.knowledge.KnowledgeBaseEntity;
 import io.github.afgprojects.framework.ai.core.etl.transformer.RecursiveCharacterTextSplitter;
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.condition.Conditions;
 import lombok.RequiredArgsConstructor;
@@ -58,7 +60,7 @@ public class KnowledgeDocumentService {
     public DocumentEntity uploadDocument(Long knowledgeBaseId, MultipartFile file, String title) {
         // 1. 验证知识库是否存在
         KnowledgeBaseEntity kb = dataManager.findById(KnowledgeBaseEntity.class, knowledgeBaseId)
-            .orElseThrow(() -> new IllegalArgumentException("Knowledge base not found: " + knowledgeBaseId));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Knowledge base not found: " + knowledgeBaseId));
 
         // 2. 创建文档实体，状态为 PROCESSING（短事务）
         DocumentEntity document = createDocumentInTransaction(knowledgeBaseId, file, title);
@@ -183,7 +185,7 @@ public class KnowledgeDocumentService {
     @Transactional
     public void deleteDocument(Long documentId) {
         DocumentEntity document = dataManager.findById(DocumentEntity.class, documentId)
-            .orElseThrow(() -> new IllegalArgumentException("Document not found: " + documentId));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Document not found: " + documentId));
 
         // 软删除文档
         document.markDeleted();
@@ -226,7 +228,7 @@ public class KnowledgeDocumentService {
     @Transactional
     public void deleteChunk(Long chunkId) {
         DocumentChunkEntity chunk = dataManager.findById(DocumentChunkEntity.class, chunkId)
-            .orElseThrow(() -> new IllegalArgumentException("Chunk not found: " + chunkId));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Chunk not found: " + chunkId));
 
         // 删除 VectorStore 中的向量
         String vectorDocId = "doc-" + chunk.getDocumentId() + "-chunk-" + chunk.getChunkIndex();

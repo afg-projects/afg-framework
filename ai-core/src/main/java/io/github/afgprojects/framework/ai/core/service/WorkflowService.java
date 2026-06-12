@@ -11,6 +11,8 @@ import io.github.afgprojects.framework.ai.core.api.workflow.engine.DagStatus;
 import io.github.afgprojects.framework.ai.core.entity.workflow.WorkflowDefinitionEntity;
 import io.github.afgprojects.framework.ai.core.entity.workflow.WorkflowExecutionEntity;
 import io.github.afgprojects.framework.ai.core.workflow.engine.DefaultExecutionContext;
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import io.github.afgprojects.framework.data.core.DataManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,7 +56,7 @@ public class WorkflowService {
      */
     public DagResult execute(Long definitionId, Map<String, Object> inputs, String userId) {
         WorkflowDefinitionEntity entity = dataManager.findById(WorkflowDefinitionEntity.class, definitionId)
-            .orElseThrow(() -> new IllegalArgumentException("Workflow definition not found: " + definitionId));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Workflow definition not found: " + definitionId));
 
         WorkflowDefinition workflow = dslConverter.fromJson(entity.getDslContent());
         DefaultExecutionContext context = new DefaultExecutionContext(
@@ -83,7 +85,7 @@ public class WorkflowService {
      */
     public Flux<DagEvent> executeStream(Long definitionId, Map<String, Object> inputs, String userId) {
         WorkflowDefinitionEntity entity = dataManager.findById(WorkflowDefinitionEntity.class, definitionId)
-            .orElseThrow(() -> new IllegalArgumentException("Workflow definition not found: " + definitionId));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Workflow definition not found: " + definitionId));
 
         WorkflowDefinition workflow = dslConverter.fromJson(entity.getDslContent());
         DefaultExecutionContext context = new DefaultExecutionContext(

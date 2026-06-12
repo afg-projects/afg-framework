@@ -11,6 +11,7 @@ import io.github.afgprojects.framework.ai.core.api.multiagent.AgentWorkflow;
 import io.github.afgprojects.framework.ai.core.api.multiagent.communication.CommunicationBus;
 import io.github.afgprojects.framework.ai.core.api.multiagent.communication.MessageHandler;
 import io.github.afgprojects.framework.ai.core.api.multiagent.decomposition.TaskDecomposer;
+import io.github.afgprojects.framework.ai.core.api.multiagent.human.HumanInteraction;
 import io.github.afgprojects.framework.ai.core.api.multiagent.state.StateManager;
 import io.github.afgprojects.framework.ai.core.api.planning.PlanExecuteExecutor;
 import io.github.afgprojects.framework.ai.core.api.planning.ReActExecutor;
@@ -35,7 +36,8 @@ import org.springframework.context.annotation.Configuration;
  * @author afg-projects
  * @since 1.0.0
  */
-@AutoConfiguration
+@AutoConfiguration(after = {AiChatAutoConfiguration.class, AiToolAutoConfiguration.class},
+        afterName = "io.github.afgprojects.framework.core.autoconfigure.AfgAutoConfiguration")
 @EnableConfigurationProperties(AfgAiProperties.class)
 @ConditionalOnProperty(prefix = "afg.ai.agent", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class AiAgentAutoConfiguration {
@@ -151,6 +153,12 @@ public class AiAgentAutoConfiguration {
                     "Default Agent Workflow",
                     java.util.List.of(),
                     orchestrator);
+        }
+
+        @Bean
+        @ConditionalOnMissingBean(HumanInteraction.class)
+        public NoOpHumanInteraction noOpHumanInteraction() {
+            return new NoOpHumanInteraction();
         }
     }
 }

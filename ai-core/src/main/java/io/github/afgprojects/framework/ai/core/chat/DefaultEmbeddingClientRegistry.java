@@ -2,6 +2,8 @@ package io.github.afgprojects.framework.ai.core.chat;
 
 import io.github.afgprojects.framework.ai.core.api.chat.AfgEmbeddingClient;
 import io.github.afgprojects.framework.ai.core.api.chat.EmbeddingClientRegistry;
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import org.jspecify.annotations.NonNull;
 
 import java.util.List;
@@ -50,7 +52,7 @@ public class DefaultEmbeddingClientRegistry implements EmbeddingClientRegistry {
     @Override
     public void setDefault(@NonNull String name) {
         if (!clients.containsKey(name)) {
-            throw new IllegalArgumentException("EmbeddingClient '" + name + "' not registered");
+            throw new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "EmbeddingClient '" + name + "' not registered");
         }
         this.defaultName = name;
     }

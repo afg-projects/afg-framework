@@ -20,7 +20,8 @@ import org.springframework.context.annotation.Configuration;
  * @author afg-projects
  * @since 1.0.0
  */
-@AutoConfiguration
+@AutoConfiguration(after = AiCoreAutoConfiguration.class,
+        afterName = "io.github.afgprojects.framework.core.autoconfigure.AfgAutoConfiguration")
 @EnableConfigurationProperties(AfgAiProperties.class)
 @ConditionalOnProperty(prefix = "afg.ai.persistence", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class AiPersistenceAutoConfiguration {

@@ -13,6 +13,8 @@ import io.github.afgprojects.framework.ai.core.api.chat.ChatClientRegistry;
 import io.github.afgprojects.framework.ai.core.api.tool.ToolRegistry;
 import io.github.afgprojects.framework.ai.core.entity.agent.AgentDefinitionEntity;
 import io.github.afgprojects.framework.ai.core.entity.agent.AgentSessionEntity;
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import io.github.afgprojects.framework.data.core.DataManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,11 +57,11 @@ public class AgentService {
     public AgentResponse execute(Long sessionId, String userInput) {
         // 1. 加载会话（读操作，无需事务）
         AgentSessionEntity session = dataManager.findById(AgentSessionEntity.class, sessionId)
-            .orElseThrow(() -> new IllegalArgumentException("Agent session not found: " + sessionId));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Agent session not found: " + sessionId));
 
         // 2. 加载 Agent 定义（读操作，无需事务）
         AgentDefinitionEntity definition = dataManager.findById(AgentDefinitionEntity.class, session.getAgentDefinitionId())
-            .orElseThrow(() -> new IllegalArgumentException("Agent definition not found: " + session.getAgentDefinitionId()));
+            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Agent definition not found: " + session.getAgentDefinitionId()));
 
         // 3. 更新会话状态为运行中（短事务）
         updateSessionStatusInTransaction(sessionId, "RUNNING", null);
@@ -101,7 +103,7 @@ public class AgentService {
     private void updateSessionStatusInTransaction(Long sessionId, String status, String metadataJson) {
         new TransactionTemplate(transactionManager).executeWithoutResult(txStatus -> {
             AgentSessionEntity session = dataManager.findById(AgentSessionEntity.class, sessionId)
-                .orElseThrow(() -> new IllegalArgumentException("Agent session not found: " + sessionId));
+                .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Agent session not found: " + sessionId));
             session.setStatus(status);
             if (metadataJson != null) {
                 Map<String, Object> metadata = parseJsonToMap(session.getMetadata());
@@ -120,7 +122,7 @@ public class AgentService {
         AfgChatClient chatClient;
         if (definition.getChatClientName() != null && !definition.getChatClientName().isBlank()) {
             chatClient = chatClientRegistry.get(definition.getChatClientName())
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND,
                     "ChatClient not found: " + definition.getChatClientName()));
         } else {
             chatClient = chatClientRegistry.getDefault();
