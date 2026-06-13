@@ -42,6 +42,18 @@ public class DuplicateSubmitException extends BusinessException {
     }
 
     /**
+     * 构造重复提交异常
+     *
+     * @param submitKey 去重键
+     * @param message   自定义错误消息
+     * @param cause     原始异常
+     */
+    public DuplicateSubmitException(String submitKey, String message, Throwable cause) {
+        super(CommonErrorCode.DUPLICATE_SUBMIT, message, cause);
+        this.submitKey = submitKey;
+    }
+
+    /**
      * 获取去重键
      *
      * @return 去重键

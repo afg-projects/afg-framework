@@ -230,6 +230,13 @@
             <property name="maxfields" value="25"/>
         </properties>
     </rule>
+    <!-- 使用 suppression xpath 排除 AfgCoreProperties — 它是统一的配置聚合类，字段多是设计要求 -->
+    <rule ref="category/java/design.xml/TooManyFields">
+        <properties>
+            <property name="violationSuppressXPath" value="//ClassOrInterfaceDeclaration[@Name='AfgCoreProperties']"/>
+        </properties>
+    </rule>
+    </rule>
 
     <!-- CouplingBetweenObjects: 框架核心类需要与多种类型交互，使用默认阈值 -->
     <!-- 注：PMD 7.x 不支持自定义 coupling 属性，使用默认阈值即可 -->

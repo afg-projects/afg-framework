@@ -172,7 +172,7 @@ public class DuplicateSubmitAspect {
         } catch (Exception e) {
             log.error("Failed to evaluate SpEL expression: {}", expression, e);
             throw new DuplicateSubmitException(expression,
-                    "防重复提交键表达式解析失败: " + expression);
+                    "防重复提交键表达式解析失败: " + expression, e);
         }
     }
 

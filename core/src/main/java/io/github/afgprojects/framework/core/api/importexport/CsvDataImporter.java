@@ -59,7 +59,7 @@ public class CsvDataImporter implements DataImporter {
             String line;
             int rowNum = 1; // 数据行号，从 1 开始（不含标题行）
             while ((line = reader.readLine()) != null) {
-                if (line.trim().isEmpty()) {
+                if (line.isBlank()) {
                     continue;
                 }
 
@@ -78,7 +78,7 @@ public class CsvDataImporter implements DataImporter {
                         String rawValue = values.get(colIdx);
 
                         // 必填校验
-                        if (column.isRequired() && (rawValue == null || rawValue.trim().isEmpty())) {
+                        if (column.isRequired() && (rawValue == null || rawValue.isBlank())) {
                             rowErrors.add(ImportError.builder()
                                     .row(rowNum)
                                     .field(column.getFieldName())
@@ -146,7 +146,7 @@ public class CsvDataImporter implements DataImporter {
      * 将字符串值转换为目标字段类型。
      */
     private Object convertValue(String rawValue, ColumnMetadata column) {
-        if (rawValue == null || rawValue.trim().isEmpty()) {
+        if (rawValue == null || rawValue.isBlank()) {
             return null;
         }
 
@@ -198,7 +198,8 @@ public class CsvDataImporter implements DataImporter {
         StringBuilder current = new StringBuilder();
         boolean inQuotes = false;
 
-        for (int i = 0; i < line.length(); i++) {
+        int i = 0;
+        while (i < line.length()) {
             char c = line.charAt(i);
 
             if (inQuotes) {
@@ -223,6 +224,7 @@ public class CsvDataImporter implements DataImporter {
                     current.append(c);
                 }
             }
+            i++;
         }
 
         result.add(current.toString());
