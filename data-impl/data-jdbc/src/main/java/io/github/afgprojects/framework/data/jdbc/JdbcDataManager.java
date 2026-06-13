@@ -2,6 +2,9 @@ package io.github.afgprojects.framework.data.jdbc;
 
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.EntityProxy;
+import io.github.afgprojects.framework.core.api.id.IdGenerator;
+import io.github.afgprojects.framework.data.core.event.EntityChangedEventPublisher;
+import io.github.afgprojects.framework.data.core.event.NoOpEntityChangedEventPublisher;
 import io.github.afgprojects.framework.data.jdbc.metrics.RawSqlSecurityGuard;
 import io.github.afgprojects.framework.data.core.context.TenantContextHolder;
 import io.github.afgprojects.framework.data.core.dialect.*;
@@ -132,6 +135,22 @@ public class JdbcDataManager implements DataManager {
     private FieldEncryptor fieldEncryptor;
 
     /**
+     * ID 生成器（可选，来自 core 模块的 SPI）
+     * <p>
+     * 当 IdGenerator 存在时，插入实体前预生成 ID（如 Snowflake ID），
+     * 否则使用数据库自增 ID（向后兼容）。
+     */
+    private volatile @Nullable IdGenerator idGenerator;
+
+    /**
+     * 实体变更事件发布器（可选）
+     * <p>
+     * 用于在 DataManager 执行保存、更新、删除、恢复操作后发布实体变更事件。
+     * 默认使用 NoOp 实现（不发布任何事件）。
+     */
+    private EntityChangedEventPublisher entityChangedEventPublisher;
+
+    /**
      * 类型处理器注册表
      */
     private volatile TypeHandlerRegistry typeHandlerRegistry = TypeHandlerRegistry.defaultRegistry();
@@ -145,6 +164,7 @@ public class JdbcDataManager implements DataManager {
         this.tenantContextHolder = new TenantContextHolder();
         this.auditableContext = new NoOpAuditableContext();
         this.fieldEncryptor = new NoOpFieldEncryptor();
+        this.entityChangedEventPublisher = new NoOpEntityChangedEventPublisher();
     }
 
     public JdbcDataManager(DataSource dataSource, DatabaseType databaseType) {
@@ -156,6 +176,7 @@ public class JdbcDataManager implements DataManager {
         this.tenantContextHolder = new TenantContextHolder();
         this.auditableContext = new NoOpAuditableContext();
         this.fieldEncryptor = new NoOpFieldEncryptor();
+        this.entityChangedEventPublisher = new NoOpEntityChangedEventPublisher();
     }
 
     /**
@@ -225,6 +246,50 @@ public class JdbcDataManager implements DataManager {
      */
     public FieldEncryptor getFieldEncryptor() {
         return fieldEncryptor;
+    }
+
+    /**
+     * 设置 ID 生成器
+     * <p>
+     * 注入与 AutoConfiguration 创建的同一实例，
+     * 确保分布式 ID 在整个应用中一致。
+     * 如果不设置，使用数据库自增 ID（向后兼容）。
+     *
+     * @param idGenerator ID 生成器
+     */
+    public void setIdGenerator(@Nullable IdGenerator idGenerator) {
+        this.idGenerator = idGenerator;
+    }
+
+    /**
+     * 获取 ID 生成器
+     *
+     * @return ID 生成器，可能为 null（未配置时使用数据库自增）
+     */
+    public @Nullable IdGenerator getIdGenerator() {
+        return idGenerator;
+    }
+
+    /**
+     * 设置实体变更事件发布器
+     * <p>
+     * 注入与 AutoConfiguration 创建的同一实例，
+     * 确保实体变更事件在整个应用中一致。
+     * 如果不设置，使用 NoOp 默认实例（不发布事件）。
+     *
+     * @param publisher 实体变更事件发布器
+     */
+    public void setEntityChangedEventPublisher(@NonNull EntityChangedEventPublisher publisher) {
+        this.entityChangedEventPublisher = publisher;
+    }
+
+    /**
+     * 获取实体变更事件发布器
+     *
+     * @return 实体变更事件发布器
+     */
+    public EntityChangedEventPublisher getEntityChangedEventPublisher() {
+        return entityChangedEventPublisher;
     }
 
     /**

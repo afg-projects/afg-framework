@@ -2,6 +2,7 @@ package io.github.afgprojects.framework.data.jdbc;
 
 import io.github.afgprojects.framework.commons.exception.BusinessException;
 import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
+import io.github.afgprojects.framework.core.api.id.IdGenerator;
 import io.github.afgprojects.framework.data.core.entity.*;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
@@ -45,6 +46,14 @@ public class EntityInsertHandler<T> {
      * 字段加密器（可注入，支持与 FieldEncryptor Bean 共享）
      */
     private FieldEncryptor fieldEncryptor;
+
+    /**
+     * ID 生成器（可选，来自 core 模块的 SPI）
+     * <p>
+     * 当 IdGenerator 存在时，插入实体前预生成 ID（如 Snowflake ID），
+     * 否则使用数据库自增 ID（向后兼容）。
+     */
+    private volatile @Nullable IdGenerator idGenerator;
 
     /**
      * 默认批次大小（使用 volatile 确保多线程可见性）
@@ -92,6 +101,28 @@ public class EntityInsertHandler<T> {
     }
 
     /**
+     * 设置 ID 生成器
+     * <p>
+     * 注入与 AutoConfiguration 创建的同一实例，
+     * 确保分布式 ID 在整个应用中一致。
+     * 如果不设置，使用数据库自增 ID（向后兼容）。
+     *
+     * @param idGenerator ID 生成器
+     */
+    public void setIdGenerator(@Nullable IdGenerator idGenerator) {
+        this.idGenerator = idGenerator;
+    }
+
+    /**
+     * 获取 ID 生成器
+     *
+     * @return ID 生成器，可能为 null
+     */
+    public @Nullable IdGenerator getIdGenerator() {
+        return idGenerator;
+    }
+
+    /**
      * 插入单个实体
      *
      * @param entity 实体对象
@@ -135,7 +166,17 @@ public class EntityInsertHandler<T> {
             return entity;
         }
 
-        // 没有ID时，从数据库获取生成的主键
+        // 使用 IdGenerator 预生成 ID（如果配置了 IdGenerator）
+        if (idGenerator != null) {
+            long generatedId = idGenerator.nextId();
+            queryHelper.setIdValue(entity, generatedId);
+            String sql = queryHelper.buildInsertWithIdSql();
+            List<Object> params = queryHelper.extractInsertWithIdParams(entity);
+            dataManager.executeUpdate(sql, params);
+            return entity;
+        }
+
+        // 没有 IdGenerator 时，从数据库获取生成的主键（数据库自增）
         String sql = queryHelper.buildInsertSql();
         List<Object> params = queryHelper.extractInsertParams(entity);
         long generatedId = dataManager.executeInsertAndReturnKey(sql, params);

@@ -16,6 +16,7 @@ import io.github.afgprojects.framework.data.core.query.Sort;
 import io.github.afgprojects.framework.data.core.query.AggregateQuery;
 import io.github.afgprojects.framework.data.core.scope.DataScope;
 import io.github.afgprojects.framework.data.core.scope.DataScopeType;
+import io.github.afgprojects.framework.data.jdbc.datasource.DataSourceContextHolder;
 import io.github.afgprojects.framework.data.sql.converter.ConditionToSqlConverter;
 import io.github.afgprojects.framework.data.sql.scope.DataScopeSqlBuilder;
 import lombok.extern.slf4j.Slf4j;
@@ -318,116 +319,128 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
 
     @Override
     public @NonNull List<T> list() {
-        String selectSql = buildSelectSql();
-        WhereClause where = buildWhereClause();
-        String sql = selectSql + where.withKeyword();
-        List<Object> params = where.jdbcParameters();
+        return withDataSourceContext(() -> {
+            String selectSql = buildSelectSql();
+            WhereClause where = buildWhereClause();
+            String sql = selectSql + where.withKeyword();
+            List<Object> params = where.jdbcParameters();
 
-        // 排序
-        if (sort != null && sort.isSorted()) {
-            sql += " ORDER BY " + buildOrderByClause();
-        }
+            // 排序
+            if (sort != null && sort.isSorted()) {
+                sql += " ORDER BY " + buildOrderByClause();
+            }
 
-        // 分页限制
-        if (limit != null) {
-            sql = dialect.getPaginationSql(sql, offset != null ? offset : 0, limit);
-        }
+            // 分页限制
+            if (limit != null) {
+                sql = dialect.getPaginationSql(sql, offset != null ? offset : 0, limit);
+            }
 
-        List<T> results = executeQuery(sql, params);
+            List<T> results = executeQuery(sql, params);
 
-        // 急加载关联
-        results = loadAssociations(results);
+            // 急加载关联
+            results = loadAssociations(results);
 
-        return results;
+            return results;
+        });
     }
 
     @Override
     public @NonNull PageData<T> page(@NonNull PageRequest pageRequest) {
-        WhereClause where = buildWhereClause();
-        String whereSql = where.withKeyword();
-        List<Object> params = where.jdbcParameters();
+        return withDataSourceContext(() -> {
+            WhereClause where = buildWhereClause();
+            String whereSql = where.withKeyword();
+            List<Object> params = where.jdbcParameters();
 
-        // 计数查询
-        String countSql = "SELECT COUNT(*) FROM " + dialect.quoteIdentifier(metadata.getTableName()) + whereSql;
-        long total = dataManager.queryForCount(countSql, params);
+            // 计数查询
+            String countSql = "SELECT COUNT(*) FROM " + dialect.quoteIdentifier(metadata.getTableName()) + whereSql;
+            long total = dataManager.queryForCount(countSql, params);
 
-        // 数据查询
-        String dataSql = buildSelectSql() + whereSql;
-        if (pageRequest.hasSort()) {
-            dataSql += " ORDER BY " + buildOrderByClauseFromPageRequest(pageRequest);
-        }
-        dataSql = dialect.getPaginationSql(dataSql, pageRequest.offset(), pageRequest.size());
+            // 数据查询
+            String dataSql = buildSelectSql() + whereSql;
+            if (pageRequest.hasSort()) {
+                dataSql += " ORDER BY " + buildOrderByClauseFromPageRequest(pageRequest);
+            }
+            dataSql = dialect.getPaginationSql(dataSql, pageRequest.offset(), pageRequest.size());
 
-        List<T> records = executeQuery(dataSql, params);
+            List<T> records = executeQuery(dataSql, params);
 
-        // 急加载关联
-        records = loadAssociations(records);
+            // 急加载关联
+            records = loadAssociations(records);
 
-        return PageData.of(records, total, pageRequest.page(), pageRequest.size());
+            return PageData.of(records, total, pageRequest.page(), pageRequest.size());
+        });
     }
 
     @Override
     public @NonNull Optional<T> one() {
-        String selectSql = buildSelectSql();
-        WhereClause where = buildWhereClause();
-        String sql = selectSql + where.withKeyword();
-        List<Object> params = where.jdbcParameters();
+        return withDataSourceContext(() -> {
+            String selectSql = buildSelectSql();
+            WhereClause where = buildWhereClause();
+            String sql = selectSql + where.withKeyword();
+            List<Object> params = where.jdbcParameters();
 
-        sql = dialect.getLimitSql(sql, 2);
+            sql = dialect.getLimitSql(sql, 2);
 
-        List<T> results = executeQuery(sql, params);
+            List<T> results = executeQuery(sql, params);
 
-        if (results.isEmpty()) {
-            return Optional.empty();
-        }
-        if (results.size() > 1) {
-            throw new IllegalStateException("Expected one result but got " + results.size());
-        }
-        return Optional.of(loadAssociationsSingle(results.get(0)));
+            if (results.isEmpty()) {
+                return Optional.empty();
+            }
+            if (results.size() > 1) {
+                throw new IllegalStateException("Expected one result but got " + results.size());
+            }
+            return Optional.of(loadAssociationsSingle(results.get(0)));
+        });
     }
 
     @Override
     public @NonNull Optional<T> first() {
-        String selectSql = buildSelectSql();
-        WhereClause where = buildWhereClause();
-        String sql = selectSql + where.withKeyword();
-        List<Object> params = where.jdbcParameters();
+        return withDataSourceContext(() -> {
+            String selectSql = buildSelectSql();
+            WhereClause where = buildWhereClause();
+            String sql = selectSql + where.withKeyword();
+            List<Object> params = where.jdbcParameters();
 
-        sql = dialect.getLimitSql(sql, 1);
+            sql = dialect.getLimitSql(sql, 1);
 
-        List<T> results = executeQuery(sql, params);
-        return results.isEmpty() ? Optional.empty() : Optional.of(loadAssociationsSingle(results.get(0)));
+            List<T> results = executeQuery(sql, params);
+            return results.isEmpty() ? Optional.empty() : Optional.of(loadAssociationsSingle(results.get(0)));
+        });
     }
 
     @Override
     public long count() {
-        String sql = "SELECT COUNT(*) FROM " + dialect.quoteIdentifier(metadata.getTableName());
-        WhereClause where = buildWhereClause();
-        sql += where.withKeyword();
-        List<Object> params = where.jdbcParameters();
+        return withDataSourceContext(() -> {
+            String sql = "SELECT COUNT(*) FROM " + dialect.quoteIdentifier(metadata.getTableName());
+            WhereClause where = buildWhereClause();
+            sql += where.withKeyword();
+            List<Object> params = where.jdbcParameters();
 
-        Long result = jdbcClient.sql(sql)
-                .params(params)
-                .query(Long.class)
-                .single();
-        return result != null ? result : 0L;
+            Long result = jdbcClient.sql(sql)
+                    .params(params)
+                    .query(Long.class)
+                    .single();
+            return result != null ? result : 0L;
+        });
     }
 
     @Override
     public boolean exists() {
-        String sql = "SELECT 1 FROM " + dialect.quoteIdentifier(metadata.getTableName());
-        WhereClause where = buildWhereClause();
-        sql += where.withKeyword();
-        List<Object> params = where.jdbcParameters();
+        return withDataSourceContext(() -> {
+            String sql = "SELECT 1 FROM " + dialect.quoteIdentifier(metadata.getTableName());
+            WhereClause where = buildWhereClause();
+            sql += where.withKeyword();
+            List<Object> params = where.jdbcParameters();
 
-        sql = dialect.getLimitSql(sql, 1);
+            sql = dialect.getLimitSql(sql, 1);
 
-        List<Integer> results = jdbcClient.sql(sql)
-                .params(params)
-                .query(Integer.class)
-                .list();
+            List<Integer> results = jdbcClient.sql(sql)
+                    .params(params)
+                    .query(Integer.class)
+                    .list();
 
-        return !results.isEmpty();
+            return !results.isEmpty();
+        });
     }
 
     @Override
@@ -684,5 +697,30 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
 
     JdbcEntityProxy<T> getParentProxy() {
         return parentProxy;
+    }
+
+    // ==================== 数据源上下文管理 ====================
+
+    /**
+     * 在数据源上下文中执行查询
+     * <p>
+     * 如果指定了 dataSourceName，则在执行查询前切换数据源，
+     * 查询完成后自动恢复为之前的数据源。
+     * 如果未指定 dataSourceName，则直接执行查询（使用默认数据源）。
+     *
+     * @param action 要执行的操作
+     * @param <R>    返回类型
+     * @return 操作结果
+     */
+    private <R> R withDataSourceContext(java.util.function.Supplier<R> action) {
+        if (dataSourceName != null) {
+            DataSourceContextHolder.push(dataSourceName);
+            try {
+                return action.get();
+            } finally {
+                DataSourceContextHolder.pop();
+            }
+        }
+        return action.get();
     }
 }

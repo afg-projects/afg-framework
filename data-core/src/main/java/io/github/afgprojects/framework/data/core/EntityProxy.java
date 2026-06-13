@@ -1,8 +1,10 @@
 package io.github.afgprojects.framework.data.core;
 
 import io.github.afgprojects.framework.commons.model.PageData;
+import io.github.afgprojects.framework.data.core.entity.Treeable;
 import io.github.afgprojects.framework.data.core.page.PageRequest;
 import io.github.afgprojects.framework.data.core.query.Condition;
+import io.github.afgprojects.framework.data.core.query.TreeQuery;
 import io.github.afgprojects.framework.data.core.scope.DataScope;
 import org.jspecify.annotations.NonNull;
 
@@ -45,6 +47,7 @@ import java.util.Optional;
  * @see EntityReader 实体读取操作接口
  * @see EntityWriter 实体写入操作接口
  * @see EntityQuery 实体条件查询接口
+ * @see TreeQuery 树形结构查询接口
  */
 public interface EntityProxy<T> extends EntityReader<T>, EntityWriter<T> {
 
@@ -256,5 +259,30 @@ public interface EntityProxy<T> extends EntityReader<T>, EntityWriter<T> {
      */
     default java.util.@NonNull Optional<T> findFirst(@NonNull Condition condition) {
         return query().where(condition).first();
+    }
+
+    // ==================== 树形查询 ====================
+
+    /**
+     * 获取树形结构查询接口
+     * <p>
+     * 仅当实体类型实现 {@link Treeable} 接口时可用。
+     * 提供子节点查询、后代查询、祖先查询、树构建、节点移动等操作。
+     * <p>
+     * 使用示例：
+     * <pre>
+     * TreeQuery&lt;Dept&gt; treeQuery = dataManager.entity(Dept.class).treeQuery();
+     * List&lt;Dept&gt; children = treeQuery.findChildren(1L);
+     * List&lt;TreeNode&lt;Dept&gt;&gt; tree = treeQuery.buildTree();
+     * </pre>
+     *
+     * @return 树形查询接口
+     * @throws UnsupportedOperationException 如果实体类型未实现 Treeable 接口
+     */
+    @SuppressWarnings("unchecked")
+    default @NonNull TreeQuery<Treeable<?>> treeQuery() {
+        throw new UnsupportedOperationException(
+            "treeQuery() is not supported for entity " + getClass().getSimpleName() +
+            ". The entity must implement Treeable interface.");
     }
 }

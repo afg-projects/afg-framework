@@ -2,15 +2,19 @@ package io.github.afgprojects.framework.data.jdbc.autoconfigure;
 
 import javax.sql.DataSource;
 
+import io.github.afgprojects.framework.core.api.id.IdGenerator;
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.context.TenantContextHolder;
 import io.github.afgprojects.framework.data.core.entity.AuditableContext;
 import io.github.afgprojects.framework.data.core.entity.FieldEncryptor;
 import io.github.afgprojects.framework.data.core.entity.NoOpAuditableContext;
 import io.github.afgprojects.framework.data.core.entity.NoOpFieldEncryptor;
+import io.github.afgprojects.framework.data.core.event.EntityChangedEventPublisher;
+import io.github.afgprojects.framework.data.core.event.NoOpEntityChangedEventPublisher;
 import io.github.afgprojects.framework.data.core.mapper.TypeHandlerRegistry;
 import io.github.afgprojects.framework.data.core.transaction.TransactionAdapter;
 import io.github.afgprojects.framework.data.jdbc.JdbcDataManager;
+import io.github.afgprojects.framework.data.jdbc.datasource.DataSourceAspect;
 import org.jspecify.annotations.Nullable;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -77,6 +81,35 @@ public class DataManagerAutoConfiguration {
     }
 
     /**
+     * 创建 NoOpEntityChangedEventPublisher Bean（降级实现）
+     * <p>
+     * 当容器中不存在自定义 {@link EntityChangedEventPublisher} 实现时，
+     * 使用 NoOp 降级实现，不发布任何事件。
+     *
+     * @return NoOpEntityChangedEventPublisher 实例
+     */
+    @Bean
+    @ConditionalOnMissingBean(EntityChangedEventPublisher.class)
+    public NoOpEntityChangedEventPublisher noOpEntityChangedEventPublisher() {
+        return new NoOpEntityChangedEventPublisher();
+    }
+
+    /**
+     * 创建数据源切换切面 Bean
+     * <p>
+     * 拦截 {@link io.github.afgprojects.framework.data.core.annotation.DataSource} 注解，
+     * 在方法执行前切换数据源，方法执行后自动恢复。
+     * 需要 classpath 上存在 AspectJ（Spring Boot Starter AOP 默认包含）。
+     *
+     * @return DataSourceAspect 实例
+     */
+    @Bean
+    @ConditionalOnMissingBean(DataSourceAspect.class)
+    public DataSourceAspect dataSourceAspect() {
+        return new DataSourceAspect();
+    }
+
+    /**
      * 创建 JdbcDataManager Bean。
      *
      * <p>同时注册为 DataManager 和 JdbcDataManager 类型，
@@ -92,6 +125,8 @@ public class DataManagerAutoConfiguration {
      * @param transactionAdapter  事务适配器（可选，自动注入）
      * @param auditableContext    审计上下文（可选，自动注入）
      * @param fieldEncryptor      字段加密器（可选，自动注入）
+     * @param idGenerator         ID 生成器（可选，自动注入，来自 core 模块 SPI）
+     * @param entityChangedEventPublisher 实体变更事件发布器（可选，自动注入）
      * @return JdbcDataManager 实例
      */
     @Bean
@@ -102,7 +137,9 @@ public class DataManagerAutoConfiguration {
                                         @Nullable TenantContextHolder tenantContextHolder,
                                         @Nullable TransactionAdapter transactionAdapter,
                                         @Nullable AuditableContext auditableContext,
-                                        @Nullable FieldEncryptor fieldEncryptor) {
+                                        @Nullable FieldEncryptor fieldEncryptor,
+                                        @Nullable IdGenerator idGenerator,
+                                        @Nullable EntityChangedEventPublisher entityChangedEventPublisher) {
         JdbcDataManager dm = new JdbcDataManager(dataSource);
         dm.setTypeHandlerRegistry(typeHandlerRegistry);
         dm.setTransactionManager(transactionManager);
@@ -117,6 +154,12 @@ public class DataManagerAutoConfiguration {
         }
         if (fieldEncryptor != null) {
             dm.setFieldEncryptor(fieldEncryptor);
+        }
+        if (idGenerator != null) {
+            dm.setIdGenerator(idGenerator);
+        }
+        if (entityChangedEventPublisher != null) {
+            dm.setEntityChangedEventPublisher(entityChangedEventPublisher);
         }
         return dm;
     }

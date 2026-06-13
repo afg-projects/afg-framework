@@ -7,18 +7,25 @@ import io.github.afgprojects.framework.data.core.EntityProxy;
 import io.github.afgprojects.framework.data.core.EntityQuery;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
 import io.github.afgprojects.framework.data.core.entity.AuditableContext;
+import io.github.afgprojects.framework.data.core.entity.Treeable;
 import io.github.afgprojects.framework.data.core.entity.SoftDeleteStrategy;
+import io.github.afgprojects.framework.data.core.event.EntityChangedEvent;
+import io.github.afgprojects.framework.data.core.event.EntityChangedEventPublisher;
 import io.github.afgprojects.framework.data.core.mapper.Projection;
 import io.github.afgprojects.framework.data.core.mapper.TypeHandlerRegistry;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
+import io.github.afgprojects.framework.data.core.metadata.EntityTrait;
 import io.github.afgprojects.framework.data.core.page.PageRequest;
 import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.query.ProjectedQuery;
+import io.github.afgprojects.framework.data.core.query.TreeQuery;
 import io.github.afgprojects.framework.data.core.relation.RelationMetadata;
 import io.github.afgprojects.framework.data.core.relation.RelationType;
 import io.github.afgprojects.framework.data.core.scope.DataScope;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheHandler;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheManager;
+import io.github.afgprojects.framework.data.jdbc.query.JdbcTreeQuery;
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.jdbc.core.RowMapper;
@@ -57,6 +64,7 @@ import java.util.*;
  * 避免在每个方法中手动同步。
  */
 @SuppressWarnings({"PMD.AvoidCatchingGenericException", "PMD.CouplingBetweenObjects", "PMD.CyclomaticComplexity"})
+@Slf4j
 public class JdbcEntityProxy<T> implements EntityProxy<T>, ProxyStateProvider {
 
     private final Class<T> entityClass;
@@ -150,6 +158,7 @@ public class JdbcEntityProxy<T> implements EntityProxy<T>, ProxyStateProvider {
         this.insertHandler = new EntityInsertHandler<>(entityClass, jdbcClient, dialect, metadata, queryHelper, dataManager, cacheHandler);
         this.insertHandler.setAuditableContext(dataManager.getAuditableContext());
         this.insertHandler.setFieldEncryptor(dataManager.getFieldEncryptor());
+        this.insertHandler.setIdGenerator(dataManager.getIdGenerator());
         this.updateHandler = new EntityUpdateHandler<>(entityClass, jdbcClient, metadata, queryHelper, dataManager, cacheHandler);
         this.updateHandler.setAuditableContext(dataManager.getAuditableContext());
         this.updateHandler.setFieldEncryptor(dataManager.getFieldEncryptor());
@@ -228,22 +237,41 @@ public class JdbcEntityProxy<T> implements EntityProxy<T>, ProxyStateProvider {
 
     @Override
     public @NonNull T insert(@NonNull T entity) {
-        return insertHandler.insert(entity);
+        T result = insertHandler.insert(entity);
+        publishChangedEvent(result, null, EntityChangedEvent.ChangeType.CREATED);
+        return result;
     }
 
     @Override
     public @NonNull List<T> insertAll(@NonNull Iterable<T> entities) {
-        return insertHandler.insertAll(entities);
+        List<T> result = insertHandler.insertAll(entities);
+        for (T entity : result) {
+            publishChangedEvent(entity, null, EntityChangedEvent.ChangeType.CREATED);
+        }
+        return result;
     }
 
     @Override
     public @NonNull T update(@NonNull T entity) {
-        return updateHandler.update(entity);
+        // 查询更新前的实体状态（用于事件）
+        T oldEntity = null;
+        Object id = queryHelper.getIdValue(entity);
+        if (id != null) {
+            oldEntity = queryExecutor.findById(id).orElse(null);
+        }
+
+        T result = updateHandler.update(entity);
+        publishChangedEvent(result, oldEntity, EntityChangedEvent.ChangeType.UPDATED);
+        return result;
     }
 
     @Override
     public @NonNull List<T> updateAll(@NonNull Iterable<T> entities) {
-        return updateHandler.updateAll(entities);
+        List<T> result = updateHandler.updateAll(entities);
+        for (T entity : result) {
+            publishChangedEvent(entity, null, EntityChangedEvent.ChangeType.UPDATED);
+        }
+        return result;
     }
 
     @Override
@@ -273,22 +301,32 @@ public class JdbcEntityProxy<T> implements EntityProxy<T>, ProxyStateProvider {
 
     @Override
     public void deleteById(@NonNull Object id) {
+        // 查询删除前的实体状态（用于事件）
+        T entity = queryExecutor.findById(id).orElse(null);
         deleteHandler.deleteById(id);
+        if (entity != null) {
+            publishChangedEvent(entity, null, EntityChangedEvent.ChangeType.DELETED);
+        }
     }
 
     @Override
     public void delete(@NonNull T entity) {
         deleteHandler.delete(entity);
+        publishChangedEvent(entity, null, EntityChangedEvent.ChangeType.DELETED);
     }
 
     @Override
     public void deleteAllById(@NonNull Iterable<?> ids) {
-        deleteHandler.deleteAllById(ids);
+        for (Object id : ids) {
+            deleteById(id);
+        }
     }
 
     @Override
     public void deleteAll(@NonNull Iterable<? extends T> entities) {
-        deleteHandler.deleteAll(entities);
+        for (T entity : entities) {
+            delete(entity);
+        }
     }
 
     // ==================== 条件查询 ====================
@@ -400,6 +438,16 @@ public class JdbcEntityProxy<T> implements EntityProxy<T>, ProxyStateProvider {
     }
 
     /**
+     * 获取底层 DataManager
+     *
+     * @return JdbcDataManager 实例
+     */
+    @NonNull
+    public JdbcDataManager getDataManager() {
+        return dataManager;
+    }
+
+    /**
      * 获取 JdbcClient
      *
      * @return JdbcClient
@@ -467,11 +515,18 @@ public class JdbcEntityProxy<T> implements EntityProxy<T>, ProxyStateProvider {
     @Override
     public void restoreById(@NonNull Object id) {
         softDeleteHandler.restoreById(id);
+        // 查询恢复后的实体状态（用于事件）
+        T entity = queryExecutor.findById(id).orElse(null);
+        if (entity != null) {
+            publishChangedEvent(entity, null, EntityChangedEvent.ChangeType.RESTORED);
+        }
     }
 
     @Override
     public void restoreAllById(@NonNull Iterable<?> ids) {
-        softDeleteHandler.restoreAllById(ids);
+        for (Object id : ids) {
+            restoreById(id);
+        }
     }
 
     /**
@@ -636,5 +691,64 @@ public class JdbcEntityProxy<T> implements EntityProxy<T>, ProxyStateProvider {
      */
     public EntityCacheHandler<T> getCacheHandler() {
         return cacheHandler;
+    }
+
+    // ==================== 树形查询 ====================
+
+    /**
+     * 获取树形结构查询接口
+     * <p>
+     * 仅当实体类型实现 {@link Treeable} 接口时可用。
+     * 对于非树形实体，抛出 {@link io.github.afgprojects.framework.commons.exception.BusinessException}。
+     *
+     * @param <S> 实体类型（自动推断为 T &amp; Treeable）
+     * @return 树形查询接口
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public @NonNull TreeQuery<Treeable<?>> treeQuery() {
+        if (!metadata.hasTrait(EntityTrait.TREEABLE)) {
+            throw new io.github.afgprojects.framework.commons.exception.BusinessException(
+                    io.github.afgprojects.framework.commons.exception.CommonErrorCode.PARAM_ERROR,
+                    "Entity " + entityClass.getSimpleName() + " does not implement Treeable interface");
+        }
+        JdbcTreeQuery<T> treeQuery = new JdbcTreeQuery<>(this);
+        // The double cast is necessary due to the self-referential generic on Treeable<T>
+        // which is incompatible with the wildcard capture on TreeQuery<Treeable<?>>.
+        @SuppressWarnings("PMD.UnnecessaryCast")
+        TreeQuery<Treeable<?>> result = (TreeQuery<Treeable<?>>) (TreeQuery<?>) treeQuery;
+        return result;
+    }
+
+    // ==================== 事件发布 ====================
+
+    /**
+     * 发布实体变更事件
+     * <p>
+     * 在保存、更新、删除、恢复操作后调用，
+     * 通过 {@link EntityChangedEventPublisher} 发布事件。
+     * 事件发布失败不影响业务操作。
+     *
+     * @param entity     变更后的实体
+     * @param oldEntity  变更前的实体（仅 UPDATE 时有值）
+     * @param changeType 变更类型
+     */
+    private void publishChangedEvent(@NonNull T entity, @Nullable T oldEntity,
+                                      EntityChangedEvent.ChangeType changeType) {
+        try {
+            EntityChangedEventPublisher publisher = dataManager.getEntityChangedEventPublisher();
+            EntityChangedEvent<T> event = EntityChangedEvent.<T>builder()
+                    .entityType(entityClass)
+                    .entity(entity)
+                    .oldEntity(oldEntity)
+                    .changeType(changeType)
+                    .timestamp(java.time.Instant.now())
+                    .build();
+            publisher.publish(event);
+        } catch (Exception e) {
+            // 事件发布失败不应影响业务操作
+            log.warn("Failed to publish EntityChangedEvent for {}: {}",
+                    entityClass.getSimpleName(), e.getMessage());
+        }
     }
 }
