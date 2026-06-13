@@ -1,0 +1,12 @@
+{"file": ".trellis/tasks/06-13-afg-framework-prd/research/phase1-quickstart-verification.md", "reason": "快速开始章节 9 项代码验证结果，3 处硬伤修复依据"}
+{"file": ".trellis/tasks/06-13-afg-framework-prd/research/phase1-concepts-verification.md", "reason": "核心概念章节 6 项验证结果，双实体体系和 TreeEntity 关键发现"}
+{"file": ".trellis/tasks/06-13-afg-framework-prd/research/industry-prd-standards.md", "reason": "6 个标杆框架行业标准研究，40+ 条标准清单，9 Phase 优化依据"}
+{"file": ".trellis/spec/backend/autoconfiguration-guidelines.md", "reason": "AutoConfiguration 规范，Phase 7 规范体系 writing rules 参考"}
+{"file": ".trellis/spec/backend/data-manager-api.md", "reason": "DataManager API 规范，Phase 4 DataManager 完整化参考"}
+{"file": ".trellis/spec/backend/entity-design.md", "reason": "实体设计规范，Phase 2 核心概念 + Phase 4 实体体系参考"}
+{"file": ".trellis/spec/backend/security-module.md", "reason": "安全模块规范，Phase 5 安全模块深化参考"}
+{"file": ".trellis/spec/backend/ai-module.md", "reason": "AI 模块规范，Phase 6 AI 模块深化参考"}
+{"file": ".trellis/spec/backend/error-handling.md", "reason": "异常处理规范，Phase 3 功能使用说明 + Phase 7 规范体系参考"}
+{"file": ".trellis/spec/backend/testing-guidelines.md", "reason": "测试规范，Phase 9 Testing 章节参考"}
+{"file": ".trellis/spec/backend/gradle-plugin.md", "reason": "Gradle 插件规范，Phase 1 快速开始 + Phase 8 脚手架规范参考"}
+{"file": ".trellis/spec/backend/migration-guidelines.md", "reason": "迁移规范，Phase 9 Migration 章节参考"}

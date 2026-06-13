@@ -27,4 +27,14 @@ io.github.afgprojects.framework.core.autoconfigure.KubernetesProbeAutoConfigurat
 io.github.afgprojects.framework.core.autoconfigure.LocaleAutoConfiguration
 io.github.afgprojects.framework.core.autoconfigure.BeanInvocationAutoConfiguration
 io.github.afgprojects.framework.core.autoconfigure.ContextAutoConfiguration
+io.github.afgprojects.framework.core.autoconfigure.DuplicateSubmitAutoConfiguration
+io.github.afgprojects.framework.core.autoconfigure.AccessLogAutoConfiguration
+io.github.afgprojects.framework.core.autoconfigure.ValidationAutoConfiguration
+io.github.afgprojects.framework.core.autoconfigure.SseAutoConfiguration
+io.github.afgprojects.framework.core.autoconfigure.IdGeneratorAutoConfiguration
+io.github.afgprojects.framework.core.autoconfigure.NotificationAutoConfiguration
+io.github.afgprojects.framework.core.autoconfigure.WebhookAutoConfiguration
+io.github.afgprojects.framework.core.autoconfigure.StateMachineAutoConfiguration
+io.github.afgprojects.framework.core.autoconfigure.ImportExportAutoConfiguration
+io.github.afgprojects.framework.core.autoconfigure.EnumManagementAutoConfiguration
 io.github.afgprojects.framework.core.autoconfigure.openapi.AfgOpenApiAutoConfiguration

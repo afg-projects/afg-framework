@@ -28,6 +28,7 @@ public enum CommonErrorCode implements ErrorCode {
     TOO_MANY_REQUESTS(10300, "请求过于频繁", ErrorCategory.BUSINESS),
     RATE_LIMIT_EXCEEDED(10301, "超过限流阈值", ErrorCategory.BUSINESS),
     CIRCUIT_BREAKER_OPEN(10302, "熔断器已开启", ErrorCategory.SYSTEM),
+    DUPLICATE_SUBMIT(10303, "请勿重复提交", ErrorCategory.BUSINESS),
 
     // ==================== 认证授权错误 (10400-10499) ====================
     UNAUTHORIZED(10400, "未登录或登录已过期", ErrorCategory.SECURITY),

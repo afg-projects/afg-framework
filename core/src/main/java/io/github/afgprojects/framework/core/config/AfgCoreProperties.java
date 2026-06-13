@@ -203,12 +203,82 @@ public class AfgCoreProperties {
      */
     private DataScopeConfig dataScope = new DataScopeConfig();
 
+    // ========== 访问日志配置 ==========
+
+    /**
+     * 访问日志配置。
+     */
+    private AccessLogConfig accessLog = new AccessLogConfig();
+
+    // ========== 参数校验配置 ==========
+
+    /**
+     * 参数校验配置。
+     */
+    private ValidationConfig validation = new ValidationConfig();
+
+    // ========== 防重复提交配置 ==========
+
+    /**
+     * 防重复提交配置。
+     */
+    private DuplicateSubmitConfig duplicateSubmit = new DuplicateSubmitConfig();
+
     // ========== 优雅关闭配置 ==========
 
     /**
      * 优雅关闭配置。
      */
     private ShutdownConfig shutdown = new ShutdownConfig();
+
+    // ========== SSE 配置 ==========
+
+    /**
+     * SSE 配置。
+     */
+    private SseConfig sse = new SseConfig();
+
+    // ========== ID 生成器配置 ==========
+
+    /**
+     * ID 生成器配置。
+     */
+    private IdGeneratorConfig idGenerator = new IdGeneratorConfig();
+
+    // ========== 通知配置 ==========
+
+    /**
+     * 通知配置。
+     */
+    private NotificationConfig notification = new NotificationConfig();
+
+    // ========== Webhook 配置 ==========
+
+    /**
+     * Webhook 配置。
+     */
+    private WebhookConfig webhook = new WebhookConfig();
+
+    // ========== 状态机配置 ==========
+
+    /**
+     * 状态机配置。
+     */
+    private StateMachineConfig stateMachine = new StateMachineConfig();
+
+    // ========== 导入导出配置 ==========
+
+    /**
+     * 导入导出配置。
+     */
+    private ImportExportConfig importExport = new ImportExportConfig();
+
+    // ========== 枚举管理配置 ==========
+
+    /**
+     * 枚举管理配置。
+     */
+    private EnumManagementConfig enumManagement = new EnumManagementConfig();
 
     // ========== 缓存配置类 ==========
 
@@ -1583,6 +1653,98 @@ public class AfgCoreProperties {
         }
     }
 
+    // ========== 访问日志配置类 ==========
+
+    /**
+     * 访问日志配置类。
+     */
+    @Data
+    public static class AccessLogConfig {
+
+        /**
+         * 是否启用访问日志。
+         */
+        private boolean enabled = true;
+
+        /**
+         * 排除路径列表（支持 Ant 风格模式）。
+         */
+        private java.util.List<String> excludePaths = new java.util.ArrayList<>(java.util.List.of("/health", "/actuator/**"));
+
+        /**
+         * 是否包含查询字符串。
+         */
+        private boolean includeQueryString = true;
+
+        /**
+         * 是否包含客户端 IP。
+         */
+        private boolean includeClientIp = true;
+
+        /**
+         * 慢请求阈值（毫秒），超过此值将在日志中标记 SLOW。
+         */
+        private long slowRequestThreshold = 3000;
+    }
+
+    // ========== 参数校验配置类 ==========
+
+    /**
+     * 参数校验配置类。
+     */
+    @Data
+    public static class ValidationConfig {
+
+        /**
+         * 是否启用 Bean Validation（含统一异常处理）。
+         */
+        private boolean enabled = true;
+
+        /**
+         * 是否在错误响应中包含字段错误详情。
+         */
+        private boolean includeFieldErrors = true;
+
+        /**
+         * 参数校验失败时的默认错误消息。
+         */
+        private String defaultErrorMessage = "参数校验失败";
+    }
+
+    // ========== 防重复提交配置类 ==========
+
+    /**
+     * 防重复提交配置类。
+     */
+    @Data
+    public static class DuplicateSubmitConfig {
+
+        /**
+         * 是否启用防重复提交。
+         */
+        private boolean enabled = true;
+
+        /**
+         * 去重键前缀。
+         */
+        private String keyPrefix = "afg:duplicate-submit";
+
+        /**
+         * 默认去重间隔（毫秒）。
+         */
+        private long defaultInterval = 3000;
+
+        /**
+         * 注解相关配置。
+         */
+        private DuplicateSubmitAnnotationConfig annotations = new DuplicateSubmitAnnotationConfig();
+
+        @Data
+        public static class DuplicateSubmitAnnotationConfig {
+            private boolean enabled = true;
+        }
+    }
+
     // ========== 优雅关闭配置类 ==========
 
     /**
@@ -1626,5 +1788,260 @@ public class AfgCoreProperties {
                 this.timeout = timeout;
             }
         }
+    }
+
+    // ========== SSE 配置类 ==========
+
+    /**
+     * SSE 配置类。
+     */
+    @Data
+    public static class SseConfig {
+
+        /**
+         * 是否启用 SSE 功能。
+         */
+        private boolean enabled = true;
+
+        /**
+         * SSE 连接超时时间（毫秒）。
+         * 默认 5 分钟。
+         */
+        private long timeout = 300000;
+
+        /**
+         * 最大并发连接数。
+         */
+        private int maxConnections = 1000;
+
+        /**
+         * 心跳间隔（毫秒）。
+         * 0 表示禁用心跳。
+         */
+        private long heartbeatInterval = 30000;
+    }
+
+    // ========== ID 生成器配置类 ==========
+
+    /**
+     * ID 生成器配置类。
+     */
+    @Data
+    public static class IdGeneratorConfig {
+
+        /**
+         * 是否启用 ID 生成器。
+         */
+        private boolean enabled = true;
+
+        /**
+         * ID 生成器类型。
+         */
+        private IdGeneratorType type = IdGeneratorType.SNOWFLAKE;
+
+        /**
+         * Snowflake 配置。
+         */
+        private SnowflakeConfig snowflake = new SnowflakeConfig();
+
+        /**
+         * ID 生成器类型枚举。
+         */
+        public enum IdGeneratorType {
+            SNOWFLAKE,
+            SEGMENT,
+            UUID
+        }
+
+        /**
+         * Snowflake 配置。
+         */
+        @Data
+        public static class SnowflakeConfig {
+
+            /**
+             * 机器 ID（0-31）。
+             */
+            private long workerId = 1;
+
+            /**
+             * 数据中心 ID（0-31）。
+             */
+            private long datacenterId = 1;
+
+            /**
+             * 起始纪元（毫秒）。
+             * 默认使用 Twitter 纪元：2010-11-04 09:42:54 UTC。
+             */
+            private long twepoch = 1288834974657L;
+
+            /**
+             * 最大容忍时钟回拨（毫秒）。
+             * 回拨超过此值将抛出异常。
+             */
+            private long maxTolerateClockSkewMs = 5;
+        }
+    }
+
+    // ========== 通知配置类 ==========
+
+    /**
+     * 通知配置类。
+     */
+    @Data
+    public static class NotificationConfig {
+
+        /**
+         * 是否启用通知服务。
+         */
+        private boolean enabled = true;
+
+        /**
+         * 默认通知渠道。
+         */
+        private NotificationChannel defaultChannel = NotificationChannel.EMAIL;
+
+        /**
+         * 是否记录通知日志（使用 LogNotificationService 时自动生效）。
+         */
+        private boolean logNotifications = true;
+
+        /**
+         * 重试次数。
+         */
+        private int retryCount = 3;
+
+        /**
+         * 重试间隔（毫秒）。
+         */
+        private long retryIntervalMs = 1000;
+
+        /**
+         * 通知渠道枚举。
+         */
+        public enum NotificationChannel {
+            EMAIL, SMS, IN_APP, WEBHOOK, DINGTALK, FEISHU, WECOM
+        }
+    }
+
+    // ========== Webhook 配置类 ==========
+
+    /**
+     * Webhook 配置类。
+     */
+    @Data
+    public static class WebhookConfig {
+
+        /**
+         * 是否启用 Webhook 功能。
+         */
+        private boolean enabled = true;
+
+        /**
+         * 连接超时时间（毫秒）。
+         */
+        private int connectTimeout = 5000;
+
+        /**
+         * 读取超时时间（毫秒）。
+         */
+        private int readTimeout = 10000;
+
+        /**
+         * 最大重试次数。
+         */
+        private int maxRetries = 3;
+
+        /**
+         * 重试间隔（毫秒）。
+         */
+        private long retryIntervalMs = 1000;
+
+        /**
+         * 签名算法。
+         */
+        private String signatureAlgorithm = "HmacSHA256";
+
+        /**
+         * 签名头名称。
+         */
+        private String signatureHeader = "X-Webhook-Signature";
+    }
+
+    // ========== 状态机配置类 ==========
+
+    /**
+     * 状态机配置类。
+     */
+    @Data
+    public static class StateMachineConfig {
+
+        /**
+         * 是否启用状态机功能。
+         */
+        private boolean enabled = true;
+
+        /**
+         * 严格模式。
+         * <p>
+         * 启用时，非法状态转换抛出
+         * {@link io.github.afgprojects.framework.core.statemachine.exception.InvalidTransitionException}；
+         * 禁用时，非法转换静默忽略。
+         * </p>
+         */
+        private boolean strictMode = true;
+    }
+
+    // ========== 导入导出配置类 ==========
+
+    /**
+     * 导入导出配置类。
+     */
+    @Data
+    public static class ImportExportConfig {
+
+        /**
+         * 是否启用导入导出功能。
+         */
+        private boolean enabled = true;
+
+        /**
+         * 默认导出格式（csv / excel）。
+         */
+        private String defaultFormat = "csv";
+
+        /**
+         * 默认字符编码。
+         */
+        private String defaultCharset = "UTF-8";
+
+        /**
+         * 最大导入行数（防止内存溢出）。
+         */
+        private int maxImportRows = 10000;
+    }
+
+    // ========== 枚举管理配置类 ==========
+
+    /**
+     * 枚举管理配置类。
+     */
+    @Data
+    public static class EnumManagementConfig {
+
+        /**
+         * 是否启用枚举管理功能。
+         */
+        private boolean enabled = true;
+
+        /**
+         * 是否暴露 REST 端点。
+         */
+        private boolean exposeEndpoint = true;
+
+        /**
+         * REST 端点路径。
+         */
+        private String endpointPath = "/afg/enums";
     }
 }
