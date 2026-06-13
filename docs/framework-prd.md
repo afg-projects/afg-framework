@@ -727,7 +727,7 @@ afg-framework/
 │   └── apt-impl/                   # APT 处理器实现
 │
 ├── 核心层
-│   └── core/                       # 框架核心（31+ AutoConfiguration）
+│   └── core/                       # 框架核心（40 AutoConfiguration）
 │
 ├── 数据层
 │   ├── data-core/                  # 数据访问抽象（DataManager 接口、实体基类、条件构建器）
@@ -896,7 +896,7 @@ NamingUtils.toCamelCase("user_name")           // → "userName"
 | `BusinessException` | 业务异常，携带 `ErrorCode` + `businessMessage` + `arg[]`（消息模板参数）+ `getMessage(Locale)`（i18n） |
 | `ErrorCode` | 错误码接口（`getCode()` / `getMessage()` / `getCategory()`） |
 | `ErrorCategory` | 错误分类枚举：`BUSINESS("B")` / `SYSTEM("S")` / `NETWORK("N")` / `SECURITY("A")` |
-| `CommonErrorCode` | 94 个标准错误码枚举（范围 10000-19999） |
+| `CommonErrorCode` | 62 个标准错误码枚举（范围 10000-19999） |
 | `NamingUtils` | 命名转换：`toSnakeCase()` / `toCamelCase()` / `capitalize()` / `uncapitalize()` |
 | `ArgumentAssert` | 参数断言工具：`notNull()` / `notEmpty()` / `isTrue()` / `state()` — 断言失败抛 `BusinessException` |
 | `DateUtils` | 日期工具：`format()` / `parse()` / `between()` / `isExpired()` |
@@ -2180,7 +2180,7 @@ afg:
 
 ---
 
-**31+ AutoConfiguration**：
+**40 AutoConfiguration**：
 
 | AutoConfiguration | 功能 | 启用方式 |
 |-------------------|------|---------|
@@ -3506,10 +3506,10 @@ dataManager.entity(Order.class).query().withDataScope().list();
 | `UsernamePasswordLoginStrategy` | 用户名密码 + 验证码 |
 | `MobileCaptchaLoginStrategy` | 手机号 + 短信验证码 |
 | `EmailCaptchaLoginStrategy` | 邮箱 + 验证码 |
-| `WechatLoginStrategy` | 微信 OAuth2 登录 |
-| `DingTalkLoginStrategy` | 钉钉 OAuth2 登录 |
-| `FeishuLoginStrategy` | 飞书 OAuth2 登录 |
-| `WeComLoginStrategy` | 企业微信 OAuth2 登录 |
+| `WechatLoginStrategy` | 微信 OAuth2 登录 | Alpha |
+| `DingTalkLoginStrategy` | 钉钉 OAuth2 登录 | Alpha |
+| `FeishuLoginStrategy` | 飞书 OAuth2 登录 | Alpha |
+| `WeComLoginStrategy` | 企业微信 OAuth2 登录 | Alpha |
 
 **多租户**：
 
@@ -4555,7 +4555,7 @@ EtlResult result = pipeline.execute();
 | `ConversationMemory` | `SpringAiChatMemory` | Spring AI ChatMemory 适配 |
 | `Observation` | `SpringAiObservation` | Spring AI Observation 适配 |
 
-**AutoConfiguration（7 个）**：`SpringAiChatAutoConfiguration`, `SpringAiEmbeddingAutoConfiguration`, `SpringAiModelAutoConfiguration`, `SpringAiMemoryAutoConfiguration`, `SpringAiToolAutoConfiguration`, `SpringAiObservationAutoConfiguration`, `SpringAiAdvisorAutoConfiguration`
+**AutoConfiguration（6 个）**：`SpringAiChatAutoConfiguration`, `SpringAiModelAutoConfiguration`, `SpringAiMemoryAutoConfiguration`, `SpringAiRagAutoConfiguration`, `SpringAiObservationAutoConfiguration`, `SpringAiAdvisorAutoConfiguration`
 
 ##### 5.6.8 降级行为文档化
 
@@ -5655,13 +5655,13 @@ afg:
 
 | 模块 | 数量 | 清单 |
 |------|------|------|
-| core | 31+ | `AfgCoreAutoConfiguration`, `AfgAutoConfiguration`, `ModuleAutoConfiguration`, `ModuleWebAutoConfiguration`, `WebAutoConfiguration`, `HttpClientAutoConfiguration`, `LoggingAutoConfiguration`, `MetricsAutoConfiguration`, `HealthAutoConfiguration`, `ShutdownAutoConfiguration`, `EncryptionAutoConfiguration`, `RemoteConfigAutoConfiguration`, `CacheAutoConfiguration`, `LockAutoConfiguration`, `MultiDataSourceAutoConfiguration`, `VirtualThreadAutoConfiguration`, `AfgSecurityAutoConfiguration`, `SignatureAutoConfiguration`, `RateLimitAutoConfiguration`, `DataScopeAutoConfiguration`, `AuditLogAutoConfiguration`, `EventAutoConfiguration`, `FeatureFlagAutoConfiguration`, `FeatureFlagWebAutoConfiguration`, `CloudNativeAutoConfiguration`, `KubernetesProbeAutoConfiguration`, `LocaleAutoConfiguration`, `BeanInvocationAutoConfiguration`, `ContextAutoConfiguration`, `AfgOpenApiAutoConfiguration`, `SchedulerAutoConfiguration`, `AccessLogAutoConfiguration`, `ValidationAutoConfiguration`, `SseAutoConfiguration`, `StateMachineAutoConfiguration`, `EnumManagementAutoConfiguration`, `ImportExportAutoConfiguration`, `NotificationAutoConfiguration`, `WebhookAutoConfiguration`, `DuplicateSubmitAutoConfiguration`, `ApiVersionAutoConfiguration`, `IdGeneratorAutoConfiguration` |
+| core | 40 | `AfgCoreAutoConfiguration`, `AfgAutoConfiguration`, `ModuleAutoConfiguration`, `ModuleWebAutoConfiguration`, `WebAutoConfiguration`, `HttpClientAutoConfiguration`, `LoggingAutoConfiguration`, `MetricsAutoConfiguration`, `HealthAutoConfiguration`, `ShutdownAutoConfiguration`, `EncryptionAutoConfiguration`, `RemoteConfigAutoConfiguration`, `CacheAutoConfiguration`, `LockAutoConfiguration`, `MultiDataSourceAutoConfiguration`, `VirtualThreadAutoConfiguration`, `AfgSecurityAutoConfiguration`, `SignatureAutoConfiguration`, `RateLimitAutoConfiguration`, `DataScopeAutoConfiguration`, `AuditLogAutoConfiguration`, `EventAutoConfiguration`, `FeatureFlagAutoConfiguration`, `FeatureFlagWebAutoConfiguration`, `CloudNativeAutoConfiguration`, `KubernetesProbeAutoConfiguration`, `LocaleAutoConfiguration`, `BeanInvocationAutoConfiguration`, `ContextAutoConfiguration`, `AfgOpenApiAutoConfiguration`, `SchedulerAutoConfiguration`, `AccessLogAutoConfiguration`, `ValidationAutoConfiguration`, `SseAutoConfiguration`, `StateMachineAutoConfiguration`, `EnumManagementAutoConfiguration`, `ImportExportAutoConfiguration`, `NotificationAutoConfiguration`, `WebhookAutoConfiguration`, `DuplicateSubmitAutoConfiguration`, `IdGeneratorAutoConfiguration` |
 | data-core | 2 | `TenantContextAutoConfiguration`, `TransactionAutoConfiguration` |
 | data-jdbc | 4 | `DataManagerAutoConfiguration`, `EntityCacheAutoConfiguration`, `SqlMetricsAutoConfiguration` |
 | data-liquibase | 1 | `LiquibaseAutoConfiguration` |
 | ai-core | 16 | `AiCoreAutoConfiguration`, `AiChatAutoConfiguration`, `AiAgentAutoConfiguration`, `AiModelAutoConfiguration`, `AiWorkflowAutoConfiguration`, `AiPipelineAutoConfiguration`, `AiPersistenceAutoConfiguration`, `AiResilienceAutoConfiguration`, `AiPerformanceAutoConfiguration`, `AiSecurityAutoConfiguration`, `AiObservabilityAutoConfiguration`, `AiRagAutoConfiguration`, `AiEtlAutoConfiguration`, `AiToolAutoConfiguration`, `AiSkillAutoConfiguration`, `AiEntityAutoConfiguration` |
 | ai-langchain4j | 7 | `Lc4jChatAutoConfiguration`, `Lc4jEmbeddingAutoConfiguration`, `Lc4jModelAutoConfiguration`, `Lc4jMemoryAutoConfiguration`, `Lc4jToolAutoConfiguration`, `Lc4jObservationAutoConfiguration`, `Lc4jAdvisorAutoConfiguration` |
-| ai-spring-ai | 7 | `SpringAiChatAutoConfiguration`, `SpringAiEmbeddingAutoConfiguration`, `SpringAiModelAutoConfiguration`, `SpringAiMemoryAutoConfiguration`, `SpringAiToolAutoConfiguration`, `SpringAiObservationAutoConfiguration`, `SpringAiAdvisorAutoConfiguration` |
+| ai-spring-ai | 6 | `SpringAiChatAutoConfiguration`, `SpringAiModelAutoConfiguration`, `SpringAiMemoryAutoConfiguration`, `SpringAiRagAutoConfiguration`, `SpringAiObservationAutoConfiguration`, `SpringAiAdvisorAutoConfiguration` |
 | auth-server | 9 | `AuthorizationServerAutoConfiguration`, `LoginAutoConfiguration`, `OAuth2AutoConfiguration`, `CasbinAutoConfiguration`, `PermissionAutoConfiguration`, `DataScopeAutoConfiguration`, `TenantAutoConfiguration`, `SecurityStrategyAutoConfiguration`, `AuditAutoConfiguration` |
 | resource-server | 2 | `ResourceServerAutoConfiguration`, `DefaultSecurityAutoConfiguration` |
 | afg-redis | 1+ | `RedisAutoConfiguration`（应拆分为 Cache/Lock/Scheduler/Audit/RateLimit/Feature/Health 子 Configuration） |
