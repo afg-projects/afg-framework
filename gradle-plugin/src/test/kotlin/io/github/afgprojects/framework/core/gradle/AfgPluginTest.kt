@@ -85,4 +85,19 @@ class AfgPluginTest {
         assertNotNull(task)
         assertTrue(task?.group == "afg" || task?.group == null, "afgInfo task group should be 'afg' or null")
     }
+
+    @Test
+    @DisplayName("应该注册 generateDbDoc 任务")
+    fun `should register generateDbDoc task`() {
+        val project = ProjectBuilder.builder()
+            .withProjectDir(tempDir)
+            .build()
+
+        project.plugins.apply("java-library")
+        project.plugins.apply(AfgPlugin::class.java)
+
+        val task = project.tasks.findByName("generateDbDoc")
+        assertNotNull(task, "generateDbDoc task should be registered")
+        assertTrue(task?.group == "afg", "generateDbDoc task group should be 'afg'")
+    }
 }

@@ -333,6 +333,13 @@ class AfgPlugin : Plugin<Project> {
             group = "afg"
             description = "执行 Liquibase 数据库迁移"
         }
+
+        // 注册数据库文档生成任务
+        project.tasks.register("generateDbDoc", GenerateDbDocTask::class.java) {
+            group = "afg"
+            description = "从实体类生成数据库 Schema 文档（Markdown 格式）"
+            entityPackages.convention(extension.migration.entityPackages)
+        }
     }
 
     /**
