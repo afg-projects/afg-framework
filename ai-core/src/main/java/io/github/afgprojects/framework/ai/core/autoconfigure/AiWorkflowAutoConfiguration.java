@@ -12,6 +12,7 @@ import io.github.afgprojects.framework.ai.core.workflow.dsl.DefaultDslConverter;
 import io.github.afgprojects.framework.ai.core.workflow.dsl.DefaultDslValidator;
 import io.github.afgprojects.framework.ai.core.workflow.dsl.DefaultVariableResolver;
 import io.github.afgprojects.framework.ai.core.workflow.engine.DefaultDagEngine;
+import io.github.afgprojects.framework.ai.core.workflow.node.BuiltinNodeRegistrar;
 import io.github.afgprojects.framework.ai.core.workflow.node.DefaultNodeTypeRegistry;
 import io.github.afgprojects.framework.ai.core.workflow.InMemoryCheckpointManager;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -55,7 +56,9 @@ public class AiWorkflowAutoConfiguration {
         @Bean
         @ConditionalOnMissingBean(NodeTypeRegistry.class)
         public DefaultNodeTypeRegistry defaultNodeTypeRegistry() {
-            return new DefaultNodeTypeRegistry();
+            DefaultNodeTypeRegistry registry = new DefaultNodeTypeRegistry();
+            BuiltinNodeRegistrar.registerAll(registry);
+            return registry;
         }
 
         @Bean

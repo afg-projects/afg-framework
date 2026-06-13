@@ -5,5 +5,9 @@ public enum NodeCategory {
     AI,
     LOGIC,
     TOOL,
-    OUTPUT
+    OUTPUT,
+    HUMAN,
+    TRANSFORM,
+    RAG,
+    CHECKPOINT
 }

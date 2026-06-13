@@ -70,4 +70,16 @@ public class AiSkillAutoConfiguration {
         }
         return new DefaultSkillDispatcher(intentAnalyzer, skillExecutor, skillRegistry, chatClient);
     }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public SkillRegistrar skillRegistrar(SkillRegistry skillRegistry) {
+        return new SkillRegistrar(skillRegistry);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public SkillAspect skillAspect(@Autowired(required = false) SkillDispatcher skillDispatcher) {
+        return new SkillAspect(skillDispatcher);
+    }
 }

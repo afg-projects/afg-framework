@@ -13,6 +13,9 @@ import io.github.afgprojects.framework.ai.core.tool.DefaultToolRegistry;
 import io.github.afgprojects.framework.ai.core.tool.NoOpToolAuditLogger;
 import io.github.afgprojects.framework.ai.core.tool.NoOpToolPermissionChecker;
 import io.github.afgprojects.framework.ai.core.tool.SecurityToolContextProvider;
+import io.github.afgprojects.framework.ai.core.tool.ToolAspect;
+import io.github.afgprojects.framework.ai.core.tool.ToolRegistrar;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -68,5 +71,17 @@ public class AiToolAutoConfiguration {
     @ConditionalOnMissingBean(ToolPermissionChecker.class)
     public NoOpToolPermissionChecker noOpToolPermissionChecker() {
         return new NoOpToolPermissionChecker();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public ToolRegistrar toolRegistrar(ToolRegistry toolRegistry) {
+        return new ToolRegistrar(toolRegistry);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public ToolAspect toolAspect(@Autowired(required = false) ToolExecutionRecorder recorder) {
+        return new ToolAspect(recorder);
     }
 }
