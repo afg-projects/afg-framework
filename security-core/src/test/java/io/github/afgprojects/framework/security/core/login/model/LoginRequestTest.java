@@ -21,12 +21,16 @@ class LoginRequestTest {
         void shouldContainAllLoginTypes() {
             LoginRequest.LoginType[] types = LoginRequest.LoginType.values();
 
-            assertThat(types).hasSize(4);
+            assertThat(types).hasSize(8);
             assertThat(types).containsExactlyInAnyOrder(
                     LoginRequest.LoginType.USERNAME,
                     LoginRequest.LoginType.MOBILE,
                     LoginRequest.LoginType.EMAIL,
-                    LoginRequest.LoginType.THIRD_PARTY
+                    LoginRequest.LoginType.THIRD_PARTY,
+                    LoginRequest.LoginType.WECHAT,
+                    LoginRequest.LoginType.DINGTALK,
+                    LoginRequest.LoginType.FEISHU,
+                    LoginRequest.LoginType.WECOM
             );
         }
 
@@ -37,6 +41,10 @@ class LoginRequestTest {
             assertThat(LoginRequest.LoginType.valueOf("MOBILE")).isEqualTo(LoginRequest.LoginType.MOBILE);
             assertThat(LoginRequest.LoginType.valueOf("EMAIL")).isEqualTo(LoginRequest.LoginType.EMAIL);
             assertThat(LoginRequest.LoginType.valueOf("THIRD_PARTY")).isEqualTo(LoginRequest.LoginType.THIRD_PARTY);
+            assertThat(LoginRequest.LoginType.valueOf("WECHAT")).isEqualTo(LoginRequest.LoginType.WECHAT);
+            assertThat(LoginRequest.LoginType.valueOf("DINGTALK")).isEqualTo(LoginRequest.LoginType.DINGTALK);
+            assertThat(LoginRequest.LoginType.valueOf("FEISHU")).isEqualTo(LoginRequest.LoginType.FEISHU);
+            assertThat(LoginRequest.LoginType.valueOf("WECOM")).isEqualTo(LoginRequest.LoginType.WECOM);
         }
     }
 

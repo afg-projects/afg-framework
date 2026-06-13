@@ -21,12 +21,16 @@ class LoginTypeTest {
         void shouldContainAllLoginTypes() {
             LoginType[] types = LoginType.values();
 
-            assertThat(types).hasSize(4);
+            assertThat(types).hasSize(8);
             assertThat(types).containsExactlyInAnyOrder(
                     LoginType.USERNAME,
                     LoginType.MOBILE,
                     LoginType.EMAIL,
-                    LoginType.THIRD_PARTY
+                    LoginType.THIRD_PARTY,
+                    LoginType.WECHAT,
+                    LoginType.DINGTALK,
+                    LoginType.FEISHU,
+                    LoginType.WECOM
             );
         }
 
@@ -37,6 +41,10 @@ class LoginTypeTest {
             assertThat(LoginType.valueOf("MOBILE")).isEqualTo(LoginType.MOBILE);
             assertThat(LoginType.valueOf("EMAIL")).isEqualTo(LoginType.EMAIL);
             assertThat(LoginType.valueOf("THIRD_PARTY")).isEqualTo(LoginType.THIRD_PARTY);
+            assertThat(LoginType.valueOf("WECHAT")).isEqualTo(LoginType.WECHAT);
+            assertThat(LoginType.valueOf("DINGTALK")).isEqualTo(LoginType.DINGTALK);
+            assertThat(LoginType.valueOf("FEISHU")).isEqualTo(LoginType.FEISHU);
+            assertThat(LoginType.valueOf("WECOM")).isEqualTo(LoginType.WECOM);
         }
     }
 }

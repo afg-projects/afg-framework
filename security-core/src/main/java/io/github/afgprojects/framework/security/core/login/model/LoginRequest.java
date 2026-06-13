@@ -58,7 +58,27 @@ public record LoginRequest(
         /**
          * 第三方登录
          */
-        THIRD_PARTY
+        THIRD_PARTY,
+
+        /**
+         * 微信登录
+         */
+        WECHAT,
+
+        /**
+         * 钉钉登录
+         */
+        DINGTALK,
+
+        /**
+         * 飞书登录
+         */
+        FEISHU,
+
+        /**
+         * 企业微信登录
+         */
+        WECOM
     }
 
     /**

@@ -75,4 +75,20 @@ public interface AfgUserDetailsService {
     default AfgUserDetails loadUserByEmail(@NonNull String email) throws UsernameNotFoundException {
         throw new UsernameNotFoundException("Email login not supported");
     }
+
+    /**
+     * 根据社交平台 openId 加载用户详情。
+     *
+     * <p>社交登录场景下，通过第三方平台返回的用户唯一标识查找对应的系统用户。
+     * 业务系统需要实现此方法以支持社交登录策略的用户映射。
+     *
+     * @param openId 第三方平台用户唯一标识，永不为 null
+     * @param source 来源平台标识（如 wechat、dingtalk、feishu、wecom），永不为 null
+     * @return 用户详情，永不为 null
+     * @throws UsernameNotFoundException 如果用户不存在或未绑定系统账号
+     */
+    @NonNull
+    default AfgUserDetails loadUserBySocialOpenId(@NonNull String openId, @NonNull String source) throws UsernameNotFoundException {
+        throw new UsernameNotFoundException("Social login not supported");
+    }
 }

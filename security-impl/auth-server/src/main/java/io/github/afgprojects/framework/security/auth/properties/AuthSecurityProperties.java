@@ -6,8 +6,10 @@ import io.github.afgprojects.framework.security.auth.properties.login.LoginConfi
 import io.github.afgprojects.framework.security.auth.properties.oauth2.OAuth2Config;
 import io.github.afgprojects.framework.security.auth.properties.permission.PermissionConfig;
 import io.github.afgprojects.framework.security.auth.properties.security.SecurityConfig;
+import io.github.afgprojects.framework.security.auth.properties.social.SocialConfig;
 import io.github.afgprojects.framework.security.auth.properties.tenant.TenantConfig;
 import io.github.afgprojects.framework.security.auth.properties.token.TokenConfig;
+import io.github.afgprojects.framework.security.auth.properties.totp.TotpConfig;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -117,6 +119,16 @@ public class AuthSecurityProperties {
      * 安全策略配置。
      */
     private SecurityConfig security = new SecurityConfig();
+
+    /**
+     * 社交登录配置。
+     */
+    private SocialConfig social = new SocialConfig();
+
+    /**
+     * TOTP 双因素认证配置。
+     */
+    private TotpConfig totp = new TotpConfig();
 
     /**
      * 审计配置。
