@@ -64,6 +64,11 @@ class FieldMetadataGenerator {
                     continue;
                 }
 
+                // 跳过 @Transient 字段（非持久化字段，如 TreeEntity.children）
+                if (isTransientField(field)) {
+                    continue;
+                }
+
                 String propertyName = field.getSimpleName().toString();
                 String columnName = extractColumnName(field);
                 // 解析字段类型（处理泛型参数）
@@ -187,6 +192,26 @@ class FieldMetadataGenerator {
             }
         }
         return "id".equals(field.getSimpleName().toString());
+    }
+
+    /**
+     * 检查字段是否标记为 @Transient（非持久化字段）
+     * <p>
+     * 支持 jakarta.persistence.Transient 注解。
+     * @Transient 字段不映射到数据库列（如 TreeEntity.children），
+     * 在元数据提取时应跳过。
+     *
+     * @param field 字段元素
+     * @return 如果字段标记为 @Transient 则返回 true
+     */
+    private boolean isTransientField(VariableElement field) {
+        for (AnnotationMirror am : field.getAnnotationMirrors()) {
+            String annotationType = am.getAnnotationType().toString();
+            if (annotationType.equals("jakarta.persistence.Transient")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

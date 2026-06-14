@@ -222,6 +222,10 @@ public class ReflectiveEntityMetadata<T> implements DatabaseEntityMetadata<T> {
         if (getField("version") != null) {
             traits.add(EntityTrait.VERSIONED);
         }
+        // 树形结构特性检测
+        if (io.github.afgprojects.framework.data.core.entity.Treeable.class.isAssignableFrom(entityClass)) {
+            traits.add(EntityTrait.TREEABLE);
+        }
         // 数据权限特性检测
         if (inferDataScopeAware()) {
             traits.add(EntityTrait.DATA_SCOPE_AWARE);
@@ -368,6 +372,10 @@ public class ReflectiveEntityMetadata<T> implements DatabaseEntityMetadata<T> {
                 }
                 // 跳过关联字段（@ManyToOne, @OneToMany, @OneToOne, @ManyToMany）
                 if (ReflectiveFieldMetadata.isAssociationField(field)) {
+                    continue;
+                }
+                // 跳过 @Transient 字段（非持久化字段，如 TreeEntity.children）
+                if (field.isAnnotationPresent(jakarta.persistence.Transient.class)) {
                     continue;
                 }
                 result.add(new ReflectiveFieldMetadata(field));

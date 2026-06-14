@@ -1,7 +1,9 @@
 package io.github.afgprojects.framework.data.jdbc.entity;
 
+import io.github.afgprojects.framework.apt.entity.AfEntity;
 import io.github.afgprojects.framework.data.core.entity.LifecycleCallbacks;
 import io.github.afgprojects.framework.data.core.entity.TreeEntity;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,6 +14,8 @@ import java.time.Instant;
  */
 @Getter
 @Setter
+@AfEntity
+@Table(name = "test_category")
 public class TestCategory extends TreeEntity<TestCategory> implements LifecycleCallbacks {
 
     private String name;

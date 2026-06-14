@@ -88,7 +88,10 @@ public abstract class TreeEntity<T> extends BaseEntity implements Treeable<T> {
      * 子节点列表（瞬态，不持久化）
      * <p>
      * 通过关联查询加载，不在 INSERT/UPDATE 时写入数据库。
+     * 使用 {@code @Transient} 注解标记为非持久化字段，
+     * 元数据提取（APT 和反射）将自动跳过此字段。
      */
+    @jakarta.persistence.Transient
     protected List<T> children;
 
     @Override
