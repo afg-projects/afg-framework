@@ -34,9 +34,9 @@ class NoOpAuditableContextTest {
     class GetCurrentUserIdTests {
 
         @Test
-        @DisplayName("应返回 null（NoOp 降级，不提供用户身份信息）")
-        void shouldReturnNull() {
-            assertThat(auditableContext.getCurrentUserId()).isNull();
+        @DisplayName("应返回 \"system\"（NoOp 降级，避免 DB NOT NULL 约束违反）")
+        void shouldReturnSystem() {
+            assertThat(auditableContext.getCurrentUserId()).isEqualTo("system");
         }
     }
 

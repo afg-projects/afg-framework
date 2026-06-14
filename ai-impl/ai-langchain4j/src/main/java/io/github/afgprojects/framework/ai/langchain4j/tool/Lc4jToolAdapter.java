@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author afg-projects
  * @since 1.0.0
  */
+@lombok.extern.slf4j.Slf4j
 public class Lc4jToolAdapter {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
@@ -41,7 +42,8 @@ public class Lc4jToolAdapter {
                     builder.parameters(schema);
                 }
             } catch (Exception e) {
-                // 如果解析失败，忽略 schema
+                log.warn("Failed to parse input schema for tool '{}', proceeding without schema: {}",
+                        tool.name(), e.getMessage());
             }
         }
 

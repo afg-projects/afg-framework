@@ -58,10 +58,10 @@ class AuditableContextTest {
     class NoOpFallbackTests {
 
         @Test
-        @DisplayName("NoOpAuditableContext 应返回 null，确保无安全框架时框架可正常运行")
+        @DisplayName("NoOpAuditableContext 应返回 system，避免 DB NOT NULL 约束违反")
         void shouldReturnNull_fromNoOpFallback() {
             AuditableContext noOp = new NoOpAuditableContext();
-            assertThat(noOp.getCurrentUserId()).isNull();
+            assertThat(noOp.getCurrentUserId()).isEqualTo("system");
         }
     }
 }

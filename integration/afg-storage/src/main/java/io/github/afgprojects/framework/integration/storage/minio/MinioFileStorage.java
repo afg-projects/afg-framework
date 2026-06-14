@@ -20,7 +20,6 @@ import io.github.afgprojects.framework.core.api.storage.model.StorageType;
 import io.github.afgprojects.framework.core.api.storage.model.UploadRequest;
 import io.github.afgprojects.framework.integration.storage.model.StorageErrorCode;
 import io.github.afgprojects.framework.integration.storage.model.StorageException;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.Delete;
@@ -33,6 +32,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
@@ -108,6 +108,8 @@ public class MinioFileStorage implements FileStorage {
 
             log.debug("File uploaded to MinIO: {}", request.key());
             return get(request.key());
+        } catch (StorageException e) {
+            throw e;
         } catch (Exception e) {
             throw StorageException.uploadFailed(request.key(), e);
         }
@@ -144,9 +146,11 @@ public class MinioFileStorage implements FileStorage {
             s3Client.deleteObject(builder -> builder.bucket(bucket).key(key));
             log.debug("File deleted from MinIO: {}", key);
             return true;
-        } catch (Exception e) {
-            log.error("Failed to delete file from MinIO: {}", key, e);
+        } catch (NoSuchKeyException e) {
+            log.debug("File not found when deleting from MinIO: {}", key);
             return false;
+        } catch (Exception e) {
+            throw StorageException.deleteFailed(key, e);
         }
     }
 
@@ -171,8 +175,8 @@ public class MinioFileStorage implements FileStorage {
             var response = s3Client.deleteObjects(request);
             return response.deleted().size();
         } catch (Exception e) {
-            log.error("Failed to batch delete files from MinIO", e);
-            return 0;
+            throw new StorageException(StorageErrorCode.FILE_DELETE_FAILED,
+                    "批量删除文件失败", e);
         }
     }
 
@@ -188,8 +192,8 @@ public class MinioFileStorage implements FileStorage {
         } catch (software.amazon.awssdk.services.s3.model.NoSuchKeyException e) {
             return false;
         } catch (Exception e) {
-            log.error("Failed to check file existence in MinIO: {}", key, e);
-            return false;
+            throw new StorageException(StorageErrorCode.STORAGE_CONNECTION_FAILED,
+                    "检查文件存在性失败: " + key, e);
         }
     }
 
@@ -214,8 +218,8 @@ public class MinioFileStorage implements FileStorage {
         } catch (software.amazon.awssdk.services.s3.model.NoSuchKeyException e) {
             return null;
         } catch (Exception e) {
-            log.error("Failed to get file info from MinIO: {}", key, e);
-            return null;
+            throw new StorageException(StorageErrorCode.STORAGE_CONNECTION_FAILED,
+                    "获取文件信息失败: " + key, e);
         }
     }
 
@@ -254,8 +258,8 @@ public class MinioFileStorage implements FileStorage {
                     response.nextContinuationToken()
             );
         } catch (Exception e) {
-            log.error("Failed to list files from MinIO", e);
-            return ListResult.empty();
+            throw new StorageException(StorageErrorCode.STORAGE_CONNECTION_FAILED,
+                    "列举文件失败", e);
         }
     }
 
@@ -311,6 +315,8 @@ public class MinioFileStorage implements FileStorage {
                 throw new StorageException(StorageErrorCode.PRESIGNED_URL_GENERATION_FAILED,
                         "不支持的方法: " + options.method());
             }
+        } catch (StorageException e) {
+            throw e;
         } catch (Exception e) {
             throw new StorageException(StorageErrorCode.PRESIGNED_URL_GENERATION_FAILED,
                     "生成预签名URL失败: " + key, e);
@@ -330,6 +336,8 @@ public class MinioFileStorage implements FileStorage {
                     .metadata(metadata.getAll()));
 
             return get(key);
+        } catch (StorageException e) {
+            throw e;
         } catch (Exception e) {
             throw new StorageException(StorageErrorCode.METADATA_UPDATE_FAILED,
                     "更新元数据失败: " + key, e);
@@ -348,6 +356,8 @@ public class MinioFileStorage implements FileStorage {
 
             log.debug("File copied in MinIO: {} -> {}", sourceKey, targetKey);
             return get(targetKey);
+        } catch (StorageException e) {
+            throw e;
         } catch (Exception e) {
             throw new StorageException(StorageErrorCode.FILE_COPY_FAILED,
                     "文件复制失败: " + sourceKey + " -> " + targetKey, e);

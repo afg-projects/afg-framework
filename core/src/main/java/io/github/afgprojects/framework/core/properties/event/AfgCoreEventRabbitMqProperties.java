@@ -10,8 +10,8 @@ public class AfgCoreEventRabbitMqProperties {
 
     private String host = "localhost";
     private int port = 5672;
-    private String username = "guest";
-    private String password = "guest";
+    private String username;
+    private String password;
     private String virtualHost = "/";
     private String exchange = "afg.events";
     private String queuePrefix = "afg.queue.";

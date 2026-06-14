@@ -90,13 +90,19 @@ public class WebSocketSessionManager {
         if (sessionId != null) {
             String username = sessionUser.remove(sessionId);
             if (username != null) {
-                Set<String> sessions = userSessions.get(username);
-                if (sessions != null) {
-                    sessions.remove(sessionId);
-                    if (sessions.isEmpty()) {
-                        userSessions.remove(username);
+                // Atomically remove sessionId from the user's session set,
+                // and remove the user entry if no sessions remain.
+                // Using compute prevents a race where a new session is added
+                // between get() and remove(), which would incorrectly remove the user entry.
+                userSessions.compute(username, (key, sessionIds) -> {
+                    if (sessionIds != null) {
+                        sessionIds.remove(sessionId);
+                        if (sessionIds.isEmpty()) {
+                            return null; // remove the user entry
+                        }
                     }
-                }
+                    return sessionIds; // keep the user entry (non-empty or null set)
+                });
             }
 
             // 清理订阅

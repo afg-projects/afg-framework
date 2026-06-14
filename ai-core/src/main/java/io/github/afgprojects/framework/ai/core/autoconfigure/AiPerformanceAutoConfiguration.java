@@ -52,7 +52,7 @@ public class AiPerformanceAutoConfiguration {
             return new DefaultRateLimiter(config.getDefaultPermits(), Duration.ofSeconds(config.getWindowSeconds()));
         }
 
-        // TODO: 阶段4添加 AOP 切面 Bean
+        // TODO: 阶段4添加 AOP 切面 Bean（实现时必须保留 @ConditionalOnMissingBean 以避免覆盖自定义实现）
         // @Bean
         // @ConditionalOnMissingBean
         // public AiRateLimitedAspect aiRateLimitedAspect(RateLimiter rateLimiter) {

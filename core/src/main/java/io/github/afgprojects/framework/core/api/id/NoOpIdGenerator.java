@@ -30,6 +30,6 @@ public class NoOpIdGenerator implements IdGenerator {
 
     @Override
     public IdGeneratorType getType() {
-        return IdGeneratorType.UUID;
+        return IdGeneratorType.NONE;
     }
 }

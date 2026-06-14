@@ -104,7 +104,7 @@ public class AfgToolCallback implements ToolCallback {
 
         } catch (Exception e) {
             log.error("Tool {} execution failed: {}", tool.name(), e.getMessage(), e);
-            return "Error: " + e.getClass().getSimpleName() + " - " + e.getMessage();
+            throw new org.springframework.ai.tool.execution.ToolExecutionException(springAiToolDefinition, e);
         }
     }
 

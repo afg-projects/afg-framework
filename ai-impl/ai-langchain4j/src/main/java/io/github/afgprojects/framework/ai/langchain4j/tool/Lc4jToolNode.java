@@ -58,9 +58,10 @@ public class Lc4jToolNode {
             Object result = executeTool(tool, input);
             return serializeOutput(result);
         } catch (ToolExecutionException e) {
-            return "Error: " + e.getMessage();
+            throw e;
         } catch (Exception e) {
-            return "Error executing tool '" + tool.name() + "': " + e.getMessage();
+            throw new ToolExecutionException(
+                "Error executing tool '" + tool.name() + "': " + e.getMessage(), e);
         }
     }
 

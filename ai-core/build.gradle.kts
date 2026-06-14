@@ -47,14 +47,14 @@ dependencies {
     annotationProcessor(project(":apt-impl"))
 
     // PDF 解析 (ETL)
-    implementation("org.apache.pdfbox:pdfbox:3.0.1")
+    implementation(libs.pdfbox)
 
     // Markdown 解析 (ETL)
-    implementation("org.commonmark:commonmark:0.22.0")
-    implementation("org.commonmark:commonmark-ext-gfm-tables:0.22.0")
+    implementation(libs.commonmark)
+    implementation(libs.commonmark.ext.gfm.tables)
 
     // 编码检测 (ETL)
-    implementation("com.github.albfernandez:juniversalchardet:2.4.0")
+    implementation(libs.juniversalchardet)
 
     // Lombok
     compileOnly(libs.lombok)
@@ -66,12 +66,11 @@ dependencies {
     testImplementation(libs.bundles.testing)
     testImplementation(libs.spring.boot.starter.test)
     testImplementation(libs.spring.webflux)  // SSE/WebClient testing
-    testImplementation("org.springframework.boot:spring-boot-restclient")  // RestClient.Builder for web tests
+    testImplementation(libs.spring.boot.restclient)  // RestClient.Builder for web tests
     testImplementation(libs.testcontainers)
     testImplementation(libs.testcontainers.junit.jupiter)
     testImplementation(libs.testcontainers.mysql)
     testImplementation(libs.mysql.connector)
     testImplementation(project(":data-impl:data-liquibase"))
     testImplementation(project(":data-impl:data-jdbc"))
-    testImplementation(project(":data-impl:data-liquibase"))
 }

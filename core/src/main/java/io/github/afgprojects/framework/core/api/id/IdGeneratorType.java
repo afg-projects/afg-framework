@@ -7,6 +7,7 @@ package io.github.afgprojects.framework.core.api.id;
  * </p>
  *
  * <ul>
+ *   <li>{@link #NONE} — NoOp 降级，本地自增计数器，不具备分布式安全性</li>
  *   <li>{@link #SNOWFLAKE} — Twitter Snowflake 算法，64-bit 有序数值 ID</li>
  *   <li>{@link #SEGMENT} — 号段模式，从数据库预分配 ID 段（计划支持）</li>
  *   <li>{@link #UUID} — UUID 随机字符串 ID</li>
@@ -15,6 +16,15 @@ package io.github.afgprojects.framework.core.api.id;
  * @since 1.0.0
  */
 public enum IdGeneratorType {
+
+    /**
+     * 无 ID 生成策略（NoOp 降级）
+     * <p>
+     * 表示当前 ID 生成器为本地降级实现，不具备分布式安全性。
+     * 仅适用于单机降级场景或不需要分布式 ID 的场景。
+     * </p>
+     */
+    NONE,
 
     /**
      * Twitter Snowflake 算法

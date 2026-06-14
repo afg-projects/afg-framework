@@ -54,9 +54,9 @@ class NoOpIdGeneratorTest {
     class GetType {
 
         @Test
-        @DisplayName("should return UUID type")
-        void shouldReturnUuidType() {
-            assertThat(generator.getType()).isEqualTo(IdGeneratorType.UUID);
+        @DisplayName("should return NONE type")
+        void shouldReturnNoneType() {
+            assertThat(generator.getType()).isEqualTo(IdGeneratorType.NONE);
         }
     }
 }

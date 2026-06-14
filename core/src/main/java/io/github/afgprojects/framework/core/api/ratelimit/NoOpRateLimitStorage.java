@@ -27,7 +27,7 @@ public class NoOpRateLimitStorage implements RateLimitStorage {
 
     @Override
     public long increment(@NonNull String key, long delta, long ttl) {
-        return delta;
+        return 0L;
     }
 
     @Override

@@ -115,7 +115,7 @@ abstract class AfgInitTask : DefaultTask() {
         logger.lifecycle("  1. 根据实际环境修改 application.yml 中的数据库配置")
         if (mode == "AUTH_SERVER" || mode == "MONOLITH") {
             logger.lifecycle("  2. 实现 UserDetailsServiceImpl 中的用户加载逻辑")
-            logger.lifecycle("  3. 配置 afg.security.auth-server.token.signing-key")
+            logger.lifecycle("  3. 配置 RSA 密钥对路径: afg.security.auth-server.token.key-store-path")
             logger.lifecycle("  4. 根据需要配置 oauth2、casbin、permission、tenant、security、audit 等模块")
         }
         if (mode == "RESOURCE_SERVER") {
@@ -308,7 +308,7 @@ public class Application {
                         appendLine("      enabled: true")
                         appendLine("      token:")
                         appendLine("        issuer: https://auth.example.com")
-                        appendLine("        signing-key: change-this-to-your-secret-key-at-least-256-bits")
+                        appendLine("        key-store-path: file:\${user.home}/.afg/keys")
                         appendLine("        access-token-ttl: 2h")
                         appendLine("        refresh-token-ttl: 7d")
                         appendLine("      login:")
@@ -359,7 +359,7 @@ public class Application {
                         appendLine("      enabled: true")
                         appendLine("      token:")
                         appendLine("        issuer: https://app.example.com")
-                        appendLine("        signing-key: change-this-to-your-secret-key-at-least-256-bits")
+                        appendLine("        key-store-path: file:\${user.home}/.afg/keys")
                         appendLine("        access-token-ttl: 2h")
                         appendLine("        refresh-token-ttl: 7d")
                         appendLine("      login:")

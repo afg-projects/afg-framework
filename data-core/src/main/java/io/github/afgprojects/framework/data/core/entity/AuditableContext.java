@@ -39,8 +39,8 @@ import org.jspecify.annotations.Nullable;
  *
  * <h3>NoOp 降级</h3>
  * <p>
- * 框架内置 {@link NoOpAuditableContext} 作为默认降级实现，返回 null。
- * 审计字段不会被自动填充，需要业务代码手动设置。
+ * 框架内置 {@link NoOpAuditableContext} 作为默认降级实现，返回 "system"。
+ * 审计字段会被自动填充为 "system"，表示由系统自动创建/修改。
  *
  * @see NoOpAuditableContext
  * @see io.github.afgprojects.framework.data.core.metadata.EntityTrait#AUDITABLE

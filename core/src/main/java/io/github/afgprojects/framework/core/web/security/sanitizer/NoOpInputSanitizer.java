@@ -1,8 +1,9 @@
 package io.github.afgprojects.framework.core.web.security.sanitizer;
 
-import org.jspecify.annotations.Nullable;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.Nullable;
 
 /**
  * 空操作输入安全检测器。
@@ -20,8 +21,11 @@ import lombok.extern.slf4j.Slf4j;
 public class NoOpInputSanitizer implements InputSecurityChecker {
 
     private static final String WARNING_MESSAGE =
-            "NoOpInputSanitizer is being used - XSS detection is DISABLED. "
-            + "Add 'antisamy' dependency to enable real protection via EnhancedInputSanitizer.";
+            "XSS detection is DISABLED! Input sanitization is not active. "
+            + "Add 'antisamy' dependency to enable real protection via EnhancedInputSanitizer. "
+            + "This is a security risk in production.";
+
+    private static final AtomicBoolean warned = new AtomicBoolean(false);
 
     /**
      * 创建空操作输入安全检测器。
@@ -29,16 +33,24 @@ public class NoOpInputSanitizer implements InputSecurityChecker {
      * 记录一条警告日志，提示应添加 AntiSamy 依赖。
      */
     public NoOpInputSanitizer() {
-        log.warn(WARNING_MESSAGE);
+        if (warned.compareAndSet(false, true)) {
+            log.warn(WARNING_MESSAGE);
+        }
     }
 
     @Override
     public boolean containsXss(@Nullable String input) {
+        if (warned.compareAndSet(false, true)) {
+            log.warn(WARNING_MESSAGE);
+        }
         return false;
     }
 
     @Override
     public @Nullable String sanitizeHtml(@Nullable String input) {
+        if (warned.compareAndSet(false, true)) {
+            log.warn(WARNING_MESSAGE);
+        }
         return input;
     }
 }

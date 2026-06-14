@@ -7,9 +7,10 @@ import io.github.afgprojects.framework.core.statemachine.StateMachineDefinition;
 /**
  * NoOp 状态机工厂实现
  * <p>
- * 本地降级实现，所有操作均为空操作或抛出异常。
- * {@code getDefinition} 返回 {@code null}，
- * {@code create} 抛出 {@link UnsupportedOperationException}，
+ * 本地降级实现，所有操作均为空操作或返回安全默认值。
+ * {@code getDefinition} 返回空的默认定义（name="noop", states=empty, transitions=empty），
+ * 避免调用方 NPE 风险；
+ * {@code create} 返回 NoOp 状态机实例；
  * {@code register} 静默忽略。
  * </p>
  * <p>
@@ -23,12 +24,19 @@ public class NoOpStateMachineFactory implements StateMachineFactory {
 
     @Override
     public <S extends Enum<S>> StateMachineDefinition<S> getDefinition(Class<S> stateType) {
-        return null;
+        return createEmptyDefinition(stateType.getSimpleName());
     }
 
     @Override
     public <S extends Enum<S>> StateMachineDefinition<S> getDefinition(String name) {
-        return null;
+        return createEmptyDefinition(name);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <S extends Enum<S>> StateMachineDefinition<S> createEmptyDefinition(String name) {
+        return (StateMachineDefinition<S>) StateMachineDefinition.builder()
+                .name(name != null ? name : "noop")
+                .build();
     }
 
     @Override
@@ -71,7 +79,14 @@ public class NoOpStateMachineFactory implements StateMachineFactory {
 
         @Override
         public StateMachineDefinition<S> getDefinition() {
-            return null;
+            return createEmptyDefinition();
+        }
+
+        @SuppressWarnings("unchecked")
+        private StateMachineDefinition<S> createEmptyDefinition() {
+            return (StateMachineDefinition<S>) StateMachineDefinition.builder()
+                    .name("noop")
+                    .build();
         }
     }
 }

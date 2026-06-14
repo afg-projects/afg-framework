@@ -26,6 +26,9 @@ consul = "1.4.5"
 aws-s3 = "2.44.3"
 aliyun-oss = "3.18.1"
 langchain4j = "1.15.1"
+pdfbox = "3.0.1"
+commonmark = "0.22.0"
+juniversalchardet = "2.4.0"
 
 # gRPC
 grpc = "1.81.0"
@@ -52,6 +55,7 @@ spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-
 spring-boot-starter-websocket = { module = "org.springframework.boot:spring-boot-starter-websocket" }
 spring-boot-starter-amqp = { module = "org.springframework.boot:spring-boot-starter-amqp" }
 spring-boot-starter-data-redis = { module = "org.springframework.boot:spring-boot-starter-data-redis" }
+spring-boot-restclient = { module = "org.springframework.boot:spring-boot-restclient" }
 spring-tx = { module = "org.springframework:spring-tx" }
 spring-boot-starter-aspectj = { module = "org.springframework.boot:spring-boot-starter-aspectj" }
 spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure" }
@@ -159,6 +163,12 @@ aliyun-oss = { module = "com.aliyun.oss:aliyun-sdk-oss", version.ref = "aliyun-o
 langchain4j = { module = "dev.langchain4j:langchain4j", version.ref = "langchain4j" }
 langchain4j-open-ai = { module = "dev.langchain4j:langchain4j-open-ai", version.ref = "langchain4j" }
 langchain4j-ollama = { module = "dev.langchain4j:langchain4j-ollama", version.ref = "langchain4j" }
+
+# ETL / Document Processing
+pdfbox = { module = "org.apache.pdfbox:pdfbox", version.ref = "pdfbox" }
+commonmark = { module = "org.commonmark:commonmark", version.ref = "commonmark" }
+commonmark-ext-gfm-tables = { module = "org.commonmark:commonmark-ext-gfm-tables", version.ref = "commonmark" }
+juniversalchardet = { module = "com.github.albfernandez:juniversalchardet", version.ref = "juniversalchardet" }
 
 # Spring AI
 spring-ai-client-chat = { module = "org.springframework.ai:spring-ai-client-chat", version.ref = "spring-ai" }

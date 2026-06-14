@@ -9,6 +9,8 @@ import org.redisson.api.RedissonClient;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import io.github.afgprojects.framework.core.feature.FeatureFlag;
 import io.github.afgprojects.framework.core.feature.FeatureFlagManager;
 
@@ -53,9 +55,12 @@ public class RedissonStorageClient implements FeatureFlagManager.DistributedStor
                 return null;
             }
             return deserialize(json);
+        } catch (BusinessException e) {
+            throw e;
         } catch (Exception e) {
             log.error("获取功能开关失败: {}", featureName, e);
-            return null;
+            throw new BusinessException(CommonErrorCode.SERVICE_UNAVAILABLE,
+                    "获取功能开关失败: " + featureName, e);
         }
     }
 
@@ -65,8 +70,12 @@ public class RedissonStorageClient implements FeatureFlagManager.DistributedStor
             RMap<String, String> map = redissonClient.getMap(mapKey);
             map.put(featureName, serialize(flag));
             log.debug("功能开关已存储: {}", featureName);
+        } catch (BusinessException e) {
+            throw e;
         } catch (Exception e) {
             log.error("存储功能开关失败: {}", featureName, e);
+            throw new BusinessException(CommonErrorCode.SERVICE_UNAVAILABLE,
+                    "存储功能开关失败: " + featureName, e);
         }
     }
 
@@ -80,8 +89,12 @@ public class RedissonStorageClient implements FeatureFlagManager.DistributedStor
             }
             map.putAll(jsonMap);
             log.debug("批量存储功能开关: {} 个", flags.size());
+        } catch (BusinessException e) {
+            throw e;
         } catch (Exception e) {
             log.error("批量存储功能开关失败", e);
+            throw new BusinessException(CommonErrorCode.SERVICE_UNAVAILABLE,
+                    "批量存储功能开关失败", e);
         }
     }
 
@@ -91,27 +104,35 @@ public class RedissonStorageClient implements FeatureFlagManager.DistributedStor
             RMap<String, String> map = redissonClient.getMap(mapKey);
             map.remove(featureName);
             log.debug("功能开关已删除: {}", featureName);
+        } catch (BusinessException e) {
+            throw e;
         } catch (Exception e) {
             log.error("删除功能开关失败: {}", featureName, e);
+            throw new BusinessException(CommonErrorCode.SERVICE_UNAVAILABLE,
+                    "删除功能开关失败: " + featureName, e);
         }
     }
 
     @Override
     @NonNull
     public Map<String, FeatureFlag> getAll() {
-        Map<String, FeatureFlag> result = new java.util.HashMap<>();
         try {
             RMap<String, String> map = redissonClient.getMap(mapKey);
+            Map<String, FeatureFlag> result = new java.util.HashMap<>();
             for (Map.Entry<String, String> entry : map.entrySet()) {
                 FeatureFlag flag = deserialize(entry.getValue());
                 if (flag != null) {
                     result.put(entry.getKey(), flag);
                 }
             }
+            return result;
+        } catch (BusinessException e) {
+            throw e;
         } catch (Exception e) {
             log.error("获取所有功能开关失败", e);
+            throw new BusinessException(CommonErrorCode.SERVICE_UNAVAILABLE,
+                    "获取所有功能开关失败", e);
         }
-        return result;
     }
 
     /**
