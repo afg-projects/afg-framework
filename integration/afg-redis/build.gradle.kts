@@ -29,9 +29,11 @@ dependencies {
     testImplementation(libs.spring.boot.starter.test)
     testImplementation(libs.spring.boot.health)
 
+    // Lombok for tests
+    testCompileOnly(libs.lombok)
+    testAnnotationProcessor(libs.lombok)
+
     // Testcontainers (集成测试)
     testImplementation(libs.testcontainers)
     testImplementation(libs.testcontainers.junit.jupiter)
 }
-
-

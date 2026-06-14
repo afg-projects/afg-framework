@@ -27,4 +27,5 @@ dependencies {
     testImplementation(libs.bundles.testing)
     testImplementation(libs.spring.boot.starter.test)
     testImplementation(libs.jakarta.servlet.api)
+    testImplementation(libs.wiremock.standalone)
 }

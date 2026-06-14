@@ -22,13 +22,14 @@ dependencies {
     // Test
     testImplementation(libs.bundles.testing)
     testImplementation(libs.spring.boot.starter.test)
-    testImplementation(libs.h2)
     // Lombok for tests
     testCompileOnly(libs.lombok)
     testAnnotationProcessor(libs.lombok)
     // Testcontainers for integration tests
     testImplementation(libs.testcontainers)
     testImplementation(libs.testcontainers.junit.jupiter)
+    testImplementation(libs.testcontainers.postgresql)
+    testImplementation(libs.postgresql.driver)
 }
 
 

@@ -14,9 +14,11 @@ dependencies {
 
     // Test（版本由 Spring Boot BOM 管理）
     testImplementation(libs.bundles.testing)
-    testImplementation(libs.h2)
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-starter-jdbc")
+    // Testcontainers PostgreSQL（替代 H2，确保测试与生产环境一致）
+    testImplementation(libs.testcontainers)
+    testImplementation(libs.testcontainers.junit.jupiter)
+    testImplementation(libs.testcontainers.postgresql)
+    testRuntimeOnly("org.postgresql:postgresql:42.7.5")
 }
-
-

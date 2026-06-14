@@ -35,6 +35,8 @@ grpc = "1.81.0"
 protobuf = "3.25.8"
 spring-grpc = "1.0.3"
 
+wiremock = "3.12.0"
+
 # Gradle 插件版本
 dependency-management = "1.1.7"
 versions-plugin = "0.54.0"
@@ -185,6 +187,9 @@ grpc-netty = { module = "io.grpc:grpc-netty", version.ref = "grpc" }
 spring-grpc-server-spring-boot-starter = { module = "org.springframework.grpc:spring-grpc-server-spring-boot-starter", version.ref = "spring-grpc" }
 protobuf-java = { module = "com.google.protobuf:protobuf-java", version.ref = "protobuf" }
 javax-annotation-api = { module = "javax.annotation:javax.annotation-api", version = "1.3.2" }
+
+# WireMock（外部 HTTP 服务模拟）
+wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version.ref = "wiremock" }
 
 [plugins]
 spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }

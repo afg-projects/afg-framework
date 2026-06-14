@@ -43,6 +43,7 @@ dependencies {
     testImplementation(libs.bundles.testing)
     testImplementation(libs.spring.boot.starter.test)
     testImplementation(libs.h2)
+    testImplementation(libs.wiremock.standalone)
 
     // Jakarta Persistence API for @Table annotation（版本由 Spring Boot BOM 管理）
     implementation(libs.jakarta.persistence.api)

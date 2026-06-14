@@ -19,18 +19,19 @@ import static org.assertj.core.api.Assertions.assertThat;
  * 验证 Liquibase 自动配置能正确加载、创建 SpringLiquibase bean、
  * 并执行 changelog 迁移。
  * <p>
- * 使用 H2 内存数据库进行测试，不使用 Mockito。
+ * 使用 PostgreSQL Testcontainers 进行测试，不使用 Mockito 或 H2。
  */
 @SpringBootTest(classes = LiquibaseTestConfiguration.class)
 @TestPropertySource(properties = {
-    "spring.datasource.url=jdbc:h2:mem:liquibase_test;DB_CLOSE_DELAY=-1",
-    "spring.datasource.driver-class-name=org.h2.Driver",
-    "spring.datasource.username=sa",
-    "spring.datasource.password=",
     "afg.liquibase.enabled=true",
     "afg.liquibase.change-log=classpath:db/changelog/changelog.xml"
 })
 class LiquibaseAutoConfigurationTest {
+
+    static {
+        // 在类加载时启动 PostgreSQL 容器
+        LiquibasePostgresSupport.start();
+    }
 
     @Autowired
     ApplicationContext applicationContext;
@@ -101,10 +102,6 @@ class LiquibaseAutoConfigurationTest {
     @Nested
     @DisplayName("禁用配置")
     @TestPropertySource(properties = {
-        "spring.datasource.url=jdbc:h2:mem:liquibase_disabled_test;DB_CLOSE_DELAY=-1",
-        "spring.datasource.driver-class-name=org.h2.Driver",
-        "spring.datasource.username=sa",
-        "spring.datasource.password=",
         "afg.liquibase.enabled=false"
     })
     class DisabledConfiguration {

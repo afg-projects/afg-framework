@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="v1.0.0-007-test-category" author="afg">
+        <createTable tableName="test_category" remarks="测试分类树形表">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_test_category"/>
+            </column>
+            <column name="name" type="VARCHAR(100)" remarks="分类名称"/>
+            <column name="description" type="VARCHAR(200)" remarks="分类描述"/>
+            <column name="parent_id" type="BIGINT" remarks="父节点ID"/>
+            <column name="level" type="INT" defaultValueNumeric="1" remarks="层级深度">
+                <constraints nullable="false"/>
+            </column>
+            <column name="path" type="VARCHAR(500)" defaultValue="/" remarks="祖先ID路径">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sort_order" type="INT" defaultValueNumeric="0" remarks="同级排序">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP WITHOUT TIME ZONE" remarks="创建时间"/>
+            <column name="updated_at" type="TIMESTAMP WITHOUT TIME ZONE" remarks="更新时间"/>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>
