@@ -483,6 +483,82 @@ PRD 文档从 2814 行深度优化至 6193 行（+3379 行），对标 Spring Bo
 
 ### Next Steps
 
-- PRD 定稿，后续可进入实现阶段
-- AfgInitTask 中 signing-key → key-store-path 的代码 bug 需修复
+- AfgInitTask 中 signing-key → key-store-path 的代码 bug 已修复 ✅
 - ai-spring-ai 模块未 include，需决定是否纳入构建
+- PRD 定稿工作待继续（9 个 Phase 未开始）
+- 版本号仍为 1.0.0-SNAPSHOT，发布前需改为 1.0.0-RC1
+
+---
+
+## 2026-06-14: 生产收敛 — P0/P1 修复 + P2 全量测试补齐
+
+### 背景
+
+用户要求"准备收敛发布一个稳定健壮可生产使用的版本"，需要全面审计和修复。
+
+### 审计结果
+
+3 个子代理并行审计，写入 research/ 目录：
+- build-audit.md — 编译通过，2912 测试通过，12 个模块零测试
+- code-quality-audit.md — P0: 3 个安全 NoOp 灾难 + P1: 9 个语义/异常问题
+- test-coverage-audit.md — 13 个模块零测试，新功能 7/16 无测试
+
+### 提交记录
+
+| Commit | 内容 |
+|--------|------|
+| `48f0057` | fix: P0/P1 生产级修复 — 安全 NoOp 加强 + 语义修正 + 异常处理 + 依赖治理 |
+| `cc6dd41` | test: P2 全量测试补齐 — 55 个文件 +7647 行，覆盖 13 个零测试模块 |
+| `d0e2d4d` | docs: 添加 CHANGELOG.md — 记录 1.0.0-SNAPSHOT 全量变更 |
+
+### P0/P1 修复详情
+
+**P0 安全 NoOp（6 项）**：
+- 删除 NoOpPasswordValidator（validate=通过/matches=失败/encode=明文）
+- NoOpFieldEncryptor + NoOpInputSanitizer + NoOpTokenBlacklist + NoOpLoginFailureTracker/Storage 加 AtomicBoolean warn
+- AfgInitTask signing-key → key-store-path
+
+**P1 NoOp 语义（5 项）**：
+- NoOpRateLimitStorage.increment() → 0L
+- NoOpIdGenerator.getType() → NONE
+- NoOpStateMachineFactory.getDefinition() → 空默认定义
+- NoOpAuditableContext.getCurrentUserId() → "system"
+
+**P1 异常处理（5 项）**：
+- AfgToolCallback + Lc4jToolNode — 错误传播而非吞没
+- RedissonStorageClient — 抛 SERVICE_UNAVAILABLE
+- MinioFileStorage — 区分 NotFound vs 连接异常
+- WebSocketSessionManager — compute() 修复竞态条件
+
+**P1 依赖治理（4 项）**：
+- RabbitMQ 密码硬编码 guest → null
+- ai-core 5 个依赖迁移到版本目录
+- 删除重复 data-liquibase 声明
+- AiPerformanceAutoConfiguration TODO 注释明确 @ConditionalOnMissingBean
+
+### P2 测试补齐详情
+
+| 模块 | 新增测试 | 测试方法数 |
+|------|---------|-----------|
+| security-core | TotpService + NoOpTotpService | 14 |
+| auth-server | DefaultTotpService + 2FA + SocialLogin | 58 |
+| resource-server | AutoConfig + Validator + Exception + Enum | 35 |
+| data-jdbc | 10 个新测试类 | 50+ |
+| data-liquibase | H2 → Testcontainers PostgreSQL | - |
+| afg-redis | 6 测试类 + 基础设施 | 58 |
+| afg-rabbitmq | EventPublisher | 5 |
+| afg-storage | Local + Factory | 29 |
+| afg-jdbc | AuditLogStorage | 5 |
+| afg-websocket | SessionManager | 7 |
+| ai-core | 9 workflow 节点 | 91 |
+| gradle-plugin | GenerateDbDoc | 7 |
+| governance/client | AutoConfig | 9 |
+| governance/server | AutoConfig | 7 |
+| **总计** | **55 文件 +7647 行** | **375+** |
+
+### 待解决
+
+- TreeQuery 集成测试需要 APT 生成的元数据（ReflectiveMetadataLoader 无法处理 transient 字段）
+- DataSource 路由集成测试需要多数据源配置
+- CLAUDE.md 在上级目录（非 git 仓库），已更新但未提交到 git
+- 版本号仍为 1.0.0-SNAPSHOT
