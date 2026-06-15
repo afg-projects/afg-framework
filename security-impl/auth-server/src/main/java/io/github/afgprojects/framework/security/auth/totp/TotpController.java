@@ -4,6 +4,7 @@ import io.github.afgprojects.framework.commons.model.Result;
 import io.github.afgprojects.framework.security.core.authentication.AfgAuthentication;
 import io.github.afgprojects.framework.security.core.authentication.AfgUserDetails;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,6 +34,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequestMapping("/auth/totp")
+@ConditionalOnProperty(prefix = "afg.security.auth-server.totp", name = "enabled", havingValue = "true")
 public class TotpController {
 
     private final TwoFactorAuthenticationService twoFactorAuthService;

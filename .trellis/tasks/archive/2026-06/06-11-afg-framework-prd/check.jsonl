@@ -1,2 +1,0 @@
-{"file": ".trellis/tasks/06-11-afg-framework-prd/prd.md", "reason": "PRD 包含验收标准，check agent 需要对照验证每个 Acceptance Criteria"}
-{"file": ".trellis/research/spring-boot-4-spring-framework-7-changes.md", "reason": "Spring Boot 4 最佳实践参考，用于验证整改是否符合官方规范"}

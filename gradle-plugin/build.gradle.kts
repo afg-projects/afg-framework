@@ -2,17 +2,12 @@ plugins {
     `java-gradle-plugin`
     `kotlin-dsl`
     `jvm-test-suite`
-    application
     id("com.vanniktech.maven.publish")
     id("org.jetbrains.kotlin.jvm")
 }
 
 group = property("projectGroup").toString()
-version = property("projectVersion").toString()
-
-application {
-    mainClass.set("io.github.afgprojects.framework.core.gradle.cli.AfgCliKt")
-}
+version = property("gradlePluginVersion").toString()
 
 gradlePlugin {
     website.set("https://github.com/afg-projects/afg-framework")
@@ -23,14 +18,13 @@ gradlePlugin {
             id = "io.github.afg-projects.framework-plugin"
             implementationClass = "io.github.afgprojects.framework.core.gradle.AfgPlugin"
             displayName = "AFG Framework Gradle Plugin"
-            description = "Gradle plugin for AFG Framework - provides code generation, database migration, and reverse engineering capabilities"
-            tags.set(listOf("afg", "framework", "codegen", "liquibase", "migration"))
+            description = "Gradle plugin for AFG Framework — auto-configures dependencies, compilation, testing, and code quality"
+            tags.set(listOf("afg", "framework", "spring-boot", "codegen"))
         }
     }
 
-    // 声明插件依赖
+    // 声明插件依赖 — standalone 模式自动应用 Spring Boot 插件
     dependencies {
-        // 独立部署模式时自动应用 Spring Boot 插件
         implementation("org.springframework.boot:org.springframework.boot.gradle.plugin:${rootProject.extra["springBootVersion"]}")
     }
 }
@@ -47,19 +41,7 @@ dependencies {
     compileOnly(gradleApi())
     compileOnly(kotlin("stdlib"))
 
-    // CLI 框架
-    implementation(libs.clikt)
-
-    // 类扫描
-    implementation(libs.classgraph)
-
-    // Liquibase（gradle-plugin 不使用 Spring Boot BOM，需要显式版本）
-    implementation("org.liquibase:liquibase-core:5.0.2")
-
-    // SnakeYAML (YAML 解析，gradle-plugin 不使用 Spring Boot BOM，需要显式版本)
-    implementation("org.yaml:snakeyaml:2.4")
-
-    // Test dependencies（gradle-plugin 不使用 Spring Boot BOM，需要显式版本）
+    // Test dependencies
     testImplementation(kotlin("test"))
     testImplementation("org.junit.jupiter:junit-jupiter:5.12.2")
     testImplementation("org.assertj:assertj-core:3.27.3")
@@ -80,7 +62,7 @@ configure<com.vanniktech.maven.publish.MavenPublishBaseExtension> {
 
     pom {
         name.set("AFG Framework Gradle Plugin")
-        description.set("Gradle plugin for AFG Framework - provides code generation, database migration, and reverse engineering capabilities")
+        description.set("Gradle plugin for AFG Framework — auto-configures dependencies, compilation, testing, and code quality")
         url.set("https://github.com/afg-projects/afg-framework")
         inceptionYear.set("2024")
 

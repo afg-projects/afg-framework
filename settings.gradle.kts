@@ -15,6 +15,9 @@ dependencyResolutionManagement {
     }
 }
 
+// BOM (Bill of Materials) — 统一版本管理
+include("bom")
+
 // Gradle 插件
 include("gradle-plugin")
 

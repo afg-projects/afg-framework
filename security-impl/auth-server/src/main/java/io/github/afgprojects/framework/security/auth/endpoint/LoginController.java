@@ -15,6 +15,7 @@ import io.github.afgprojects.framework.security.core.token.JwtClaimsExtractor;
 import jakarta.servlet.http.HttpServletRequest;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -50,6 +51,7 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("/auth")
+@ConditionalOnProperty(prefix = "afg.security.auth-server", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class LoginController {
 
     private final LoginService loginService;

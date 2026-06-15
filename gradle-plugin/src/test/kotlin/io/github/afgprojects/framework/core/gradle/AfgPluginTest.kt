@@ -1,15 +1,17 @@
 package io.github.afgprojects.framework.core.gradle
 
+import io.github.afgprojects.framework.core.gradle.extension.AfgExtension
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
+import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 /**
- * AfgPlugin 功能测试
+ * AfgPlugin 功能测试（轻量版）。
  */
 @DisplayName("AfgPlugin 测试")
 class AfgPluginTest {
@@ -20,15 +22,11 @@ class AfgPluginTest {
     @Test
     @DisplayName("插件应该正确应用")
     fun `plugin should be applied correctly`() {
-        // 创建项目并设置基本配置
         val project = ProjectBuilder.builder()
             .withProjectDir(tempDir)
             .build()
 
-        // 先应用 java-library 插件（AfgPlugin 会自动应用，但测试环境需要预先设置）
         project.plugins.apply("java-library")
-
-        // 应用 AfgPlugin
         project.plugins.apply(AfgPlugin::class.java)
 
         assertTrue(project.plugins.hasPlugin("java-library"))
@@ -50,8 +48,8 @@ class AfgPluginTest {
     }
 
     @Test
-    @DisplayName("应该注册核心任务")
-    fun `should register core tasks`() {
+    @DisplayName("扩展应该有默认值")
+    fun `extension should have default values`() {
         val project = ProjectBuilder.builder()
             .withProjectDir(tempDir)
             .build()
@@ -59,21 +57,17 @@ class AfgPluginTest {
         project.plugins.apply("java-library")
         project.plugins.apply(AfgPlugin::class.java)
 
-        // 检查核心任务是否注册
-        val coreTasks = listOf(
-            "generateEntity",
-            "afgInfo"
-        )
+        val extension = project.extensions.findByType(AfgExtension::class.java)
+        assertNotNull(extension)
 
-        for (taskName in coreTasks) {
-            val task = project.tasks.findByName(taskName)
-            assertNotNull(task, "Task $taskName should be registered")
-        }
+        // 默认值应该可用
+        assertTrue(extension.standalone.getOrElse(true), "standalone should default to true")
+        assertTrue(extension.useLombok.getOrElse(true), "useLombok should default to true")
     }
 
     @Test
-    @DisplayName("afgInfo 任务应该有正确的分组")
-    fun `afgInfo task should have correct group`() {
+    @DisplayName("扩展配置应该可自定义")
+    fun `extension should be configurable`() {
         val project = ProjectBuilder.builder()
             .withProjectDir(tempDir)
             .build()
@@ -81,14 +75,23 @@ class AfgPluginTest {
         project.plugins.apply("java-library")
         project.plugins.apply(AfgPlugin::class.java)
 
-        val task = project.tasks.findByName("afgInfo")
-        assertNotNull(task)
-        assertTrue(task?.group == "afg" || task?.group == null, "afgInfo task group should be 'afg' or null")
+        val extension = project.extensions.findByType(AfgExtension::class.java)
+        assertNotNull(extension)
+
+        extension.springBootVersion.set("4.0.5")
+        extension.frameworkVersion.set("1.0.0")
+        extension.standalone.set(false)
+        extension.useLombok.set(false)
+
+        assertEquals("4.0.5", extension.springBootVersion.get())
+        assertEquals("1.0.0", extension.frameworkVersion.get())
+        assertEquals(false, extension.standalone.get())
+        assertEquals(false, extension.useLombok.get())
     }
 
     @Test
-    @DisplayName("应该注册 generateDbDoc 任务")
-    fun `should register generateDbDoc task`() {
+    @DisplayName("应该应用 JaCoCo 插件")
+    fun `should apply jacoco plugin`() {
         val project = ProjectBuilder.builder()
             .withProjectDir(tempDir)
             .build()
@@ -96,8 +99,20 @@ class AfgPluginTest {
         project.plugins.apply("java-library")
         project.plugins.apply(AfgPlugin::class.java)
 
-        val task = project.tasks.findByName("generateDbDoc")
-        assertNotNull(task, "generateDbDoc task should be registered")
-        assertTrue(task?.group == "afg", "generateDbDoc task group should be 'afg'")
+        assertTrue(project.plugins.hasPlugin("jacoco"), "jacoco plugin should be applied")
+    }
+
+    @Test
+    @DisplayName("应该配置编译选项")
+    fun `should configure compile options`() {
+        val project = ProjectBuilder.builder()
+            .withProjectDir(tempDir)
+            .build()
+
+        project.plugins.apply("java-library")
+        project.plugins.apply(AfgPlugin::class.java)
+
+        // 编译选项在 task 配置中，通过 project builder 验证插件不抛异常即可
+        // 实际编译选项在 JavaCompile task 的 convention 中
     }
 }

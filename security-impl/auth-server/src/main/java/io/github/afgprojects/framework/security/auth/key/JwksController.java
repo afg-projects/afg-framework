@@ -3,6 +3,7 @@ package io.github.afgprojects.framework.security.auth.key;
 import io.github.afgprojects.framework.core.annotation.IgnoreModuleContextPath;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @Slf4j
 @RestController
+@ConditionalOnProperty(prefix = "afg.security.auth-server", name = "enabled", havingValue = "true", matchIfMissing = true)
 @IgnoreModuleContextPath
 @RequiredArgsConstructor
 public class JwksController {

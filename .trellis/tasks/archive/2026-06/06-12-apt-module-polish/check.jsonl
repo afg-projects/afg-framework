@@ -1,5 +1,0 @@
-{"_example": "Fill with {\"file\": \"<path>\", \"reason\": \"<why>\"}. Put spec/research files only — no code paths. Run `python3 .trellis/scripts/get_context.py --mode packages` to list available specs. Delete this line once real entries are added."}
-{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "6条质量底线、AutoConfiguration编写规则"}
-{"file": ".trellis/spec/backend/autoconfiguration-guidelines.md", "reason": "@AutoConfiguration规范、依赖排序"}
-{"file": ".trellis/spec/backend/testing-guidelines.md", "reason": "测试规范、PMD命名陷阱"}
-{"file": ".trellis/spec/backend/entity-design.md", "reason": "实体注解规范、EntityTrait检测"}

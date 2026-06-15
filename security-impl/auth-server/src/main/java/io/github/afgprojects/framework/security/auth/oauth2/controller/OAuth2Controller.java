@@ -12,6 +12,7 @@ import io.github.afgprojects.framework.security.core.oauth2.model.TokenResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -53,6 +54,7 @@ import java.util.Set;
 @Slf4j
 @RestController
 @RequestMapping("/oauth2")
+@ConditionalOnProperty(prefix = "afg.security.auth-server.oauth2", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class OAuth2Controller {
 
     private final OAuth2AuthorizationService authorizationService;

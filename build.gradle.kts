@@ -23,8 +23,8 @@ allprojects {
 }
 
 subprojects {
-    // gradle-plugin 子项目使用 kotlin-dsl，跳过其他插件应用
-    if (name != "gradle-plugin") {
+    // gradle-plugin 子项目使用 kotlin-dsl，bom 使用 java-platform，跳过其他插件应用
+    if (name != "gradle-plugin" && name != "bom") {
         apply(plugin = "java-library")
         apply(plugin = "io.spring.dependency-management")
         apply(plugin = "pmd")
