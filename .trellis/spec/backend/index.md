@@ -12,7 +12,7 @@
 | [directory-structure.md](./directory-structure.md) | 20 个 Gradle 子模块的目录结构、依赖关系图、Maven 坐标、包路径、命名规范、模块选择指南 | Active |
 | [data-manager-api.md](./data-manager-api.md) | DataManager 完整 API 参考：45 方法签名、EntityProxy 链式 API、条件构建器、对比表 | Active |
 | [database-guidelines.md](./database-guidelines.md) | 查询模式、条件构建器、分页、聚合、10 种方言、类型处理器、SQL 监控、分布式 ID | Active |
-| [entity-design.md](./entity-design.md) | 实体基类体系、决策树、特征接口、字段命名/类型约定、@AfEntity 注解、@EncryptedField | Active |
+| [entity-design.md](./entity-design.md) | 实体基类体系、决策树、特征接口、字段命名/类型约定、@AfEntity 注解、@EncryptedField、@SensitiveField、盲索引列、TreeEntity | Active |
 | [migration-guidelines.md](./migration-guidelines.md) | Liquibase XML 规范、8 条铁律、命名约定、内置迁移清单、Gradle 任务 | Active |
 | [error-handling.md](./error-handling.md) | BusinessException 异常体系、94 个 CommonErrorCode 错误码、Result/PageData 统一响应、GlobalExceptionHandler 行为 | Active |
 | [quality-guidelines.md](./quality-guidelines.md) | 6 条质量铁律、禁止/强制模式、AutoConfiguration 编写规则、SPI 设计、模块间通信 | Active |
@@ -20,7 +20,7 @@
 | [logging-guidelines.md](./logging-guidelines.md) | @Slf4j 使用规范、MDC 8 字段自动注入、结构化日志、脱敏 6 类、审计日志 | Active |
 | [testing-guidelines.md](./testing-guidelines.md) | 禁止 Mockito 铁律、分层策略（单元/集成）、命名规范、数据准备、基类模式、@Transactional 规则 | Active |
 | [ai-module.md](./ai-module.md) | AI 模块：双引擎架构（Spring AI / LangChain4J）、9 注解、37 节点、16 AutoConfiguration、本地降级 | Active |
-| [security-module.md](./security-module.md) | 安全模块：OAuth2 Server、Casbin RBAC、7 登录策略、多租户 3 模式、数据权限 5 类型、AfgUserDetailsService | Active |
+| [security-module.md](./security-module.md) | 安全模块：OAuth2 Server、Casbin RBAC、7 登录策略、多租户 3 模式、数据权限 5 类型、AfgUserDetailsService、字段级访问控制 SPI、数据脱敏 SPI、审计追踪 SPI | Active |
 | [gradle-plugin.md](./gradle-plugin.md) | Gradle 插件：扩展配置 9 属性、7 任务、自动行为、securityMode、代码生成 SPI | Active |
 
 ---

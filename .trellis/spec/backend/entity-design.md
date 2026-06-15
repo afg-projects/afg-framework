@@ -243,7 +243,107 @@ afg:
       default-algorithm: AES
 ```
 
+### 盲索引列约定
+
+加密字段的查询通过盲索引（Blind Index）实现：
+- 加密主列存储 AES-GCM 密文
+- 盲索引伴随列存储 HMAC-SHA256 哈希值
+- 查询时对条件值计算 HMAC，匹配盲索引列
+- 盲索引列命名约定：`{column_name}_hash`
+
+```java
+@EncryptedField(algorithm = AES, keyRef = "phone-key", blindIndexColumn = "phone_hash")
+private String phone;  // phone 列存密文，phone_hash 列存 HMAC 用于查询
+```
+
+### 加密生命周期
+
+1. **INSERT**：明文 → `FieldEncryptor.encrypt()` → 密文写入主列 + HMAC 写入盲索引列
+2. **SELECT**：密文 → `FieldEncryptor.decrypt()` → 明文返回给实体
+3. **UPDATE**：明文 → 加密 → 密文 + HMAC 写入
+4. **条件查询**：条件值 → HMAC → 匹配盲索引列（`WHERE phone_hash = ?`）
+
+### 严格模式
+
+生产环境启用严格模式时，如果检测到 NoOp FieldEncryptor，启动时抛出异常：
+
+```yaml
+afg:
+  data:
+    field-encryption:
+      strict-mode: true  # 生产环境必须为 true
+```
+
 ---
+
+## @SensitiveField 注解
+
+数据脱敏标记，在 Jackson 序列化层动态应用脱敏规则：
+
+```java
+@Target(ElementType.FIELD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface SensitiveField {
+    SensitiveType value();              // 脱敏类型
+    String strategy() default "";       // 自定义脱敏策略 Bean 名称
+}
+```
+
+### SensitiveType 枚举
+
+| 类型 | 脱敏规则 | 示例 |
+|------|---------|------|
+| `PHONE` | 中间 4 位替换为 `****` | `138****1234` |
+| `ID_CARD` | 中间 10 位替换为 `****` | `3201**********1234` |
+| `EMAIL` | 用户名部分脱敏 | `u***@example.com` |
+| `BANK_CARD` | 仅保留后 4 位 | `****1234` |
+| `NAME` | 仅保留首字 | `张**` |
+| `ADDRESS` | 仅保留省市区 | `北京市海淀区****` |
+| `CUSTOM` | 使用自定义 MaskingStrategy | — |
+
+### 使用示例
+
+```java
+@SensitiveField(SensitiveType.PHONE)
+private String phone;
+
+@SensitiveField(SensitiveType.ID_CARD)
+private String idCard;
+
+@SensitiveField(value = SensitiveType.CUSTOM, strategy = "myCustomStrategy")
+private String customField;
+```
+
+### MaskingStrategy SPI
+
+```java
+public interface MaskingStrategy {
+    String mask(String value, SensitiveType type);
+    default String getName() { return getClass().getSimpleName(); }
+}
+```
+
+内置 `DefaultMaskingStrategy` 实现 GB/T 35273 标准脱敏规则。自定义策略通过 `@Component` 注册，在 `@SensitiveField(strategy = "beanName")` 中引用。
+
+### MaskingContext SPI
+
+```java
+public interface MaskingContext {
+    boolean shouldMask(String fieldName, SensitiveType type);
+}
+```
+
+用于按角色差异化脱敏（如管理员看到完整手机号，普通用户看到脱敏后的）。默认 `NoOpMaskingContext` 始终返回 `true`（始终脱敏）。
+
+### 脱敏时机
+
+- **实体持有真实值** — 数据库中存储真实数据（或加密后的密文）
+- **Jackson 序列化时动态脱敏** — 通过 `SensitiveFieldBeanSerializerModifier` 在 JSON 输出时应用
+- **导出层同样生效** — Excel/PDF 导出时集成 `MaskingContext`
+
+---
+
+## @EncryptedField 注解（增强）
 
 ## LifecycleCallbacks — 实体生命周期回调
 
@@ -331,6 +431,7 @@ public class User extends SoftDeleteEntity {
 | `@Column` | `io.github.afgprojects.framework.data.core.annotation.Column` |
 | `@SoftDeleteField` | `io.github.afgprojects.framework.data.core.entity.SoftDeleteField` |
 | `@EncryptedField` | `io.github.afgprojects.framework.apt.entity.EncryptedField` |
+| `@SensitiveField` | `io.github.afgprojects.framework.apt.entity.SensitiveField` |
 
 ---
 
@@ -407,6 +508,10 @@ public class User extends SoftDeleteEntity {
 | `DATA_SCOPE_AWARE` | `deptId` 字段存在 | — | 数据权限自动过滤 |
 | `TIMESTAMPED` | `createdAt`/`updatedAt` 字段存在 | `BaseEntity` | 创建时填充 `createdAt`/`updatedAt`，更新时刷新 `updatedAt` |
 
+| `ENCRYPTED` | `@EncryptedField` 注解存在 | — | 写入时加密，读取时解密，查询走盲索引列 |
+| `SENSITIVE` | `@SensitiveField` 注解存在 | — | Jackson 序列化时自动脱敏 |
+| `TREEABLE` | `parentId` + `path` 字段存在 | `Treeable<T>` | 树形结构查询支持 |
+
 > **关键区分**：`TIMESTAMPED` 和 `AUDITABLE` 是两个独立的 trait。`TIMESTAMPED` 检测 `createdAt`/`updatedAt`（时间戳自动填充），`AUDITABLE` 检测 `createBy`/`updateBy`（操作人自动填充）。`BaseEntity` 只有 `TIMESTAMPED`，`FullEntity` 同时有 `TIMESTAMPED` + `AUDITABLE`。APT 处理器和 `ReflectiveEntityMetadata` 必须正确区分这两个 trait，不能将 `createdAt`/`updatedAt` 误映射为 `AUDITABLE`。
 
 ### 元数据加载链
@@ -422,9 +527,9 @@ public class User extends SoftDeleteEntity {
 
 ---
 
-## TreeEntity（PRD 计划）
+## TreeEntity
 
-PRD §5.4 定义的树形结构实体，当前代码库尚未实现：
+树形结构实体，已实现：
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
@@ -432,11 +537,12 @@ PRD §5.4 定义的树形结构实体，当前代码库尚未实现：
 | `level` | `Integer` | 层级深度 |
 | `path` | `String` | 祖先 ID 路径，格式 `/1/5/12/` |
 | `sortOrder` | `Integer` | 同级排序 |
-| `children` | `List<T>` | 子节点列表 |
+| `children` | `List<T>` | 子节点列表（`@Transient`，不持久化） |
 
 配套功能：
 - `TreeQuery` — 递归查询、路径查询、子树查询、闭包表支持
 - `Treeable<T>` — 特征接口
+- `EntityTrait.TREEABLE` — APT 通过检测 `parentId` + `path` 字段自动识别
 
 > `TreeEntity` 的 `path` 字段使用 `/` 分隔的祖先 ID 路径（如 `/1/5/12/`），用于快速查询子树。
 
@@ -493,3 +599,33 @@ PRD §5.4 定义的树形结构实体，当前代码库尚未实现：
 **解决**：所有金额字段使用 `BigDecimal` 类型
 
 **预防**：金额字段约定使用 `BigDecimal`，禁止使用 `Double`/`Float`
+
+### 加密字段盲索引 INSERT 占位符缺失
+
+**症状**：INSERT 加密实体时报 PostgreSQL "column index out of range"
+
+**原因**：`augmentSqlWithBlindIndexColumns` 在 INSERT 列列表中添加了盲索引列，但 VALUES 子句中缺少对应的 `?` 占位符
+
+**解决**：在 VALUES 子句中为每个盲索引列添加 `, ?` 占位符
+
+**预防**：修改 INSERT SQL 生成逻辑时，列列表和 VALUES 占位符必须一一对应
+
+### 加密字段 UPDATE 参数顺序错误
+
+**症状**：UPDATE 加密实体时参数值错位（如 id 值写入了盲索引列）
+
+**原因**：盲索引列的占位符插入在 `WHERE id=?` 之前，但盲索引值被追加到参数列表末尾
+
+**解决**：盲索引值必须插入到 `params.size() - 1` 位置（在 id 参数之前），而非追加到末尾
+
+**预防**：修改 UPDATE SQL 生成逻辑时，占位符位置和参数列表位置必须严格对齐
+
+### INSERT/UPDATE 后实体密文未解密
+
+**症状**：INSERT 或 UPDATE 加密实体后，实体对象上的加密字段值为密文而非明文
+
+**原因**：加密在 INSERT/UPDATE 前执行，但操作完成后未调用 `decryptFields(entity)` 恢复明文
+
+**解决**：在 INSERT/UPDATE 完成后调用 `decryptFields(entity)` 将密文解密回明文
+
+**预防**：所有修改加密实体的操作路径（INSERT/UPDATE）完成后必须解密实体字段

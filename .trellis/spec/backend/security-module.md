@@ -313,3 +313,111 @@ afg:
 | 2FA | 无 | TOTP |
 | 登录策略 | 仅表单登录 | 7 种策略 |
 | 安全审计 | 无 | 登录日志 + 安全事件 + 告警 |
+
+## 17. 字段级访问控制（FieldAccessControl SPI）
+
+包路径：`io.github.afgprojects.framework.data.core.security`
+
+### 17.1 SPI 接口
+
+```java
+public interface FieldAccessControl {
+    /** 返回当前用户可读取的字段名集合 */
+    Set<String> getReadableFields(Class<?> entityClass);
+
+    /** 返回当前用户可写入的字段名集合 */
+    Set<String> getWritableFields(Class<?> entityClass);
+}
+```
+
+### 17.2 默认实现
+
+`NoOpFieldAccessControl` — 所有字段可读可写（返回空集表示无限制）。
+
+### 17.3 双重防护机制
+
+| 层级 | 机制 | 说明 |
+|------|------|------|
+| **主强制** | SQL 列排除 | 未授权列从 SELECT 列列表中排除（不查出来），与 DataScope SQL 重写模式一致 |
+| **纵深防御** | Jackson `BeanSerializerModifier` | 序列化时二次检查，排除未授权字段 |
+| **写保护** | UPDATE SET 列排除 | 未授权列从 UPDATE SET 子句中排除 |
+
+### 17.4 Casbin 集成
+
+通过 `AfgEnforcer.enforce()` 实现字段级权限校验，字段编码格式：`{entity}.{field}`（如 `sys_user.salary`）。
+
+---
+
+## 18. 数据脱敏（MaskingStrategy SPI）
+
+包路径：`io.github.afgprojects.framework.data.core.sensitive`
+
+### 18.1 注解
+
+```java
+@SensitiveField(SensitiveType.PHONE)
+private String phone;
+```
+
+### 18.2 SPI 接口
+
+| 接口 | 说明 |
+|------|------|
+| `MaskingStrategy` | 脱敏策略：`mask(String value, SensitiveType type)` |
+| `MaskingContext` | 脱敏上下文：`shouldMask(String fieldName, SensitiveType type)` — 按角色差异化 |
+
+### 18.3 脱敏类型
+
+| SensitiveType | 规则 | 示例 |
+|---------------|------|------|
+| `PHONE` | 中间4位 `****` | `138****1234` |
+| `ID_CARD` | 中间10位 `****` | `3201**********1234` |
+| `EMAIL` | 用户名脱敏 | `u***@example.com` |
+| `BANK_CARD` | 仅后4位 | `****1234` |
+| `NAME` | 仅首字 | `张**` |
+| `ADDRESS` | 仅省市区 | `北京市海淀区****` |
+| `CUSTOM` | 自定义策略 | — |
+
+### 18.4 默认实现
+
+`DefaultMaskingStrategy` — GB/T 35273 标准脱敏规则。
+
+### 18.5 脱敏时机
+
+- 实体持有真实值（数据库存储真实数据或密文）
+- Jackson 序列化时动态脱敏（`SensitiveFieldBeanSerializerModifier`）
+- 导出层（Excel/PDF）同样生效
+
+---
+
+## 19. 审计追踪（AuditTrailStorage SPI）
+
+包路径：`io.github.afgprojects.framework.data.core.event`
+
+### 19.1 设计
+
+事件驱动双表设计：
+- `audit_log` — 操作记录（实体类型、操作类型、操作人、时间）
+- `audit_field_diff` — 字段级变更明细（字段名、旧值、新值）
+
+### 19.2 SPI 接口
+
+```java
+public interface AuditTrailStorage {
+    void save(AuditEvent event);
+}
+
+public record FieldChangeDiff(
+    String fieldName,
+    String oldValue,
+    String newValue
+) {}
+```
+
+### 19.3 默认实现
+
+`NoOpAuditTrailStorage` — 不记录审计日志。
+
+### 19.4 AuditTrailEventListener
+
+`AuditTrailEventListener` 监听实体变更事件，通过反射计算 UPDATE 操作的字段级 diff（比较 oldEntity vs newEntity 每个字段）。支持异步（默认）和同步模式。
