@@ -5,6 +5,8 @@ import io.github.afgprojects.framework.data.core.EntityProxy;
 import io.github.afgprojects.framework.core.api.id.IdGenerator;
 import io.github.afgprojects.framework.data.core.event.EntityChangedEventPublisher;
 import io.github.afgprojects.framework.data.core.event.NoOpEntityChangedEventPublisher;
+import io.github.afgprojects.framework.data.core.safety.FullTableOperationChecker;
+import io.github.afgprojects.framework.data.core.safety.NoOpFullTableOperationChecker;
 import io.github.afgprojects.framework.data.jdbc.metrics.RawSqlSecurityGuard;
 import io.github.afgprojects.framework.data.core.context.TenantContextHolder;
 import io.github.afgprojects.framework.data.core.dialect.*;
@@ -151,6 +153,14 @@ public class JdbcDataManager implements DataManager {
     private EntityChangedEventPublisher entityChangedEventPublisher;
 
     /**
+     * 全表操作检查器（可选）
+     * <p>
+     * 用于在条件更新/删除操作前检查条件是否为空（全表操作），
+     * 根据策略阻止、限制或警告。默认使用 NoOp 实现（不检查）。
+     */
+    private FullTableOperationChecker fullTableOperationChecker;
+
+    /**
      * 类型处理器注册表
      */
     private volatile TypeHandlerRegistry typeHandlerRegistry = TypeHandlerRegistry.defaultRegistry();
@@ -165,6 +175,7 @@ public class JdbcDataManager implements DataManager {
         this.auditableContext = new NoOpAuditableContext();
         this.fieldEncryptor = new NoOpFieldEncryptor();
         this.entityChangedEventPublisher = new NoOpEntityChangedEventPublisher();
+        this.fullTableOperationChecker = new NoOpFullTableOperationChecker();
     }
 
     public JdbcDataManager(DataSource dataSource, DatabaseType databaseType) {
@@ -177,6 +188,7 @@ public class JdbcDataManager implements DataManager {
         this.auditableContext = new NoOpAuditableContext();
         this.fieldEncryptor = new NoOpFieldEncryptor();
         this.entityChangedEventPublisher = new NoOpEntityChangedEventPublisher();
+        this.fullTableOperationChecker = new NoOpFullTableOperationChecker();
     }
 
     /**
@@ -290,6 +302,28 @@ public class JdbcDataManager implements DataManager {
      */
     public EntityChangedEventPublisher getEntityChangedEventPublisher() {
         return entityChangedEventPublisher;
+    }
+
+    /**
+     * 设置全表操作检查器
+     * <p>
+     * 注入与 AutoConfiguration 创建的同一实例，
+     * 确保全表操作保护在整个应用中一致。
+     * 如果不设置，使用 NoOp 默认实例（不检查）。
+     *
+     * @param checker 全表操作检查器
+     */
+    public void setFullTableOperationChecker(@NonNull FullTableOperationChecker checker) {
+        this.fullTableOperationChecker = checker;
+    }
+
+    /**
+     * 获取全表操作检查器
+     *
+     * @return 全表操作检查器
+     */
+    public FullTableOperationChecker getFullTableOperationChecker() {
+        return fullTableOperationChecker;
     }
 
     /**

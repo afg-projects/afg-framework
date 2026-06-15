@@ -1,0 +1,13 @@
+{"file": ".trellis/spec/backend/data-manager-api.md", "reason": "DataManager API 规范——验证接口变更是否符合既有规范"}
+{"file": ".trellis/spec/backend/entity-design.md", "reason": "实体设计规范——验证新注解、新 SPI 与实体体系一致性"}
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "数据库规范——验证 SQL 构建器增强是否符合数据访问规范"}
+{"file": ".trellis/spec/backend/security-module.md", "reason": "安全模块规格——验证字段级访问控制与 Casbin 集成是否正确"}
+{"file": ".trellis/spec/backend/autoconfiguration-guidelines.md", "reason": "自动配置规范——验证新 AutoConfiguration 的依赖排序和 Bean 注入"}
+{"file": ".trellis/spec/backend/migration-guidelines.md", "reason": "迁移规范——验证 Liquibase 迁移脚本符合命名和结构规范"}
+{"file": ".trellis/spec/backend/error-handling.md", "reason": "异常处理规范——验证安全相关异常使用 BusinessException"}
+{"file": ".trellis/spec/backend/testing-guidelines.md", "reason": "测试规范——验证无 Mockito、使用集成测试 + Testcontainers"}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "质量规范——验证 NoOp 安全类有生产级替代"}
+{"file": ".trellis/tasks/06-15-data-module-enhancement/research/data-masking-patterns.md", "reason": "数据脱敏研究——验证实现符合 Jackson 序列化层脱敏方案"}
+{"file": ".trellis/tasks/06-15-data-module-enhancement/research/field-encryption-patterns.md", "reason": "字段加密研究——验证盲索引列、KeyProvider SPI 实现正确"}
+{"file": ".trellis/tasks/06-15-data-module-enhancement/research/audit-trail-patterns.md", "reason": "审计追踪研究——验证事件驱动双表、字段 diff、归档实现正确"}
+{"file": ".trellis/tasks/06-15-data-module-enhancement/research/field-level-access-control.md", "reason": "字段级访问控制研究——验证 SQL 列排除、Casbin 集成实现正确"}

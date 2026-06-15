@@ -571,7 +571,13 @@ public class SqlQueryBuilderImpl implements SqlQueryBuilder {
         sql.append("SELECT ").append(selectBuilder.build());
 
         // FROM
-        sql.append(" FROM ").append(dialect.quoteIdentifier(fromTable));
+        sql.append(" FROM ");
+        // 子查询（以 '(' 开头）不调用 quoteIdentifier，避免产生无效 SQL 如 `(SELECT ...)`
+        if (fromTable != null && fromTable.startsWith("(")) {
+            sql.append(fromTable);
+        } else {
+            sql.append(dialect.quoteIdentifier(fromTable));
+        }
         if (fromAlias != null) {
             sql.append(" ").append(dialect.quoteIdentifier(fromAlias));
         }

@@ -69,6 +69,51 @@ public interface LifecycleCallbacks {
     }
 
     /**
+     * 实体持久化之后的回调（新建时）。
+     *
+     * <p>类似 JPA 的 {@code @PostPersist}。
+     * 在 INSERT 成功后、事务提交前调用。
+     * 通常用于执行创建后的业务逻辑，如发送通知、初始化关联数据等。
+     *
+     * <p>注意：如果需要事务提交后触发，应使用 {@code EntityChangedEvent} 机制。
+     *
+     * @param entity 持久化后的实体（包含生成的主键）
+     */
+    default void afterCreate(Object entity) {
+        // 默认空实现
+    }
+
+    /**
+     * 实体更新之后的回调。
+     *
+     * <p>类似 JPA 的 {@code @PostUpdate}。
+     * 在 UPDATE 成功后、事务提交前调用。
+     * 通常用于执行更新后的业务逻辑，如同步缓存、触发级联更新等。
+     *
+     * <p>注意：如果需要事务提交后触发，应使用 {@code EntityChangedEvent} 机制。
+     *
+     * @param entity 更新后的实体
+     */
+    default void afterUpdate(Object entity) {
+        // 默认空实现
+    }
+
+    /**
+     * 实体删除之后的回调。
+     *
+     * <p>类似 JPA 的 {@code @PostRemove}。
+     * 在 DELETE 成功后、事务提交前调用。
+     * 通常用于执行删除后的业务逻辑，如清理关联资源、归档数据等。
+     *
+     * <p>注意：如果需要事务提交后触发，应使用 {@code EntityChangedEvent} 机制。
+     *
+     * @param entity 被删除的实体
+     */
+    default void afterDelete(Object entity) {
+        // 默认空实现
+    }
+
+    /**
      * 如果实体实现了 {@link LifecycleCallbacks} 接口，则执行给定的回调操作。
      *
      * <p>此方法提供了一种类型安全的方式来触发生命周期回调，

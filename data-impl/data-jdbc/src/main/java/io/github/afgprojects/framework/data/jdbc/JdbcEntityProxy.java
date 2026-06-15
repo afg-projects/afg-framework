@@ -301,9 +301,9 @@ public class JdbcEntityProxy<T> implements EntityProxy<T>, ProxyStateProvider {
 
     @Override
     public void deleteById(@NonNull Object id) {
-        // 查询删除前的实体状态（用于事件）
+        // 查询删除前的实体状态（用于事件和生命周期回调）
         T entity = queryExecutor.findById(id).orElse(null);
-        deleteHandler.deleteById(id);
+        deleteHandler.deleteById(id, entity);
         if (entity != null) {
             publishChangedEvent(entity, null, EntityChangedEvent.ChangeType.DELETED);
         }

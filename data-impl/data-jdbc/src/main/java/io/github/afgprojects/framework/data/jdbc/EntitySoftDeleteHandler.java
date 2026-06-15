@@ -16,7 +16,8 @@ import java.util.List;
 /**
  * 实体软删除处理器
  * <p>
- * 负责处理软删除相关的逻辑，包括软删除、恢复、物理删除等操作
+ * 负责处理软删除相关的逻辑，包括软删除、恢复、物理删除等操作。
+ * 列名（ID 列、软删除列）从 {@link EntityMetadata} 获取，支持自定义列名。
  */
 class EntitySoftDeleteHandler<T> {
 
@@ -27,6 +28,16 @@ class EntitySoftDeleteHandler<T> {
     private final @Nullable SoftDeleteStrategy softDeleteStrategy;
     private final EntityCacheManager cacheManager;
 
+    /**
+     * ID 列名（从元数据获取）
+     */
+    private final String idColumnName;
+
+    /**
+     * 软删除列名（从元数据获取）
+     */
+    private final String softDeleteColumnName;
+
     EntitySoftDeleteHandler(Class<T> entityClass, Dialect dialect, EntityMetadata<T> metadata,
                             JdbcClient jdbcClient, @Nullable EntityCacheManager cacheManager) {
         this.entityClass = entityClass;
@@ -35,6 +46,25 @@ class EntitySoftDeleteHandler<T> {
         this.jdbcClient = jdbcClient;
         this.cacheManager = cacheManager;
         this.softDeleteStrategy = detectSoftDeleteStrategy(entityClass);
+        // 从元数据获取 ID 列名，向后兼容默认 "id"
+        this.idColumnName = metadata.getIdField() != null ? metadata.getIdField().getColumnName() : "id";
+        // 从元数据获取软删除列名，向后兼容默认值
+        this.softDeleteColumnName = resolveSoftDeleteColumnName();
+    }
+
+    /**
+     * 从元数据解析软删除列名
+     */
+    private String resolveSoftDeleteColumnName() {
+        var softDeleteField = metadata.getSoftDeleteField();
+        if (softDeleteField != null) {
+            return softDeleteField.getColumnName();
+        }
+        // 向后兼容：根据策略返回默认列名
+        if (softDeleteStrategy == SoftDeleteStrategy.TIMESTAMP) {
+            return "deleted_at";
+        }
+        return "deleted";
     }
 
     /**
@@ -76,13 +106,15 @@ class EntitySoftDeleteHandler<T> {
 
         if (softDeleteStrategy == SoftDeleteStrategy.TIMESTAMP) {
             String sql = "UPDATE " + dialect.quoteIdentifier(metadata.getTableName()) +
-                   " SET deleted_at = NULL WHERE id = :id";
+                   " SET " + dialect.quoteIdentifier(softDeleteColumnName) + " = NULL WHERE "
+                   + dialect.quoteIdentifier(idColumnName) + " = :id";
             jdbcClient.sql(sql)
                 .param("id", id)
                 .update();
         } else {
             String sql = "UPDATE " + dialect.quoteIdentifier(metadata.getTableName()) +
-                   " SET deleted = :deleted WHERE id = :id";
+                   " SET " + dialect.quoteIdentifier(softDeleteColumnName) + " = :deleted WHERE "
+                   + dialect.quoteIdentifier(idColumnName) + " = :id";
             jdbcClient.sql(sql)
                 .param("id", id)
                 .param("deleted", false)
@@ -104,13 +136,15 @@ class EntitySoftDeleteHandler<T> {
 
         if (softDeleteStrategy == SoftDeleteStrategy.TIMESTAMP) {
             String sql = "UPDATE " + dialect.quoteIdentifier(metadata.getTableName()) +
-                   " SET deleted_at = NULL WHERE id IN (:ids)";
+                   " SET " + dialect.quoteIdentifier(softDeleteColumnName) + " = NULL WHERE "
+                   + dialect.quoteIdentifier(idColumnName) + " IN (:ids)";
             jdbcClient.sql(sql)
                 .param("ids", idList)
                 .update();
         } else {
             String sql = "UPDATE " + dialect.quoteIdentifier(metadata.getTableName()) +
-                   " SET deleted = :deleted WHERE id IN (:ids)";
+                   " SET " + dialect.quoteIdentifier(softDeleteColumnName) + " = :deleted WHERE "
+                   + dialect.quoteIdentifier(idColumnName) + " IN (:ids)";
             jdbcClient.sql(sql)
                 .param("ids", idList)
                 .param("deleted", false)
@@ -124,7 +158,8 @@ class EntitySoftDeleteHandler<T> {
      * 物理删除指定 ID 的记录（忽略软删除）
      */
     void hardDeleteById(Object id) {
-        String sql = "DELETE FROM " + dialect.quoteIdentifier(metadata.getTableName()) + " WHERE id = :id";
+        String sql = "DELETE FROM " + dialect.quoteIdentifier(metadata.getTableName())
+                + " WHERE " + dialect.quoteIdentifier(idColumnName) + " = :id";
         jdbcClient.sql(sql)
             .param("id", id)
             .update();
@@ -142,7 +177,8 @@ class EntitySoftDeleteHandler<T> {
             return;
         }
 
-        String sql = "DELETE FROM " + dialect.quoteIdentifier(metadata.getTableName()) + " WHERE id IN (:ids)";
+        String sql = "DELETE FROM " + dialect.quoteIdentifier(metadata.getTableName())
+                + " WHERE " + dialect.quoteIdentifier(idColumnName) + " IN (:ids)";
         jdbcClient.sql(sql)
             .param("ids", idList)
             .update();
@@ -169,9 +205,9 @@ class EntitySoftDeleteHandler<T> {
         }
 
         if (softDeleteStrategy == SoftDeleteStrategy.TIMESTAMP) {
-            sqlBuilder.append("deleted_at IS NULL");
+            sqlBuilder.append(dialect.quoteIdentifier(softDeleteColumnName)).append(" IS NULL");
         } else {
-            sqlBuilder.append("deleted = false");
+            sqlBuilder.append(dialect.quoteIdentifier(softDeleteColumnName)).append(" = false");
         }
     }
 
@@ -191,8 +227,8 @@ class EntitySoftDeleteHandler<T> {
         }
 
         String filter = (softDeleteStrategy == SoftDeleteStrategy.TIMESTAMP)
-                ? "deleted_at IS NULL"
-                : "deleted = false";
+                ? dialect.quoteIdentifier(softDeleteColumnName) + " IS NULL"
+                : dialect.quoteIdentifier(softDeleteColumnName) + " = false";
         return (hasWhereClause ? " AND " : " WHERE ") + filter;
     }
 
@@ -208,8 +244,8 @@ class EntitySoftDeleteHandler<T> {
             return null;
         }
         return (softDeleteStrategy == SoftDeleteStrategy.TIMESTAMP)
-                ? "deleted_at IS NULL"
-                : "deleted = false";
+                ? dialect.quoteIdentifier(softDeleteColumnName) + " IS NULL"
+                : dialect.quoteIdentifier(softDeleteColumnName) + " = false";
     }
 
     /**
@@ -228,11 +264,16 @@ class EntitySoftDeleteHandler<T> {
             );
         }
 
-        if (softDeleteStrategy == SoftDeleteStrategy.TIMESTAMP) {
-            return "deleted_at = ?";
-        } else {
-            return "deleted = ?";
-        }
+        return dialect.quoteIdentifier(softDeleteColumnName) + " = ?";
+    }
+
+    /**
+     * 获取软删除列名
+     *
+     * @return 软删除列名
+     */
+    String getSoftDeleteColumnName() {
+        return softDeleteColumnName;
     }
 
     /**

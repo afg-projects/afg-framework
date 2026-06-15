@@ -38,6 +38,11 @@ public class EntityQueryExecutor<T> {
      */
     private final ProxyStateProvider stateProvider;
 
+    /**
+     * ID 列名（从元数据获取）
+     */
+    private final String idColumnName;
+
     public EntityQueryExecutor(Class<T> entityClass, JdbcClient jdbcClient, Dialect dialect,
                                EntityMetadata<T> metadata, RowMapper<T> rowMapper,
                                EntityCacheHandler<T> cacheHandler, EntitySoftDeleteHandler<T> softDeleteHandler,
@@ -50,6 +55,8 @@ public class EntityQueryExecutor<T> {
         this.cacheHandler = cacheHandler;
         this.softDeleteHandler = softDeleteHandler;
         this.stateProvider = stateProvider;
+        // 从元数据获取 ID 列名，向后兼容默认 "id"
+        this.idColumnName = metadata.getIdField() != null ? metadata.getIdField().getColumnName() : "id";
     }
 
     /**
@@ -71,7 +78,7 @@ public class EntityQueryExecutor<T> {
         // 从数据库查询
         StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM ")
                 .append(dialect.quoteIdentifier(metadata.getTableName()))
-                .append(" WHERE id = :id");
+                .append(" WHERE ").append(dialect.quoteIdentifier(idColumnName)).append(" = :id");
 
         // 自动过滤已删除记录
         boolean includeDeleted = stateProvider.isIncludeDeleted();
@@ -152,7 +159,7 @@ public class EntityQueryExecutor<T> {
 
         StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM ")
                 .append(dialect.quoteIdentifier(metadata.getTableName()))
-                .append(" WHERE id IN (:ids)");
+                .append(" WHERE ").append(dialect.quoteIdentifier(idColumnName)).append(" IN (:ids)");
 
         // 自动过滤已删除记录
         boolean includeDeleted = stateProvider.isIncludeDeleted();
@@ -229,7 +236,7 @@ public class EntityQueryExecutor<T> {
         // 使用 SELECT 1 代替 SELECT *，避免完整实体映射
         StringBuilder sqlBuilder = new StringBuilder("SELECT 1 FROM ")
                 .append(dialect.quoteIdentifier(metadata.getTableName()))
-                .append(" WHERE id = :id");
+                .append(" WHERE ").append(dialect.quoteIdentifier(idColumnName)).append(" = :id");
 
         // 自动过滤已删除记录
         boolean includeDeleted = stateProvider.isIncludeDeleted();

@@ -49,6 +49,7 @@ public enum CommonErrorCode implements ErrorCode {
     QUERY_ERROR(11005, "查询执行失败", ErrorCategory.SYSTEM),
     DATA_INTEGRITY_VIOLATION(11006, "数据完整性冲突", ErrorCategory.BUSINESS),
     OPTIMISTIC_LOCK_ERROR(11007, "乐观锁冲突", ErrorCategory.BUSINESS),
+    FULL_TABLE_OPERATION_NOT_ALLOWED(11010, "全表操作不允许", ErrorCategory.BUSINESS),
 
     // ==================== 存储错误 (12000-12999) ====================
     FILE_NOT_FOUND(12000, "文件不存在", ErrorCategory.BUSINESS),

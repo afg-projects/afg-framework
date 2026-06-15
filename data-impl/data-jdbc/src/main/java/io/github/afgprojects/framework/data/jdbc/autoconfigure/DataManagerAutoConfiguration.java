@@ -12,6 +12,7 @@ import io.github.afgprojects.framework.data.core.entity.NoOpFieldEncryptor;
 import io.github.afgprojects.framework.data.core.event.EntityChangedEventPublisher;
 import io.github.afgprojects.framework.data.core.event.NoOpEntityChangedEventPublisher;
 import io.github.afgprojects.framework.data.core.mapper.TypeHandlerRegistry;
+import io.github.afgprojects.framework.data.core.safety.FullTableOperationChecker;
 import io.github.afgprojects.framework.data.core.transaction.TransactionAdapter;
 import io.github.afgprojects.framework.data.jdbc.JdbcDataManager;
 import io.github.afgprojects.framework.data.jdbc.datasource.DataSourceAspect;
@@ -127,6 +128,7 @@ public class DataManagerAutoConfiguration {
      * @param fieldEncryptor      字段加密器（可选，自动注入）
      * @param idGenerator         ID 生成器（可选，自动注入，来自 core 模块 SPI）
      * @param entityChangedEventPublisher 实体变更事件发布器（可选，自动注入）
+     * @param fullTableOperationChecker 全表操作检查器（可选，自动注入）
      * @return JdbcDataManager 实例
      */
     @Bean
@@ -139,7 +141,8 @@ public class DataManagerAutoConfiguration {
                                         @Nullable AuditableContext auditableContext,
                                         @Nullable FieldEncryptor fieldEncryptor,
                                         @Nullable IdGenerator idGenerator,
-                                        @Nullable EntityChangedEventPublisher entityChangedEventPublisher) {
+                                        @Nullable EntityChangedEventPublisher entityChangedEventPublisher,
+                                        @Nullable FullTableOperationChecker fullTableOperationChecker) {
         JdbcDataManager dm = new JdbcDataManager(dataSource);
         dm.setTypeHandlerRegistry(typeHandlerRegistry);
         dm.setTransactionManager(transactionManager);
@@ -160,6 +163,9 @@ public class DataManagerAutoConfiguration {
         }
         if (entityChangedEventPublisher != null) {
             dm.setEntityChangedEventPublisher(entityChangedEventPublisher);
+        }
+        if (fullTableOperationChecker != null) {
+            dm.setFullTableOperationChecker(fullTableOperationChecker);
         }
         return dm;
     }

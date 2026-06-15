@@ -6,6 +6,7 @@ import io.github.afgprojects.framework.data.core.entity.SoftDeleteStrategy;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheHandler;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.jdbc.core.simple.JdbcClient;
 
 import java.time.LocalDateTime;
@@ -30,6 +31,16 @@ public class EntityDeleteHandler<T> {
     private final EntityCacheHandler<T> cacheHandler;
     private final EntityQueryHelper<T> queryHelper;
 
+    /**
+     * ID 列名（从元数据获取）
+     */
+    private final String idColumnName;
+
+    /**
+     * 软删除列名（从元数据获取）
+     */
+    private final String softDeleteColumnName;
+
     public EntityDeleteHandler(Class<T> entityClass, JdbcClient jdbcClient, Dialect dialect,
                                EntityMetadata<T> metadata, EntitySoftDeleteHandler<T> softDeleteHandler,
                                EntityCacheHandler<T> cacheHandler, EntityQueryHelper<T> queryHelper) {
@@ -40,6 +51,25 @@ public class EntityDeleteHandler<T> {
         this.softDeleteHandler = softDeleteHandler;
         this.cacheHandler = cacheHandler;
         this.queryHelper = queryHelper;
+        // 从元数据获取 ID 列名，向后兼容默认 "id"
+        this.idColumnName = metadata.getIdField() != null ? metadata.getIdField().getColumnName() : "id";
+        // 从元数据获取软删除列名，向后兼容默认值
+        this.softDeleteColumnName = resolveSoftDeleteColumnName();
+    }
+
+    /**
+     * 从元数据解析软删除列名
+     */
+    private String resolveSoftDeleteColumnName() {
+        var softDeleteField = metadata.getSoftDeleteField();
+        if (softDeleteField != null) {
+            return softDeleteField.getColumnName();
+        }
+        // 向后兼容：根据策略返回默认列名
+        if (softDeleteHandler.getSoftDeleteStrategy() == SoftDeleteStrategy.TIMESTAMP) {
+            return "deleted_at";
+        }
+        return "deleted";
     }
 
     /**
@@ -48,22 +78,44 @@ public class EntityDeleteHandler<T> {
      * 如果实体支持软删除，执行软删除；否则执行物理删除。
      *
      * @param id 实体 ID
+     * @param entity 实体对象（用于生命周期回调，可为 null）
      */
-    public void deleteById(@NonNull Object id) {
+    public void deleteById(@NonNull Object id, @Nullable T entity) {
         // 如果实体支持软删除，执行软删除
         if (softDeleteHandler.isSoftDeletable()) {
             softDeleteById(id);
+            // 触发 afterDelete 生命周期回调（类似 JPA @PostRemove）
+            if (entity != null) {
+                LifecycleCallbacks.ifCallback(entity, cb -> cb.afterDelete(entity));
+            }
             return;
         }
 
         // 物理删除
-        String sql = "DELETE FROM " + dialect.quoteIdentifier(metadata.getTableName()) + " WHERE id = :id";
+        String sql = "DELETE FROM " + dialect.quoteIdentifier(metadata.getTableName())
+                + " WHERE " + dialect.quoteIdentifier(idColumnName) + " = :id";
         jdbcClient.sql(sql)
                 .param("id", id)
                 .update();
 
+        // 触发 afterDelete 生命周期回调（类似 JPA @PostRemove）
+        if (entity != null) {
+            LifecycleCallbacks.ifCallback(entity, cb -> cb.afterDelete(entity));
+        }
+
         // 失效缓存
         cacheHandler.evict(id);
+    }
+
+    /**
+     * 根据 ID 删除实体（不触发生命周期回调）
+     * <p>
+     * 如果实体支持软删除，执行软删除；否则执行物理删除。
+     *
+     * @param id 实体 ID
+     */
+    public void deleteById(@NonNull Object id) {
+        deleteById(id, null);
     }
 
     /**
@@ -74,17 +126,19 @@ public class EntityDeleteHandler<T> {
     private void softDeleteById(@NonNull Object id) {
         String sql;
         if (softDeleteHandler.getSoftDeleteStrategy() == SoftDeleteStrategy.TIMESTAMP) {
-            // 时间戳模式：设置 deleted_at 为当前时间
+            // 时间戳模式：设置软删除列（deleted_at）为当前时间
             sql = "UPDATE " + dialect.quoteIdentifier(metadata.getTableName()) +
-                    " SET deleted_at = :deletedAt WHERE id = :id";
+                    " SET " + dialect.quoteIdentifier(softDeleteColumnName) + " = :deletedAt WHERE "
+                    + dialect.quoteIdentifier(idColumnName) + " = :id";
             jdbcClient.sql(sql)
                     .param("deletedAt", LocalDateTime.now())
                     .param("id", id)
                     .update();
         } else {
-            // Boolean 模式：设置 deleted = true/1
+            // Boolean 模式：设置软删除列（deleted）为 true/1
             sql = "UPDATE " + dialect.quoteIdentifier(metadata.getTableName()) +
-                    " SET deleted = :deleted WHERE id = :id";
+                    " SET " + dialect.quoteIdentifier(softDeleteColumnName) + " = :deleted WHERE "
+                    + dialect.quoteIdentifier(idColumnName) + " = :id";
             jdbcClient.sql(sql)
                     .param("deleted", true)
                     .param("id", id)
@@ -103,7 +157,7 @@ public class EntityDeleteHandler<T> {
     public void delete(@NonNull T entity) {
         Object id = queryHelper.getIdValue(entity);
         if (id != null) {
-            deleteById(id);
+            deleteById(id, entity);
         }
     }
 
@@ -111,6 +165,9 @@ public class EntityDeleteHandler<T> {
      * 批量删除实体（根据 ID）
      * <p>
      * 使用 IN 子句批量操作，每批最多 500 条，减少数据库往返次数。
+     * <p>
+     * <b>注意：</b>此方法不触发 {@code afterDelete} 生命周期回调，因为仅有 ID 无法获取实体对象。
+     * 如需回调，请使用 {@link JdbcEntityProxy#deleteAllById}，它会逐条触发。
      *
      * @param ids ID 集合
      */
@@ -141,14 +198,16 @@ public class EntityDeleteHandler<T> {
         String sql;
         if (softDeleteHandler.getSoftDeleteStrategy() == SoftDeleteStrategy.TIMESTAMP) {
             sql = "UPDATE " + dialect.quoteIdentifier(metadata.getTableName()) +
-                    " SET deleted_at = :deletedAt WHERE id IN (:ids)";
+                    " SET " + dialect.quoteIdentifier(softDeleteColumnName) + " = :deletedAt WHERE "
+                    + dialect.quoteIdentifier(idColumnName) + " IN (:ids)";
             jdbcClient.sql(sql)
                     .param("deletedAt", LocalDateTime.now())
                     .param("ids", ids)
                     .update();
         } else {
             sql = "UPDATE " + dialect.quoteIdentifier(metadata.getTableName()) +
-                    " SET deleted = :deleted WHERE id IN (:ids)";
+                    " SET " + dialect.quoteIdentifier(softDeleteColumnName) + " = :deleted WHERE "
+                    + dialect.quoteIdentifier(idColumnName) + " IN (:ids)";
             jdbcClient.sql(sql)
                     .param("deleted", true)
                     .param("ids", ids)
@@ -160,7 +219,8 @@ public class EntityDeleteHandler<T> {
      * 批量物理删除
      */
     private void batchPhysicalDeleteByIds(List<Object> ids) {
-        String sql = "DELETE FROM " + dialect.quoteIdentifier(metadata.getTableName()) + " WHERE id IN (:ids)";
+        String sql = "DELETE FROM " + dialect.quoteIdentifier(metadata.getTableName())
+                + " WHERE " + dialect.quoteIdentifier(idColumnName) + " IN (:ids)";
         jdbcClient.sql(sql)
                 .param("ids", ids)
                 .update();

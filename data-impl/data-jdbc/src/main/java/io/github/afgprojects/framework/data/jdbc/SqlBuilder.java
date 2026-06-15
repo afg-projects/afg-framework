@@ -59,7 +59,7 @@ class SqlBuilder<T> {
         List<String> placeholders = new ArrayList<>();
         for (var field : metadata.getFields()) {
             if (!field.isGenerated()) {
-                columns.add(field.getColumnName());
+                columns.add(dialect.quoteIdentifier(field.getColumnName()));
                 placeholders.add("?");
             }
         }
@@ -89,7 +89,7 @@ class SqlBuilder<T> {
         List<String> columns = new ArrayList<>();
         List<String> placeholders = new ArrayList<>();
         for (var field : metadata.getFields()) {
-            columns.add(field.getColumnName());
+            columns.add(dialect.quoteIdentifier(field.getColumnName()));
             placeholders.add("?");
         }
         sql.append(String.join(", ", columns));
@@ -132,18 +132,22 @@ class SqlBuilder<T> {
         List<String> setParts = new ArrayList<>();
         for (var field : metadata.getFields()) {
             if (!field.isId() && !field.isGenerated()) {
+                String quotedColumn = dialect.quoteIdentifier(field.getColumnName());
                 if (isVersioned && "version".equals(field.getPropertyName())) {
-                    setParts.add(field.getColumnName() + " = " + field.getColumnName() + " + 1");
+                    setParts.add(quotedColumn + " = " + quotedColumn + " + 1");
                 } else {
-                    setParts.add(field.getColumnName() + " = ?");
+                    setParts.add(quotedColumn + " = ?");
                 }
             }
         }
         sql.append(String.join(", ", setParts));
-        sql.append(" WHERE id = ?");
+        sql.append(" WHERE ").append(dialect.quoteIdentifier(metadata.getIdField().getColumnName())).append(" = ?");
 
         if (isVersioned) {
-            sql.append(" AND version = ?");
+            // 从元数据获取 version 字段列名
+            String versionColumnName = metadata.getField("version") != null
+                    ? metadata.getField("version").getColumnName() : "version";
+            sql.append(" AND ").append(dialect.quoteIdentifier(versionColumnName)).append(" = ?");
         }
 
         return sql.toString();
@@ -159,7 +163,7 @@ class SqlBuilder<T> {
                     StringBuilder sql = new StringBuilder("SELECT ");
                     List<String> columns = new ArrayList<>();
                     for (var field : metadata.getFields()) {
-                        columns.add(field.getColumnName());
+                        columns.add(dialect.quoteIdentifier(field.getColumnName()));
                     }
                     sql.append(String.join(", ", columns));
                     sql.append(" FROM ").append(dialect.quoteIdentifier(metadata.getTableName()));

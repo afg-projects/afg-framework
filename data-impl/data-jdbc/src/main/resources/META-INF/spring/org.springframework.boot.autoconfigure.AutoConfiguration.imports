@@ -1,3 +1,4 @@
 io.github.afgprojects.framework.data.jdbc.autoconfigure.DataManagerAutoConfiguration
 io.github.afgprojects.framework.data.jdbc.autoconfigure.SqlMetricsAutoConfiguration
 io.github.afgprojects.framework.data.jdbc.autoconfigure.EntityCacheAutoConfiguration
+io.github.afgprojects.framework.data.jdbc.safety.DataSafetyAutoConfiguration

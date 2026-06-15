@@ -121,6 +121,9 @@ public class EntityUpdateHandler<T> {
         // 失效缓存
         evictCache(entity);
 
+        // 触发 afterUpdate 生命周期回调（类似 JPA @PostUpdate）
+        LifecycleCallbacks.ifCallback(entity, cb -> cb.afterUpdate(entity));
+
         return entity;
     }
 

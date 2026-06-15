@@ -163,6 +163,8 @@ public class EntityInsertHandler<T> {
             String sql = queryHelper.buildInsertWithIdSql();
             List<Object> params = queryHelper.extractInsertWithIdParams(entity);
             dataManager.executeUpdate(sql, params);
+            // 触发 afterCreate 生命周期回调（类似 JPA @PostPersist）
+            LifecycleCallbacks.ifCallback(entity, cb -> cb.afterCreate(entity));
             return entity;
         }
 
@@ -173,6 +175,8 @@ public class EntityInsertHandler<T> {
             String sql = queryHelper.buildInsertWithIdSql();
             List<Object> params = queryHelper.extractInsertWithIdParams(entity);
             dataManager.executeUpdate(sql, params);
+            // 触发 afterCreate 生命周期回调（类似 JPA @PostPersist）
+            LifecycleCallbacks.ifCallback(entity, cb -> cb.afterCreate(entity));
             return entity;
         }
 
@@ -181,6 +185,10 @@ public class EntityInsertHandler<T> {
         List<Object> params = queryHelper.extractInsertParams(entity);
         long generatedId = dataManager.executeInsertAndReturnKey(sql, params);
         queryHelper.setIdValue(entity, generatedId);
+
+        // 触发 afterCreate 生命周期回调（类似 JPA @PostPersist）
+        LifecycleCallbacks.ifCallback(entity, cb -> cb.afterCreate(entity));
+
         return entity;
     }
 
@@ -288,9 +296,18 @@ public class EntityInsertHandler<T> {
         // 处理有ID的实体（直接插入，包含ID字段）
         if (!withId.isEmpty()) {
             for (S entity : withId) {
+                // 触发生命周期回调和自动填充（与 insert() 保持一致）
+                LifecycleCallbacks.ifCallback(entity, LifecycleCallbacks::beforeCreate);
+                autoFillTimestamps(entity, true);
+                autoFillAuditable(entity);
+                autoFillTreePath(entity);
+                encryptFields(entity);
+
                 String sql = queryHelper.buildInsertWithIdSql();
                 List<Object> params = queryHelper.extractInsertWithIdParams(entity);
                 dataManager.executeUpdate(sql, params);
+                // 触发 afterCreate 生命周期回调
+                LifecycleCallbacks.ifCallback(entity, cb -> cb.afterCreate(entity));
                 result.add(entity);
             }
         }
@@ -301,7 +318,10 @@ public class EntityInsertHandler<T> {
             List<Object> params = extractBatchInsertParams(withoutId);
             long[] generatedIds = dataManager.executeBatchInsertAndReturnKeys(sql, params, withoutId.size());
             for (int i = 0; i < withoutId.size(); i++) {
-                queryHelper.setIdValue(withoutId.get(i), generatedIds[i]);
+                S entity = withoutId.get(i);
+                queryHelper.setIdValue(entity, generatedIds[i]);
+                // 触发 afterCreate 生命周期回调
+                LifecycleCallbacks.ifCallback(entity, cb -> cb.afterCreate(entity));
             }
             result.addAll(withoutId);
         }
@@ -320,7 +340,7 @@ public class EntityInsertHandler<T> {
         List<String> columns = new ArrayList<>();
         for (var field : metadata.getFields()) {
             if (!field.isGenerated()) {
-                columns.add(field.getColumnName());
+                columns.add(dialect.quoteIdentifier(field.getColumnName()));
             }
         }
 

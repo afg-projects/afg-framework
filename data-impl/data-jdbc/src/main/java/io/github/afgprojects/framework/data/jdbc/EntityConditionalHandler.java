@@ -2,12 +2,13 @@ package io.github.afgprojects.framework.data.jdbc;
 
 import io.github.afgprojects.framework.commons.exception.BusinessException;
 import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
-import io.github.afgprojects.framework.apt.module.AfgModuleAnnotation;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
 import io.github.afgprojects.framework.data.core.query.Condition;
+import io.github.afgprojects.framework.data.core.safety.FullTableOperationChecker;
 import io.github.afgprojects.framework.data.jdbc.cache.EntityCacheHandler;
 import io.github.afgprojects.framework.data.sql.converter.ConditionToSqlConverter;
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +22,7 @@ import java.util.Map;
  *
  * @param <T> 实体类型
  */
+@Slf4j
 public class EntityConditionalHandler<T> {
 
     private final Class<T> entityClass;
@@ -28,6 +30,11 @@ public class EntityConditionalHandler<T> {
     private final EntityMetadata<T> metadata;
     private final JdbcDataManager dataManager;
     private final EntityCacheHandler<T> cacheHandler;
+
+    /**
+     * 全表操作检查器（可注入）
+     */
+    private FullTableOperationChecker fullTableOperationChecker;
 
     public EntityConditionalHandler(Class<T> entityClass, Dialect dialect,
                                     EntityMetadata<T> metadata, JdbcDataManager dataManager,
@@ -37,6 +44,16 @@ public class EntityConditionalHandler<T> {
         this.metadata = metadata;
         this.dataManager = dataManager;
         this.cacheHandler = cacheHandler;
+        this.fullTableOperationChecker = dataManager.getFullTableOperationChecker();
+    }
+
+    /**
+     * 设置全表操作检查器
+     *
+     * @param checker 全表操作检查器
+     */
+    public void setFullTableOperationChecker(@NonNull FullTableOperationChecker checker) {
+        this.fullTableOperationChecker = checker;
     }
 
     /**
@@ -47,6 +64,9 @@ public class EntityConditionalHandler<T> {
      * @return 受影响的行数
      */
     public long updateAll(@NonNull Condition condition, @NonNull Map<String, Object> updates) {
+        // 全表操作保护：检查条件是否为空
+        fullTableOperationChecker.check("updateAll", entityClass, condition);
+
         long affected = executeConditionalUpdate(condition, updates);
         if (affected > 0) {
             cacheHandler.clear();
@@ -61,6 +81,9 @@ public class EntityConditionalHandler<T> {
      * @return 受影响的行数
      */
     public long deleteByCondition(@NonNull Condition condition) {
+        // 全表操作保护：检查条件是否为空
+        fullTableOperationChecker.check("deleteByCondition", entityClass, condition);
+
         long affected = executeConditionalDelete(condition);
         if (affected > 0) {
             cacheHandler.clear();
