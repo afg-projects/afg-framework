@@ -7,6 +7,7 @@ import org.springframework.boot.jdbc.autoconfigure.DataSourceTransactionManagerA
 import org.springframework.boot.jdbc.autoconfigure.JdbcTemplateAutoConfiguration;
 
 import io.github.afgprojects.framework.data.jdbc.autoconfigure.DataManagerAutoConfiguration;
+import io.github.afgprojects.framework.data.jdbc.encryption.EncryptionAutoConfiguration;
 import io.github.afgprojects.framework.data.liquibase.autoconfigure.LiquibaseAutoConfiguration;
 
 /**
@@ -27,6 +28,7 @@ import io.github.afgprojects.framework.data.liquibase.autoconfigure.LiquibaseAut
     DataSourceTransactionManagerAutoConfiguration.class,
     JdbcTemplateAutoConfiguration.class,
     DataManagerAutoConfiguration.class,
+    EncryptionAutoConfiguration.class,
     LiquibaseAutoConfiguration.class
 })
 public class JdbcDataTestConfiguration {

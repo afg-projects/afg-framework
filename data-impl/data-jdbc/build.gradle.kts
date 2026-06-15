@@ -31,6 +31,8 @@ dependencies {
     // Lombok
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
+    // APT processor for entity metadata generation in tests
+    testAnnotationProcessor(project(":apt-impl"))
 
     // Test
     testImplementation(libs.bundles.testing)

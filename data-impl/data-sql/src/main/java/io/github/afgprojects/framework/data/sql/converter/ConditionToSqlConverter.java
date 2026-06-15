@@ -1,7 +1,12 @@
 package io.github.afgprojects.framework.data.sql.converter;
 
+import io.github.afgprojects.framework.commons.exception.BusinessException;
+import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import io.github.afgprojects.framework.data.core.condition.Conditions;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
+import io.github.afgprojects.framework.data.core.encryption.BlindIndexProvider;
+import io.github.afgprojects.framework.data.core.entity.EncryptedFieldMetadata;
+import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
 import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.query.Criterion;
 import io.github.afgprojects.framework.data.core.query.DenyAllCondition;
@@ -19,11 +24,23 @@ import java.util.function.BiConsumer;
 
 /**
  * Condition 到 SQL WHERE 子句的转换器
+ * <p>
+ * 支持加密字段的盲索引查询：当条件字段标注了 {@code @EncryptedField(blindIndexColumn=...)} 时，
+ * 自动将字段名替换为盲索引列名，将条件值替换为 HMAC 哈希值。
+ * <p>
+ * 加密字段仅支持 EQ、NE、IN、NOT_IN 操作符，
+ * 其他操作符（LIKE、BETWEEN、GT 等）会抛出 {@link BusinessException}。
  */
 public class ConditionToSqlConverter {
 
     /** 方言，用于生成数据库兼容的 JSON 操作 SQL（强制要求） */
     private final @NonNull Dialect dialect;
+
+    /** 实体元数据（可选，用于加密字段盲索引查询） */
+    private final @Nullable EntityMetadata<?> metadata;
+
+    /** 盲索引提供者（可选，用于加密字段盲索引查询） */
+    private final @Nullable BlindIndexProvider blindIndexProvider;
 
     /** 操作符处理器映射 */
     private final Map<Operator, BiConsumer<StringBuilder, List<Object>>> simpleOperators = Map.of(
@@ -35,8 +52,30 @@ public class ConditionToSqlConverter {
             Operator.LE, (sql, params) -> { sql.append(" <= ?"); }
     );
 
+    /**
+     * 创建不带加密支持的转换器（向后兼容）
+     *
+     * @param dialect 数据库方言
+     */
     public ConditionToSqlConverter(@NonNull Dialect dialect) {
         this.dialect = dialect;
+        this.metadata = null;
+        this.blindIndexProvider = null;
+    }
+
+    /**
+     * 创建带加密支持的转换器
+     *
+     * @param dialect             数据库方言
+     * @param metadata            实体元数据（用于检查字段是否为加密字段）
+     * @param blindIndexProvider  盲索引提供者（用于计算 HMAC 值）
+     */
+    public ConditionToSqlConverter(@NonNull Dialect dialect,
+                                   @Nullable EntityMetadata<?> metadata,
+                                   @Nullable BlindIndexProvider blindIndexProvider) {
+        this.dialect = dialect;
+        this.metadata = metadata;
+        this.blindIndexProvider = blindIndexProvider;
     }
 
     /**
@@ -145,6 +184,12 @@ public class ConditionToSqlConverter {
             return;
         }
 
+        // 检查是否为加密字段盲索引查询
+        if (isEncryptedFieldWithBlindIndex(field) && operatorRequiresValue(operator)) {
+            handleEncryptedFieldCriteria(field, operator, sql, parameters, value);
+            return;
+        }
+
         // 直接使用字段名（已由 FieldNameResolver 在 Conditions 中转换为列名）
         sql.append(field);
 
@@ -164,6 +209,127 @@ public class ConditionToSqlConverter {
             case BETWEEN -> handleBetween(sql, parameters, value, false);
             case NOT_BETWEEN -> handleBetween(sql, parameters, value, true);
             default -> { /* 其他操作符已在 handleSimpleOperator 中处理 */ }
+        }
+    }
+
+    /**
+     * 检查字段是否为具有盲索引的加密字段
+     */
+    private boolean isEncryptedFieldWithBlindIndex(String field) {
+        if (metadata == null || blindIndexProvider == null) {
+            return false;
+        }
+        // field 是列名，需要将其转换为属性名
+        String propertyName = resolvePropertyName(field);
+        if (propertyName == null) {
+            return false;
+        }
+        EncryptedFieldMetadata efm = metadata.getEncryptedField(propertyName);
+        return efm != null && efm.hasBlindIndex();
+    }
+
+    /**
+     * 从列名解析属性名
+     * <p>
+     * 由于 Conditions.builder() 会通过 FieldNameResolver 将 Lambda 属性名转换为列名，
+     * condition 中存储的是列名。我们需要反向查找属性名以匹配加密字段元数据。
+     */
+    private String resolvePropertyName(String columnName) {
+        if (metadata == null) {
+            return null;
+        }
+        var columnToField = metadata.getColumnToFieldMap();
+        if (columnToField.containsKey(columnName)) {
+            return columnToField.get(columnName);
+        }
+        // 也尝试直接匹配属性名（某些情况下 field 仍为属性名）
+        if (metadata.getField(columnName) != null) {
+            return columnName;
+        }
+        return null;
+    }
+
+    /**
+     * 检查操作符是否需要值（IS_NULL / IS_NOT_NULL 不需要值）
+     */
+    private boolean operatorRequiresValue(Operator operator) {
+        return operator != Operator.IS_NULL && operator != Operator.IS_NOT_NULL;
+    }
+
+    /**
+     * 处理加密字段的条件转换
+     * <p>
+     * 对于等值查询（EQ/IN）：将条件值转为 HMAC，将字段名替换为盲索引列名
+     * 对于其他操作符：抛出异常（加密字段不支持 LIKE/范围查询）
+     */
+    private void handleEncryptedFieldCriteria(String field, Operator operator,
+                                               StringBuilder sql, List<Object> parameters,
+                                               Object value) {
+        String propertyName = resolvePropertyName(field);
+        EncryptedFieldMetadata efm = metadata.getEncryptedField(propertyName);
+        String blindIndexColumn = efm.blindIndexColumn();
+
+        switch (operator) {
+            case EQ -> {
+                sql.append(dialect.quoteIdentifier(blindIndexColumn)).append(" = ?");
+                String blindIndex = blindIndexProvider.computeBlindIndex(
+                    value.toString(), propertyName, efm.keyRef());
+                parameters.add(blindIndex);
+            }
+            case NE -> {
+                sql.append(dialect.quoteIdentifier(blindIndexColumn)).append(" != ?");
+                String blindIndex = blindIndexProvider.computeBlindIndex(
+                    value.toString(), propertyName, efm.keyRef());
+                parameters.add(blindIndex);
+            }
+            case IN -> {
+                sql.append(dialect.quoteIdentifier(blindIndexColumn)).append(" IN (");
+                if (value instanceof Iterable<?> iterable) {
+                    boolean first = true;
+                    for (Object v : iterable) {
+                        if (!first) sql.append(", ");
+                        sql.append("?");
+                        String blindIndex = blindIndexProvider.computeBlindIndex(
+                            v.toString(), propertyName, efm.keyRef());
+                        parameters.add(blindIndex);
+                        first = false;
+                    }
+                    if (first) {
+                        sql.append("NULL");
+                    }
+                } else {
+                    throw new IllegalArgumentException(
+                        "IN operator requires an Iterable value for encrypted field '"
+                        + propertyName + "', got: " + value.getClass().getName());
+                }
+                sql.append(")");
+            }
+            case NOT_IN -> {
+                sql.append(dialect.quoteIdentifier(blindIndexColumn)).append(" NOT IN (");
+                if (value instanceof Iterable<?> iterable) {
+                    boolean first = true;
+                    for (Object v : iterable) {
+                        if (!first) sql.append(", ");
+                        sql.append("?");
+                        String blindIndex = blindIndexProvider.computeBlindIndex(
+                            v.toString(), propertyName, efm.keyRef());
+                        parameters.add(blindIndex);
+                        first = false;
+                    }
+                    if (first) {
+                        sql.append("NULL");
+                    }
+                } else {
+                    throw new IllegalArgumentException(
+                        "NOT_IN operator requires an Iterable value for encrypted field '"
+                        + propertyName + "', got: " + value.getClass().getName());
+                }
+                sql.append(")");
+            }
+            default -> throw new BusinessException(CommonErrorCode.ENCRYPTED_FIELD_QUERY_NOT_SUPPORTED,
+                "Encrypted field '" + propertyName + "' does not support operator '" + operator.getSymbol()
+                + "'. Encrypted fields only support EQ, NE, IN, and NOT_IN operators "
+                + "when blind index is configured.");
         }
     }
 
@@ -207,9 +373,6 @@ public class ConditionToSqlConverter {
         parameters.add(value);
     }
 
-    /**
-     * 处理 IN 操作符
-     */
     /**
      * 处理 IN 操作符
      *

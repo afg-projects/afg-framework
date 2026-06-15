@@ -12,6 +12,10 @@ import java.util.List;
  *   <li>时间戳（timestamped）- 检测 createdAt 和 updatedAt 字段</li>
  *   <li>审计（auditable）- 检测 createBy 和 updateBy 字段</li>
  *   <li>版本化（versioned）- 检测 version 字段</li>
+ *   <li>数据权限感知（dataScopeAware）- 检测 deptId 字段</li>
+ *   <li>加密字段（encrypted）- 检测 @EncryptedField 注解</li>
+ *   <li>敏感字段（sensitive）- 检测 @SensitiveField 注解</li>
+ *   <li>树形结构（treeable）- 检测 parentId 和 path 字段</li>
  * </ul>
  */
 class EntityFeatureDetector {
@@ -26,7 +30,10 @@ class EntityFeatureDetector {
         boolean timestamped,
         boolean auditable,
         boolean versioned,
-        boolean dataScopeAware
+        boolean dataScopeAware,
+        boolean encrypted,
+        boolean sensitive,
+        boolean treeable
     ) {
         /**
          * 执行所有特性检测（单次遍历优化）
@@ -43,6 +50,10 @@ class EntityFeatureDetector {
             boolean hasCreateBy = false;
             boolean hasUpdateBy = false;
             boolean hasVersion = false;
+            boolean hasEncrypted = false;
+            boolean hasSensitive = false;
+            boolean hasParentId = false;
+            boolean hasPath = false;
 
             // 单次遍历检测所有特性
             for (FieldMetadataGenerator.FieldInfo field : fields) {
@@ -56,7 +67,15 @@ class EntityFeatureDetector {
                     case "createBy" -> hasCreateBy = true;
                     case "updateBy" -> hasUpdateBy = true;
                     case "version" -> hasVersion = true;
+                    case "parentId" -> hasParentId = true;
+                    case "path" -> hasPath = true;
                     default -> { /* 其他字段不参与特性检测 */ }
+                }
+                if (field.isEncrypted()) {
+                    hasEncrypted = true;
+                }
+                if (field.isSensitive()) {
+                    hasSensitive = true;
                 }
             }
 
@@ -67,7 +86,10 @@ class EntityFeatureDetector {
                 hasCreatedAt && hasUpdatedAt,      // timestamped (createdAt/updatedAt from BaseEntity)
                 hasCreateBy && hasUpdateBy,        // auditable (createBy/updateBy from FullEntity)
                 hasVersion,                       // versioned
-                false                             // dataScopeAware (需要注解配置，默认 false)
+                false,                            // dataScopeAware (需要注解配置，默认 false)
+                hasEncrypted,                     // encrypted (has @EncryptedField fields)
+                hasSensitive,                     // sensitive (has @SensitiveField fields)
+                hasParentId && hasPath            // treeable (parentId + path from TreeEntity)
             );
         }
     }

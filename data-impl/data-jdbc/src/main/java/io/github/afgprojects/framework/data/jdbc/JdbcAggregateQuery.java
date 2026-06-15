@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.data.jdbc;
 
+import io.github.afgprojects.framework.data.core.encryption.BlindIndexProvider;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
 import io.github.afgprojects.framework.data.core.metadata.EntityTrait;
 import io.github.afgprojects.framework.data.core.query.Condition;
@@ -260,7 +261,8 @@ public class JdbcAggregateQuery<T> implements AggregateQuery<T> {
 
         // HAVING 子句
         if (!isSingle && havingCondition != null && !havingCondition.isEmpty()) {
-            ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
+            BlindIndexProvider blindIndexProvider = parentProxy.dataManager.getBlindIndexProvider();
+            ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect, metadata, blindIndexProvider);
             ConditionToSqlConverter.SqlResult result = converter.convert(havingCondition);
             String havingSql = result.sql();
 
@@ -288,7 +290,8 @@ public class JdbcAggregateQuery<T> implements AggregateQuery<T> {
     private void buildWhereClause(StringBuilder sql) {
         boolean hasWhere = false;
         if (whereCondition != null && !whereCondition.isEmpty()) {
-            ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
+            BlindIndexProvider blindIndexProvider = parentProxy.dataManager.getBlindIndexProvider();
+            ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect, metadata, blindIndexProvider);
             ConditionToSqlConverter.SqlResult result = converter.convert(whereCondition);
             sql.append(" WHERE ").append(result.sql());
             hasWhere = true;
@@ -328,7 +331,8 @@ public class JdbcAggregateQuery<T> implements AggregateQuery<T> {
     private List<Object> collectParams() {
         List<Object> params = new ArrayList<>();
         if (whereCondition != null && !whereCondition.isEmpty()) {
-            ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
+            BlindIndexProvider blindIndexProvider = parentProxy.dataManager.getBlindIndexProvider();
+            ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect, metadata, blindIndexProvider);
             params.addAll(converter.convert(whereCondition).parameters());
         }
 
@@ -351,7 +355,8 @@ public class JdbcAggregateQuery<T> implements AggregateQuery<T> {
         }
 
         if (havingCondition != null && !havingCondition.isEmpty()) {
-            ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
+            BlindIndexProvider blindIndexProvider = parentProxy.dataManager.getBlindIndexProvider();
+            ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect, metadata, blindIndexProvider);
             params.addAll(converter.convert(havingCondition).parameters());
         }
         return params;

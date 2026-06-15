@@ -4,6 +4,7 @@ import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
@@ -264,6 +265,12 @@ public class EntityMetadataProcessor extends AbstractProcessor {
             ? relationMetadataGenerator.extractRelations(typeElement, tableName)
             : Collections.emptyList();
 
+        // 检测加密字段并设置标志
+        markEncryptedFields(typeElement, fields);
+
+        // 检测敏感字段并设置标志
+        markSensitiveFields(typeElement, fields);
+
         // 特性检测
         var features = EntityFeatureDetector.FeatureDetectionResult.detect(fields);
 
@@ -288,5 +295,127 @@ public class EntityMetadataProcessor extends AbstractProcessor {
     private String extractPackageName(String fullName) {
         int lastDot = fullName.lastIndexOf('.');
         return lastDot > 0 ? fullName.substring(0, lastDot) : "";
+    }
+
+    /**
+     * 检测敏感字段并更新 FieldInfo 标志
+     * <p>
+     * 扫描 TypeElement 中标注了 @SensitiveField 的字段，
+     * 更新对应 FieldInfo 的 isSensitive、sensitiveType 和 sensitiveStrategy。
+     */
+    private void markSensitiveFields(TypeElement typeElement, java.util.List<FieldMetadataGenerator.FieldInfo> fields) {
+        TypeElement sensitiveFieldAnnotation = processingEnv.getElementUtils()
+            .getTypeElement("io.github.afgprojects.framework.apt.entity.SensitiveField");
+        if (sensitiveFieldAnnotation == null) {
+            return;
+        }
+
+        // 收集标注了 @SensitiveField 的字段名
+        java.util.Map<String, String[]> sensitiveFields = new java.util.HashMap<>();
+        for (Element element : typeElement.getEnclosedElements()) {
+            if (element.getKind() == ElementKind.FIELD) {
+                for (AnnotationMirror am : element.getAnnotationMirrors()) {
+                    if (am.getAnnotationType().asElement().equals(sensitiveFieldAnnotation)) {
+                        String fieldName = element.getSimpleName().toString();
+                        String type = "CUSTOM";
+                        String strategy = "";
+                        for (var entry : am.getElementValues().entrySet()) {
+                            String key = entry.getKey().getSimpleName().toString();
+                            if ("type".equals(key)) {
+                                type = entry.getValue().getValue().toString();
+                                // Extract the enum constant name (e.g., "io.xxx.SensitiveType.PHONE" -> "PHONE")
+                                int lastDot = type.lastIndexOf('.');
+                                if (lastDot >= 0) {
+                                    type = type.substring(lastDot + 1);
+                                }
+                            } else if ("strategy".equals(key)) {
+                                strategy = entry.getValue().getValue().toString();
+                            }
+                        }
+                        sensitiveFields.put(fieldName, new String[]{type, strategy});
+                    }
+                }
+            }
+        }
+
+        // 更新 FieldInfo
+        for (int i = 0; i < fields.size(); i++) {
+            FieldMetadataGenerator.FieldInfo fi = fields.get(i);
+            if (sensitiveFields.containsKey(fi.propertyName())) {
+                String[] values = sensitiveFields.get(fi.propertyName());
+                fields.set(i, new FieldMetadataGenerator.FieldInfo(
+                    fi.propertyName(),
+                    fi.columnName(),
+                    fi.fieldType(),
+                    fi.isId(),
+                    fi.isGenerated(),
+                    fi.hasCustomColumnName(),
+                    fi.isEncrypted(),
+                    fi.encryptedAlgorithm(),
+                    fi.encryptedKeyRef(),
+                    fi.encryptedBlindIndexColumn(),
+                    true,
+                    values[0],  // sensitiveType
+                    values[1]   // sensitiveStrategy
+                ));
+            }
+        }
+    }
+    private void markEncryptedFields(TypeElement typeElement, java.util.List<FieldMetadataGenerator.FieldInfo> fields) {
+        TypeElement encryptedFieldAnnotation = processingEnv.getElementUtils()
+            .getTypeElement("io.github.afgprojects.framework.apt.entity.EncryptedField");
+        if (encryptedFieldAnnotation == null) {
+            return;
+        }
+
+        // 收集标注了 @EncryptedField 的字段名
+        java.util.Map<String, String[]> encryptedFields = new java.util.HashMap<>();
+        for (Element element : typeElement.getEnclosedElements()) {
+            if (element.getKind() == ElementKind.FIELD) {
+                for (AnnotationMirror am : element.getAnnotationMirrors()) {
+                    if (am.getAnnotationType().asElement().equals(encryptedFieldAnnotation)) {
+                        String fieldName = element.getSimpleName().toString();
+                        // 提取 algorithm 属性
+                        String algorithm = "AES";
+                        String keyRef = "";
+                        String blindIndexColumn = "";
+                        for (var entry : am.getElementValues().entrySet()) {
+                            String key = entry.getKey().getSimpleName().toString();
+                            if ("algorithm".equals(key)) {
+                                algorithm = entry.getValue().getValue().toString();
+                            } else if ("keyRef".equals(key)) {
+                                keyRef = entry.getValue().getValue().toString();
+                            } else if ("blindIndexColumn".equals(key)) {
+                                blindIndexColumn = entry.getValue().getValue().toString();
+                            }
+                        }
+                        encryptedFields.put(fieldName, new String[]{algorithm, keyRef, blindIndexColumn});
+                    }
+                }
+            }
+        }
+
+        // 更新 FieldInfo
+        for (int i = 0; i < fields.size(); i++) {
+            FieldMetadataGenerator.FieldInfo fi = fields.get(i);
+            if (encryptedFields.containsKey(fi.propertyName())) {
+                String[] values = encryptedFields.get(fi.propertyName());
+                fields.set(i, new FieldMetadataGenerator.FieldInfo(
+                    fi.propertyName(),
+                    fi.columnName(),
+                    fi.fieldType(),
+                    fi.isId(),
+                    fi.isGenerated(),
+                    fi.hasCustomColumnName(),
+                    true,
+                    values[0],  // algorithm
+                    values[1],  // keyRef
+                    values[2],  // blindIndexColumn
+                    fi.isSensitive(),
+                    fi.sensitiveType(),
+                    fi.sensitiveStrategy()
+                ));
+            }
+        }
     }
 }

@@ -23,6 +23,8 @@ import java.util.Set;
 import io.github.afgprojects.framework.data.core.entity.EncryptedFieldMetadata;
 import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.relation.RelationMetadata;
+import io.github.afgprojects.framework.data.core.sensitive.SensitiveFieldMetadata;
+import org.jspecify.annotations.Nullable;
 
 /**
  * 实体元数据接口，描述实体的结构信息。
@@ -166,6 +168,30 @@ public interface EntityMetadata<T> {
     }
 
     /**
+     * 根据字段名获取加密字段元数据
+     *
+     * @param fieldName 字段名（Java 属性名）
+     * @return 加密字段元数据，不存在返回 null
+     */
+    default EncryptedFieldMetadata getEncryptedField(String fieldName) {
+        return getEncryptedFields().stream()
+            .filter(f -> f.fieldName().equals(fieldName))
+            .findFirst()
+            .orElse(null);
+    }
+
+    /**
+     * 根据字段名获取盲索引列名
+     *
+     * @param fieldName 字段名（Java 属性名）
+     * @return 盲索引列名，如果字段没有盲索引则返回 null
+     */
+    default String getBlindIndexColumn(String fieldName) {
+        EncryptedFieldMetadata meta = getEncryptedField(fieldName);
+        return meta != null ? meta.blindIndexColumn() : null;
+    }
+
+    /**
      * 根据字段名获取关联关系元数据
      *
      * @param fieldName 字段名
@@ -175,5 +201,28 @@ public interface EntityMetadata<T> {
         return getRelations().stream()
             .filter(r -> r.getFieldName().equals(fieldName))
             .findFirst();
+    }
+
+    /**
+     * 获取所有敏感字段的元数据
+     *
+     * @return 敏感字段元数据列表，如果没有敏感字段则返回空列表
+     */
+    default List<SensitiveFieldMetadata> getSensitiveFields() {
+        return List.of();
+    }
+
+    /**
+     * 根据字段名获取敏感字段元数据
+     *
+     * @param fieldName 字段名（Java 属性名）
+     * @return 敏感字段元数据，不存在返回 null
+     */
+    @Nullable
+    default SensitiveFieldMetadata getSensitiveField(String fieldName) {
+        return getSensitiveFields().stream()
+            .filter(f -> f.fieldName().equals(fieldName))
+            .findFirst()
+            .orElse(null);
     }
 }

@@ -158,10 +158,12 @@ public class JdbcEntityProxy<T> implements EntityProxy<T>, ProxyStateProvider {
         this.insertHandler = new EntityInsertHandler<>(entityClass, jdbcClient, dialect, metadata, queryHelper, dataManager, cacheHandler);
         this.insertHandler.setAuditableContext(dataManager.getAuditableContext());
         this.insertHandler.setFieldEncryptor(dataManager.getFieldEncryptor());
+        this.insertHandler.setBlindIndexProvider(dataManager.getBlindIndexProvider());
         this.insertHandler.setIdGenerator(dataManager.getIdGenerator());
         this.updateHandler = new EntityUpdateHandler<>(entityClass, jdbcClient, metadata, queryHelper, dataManager, cacheHandler);
         this.updateHandler.setAuditableContext(dataManager.getAuditableContext());
         this.updateHandler.setFieldEncryptor(dataManager.getFieldEncryptor());
+        this.updateHandler.setBlindIndexProvider(dataManager.getBlindIndexProvider());
         this.softDeleteHandler = new EntitySoftDeleteHandler<>(entityClass, dialect, metadata, jdbcClient, cacheManager);
         this.queryExecutor = new EntityQueryExecutor<>(entityClass, jdbcClient, dialect, metadata, rowMapper, cacheHandler, softDeleteHandler, this);
         this.deleteHandler = new EntityDeleteHandler<>(entityClass, jdbcClient, dialect, metadata, softDeleteHandler, cacheHandler, queryHelper);

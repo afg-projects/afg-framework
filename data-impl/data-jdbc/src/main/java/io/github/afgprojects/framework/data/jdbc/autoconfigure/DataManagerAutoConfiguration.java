@@ -5,6 +5,7 @@ import javax.sql.DataSource;
 import io.github.afgprojects.framework.core.api.id.IdGenerator;
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.context.TenantContextHolder;
+import io.github.afgprojects.framework.data.core.encryption.BlindIndexProvider;
 import io.github.afgprojects.framework.data.core.entity.AuditableContext;
 import io.github.afgprojects.framework.data.core.entity.FieldEncryptor;
 import io.github.afgprojects.framework.data.core.entity.NoOpAuditableContext;
@@ -126,6 +127,7 @@ public class DataManagerAutoConfiguration {
      * @param transactionAdapter  事务适配器（可选，自动注入）
      * @param auditableContext    审计上下文（可选，自动注入）
      * @param fieldEncryptor      字段加密器（可选，自动注入）
+     * @param blindIndexProvider   盲索引提供者（可选，自动注入）
      * @param idGenerator         ID 生成器（可选，自动注入，来自 core 模块 SPI）
      * @param entityChangedEventPublisher 实体变更事件发布器（可选，自动注入）
      * @param fullTableOperationChecker 全表操作检查器（可选，自动注入）
@@ -140,6 +142,7 @@ public class DataManagerAutoConfiguration {
                                         @Nullable TransactionAdapter transactionAdapter,
                                         @Nullable AuditableContext auditableContext,
                                         @Nullable FieldEncryptor fieldEncryptor,
+                                        @Nullable BlindIndexProvider blindIndexProvider,
                                         @Nullable IdGenerator idGenerator,
                                         @Nullable EntityChangedEventPublisher entityChangedEventPublisher,
                                         @Nullable FullTableOperationChecker fullTableOperationChecker) {
@@ -157,6 +160,9 @@ public class DataManagerAutoConfiguration {
         }
         if (fieldEncryptor != null) {
             dm.setFieldEncryptor(fieldEncryptor);
+        }
+        if (blindIndexProvider != null) {
+            dm.setBlindIndexProvider(blindIndexProvider);
         }
         if (idGenerator != null) {
             dm.setIdGenerator(idGenerator);

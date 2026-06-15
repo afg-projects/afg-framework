@@ -5,6 +5,7 @@ import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import io.github.afgprojects.framework.commons.model.PageData;
 import io.github.afgprojects.framework.data.core.EntityQuery;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
+import io.github.afgprojects.framework.data.core.encryption.BlindIndexProvider;
 import io.github.afgprojects.framework.data.core.mapper.Projection;
 import io.github.afgprojects.framework.data.core.mapper.TypeHandlerRegistry;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
@@ -478,7 +479,8 @@ public class JdbcEntityQuery<T> implements EntityQuery<T> {
 
         // 1. 用户条件
         if (!condition.isEmpty()) {
-            ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
+            BlindIndexProvider blindIndexProvider = parentProxy.dataManager.getBlindIndexProvider();
+            ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect, metadata, blindIndexProvider);
             ConditionToSqlConverter.SqlResult result = converter.convert(condition);
             whereSql.append(result.sql());
             params.addAll(result.parameters());

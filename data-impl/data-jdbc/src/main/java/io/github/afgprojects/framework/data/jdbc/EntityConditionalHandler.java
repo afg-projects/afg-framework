@@ -3,6 +3,7 @@ package io.github.afgprojects.framework.data.jdbc;
 import io.github.afgprojects.framework.commons.exception.BusinessException;
 import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
+import io.github.afgprojects.framework.data.core.encryption.BlindIndexProvider;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
 import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.safety.FullTableOperationChecker;
@@ -114,7 +115,7 @@ public class EntityConditionalHandler<T> {
             validateFieldName(fieldName);
         }
 
-        ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
+        ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect, metadata, dataManager.getBlindIndexProvider());
         ConditionToSqlConverter.SqlResult whereResult = converter.convert(condition);
 
         StringBuilder sql = new StringBuilder("UPDATE ");

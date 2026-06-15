@@ -10,6 +10,7 @@ import io.github.afgprojects.framework.data.core.safety.NoOpFullTableOperationCh
 import io.github.afgprojects.framework.data.jdbc.metrics.RawSqlSecurityGuard;
 import io.github.afgprojects.framework.data.core.context.TenantContextHolder;
 import io.github.afgprojects.framework.data.core.dialect.*;
+import io.github.afgprojects.framework.data.core.encryption.BlindIndexProvider;
 import io.github.afgprojects.framework.data.core.entity.AuditableContext;
 import io.github.afgprojects.framework.data.core.entity.FieldEncryptor;
 import io.github.afgprojects.framework.data.core.entity.NoOpAuditableContext;
@@ -137,6 +138,11 @@ public class JdbcDataManager implements DataManager {
     private FieldEncryptor fieldEncryptor;
 
     /**
+     * 盲索引提供者（可注入，用于加密字段的盲索引值计算）
+     */
+    private BlindIndexProvider blindIndexProvider;
+
+    /**
      * ID 生成器（可选，来自 core 模块的 SPI）
      * <p>
      * 当 IdGenerator 存在时，插入实体前预生成 ID（如 Snowflake ID），
@@ -258,6 +264,28 @@ public class JdbcDataManager implements DataManager {
      */
     public FieldEncryptor getFieldEncryptor() {
         return fieldEncryptor;
+    }
+
+    /**
+     * 设置盲索引提供者
+     * <p>
+     * 注入与 AutoConfiguration 创建的同一实例，
+     * 确保盲索引计算在 INSERT/UPDATE 中使用相同的密钥。
+     * 如果不设置，不计算盲索引值（向后兼容）。
+     *
+     * @param blindIndexProvider 盲索引提供者
+     */
+    public void setBlindIndexProvider(@Nullable BlindIndexProvider blindIndexProvider) {
+        this.blindIndexProvider = blindIndexProvider;
+    }
+
+    /**
+     * 获取盲索引提供者
+     *
+     * @return 盲索引提供者，可能为 null
+     */
+    public BlindIndexProvider getBlindIndexProvider() {
+        return blindIndexProvider;
     }
 
     /**

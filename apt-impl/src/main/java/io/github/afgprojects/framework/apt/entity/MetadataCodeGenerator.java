@@ -76,7 +76,7 @@ class MetadataCodeGenerator {
      * @param tableName          表名
      * @param fields             字段信息列表
      * @param relations          关联信息列表
-     * @param features           特性检测结果
+     * @param features           特性检测结果（含 encrypted + sensitive）
      * @return 生成的源码
      */
     String generateMetadataClass(TypeElement typeElement,
@@ -125,6 +125,28 @@ class MetadataCodeGenerator {
                 Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
             .initializer(buildFieldsInitializer(fields))
             .build());
+
+        // 加密字段列表（如果有）
+        if (features.encrypted()) {
+            classBuilder.addField(FieldSpec.builder(
+                    ParameterizedTypeName.get(ClassName.get(List.class),
+                        ClassName.get("io.github.afgprojects.framework.data.core.entity", "EncryptedFieldMetadata")),
+                    "ENCRYPTED_FIELDS",
+                    Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                .initializer(buildEncryptedFieldsInitializer(fields))
+                .build());
+        }
+
+        // 敏感字段列表（如果有）
+        if (features.sensitive()) {
+            classBuilder.addField(FieldSpec.builder(
+                    ParameterizedTypeName.get(ClassName.get(List.class),
+                        ClassName.get("io.github.afgprojects.framework.data.core.sensitive", "SensitiveFieldMetadata")),
+                    "SENSITIVE_FIELDS",
+                    Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                .initializer(buildSensitiveFieldsInitializer(fields))
+                .build());
+        }
 
         // 关联列表
         classBuilder.addField(FieldSpec.builder(
@@ -184,6 +206,83 @@ class MetadataCodeGenerator {
     }
 
     /**
+     * 构建加密字段列表初始化代码
+     */
+    private CodeBlock buildEncryptedFieldsInitializer(List<FieldMetadataGenerator.FieldInfo> fields) {
+        CodeBlock.Builder builder = CodeBlock.builder();
+        builder.add("$T.of(\n", ClassName.get(List.class));
+
+        boolean first = true;
+        for (FieldMetadataGenerator.FieldInfo field : fields) {
+            if (!field.isEncrypted()) {
+                continue;
+            }
+            if (!first) {
+                builder.add(",");
+                builder.add("\n");
+            }
+            // Build EncryptedFieldMetadata with blindIndexColumn if specified
+            String blindIndexColumn = field.encryptedBlindIndexColumn();
+            if (blindIndexColumn != null && !blindIndexColumn.isEmpty()) {
+                builder.add("    new $T($S, $S, $S, $S)",
+                    ClassName.get("io.github.afgprojects.framework.data.core.entity", "EncryptedFieldMetadata"),
+                    field.propertyName(),
+                    field.encryptedAlgorithm(),
+                    field.encryptedKeyRef(),
+                    blindIndexColumn);
+            } else {
+                builder.add("    new $T($S, $S, $S)",
+                    ClassName.get("io.github.afgprojects.framework.data.core.entity", "EncryptedFieldMetadata"),
+                    field.propertyName(),
+                    field.encryptedAlgorithm(),
+                    field.encryptedKeyRef());
+            }
+            first = false;
+        }
+
+        builder.add("\n)");
+        return builder.build();
+    }
+
+    /**
+     * 构建敏感字段列表初始化代码
+     */
+    private CodeBlock buildSensitiveFieldsInitializer(List<FieldMetadataGenerator.FieldInfo> fields) {
+        CodeBlock.Builder builder = CodeBlock.builder();
+        builder.add("$T.of(\n", ClassName.get(List.class));
+
+        boolean first = true;
+        for (FieldMetadataGenerator.FieldInfo field : fields) {
+            if (!field.isSensitive()) {
+                continue;
+            }
+            if (!first) {
+                builder.add(",");
+                builder.add("\n");
+            }
+            String strategy = field.sensitiveStrategy();
+            if (strategy != null && !strategy.isEmpty()) {
+                builder.add("    new $T($S, $T.$L, $S)",
+                    ClassName.get("io.github.afgprojects.framework.data.core.sensitive", "SensitiveFieldMetadata"),
+                    field.propertyName(),
+                    ClassName.get("io.github.afgprojects.framework.apt.entity", "SensitiveType"),
+                    field.sensitiveType(),
+                    strategy);
+            } else {
+                builder.add("    new $T($S, $T.$L, null)",
+                    ClassName.get("io.github.afgprojects.framework.data.core.sensitive", "SensitiveFieldMetadata"),
+                    field.propertyName(),
+                    ClassName.get("io.github.afgprojects.framework.apt.entity", "SensitiveType"),
+                    field.sensitiveType());
+            }
+            first = false;
+        }
+
+        builder.add("\n)");
+        return builder.build();
+    }
+
+    /**
      * 构建关联列表初始化代码
      */
     private CodeBlock buildRelationsInitializer(List<RelationMetadataGenerator.RelationInfo> relations, ClassName entityClass) {
@@ -203,7 +302,6 @@ class MetadataCodeGenerator {
             }
             builder.add("\n");
         }
-
         builder.add(")");
         return builder.build();
     }
@@ -424,6 +522,15 @@ class MetadataCodeGenerator {
         if (features.dataScopeAware()) {
             getTraitsBuilder.addStatement("traits.add($T.DATA_SCOPE_AWARE)", ENTITY_TRAIT);
         }
+        if (features.encrypted()) {
+            getTraitsBuilder.addStatement("traits.add($T.ENCRYPTED)", ENTITY_TRAIT);
+        }
+        if (features.sensitive()) {
+            getTraitsBuilder.addStatement("traits.add($T.SENSITIVE)", ENTITY_TRAIT);
+        }
+        if (features.treeable()) {
+            getTraitsBuilder.addStatement("traits.add($T.TREEABLE)", ENTITY_TRAIT);
+        }
         getTraitsBuilder.addStatement("return traits");
         classBuilder.addMethod(getTraitsBuilder.build());
 
@@ -434,6 +541,41 @@ class MetadataCodeGenerator {
             .returns(CONDITION)
             .addStatement("return $T.empty()", CONDITION)
             .build());
+
+        // getEncryptedFields
+        if (features.encrypted()) {
+            classBuilder.addMethod(MethodSpec.methodBuilder("getEncryptedFields")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .returns(ParameterizedTypeName.get(ClassName.get(List.class),
+                    ClassName.get("io.github.afgprojects.framework.data.core.entity", "EncryptedFieldMetadata")))
+                .addStatement("return ENCRYPTED_FIELDS")
+                .build());
+            classBuilder.addMethod(MethodSpec.methodBuilder("isEncrypted")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(String.class, "fieldName")
+                .returns(boolean.class)
+                .beginControlFlow("for ($T ef : ENCRYPTED_FIELDS)",
+                    ClassName.get("io.github.afgprojects.framework.data.core.entity", "EncryptedFieldMetadata"))
+                .beginControlFlow("if (ef.fieldName().equals(fieldName))")
+                .addStatement("return true")
+                .endControlFlow()
+                .endControlFlow()
+                .addStatement("return false")
+                .build());
+        }
+
+        // getSensitiveFields
+        if (features.sensitive()) {
+            classBuilder.addMethod(MethodSpec.methodBuilder("getSensitiveFields")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .returns(ParameterizedTypeName.get(ClassName.get(List.class),
+                    ClassName.get("io.github.afgprojects.framework.data.core.sensitive", "SensitiveFieldMetadata")))
+                .addStatement("return SENSITIVE_FIELDS")
+                .build());
+        }
     }
 
     /**

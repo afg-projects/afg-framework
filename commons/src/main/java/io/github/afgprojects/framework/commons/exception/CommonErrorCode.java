@@ -50,6 +50,9 @@ public enum CommonErrorCode implements ErrorCode {
     DATA_INTEGRITY_VIOLATION(11006, "数据完整性冲突", ErrorCategory.BUSINESS),
     OPTIMISTIC_LOCK_ERROR(11007, "乐观锁冲突", ErrorCategory.BUSINESS),
     FULL_TABLE_OPERATION_NOT_ALLOWED(11010, "全表操作不允许", ErrorCategory.BUSINESS),
+    ENCRYPTED_FIELD_QUERY_NOT_SUPPORTED(11011, "加密字段不支持此查询操作", ErrorCategory.BUSINESS),
+    ENCRYPTION_KEY_INVALID(11012, "加密密钥无效", ErrorCategory.SYSTEM),
+    ENCRYPTION_STRICT_MODE_VIOLATION(11013, "严格模式下无真实加密实现", ErrorCategory.SYSTEM),
 
     // ==================== 存储错误 (12000-12999) ====================
     FILE_NOT_FOUND(12000, "文件不存在", ErrorCategory.BUSINESS),

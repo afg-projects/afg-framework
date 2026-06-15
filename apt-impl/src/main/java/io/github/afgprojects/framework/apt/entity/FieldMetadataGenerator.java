@@ -87,7 +87,14 @@ class FieldMetadataGenerator {
                     fieldType,
                     isId,
                     isGenerated,
-                    hasCustomColumnName
+                    hasCustomColumnName,
+                    false,  // isEncrypted - will be set in EntityMetadataProcessor after fields are collected
+                    "",     // encryptedAlgorithm
+                    "",     // encryptedKeyRef
+                    "",     // encryptedBlindIndexColumn
+                    false,  // isSensitive - will be set in EntityMetadataProcessor
+                    "",     // sensitiveType
+                    ""      // sensitiveStrategy
                 ));
             }
 
@@ -260,6 +267,13 @@ class FieldMetadataGenerator {
         String fieldType,
         boolean isId,
         boolean isGenerated,
-        boolean hasCustomColumnName  // 是否有自定义列名（@Column(name=...)）
+        boolean hasCustomColumnName,  // 是否有自定义列名（@Column(name=...)）
+        boolean isEncrypted,          // 是否有 @EncryptedField 注解
+        String encryptedAlgorithm,    // 加密算法（来自 @EncryptedField.algorithm()）
+        String encryptedKeyRef,       // 密钥引用（来自 @EncryptedField.keyRef()）
+        String encryptedBlindIndexColumn,  // 盲索引列名（来自 @EncryptedField.blindIndexColumn()）
+        boolean isSensitive,          // 是否有 @SensitiveField 注解
+        String sensitiveType,         // 敏感数据类型（来自 @SensitiveField.type()）
+        String sensitiveStrategy      // 自定义脱敏策略（来自 @SensitiveField.strategy()）
     ) {}
 }

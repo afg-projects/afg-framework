@@ -11,4 +11,5 @@
     <include file="test-data/v1.0.0/005_test_order.xml" relativeToChangelogFile="true"/>
     <include file="test-data/v1.0.0/006_test_order_item.xml" relativeToChangelogFile="true"/>
     <include file="test-data/v1.0.0/007_test_category.xml" relativeToChangelogFile="true"/>
+    <include file="test-data/v1.0.0/008_test_encrypted_user.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>

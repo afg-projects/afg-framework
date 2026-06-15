@@ -1,6 +1,7 @@
 package io.github.afgprojects.framework.data.jdbc;
 
 import io.github.afgprojects.framework.data.core.entity.*;
+import io.github.afgprojects.framework.data.core.encryption.BlindIndexProvider;
 import io.github.afgprojects.framework.data.core.exception.OptimisticLockException;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
 import io.github.afgprojects.framework.data.core.metadata.EntityTrait;
@@ -42,6 +43,16 @@ public class EntityUpdateHandler<T> {
      */
     private FieldEncryptor fieldEncryptor;
 
+    /**
+     * 盲索引提供者（可注入，用于加密字段的盲索引值计算）
+     */
+    private BlindIndexProvider blindIndexProvider;
+
+    /**
+     * 保存加密前的明文值，用于盲索引计算
+     */
+    private static final ThreadLocal<java.util.Map<String, String>> PLAINTEXT_CACHE = new ThreadLocal<>();
+
     public EntityUpdateHandler(Class<T> entityClass, JdbcClient jdbcClient,
                                EntityMetadata<T> metadata, EntityQueryHelper<T> queryHelper,
                                JdbcDataManager dataManager, EntityCacheHandler<T> cacheHandler) {
@@ -82,6 +93,19 @@ public class EntityUpdateHandler<T> {
     }
 
     /**
+     * 设置盲索引提供者
+     * <p>
+     * 注入与 AutoConfiguration 创建的同一实例，
+     * 确保盲索引计算在 INSERT/UPDATE 中使用相同的密钥。
+     * 如果不设置，不计算盲索引值（向后兼容）。
+     *
+     * @param blindIndexProvider 盲索引提供者
+     */
+    public void setBlindIndexProvider(@Nullable BlindIndexProvider blindIndexProvider) {
+        this.blindIndexProvider = blindIndexProvider;
+    }
+
+    /**
      * 更新单个实体
      *
      * @param entity 实体对象
@@ -104,7 +128,11 @@ public class EntityUpdateHandler<T> {
         boolean isVersioned = Versioned.class.isAssignableFrom(entityClass);
         String sql = queryHelper.buildUpdateSql(isVersioned);
         List<Object> params = queryHelper.extractUpdateParams(entity, isVersioned);
+        sql = augmentSqlWithBlindIndexColumns(sql, params);
         int affectedRows = dataManager.executeUpdate(sql, params);
+        clearBlindIndexCache();
+        // 解密字段：UPDATE 后将实体中的密文恢复为明文
+        decryptFields(entity);
 
         // 乐观锁检测：如果实体实现了 Versioned 接口，检查更新行数
         if (isVersioned && affectedRows == 0) {
@@ -199,12 +227,43 @@ public class EntityUpdateHandler<T> {
             return;
         }
         var extractor = queryHelper.getParameterExtractor();
+        java.util.Map<String, String> plaintextCache = new java.util.HashMap<>();
         for (EncryptedFieldMetadata encryptedField : metadata.getEncryptedFields()) {
             Object value = extractor.getFieldValue(entity, encryptedField.fieldName());
             if (value != null) {
                 String plaintext = value.toString();
+                // 缓存明文用于盲索引计算
+                if (encryptedField.hasBlindIndex() && blindIndexProvider != null) {
+                    plaintextCache.put(encryptedField.fieldName(), plaintext);
+                }
                 String ciphertext = fieldEncryptor.encrypt(plaintext, encryptedField.algorithm(), encryptedField.keyRef());
                 extractor.setFieldValue(entity, encryptedField.fieldName(), ciphertext);
+            }
+        }
+        if (!plaintextCache.isEmpty()) {
+            PLAINTEXT_CACHE.set(plaintextCache);
+        }
+    }
+
+    /**
+     * 解密实体中的加密字段。
+     * <p>
+     * UPDATE 后调用此方法将实体中的密文恢复为明文，
+     * 确保调用方拿到的实体对象持有原始值而非密文。
+     *
+     * @param entity 实体对象
+     */
+    private void decryptFields(T entity) {
+        if (!metadata.hasTrait(EntityTrait.ENCRYPTED)) {
+            return;
+        }
+        var extractor = queryHelper.getParameterExtractor();
+        for (EncryptedFieldMetadata encryptedField : metadata.getEncryptedFields()) {
+            Object value = extractor.getFieldValue(entity, encryptedField.fieldName());
+            if (value != null) {
+                String ciphertext = value.toString();
+                String plaintext = fieldEncryptor.decrypt(ciphertext, encryptedField.algorithm(), encryptedField.keyRef());
+                extractor.setFieldValue(entity, encryptedField.fieldName(), plaintext);
             }
         }
     }
@@ -262,5 +321,74 @@ public class EntityUpdateHandler<T> {
                       parentId, entityClass.getSimpleName(), e.getMessage());
             return null;
         }
+    }
+
+    /**
+     * 在 UPDATE SQL 中添加盲索引列和参数
+     * <p>
+     * 读取 PLAINTEXT_CACHE 中缓存的明文值，计算 HMAC 盲索引值，
+     * 修改 UPDATE SQL 以包含盲索引列，并将盲索引值追加到参数列表。
+     *
+     * @param sql    UPDATE SQL 字符串
+     * @param params UPDATE 参数列表
+     * @return 修改后的 UPDATE SQL
+     */
+    private String augmentSqlWithBlindIndexColumns(String sql, List<Object> params) {
+        java.util.Map<String, String> plaintextCache = PLAINTEXT_CACHE.get();
+        if (plaintextCache == null || plaintextCache.isEmpty() || blindIndexProvider == null) {
+            return sql;
+        }
+
+        // 格式: "UPDATE `table` SET col1=?, col2=? WHERE id=?"
+        int setIdx = sql.indexOf(" SET ");
+        int whereIdx = sql.indexOf(" WHERE ");
+        if (setIdx < 0 || whereIdx < 0) {
+            return sql;
+        }
+
+        StringBuilder augmentedSql = new StringBuilder();
+        // 找到 SET 子句的结束位置（在 WHERE 之前）
+        String setClause = sql.substring(setIdx + 5, whereIdx).trim();
+        String beforeSet = sql.substring(0, setIdx + 5);
+        String afterSet = sql.substring(whereIdx);
+
+        augmentedSql.append(beforeSet).append(setClause);
+
+        // 收集盲索引列和值
+        java.util.List<String> blindIndexColumns = new java.util.ArrayList<>();
+        java.util.List<String> blindIndexValues = new java.util.ArrayList<>();
+        java.util.List<EncryptedFieldMetadata> encryptedFields = metadata.getEncryptedFields();
+        for (EncryptedFieldMetadata efm : encryptedFields) {
+            String plaintext = plaintextCache.get(efm.fieldName());
+            if (plaintext != null && efm.hasBlindIndex()) {
+                blindIndexColumns.add(queryHelper.getDialect().quoteIdentifier(efm.blindIndexColumn()) + "=?");
+                String blindIndex = blindIndexProvider.computeBlindIndex(
+                    plaintext, efm.fieldName(), efm.keyRef());
+                blindIndexValues.add(blindIndex);
+            }
+        }
+
+        if (blindIndexColumns.isEmpty()) {
+            return sql;
+        }
+
+        // 追加盲索引列到 SET 子句
+        augmentedSql.append(", ").append(String.join(", ", blindIndexColumns));
+        augmentedSql.append(" ").append(afterSet.trim());
+
+        // 盲索引值需要插入到 WHERE 参数之前（id 参数之前）
+        // params 顺序: [SET_col1, SET_col2, ..., WHERE_id]
+        // 盲索引值应插入在 WHERE_id 之前
+        int insertPos = params.size() - 1; // 在最后一个参数（id）之前
+        params.addAll(insertPos, blindIndexValues);
+
+        return augmentedSql.toString();
+    }
+
+    /**
+     * 清除盲索引明文缓存
+     */
+    private void clearBlindIndexCache() {
+        PLAINTEXT_CACHE.remove();
     }
 }

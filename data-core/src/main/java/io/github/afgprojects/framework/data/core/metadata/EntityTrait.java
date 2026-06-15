@@ -79,5 +79,13 @@ public enum EntityTrait {
      * @see io.github.afgprojects.framework.data.core.entity.FieldEncryptor
      * @see io.github.afgprojects.framework.data.core.entity.EncryptedFieldMetadata
      */
-    ENCRYPTED
+    ENCRYPTED,
+
+    /**
+     * 敏感字段特征（实体包含 @SensitiveField 标注的字段）
+     *
+     * @see io.github.afgprojects.framework.data.core.sensitive.MaskingStrategy
+     * @see io.github.afgprojects.framework.data.core.sensitive.SensitiveFieldMetadata
+     */
+    SENSITIVE
 }

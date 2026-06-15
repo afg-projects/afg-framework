@@ -2,6 +2,7 @@ package io.github.afgprojects.framework.data.jdbc;
 
 import io.github.afgprojects.framework.commons.model.PageData;
 import io.github.afgprojects.framework.data.core.dialect.Dialect;
+import io.github.afgprojects.framework.data.core.encryption.BlindIndexProvider;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
 import io.github.afgprojects.framework.data.core.page.PageRequest;
 import io.github.afgprojects.framework.data.core.query.Condition;
@@ -60,7 +61,8 @@ public class EntityConditionQueryHandler<T> {
      * @return 实体列表
      */
     public @NonNull List<T> findAll(@NonNull Condition condition) {
-        ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
+        BlindIndexProvider blindIndexProvider = dataManager.getBlindIndexProvider();
+        ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect, metadata, blindIndexProvider);
         ConditionToSqlConverter.SqlResult result = converter.convert(condition);
 
         StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM ")
@@ -106,7 +108,8 @@ public class EntityConditionQueryHandler<T> {
      * @return 分页结果
      */
     public @NonNull PageData<T> findAll(@NonNull Condition condition, @NonNull PageRequest pageable) {
-        ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect);
+        BlindIndexProvider blindIndexProvider = dataManager.getBlindIndexProvider();
+        ConditionToSqlConverter converter = new ConditionToSqlConverter(dialect, metadata, blindIndexProvider);
         ConditionToSqlConverter.SqlResult whereResult = converter.convert(condition);
 
         // 构建基础 WHERE 子句
