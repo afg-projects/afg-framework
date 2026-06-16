@@ -47,7 +47,10 @@ import java.nio.charset.StandardCharsets;
  * @since 1.0.0
  */
 @Slf4j
-@AutoConfiguration(after = CasbinAutoConfiguration.class, afterName = "io.github.afgprojects.framework.core.autoconfigure.AfgAutoConfiguration")
+@AutoConfiguration(after = CasbinAutoConfiguration.class, afterName = {
+    "io.github.afgprojects.framework.core.autoconfigure.AfgAutoConfiguration",
+    "io.github.afgprojects.framework.data.jdbc.autoconfigure.DataManagerAutoConfiguration"
+})
 @EnableConfigurationProperties(AuthSecurityProperties.class)
 @ConditionalOnBean(DataManager.class)
 @ConditionalOnProperty(prefix = "afg.security.auth-server.permission", name = "enabled", havingValue = "true", matchIfMissing = true)

@@ -124,6 +124,18 @@ public interface TokenService {
     void invalidateAllTokens(@NonNull String userId);
 
     /**
+     * 撤销刷新令牌。
+     *
+     * <p>在 Token 刷新时调用，防止旧的 Refresh Token 被重复使用。
+     *
+     * @param refreshToken 刷新令牌，永不为 null
+     * @since 1.1.0
+     */
+    default void invalidateRefreshToken(@NonNull String refreshToken) {
+        // 默认不实现，子类可覆盖
+    }
+
+    /**
      * 获取访问令牌的 TTL（生存时间）。
      *
      * @return 访问令牌的 TTL，单位为秒

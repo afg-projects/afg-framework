@@ -2,6 +2,7 @@ package io.github.afgprojects.framework.governance.server.controller.config;
 
 import io.github.afgprojects.framework.commons.exception.BusinessException;
 import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
+import io.github.afgprojects.framework.commons.model.Result;
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.condition.Conditions;
 import io.github.afgprojects.framework.governance.proto.ChangeType;
@@ -12,7 +13,6 @@ import io.github.afgprojects.framework.governance.server.grpc.ConfigStreamManage
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,23 +30,21 @@ public class ConfigValueController {
     private final ConfigStreamManager streamManager;
 
     @GetMapping
-    public ResponseEntity<ConfigValue> getByItemId(@RequestParam Long itemId) {
-        return dataManager.findOneByField(ConfigValue.class, ConfigValue::getItemId, itemId)
-            .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
+    public Result<ConfigValue> getByItemId(@RequestParam Long itemId) {
+        return Result.success(dataManager.findOneByField(ConfigValue.class, ConfigValue::getItemId, itemId).orElse(null));
     }
 
     @GetMapping("/code/{code}")
-    public ResponseEntity<String> getByCode(@PathVariable String code) {
+    public Result<String> getByCode(@PathVariable String code) {
         return dataManager.findOneByField(ConfigItem.class, ConfigItem::getCode, code)
             .flatMap(item -> dataManager.findOneByField(ConfigValue.class, ConfigValue::getItemId, item.getId()))
             .map(ConfigValue::getValue)
-            .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
+            .map(Result::success)
+            .orElse(Result.fail(404, "Config value not found for code: " + code));
     }
 
     @GetMapping("/prefix/{prefix}")
-    public Map<String, String> getByPrefix(@PathVariable String prefix) {
+    public Result<Map<String, String>> getByPrefix(@PathVariable String prefix) {
         Map<String, String> result = new HashMap<>();
         List<ConfigItem> items = dataManager.entity(ConfigItem.class)
             .query()
@@ -62,12 +60,12 @@ public class ConfigValueController {
             }
         }
 
-        return result;
+        return Result.success(result);
     }
 
     @PutMapping("/{itemId}")
     @Transactional
-    public ConfigValue update(@PathVariable Long itemId, @RequestBody UpdateValueRequest request) {
+    public Result<ConfigValue> update(@PathVariable Long itemId, @RequestBody UpdateValueRequest request) {
         ConfigItem item = dataManager.findById(ConfigItem.class, itemId)
             .filter(i -> !i.isDeleted())
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Config item not found: " + itemId));
@@ -104,21 +102,21 @@ public class ConfigValueController {
         streamManager.pushConfigChange(item.getCode(), request.getValue(), changeType);
         log.info("Config updated and pushed: key={}, value={}", item.getCode(), request.getValue());
 
-        return saved;
+        return Result.success(saved);
     }
 
     @PostMapping("/batch")
     @Transactional
-    public ResponseEntity<Void> batchUpdate(@RequestBody List<UpdateValueRequest> requests) {
+    public Result<Void> batchUpdate(@RequestBody List<UpdateValueRequest> requests) {
         for (UpdateValueRequest request : requests) {
             update(request.getItemId(), request);
         }
-        return ResponseEntity.ok().build();
+        return Result.success(null);
     }
 
     @DeleteMapping("/{itemId}")
     @Transactional
-    public ResponseEntity<Void> delete(@PathVariable Long itemId) {
+    public Result<Void> delete(@PathVariable Long itemId) {
         ConfigItem item = dataManager.findById(ConfigItem.class, itemId)
             .filter(i -> !i.isDeleted())
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Config item not found: " + itemId));
@@ -138,7 +136,7 @@ public class ConfigValueController {
             dataManager.deleteById(ConfigValue.class, value.getId());
         }
 
-        return ResponseEntity.ok().build();
+        return Result.success(null);
     }
 
     @Data

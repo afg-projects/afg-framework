@@ -1,6 +1,7 @@
 package io.github.afgprojects.framework.governance.server.controller.config;
 
 import io.github.afgprojects.framework.commons.model.PageData;
+import io.github.afgprojects.framework.commons.model.Result;
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.condition.Conditions;
 import io.github.afgprojects.framework.data.core.page.PageRequest;
@@ -21,27 +22,27 @@ public class ConfigHistoryController {
     private final DataManager dataManager;
 
     @GetMapping
-    public PageData<ConfigHistory> list(@RequestParam(defaultValue = "1") int page,
+    public Result<PageData<ConfigHistory>> list(@RequestParam(defaultValue = "1") int page,
                                      @RequestParam(defaultValue = "10") int size) {
-        return dataManager.entity(ConfigHistory.class)
+        return Result.success(dataManager.entity(ConfigHistory.class)
             .query()
             .page(PageRequest.of(page, size)
-                .withSort(Sort.Direction.DESC, "createTime"));
+                .withSort(Sort.Direction.DESC, "createTime")));
     }
 
     @GetMapping("/item/{itemId}")
-    public List<ConfigHistory> listByItem(@PathVariable Long itemId) {
-        return dataManager.findAllByField(ConfigHistory.class, ConfigHistory::getItemId, itemId);
+    public Result<List<ConfigHistory>> listByItem(@PathVariable Long itemId) {
+        return Result.success(dataManager.findAllByField(ConfigHistory.class, ConfigHistory::getItemId, itemId));
     }
 
     @GetMapping("/item/{itemId}/paged")
-    public PageData<ConfigHistory> listByItemPaged(@PathVariable Long itemId,
+    public Result<PageData<ConfigHistory>> listByItemPaged(@PathVariable Long itemId,
                                                 @RequestParam(defaultValue = "1") int page,
                                                 @RequestParam(defaultValue = "10") int size) {
-        return dataManager.entity(ConfigHistory.class)
+        return Result.success(dataManager.entity(ConfigHistory.class)
             .query()
             .where(Conditions.eq(ConfigHistory.class, ConfigHistory::getItemId, itemId))
             .page(PageRequest.of(page, size)
-                .withSort(Sort.Direction.DESC, "createTime"));
+                .withSort(Sort.Direction.DESC, "createTime")));
     }
 }

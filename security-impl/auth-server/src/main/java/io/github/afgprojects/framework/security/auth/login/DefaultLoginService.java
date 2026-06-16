@@ -14,6 +14,7 @@ import io.github.afgprojects.framework.security.core.login.model.CaptchaRequest;
 import io.github.afgprojects.framework.security.core.login.model.CaptchaResponse;
 import io.github.afgprojects.framework.security.core.login.model.LoginRequest;
 import io.github.afgprojects.framework.security.core.login.model.LoginResponse;
+import io.github.afgprojects.framework.security.core.login.strategy.CaptchaTriggerStrategy;
 import io.github.afgprojects.framework.security.core.login.strategy.LoginStrategy;
 import io.github.afgprojects.framework.security.core.login.strategy.LoginStrategyFactory;
 import io.github.afgprojects.framework.security.core.security.DeviceLimiter;
@@ -64,6 +65,12 @@ public class DefaultLoginService implements LoginService {
     private final CaptchaService captchaService;
 
     /**
+     * 验证码触发策略（可选）
+     */
+    @Nullable
+    private final CaptchaTriggerStrategy captchaTriggerStrategy;
+
+    /**
      * 登录失败追踪器（可选）
      */
     @Nullable
@@ -107,7 +114,26 @@ public class DefaultLoginService implements LoginService {
             @NonNull TokenService tokenService,
             @NonNull CaptchaService captchaService) {
         this(strategyFactory, userDetailsService, tokenService, captchaService,
-                null, null, null, null, null);
+                null, null, null, null, null, null);
+    }
+
+    /**
+     * 构造函数（启用验证码触发策略）。
+     *
+     * @param strategyFactory 登录策略工厂
+     * @param userDetailsService 用户详情服务
+     * @param tokenService 令牌服务
+     * @param captchaService 验证码服务
+     * @param captchaTriggerStrategy 验证码触发策略（可为 null）
+     */
+    public DefaultLoginService(
+            @NonNull LoginStrategyFactory strategyFactory,
+            @NonNull AfgUserDetailsService userDetailsService,
+            @NonNull TokenService tokenService,
+            @NonNull CaptchaService captchaService,
+            @Nullable CaptchaTriggerStrategy captchaTriggerStrategy) {
+        this(strategyFactory, userDetailsService, tokenService, captchaService,
+                captchaTriggerStrategy, null, null, null, null, null);
     }
 
     /**
@@ -117,6 +143,7 @@ public class DefaultLoginService implements LoginService {
      * @param userDetailsService 用户详情服务
      * @param tokenService 令牌服务
      * @param captchaService 验证码服务
+     * @param captchaTriggerStrategy 验证码触发策略（可为 null）
      * @param loginFailureTracker 登录失败追踪器（可为 null）
      * @param passwordValidator 密码验证器（可为 null）
      * @param ipRestrictionChecker IP 限制检查器（可为 null）
@@ -128,6 +155,7 @@ public class DefaultLoginService implements LoginService {
             @NonNull AfgUserDetailsService userDetailsService,
             @NonNull TokenService tokenService,
             @NonNull CaptchaService captchaService,
+            @Nullable CaptchaTriggerStrategy captchaTriggerStrategy,
             @Nullable LoginFailureTracker loginFailureTracker,
             @Nullable PasswordValidator passwordValidator,
             @Nullable IpRestrictionChecker ipRestrictionChecker,
@@ -137,6 +165,7 @@ public class DefaultLoginService implements LoginService {
         this.userDetailsService = userDetailsService;
         this.tokenService = tokenService;
         this.captchaService = captchaService;
+        this.captchaTriggerStrategy = captchaTriggerStrategy;
         this.loginFailureTracker = loginFailureTracker;
         this.passwordValidator = passwordValidator;
         this.ipRestrictionChecker = ipRestrictionChecker;
@@ -278,20 +307,27 @@ public class DefaultLoginService implements LoginService {
 
     @Override
     public void logout(@NonNull String token) {
-        log.debug("Processing logout request");
-        tokenService.invalidateToken(token);
+        logout(token, "unknown");
+    }
 
-        // 记录登出日志
-        if (loginLogService != null) {
-            String userId = tokenService.extractUserId(token);
-            String tenantId = tokenService.extractTenantId(token);
-            if (userId != null) {
-                // IP 信息无法从 token 中获取，使用空字符串
-                loginLogService.recordLogout(userId, tenantId, "");
+    @Override
+    public void logout(@NonNull String token, @NonNull String ip) {
+        log.debug("Processing logout request, ip={}", ip);
+
+        String userId = tokenService.extractUserId(token);
+        String tenantId = tokenService.extractTenantId(token);
+
+        if (userId != null) {
+            // 使用 invalidateAllTokens 同时黑名单所有 access token + 删除所有 refresh token
+            tokenService.invalidateAllTokens(userId);
+
+            // 记录登出日志
+            if (loginLogService != null) {
+                loginLogService.recordLogout(userId, tenantId, ip);
             }
         }
 
-        log.info("User logged out successfully");
+        log.info("User logged out successfully: userId={}, ip={}", userId, ip);
     }
 
     @Override
@@ -315,6 +351,9 @@ public class DefaultLoginService implements LoginService {
 
         // 检查账号状态
         validateAccountStatus(userDetails);
+
+        // 撤销旧的 refresh token（防止重复使用）
+        tokenService.invalidateRefreshToken(refreshToken);
 
         // 生成新的令牌
         return generateLoginResponse(userDetails);

@@ -13,6 +13,7 @@ import io.github.afgprojects.framework.security.core.login.model.LoginRequest;
 import io.github.afgprojects.framework.security.core.login.model.LoginResponse;
 import io.github.afgprojects.framework.security.core.token.JwtClaimsExtractor;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -49,6 +50,7 @@ import java.util.stream.Collectors;
  *
  * @since 1.0.0
  */
+@Slf4j
 @RestController
 @RequestMapping("/auth")
 @ConditionalOnProperty(prefix = "afg.security.auth-server", name = "enabled", havingValue = "true", matchIfMissing = true)
@@ -78,14 +80,35 @@ public class LoginController {
      * 用户登出。
      *
      * @param authorization Authorization 请求头
+     * @param request HTTP 请求
      */
     @PostMapping("/logout")
-    public void logout(@RequestHeader("Authorization") String authorization) {
+    public void logout(@RequestHeader("Authorization") String authorization,
+                       HttpServletRequest request) {
         String token = JwtClaimsExtractor.extractBearerToken(authorization);
         if (token == null) {
             throw new BusinessException(CommonErrorCode.UNAUTHORIZED, "Invalid authorization header");
         }
-        loginService.logout(token);
+        loginService.logout(token, request.getRemoteAddr());
+    }
+
+    /**
+     * 全部设备登出。
+     *
+     * <p>撤销当前用户在所有设备上的所有访问令牌和刷新令牌。
+     * 用户在下次请求时需要重新登录。
+     *
+     * @param authorization Authorization 请求头
+     * @param request HTTP 请求
+     */
+    @PostMapping("/logout-all")
+    public void logoutAll(@RequestHeader("Authorization") String authorization,
+                          HttpServletRequest request) {
+        String token = JwtClaimsExtractor.extractBearerToken(authorization);
+        if (token == null) {
+            throw new BusinessException(CommonErrorCode.UNAUTHORIZED, "Invalid authorization header");
+        }
+        loginService.logoutAll(token, request.getRemoteAddr());
     }
 
     /**
@@ -156,6 +179,8 @@ public class LoginController {
                         fullDetails.getTenantId()));
             } catch (Exception e) {
                 // 降级到 Token 中的信息
+                log.warn("Failed to load full user details for userId={}, falling back to token info: {}",
+                        details.getUserId(), e.getMessage());
             }
         }
 

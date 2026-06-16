@@ -74,6 +74,18 @@ public interface AfgRefreshTokenStorage {
     void delete(@NonNull String tokenId);
 
     /**
+     * 根据 Token 哈希值删除 Refresh Token。
+     *
+     * <p>用于 Token 刷新时撤销旧的 Refresh Token。
+     *
+     * @param tokenHash Token 的哈希值，永不为 null
+     * @since 1.1.0
+     */
+    default void deleteByTokenHash(@NonNull String tokenHash) {
+        // 默认不实现，子类可覆盖
+    }
+
+    /**
      * 删除用户的所有 Refresh Token。
      *
      * <p>用于强制用户下线或重置密码等场景。

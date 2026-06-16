@@ -236,7 +236,6 @@
             <property name="violationSuppressXPath" value="//ClassOrInterfaceDeclaration[@Name='AfgCoreProperties']"/>
         </properties>
     </rule>
-    </rule>
 
     <!-- CouplingBetweenObjects: 框架核心类需要与多种类型交互，使用默认阈值 -->
     <!-- 注：PMD 7.x 不支持自定义 coupling 属性，使用默认阈值即可 -->

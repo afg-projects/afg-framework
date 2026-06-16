@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.afgprojects.framework.commons.exception.BusinessException;
 import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
+import io.github.afgprojects.framework.commons.model.Result;
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.governance.server.dto.config.ConfigDiffDTO;
 import io.github.afgprojects.framework.governance.server.dto.config.ConfigSnapshotDTO;
@@ -14,7 +15,6 @@ import io.github.afgprojects.framework.governance.server.entity.config.ConfigVal
 import io.github.afgprojects.framework.governance.server.entity.config.ConfigHistory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -30,7 +30,7 @@ public class ConfigSnapshotController {
     private final ObjectMapper objectMapper;
 
     @GetMapping
-    public List<ConfigSnapshotDTO> list(@RequestParam(required = false) Long groupId) {
+    public Result<List<ConfigSnapshotDTO>> list(@RequestParam(required = false) Long groupId) {
         List<ConfigSnapshot> snapshots;
         if (groupId != null) {
             snapshots = dataManager.findAllByField(ConfigSnapshot.class, ConfigSnapshot::getGroupId, groupId);
@@ -38,22 +38,22 @@ public class ConfigSnapshotController {
             snapshots = dataManager.findAll(ConfigSnapshot.class);
         }
 
-        return snapshots.stream()
+        return Result.success(snapshots.stream()
             .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
             .map(this::toDTO)
-            .collect(Collectors.toList());
+            .collect(Collectors.toList()));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ConfigSnapshotDTO> get(@PathVariable Long id) {
+    public Result<ConfigSnapshotDTO> get(@PathVariable Long id) {
         return dataManager.findById(ConfigSnapshot.class, id)
             .map(this::toDTO)
-            .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
+            .map(Result::success)
+            .orElse(Result.fail(404, "Snapshot not found: " + id));
     }
 
     @PostMapping
-    public ConfigSnapshotDTO create(@RequestBody CreateSnapshotRequest request) {
+    public Result<ConfigSnapshotDTO> create(@RequestBody CreateSnapshotRequest request) {
         // 收集配置数据
         Map<String, Object> configData = collectConfigData(request.getGroupId());
 
@@ -76,11 +76,11 @@ public class ConfigSnapshotController {
         ConfigSnapshot saved = dataManager.save(ConfigSnapshot.class, snapshot);
         log.info("Created config snapshot: id={}, name={}", saved.getId(), saved.getName());
 
-        return toDTO(saved);
+        return Result.success(toDTO(saved));
     }
 
     @PostMapping("/{id}/rollback")
-    public ResponseEntity<Void> rollback(@PathVariable Long id, @RequestBody(required = false) RollbackRequest request) {
+    public Result<Void> rollback(@PathVariable Long id, @RequestBody(required = false) RollbackRequest request) {
         ConfigSnapshot snapshot = dataManager.findById(ConfigSnapshot.class, id)
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Snapshot not found: " + id));
 
@@ -92,14 +92,14 @@ public class ConfigSnapshotController {
             applyConfigData(configData, request != null ? request.getReason() : "Rollback to snapshot: " + snapshot.getName());
 
             log.info("Rolled back to snapshot: id={}, name={}", id, snapshot.getName());
-            return ResponseEntity.ok().build();
+            return Result.success(null);
         } catch (JsonProcessingException e) {
             throw new BusinessException(CommonErrorCode.PARAM_FORMAT_ERROR, "Failed to parse snapshot data", e);
         }
     }
 
     @GetMapping("/compare/{id1}/{id2}")
-    public ConfigDiffDTO compare(@PathVariable Long id1, @PathVariable Long id2) {
+    public Result<ConfigDiffDTO> compare(@PathVariable Long id1, @PathVariable Long id2) {
         ConfigSnapshot snapshot1 = dataManager.findById(ConfigSnapshot.class, id1)
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Snapshot not found: " + id1));
         ConfigSnapshot snapshot2 = dataManager.findById(ConfigSnapshot.class, id2)
@@ -111,17 +111,17 @@ public class ConfigSnapshotController {
             @SuppressWarnings("unchecked")
             Map<String, Object> data2 = objectMapper.readValue(snapshot2.getData(), Map.class);
 
-            return calculateDiff(snapshot1, snapshot2, data1, data2);
+            return Result.success(calculateDiff(snapshot1, snapshot2, data1, data2));
         } catch (JsonProcessingException e) {
             throw new BusinessException(CommonErrorCode.PARAM_FORMAT_ERROR, "Failed to parse snapshot data", e);
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public Result<Void> delete(@PathVariable Long id) {
         dataManager.deleteById(ConfigSnapshot.class, id);
         log.info("Deleted config snapshot: id={}", id);
-        return ResponseEntity.ok().build();
+        return Result.success(null);
     }
 
     // === 私有方法 ===

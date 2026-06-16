@@ -2,13 +2,13 @@ package io.github.afgprojects.framework.governance.server.controller.service;
 
 import io.github.afgprojects.framework.commons.exception.BusinessException;
 import io.github.afgprojects.framework.commons.exception.CommonErrorCode;
+import io.github.afgprojects.framework.commons.model.Result;
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.condition.Conditions;
 import io.github.afgprojects.framework.governance.server.entity.service.ServiceInstance;
 import io.github.afgprojects.framework.governance.server.service.registry.ServiceRegistryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,7 +33,7 @@ public class ServiceInstanceController {
      * @param serviceId 可选的服务ID参数
      */
     @GetMapping
-    public List<ServiceInstance> list(@RequestParam(required = false) Long serviceId) {
+    public Result<List<ServiceInstance>> list(@RequestParam(required = false) Long serviceId) {
         var builder = Conditions.builder(ServiceInstance.class)
             .eq(ServiceInstance::isDeleted, false);
 
@@ -41,21 +41,21 @@ public class ServiceInstanceController {
             builder.eq(ServiceInstance::getServiceId, serviceId);
         }
 
-        return dataManager.entity(ServiceInstance.class)
+        return Result.success(dataManager.entity(ServiceInstance.class)
             .query()
             .where(builder.build())
-            .list();
+            .list());
     }
 
     /**
      * 根据ID获取实例
      */
     @GetMapping("/{id}")
-    public ResponseEntity<ServiceInstance> get(@PathVariable Long id) {
+    public Result<ServiceInstance> get(@PathVariable Long id) {
         return dataManager.findById(ServiceInstance.class, id)
             .filter(i -> !i.isDeleted())
-            .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
+            .map(Result::success)
+            .orElse(Result.fail(404, "Service instance not found: " + id));
     }
 
     /**
@@ -63,7 +63,7 @@ public class ServiceInstanceController {
      */
     @PutMapping("/{id}/weight")
     @Transactional
-    public ResponseEntity<ServiceInstance> updateWeight(@PathVariable Long id, @RequestBody Map<String, Integer> body) {
+    public Result<ServiceInstance> updateWeight(@PathVariable Long id, @RequestBody Map<String, Integer> body) {
         ServiceInstance instance = dataManager.findById(ServiceInstance.class, id)
             .filter(i -> !i.isDeleted())
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Service instance not found: " + id));
@@ -76,7 +76,7 @@ public class ServiceInstanceController {
         instance.setWeight(weight);
         ServiceInstance saved = dataManager.save(ServiceInstance.class, instance);
         log.info("Updated instance {} weight to {}", instance.getInstanceId(), weight);
-        return ResponseEntity.ok(saved);
+        return Result.success(saved);
     }
 
     /**
@@ -84,13 +84,13 @@ public class ServiceInstanceController {
      */
     @DeleteMapping("/{id}")
     @Transactional
-    public ResponseEntity<Void> deregister(@PathVariable Long id) {
+    public Result<Void> deregister(@PathVariable Long id) {
         ServiceInstance instance = dataManager.findById(ServiceInstance.class, id)
             .filter(i -> !i.isDeleted())
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Service instance not found: " + id));
 
         serviceRegistryService.deregister(instance.getInstanceId());
         log.info("Deregistered instance: {}", instance.getInstanceId());
-        return ResponseEntity.ok().build();
+        return Result.success(null);
     }
 }

@@ -22,13 +22,15 @@ import io.github.afgprojects.framework.security.core.storage.AfgCaptchaStorage;
 /**
  * 默认验证码服务实现。
  *
- * <p>提供图形验证码的生成和验证功能。
+ * <p>提供图形验证码、短信验证码、邮箱验证码的生成和验证功能。
  *
  * <p>特性：
  * <ul>
- *   <li>生成 4 位字母数字验证码</li>
+ *   <li>图形验证码：生成 4 位字母数字验证码图片，key 为随机 UUID</li>
+ *   <li>短信验证码：生成 6 位数字验证码，key 为 "sms:" + 手机号</li>
+ *   <li>邮箱验证码：生成 6 位数字验证码，key 为 "email:" + 邮箱</li>
  *   <li>排除易混淆字符（0O1lI）</li>
- *   <li>生成 Base64 编码的 PNG 图片</li>
+ *   <li>图形验证码生成 Base64 编码的 PNG 图片</li>
  *   <li>验证时不区分大小写</li>
  *   <li>验证成功后自动删除验证码</li>
  * </ul>
@@ -43,9 +45,19 @@ public class DefaultCaptchaService implements CaptchaService {
     private static final String CAPTCHA_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
     /**
-     * 验证码长度
+     * 数字字符集（短信/邮箱验证码使用）
      */
-    private static final int CAPTCHA_LENGTH = 4;
+    private static final String DIGIT_CHARS = "0123456789";
+
+    /**
+     * 图形验证码长度
+     */
+    private static final int IMAGE_CAPTCHA_LENGTH = 4;
+
+    /**
+     * 短信/邮箱验证码长度
+     */
+    private static final int CODE_CAPTCHA_LENGTH = 6;
 
     /**
      * 图片宽度
@@ -84,26 +96,77 @@ public class DefaultCaptchaService implements CaptchaService {
     @Override
     @NonNull
     public CaptchaResponse generate(@NonNull CaptchaRequest request) {
-        // 生成验证码 key
-        String captchaKey = generateCaptchaKey();
+        CaptchaType captchaType = request.captchaType();
 
-        // 生成验证码值
-        String captchaValue = generateCaptchaValue();
+        return switch (captchaType) {
+            case IMAGE -> generateImageCaptcha(request);
+            case SMS -> generateCodeCaptcha(request, CaptchaType.SMS, "sms:");
+            case EMAIL -> generateCodeCaptcha(request, CaptchaType.EMAIL, "email:");
+        };
+    }
 
-        // 生成验证码图片
+    /**
+     * 生成图形验证码。
+     */
+    @NonNull
+    private CaptchaResponse generateImageCaptcha(CaptchaRequest request) {
+        String captchaKey = UUID.randomUUID().toString().replace("-", "");
+        String captchaValue = generateRandomValue(CAPTCHA_CHARS, IMAGE_CAPTCHA_LENGTH);
         String captchaImage = generateCaptchaImage(captchaValue);
 
-        // 保存验证码到存储
         Duration ttl = Duration.ofSeconds(DEFAULT_EXPIRES_IN);
         captchaStorage.save(captchaKey, captchaValue, ttl);
 
-        // 返回验证码响应
         return CaptchaResponse.builder()
                 .captchaKey(captchaKey)
                 .captchaImage(captchaImage)
                 .captchaType(CaptchaType.IMAGE)
                 .expiresIn(DEFAULT_EXPIRES_IN)
                 .build();
+    }
+
+    /**
+     * 生成短信/邮箱验证码。
+     *
+     * @param request 验证码请求
+     * @param captchaType 验证码类型
+     * @param keyPrefix key 前缀（"sms:" 或 "email:"）
+     */
+    @NonNull
+    private CaptchaResponse generateCodeCaptcha(CaptchaRequest request, CaptchaType captchaType, String keyPrefix) {
+        String target = request.target();
+        if (target == null || target.isEmpty()) {
+            throw new IllegalArgumentException("短信/邮箱验证码必须提供 target（手机号或邮箱）");
+        }
+
+        String captchaKey = keyPrefix + target;
+        String captchaValue = generateRandomValue(DIGIT_CHARS, CODE_CAPTCHA_LENGTH);
+
+        Duration ttl = Duration.ofSeconds(DEFAULT_EXPIRES_IN);
+        captchaStorage.save(captchaKey, captchaValue, ttl);
+
+        return CaptchaResponse.builder()
+                .captchaKey(captchaKey)
+                .captchaImage(null)
+                .captchaType(captchaType)
+                .expiresIn(DEFAULT_EXPIRES_IN)
+                .build();
+    }
+
+    /**
+     * 生成随机验证码值。
+     *
+     * @param charSet 字符集
+     * @param length 长度
+     * @return 随机字符串
+     */
+    private String generateRandomValue(String charSet, int length) {
+        StringBuilder sb = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            int index = random.nextInt(charSet.length());
+            sb.append(charSet.charAt(index));
+        }
+        return sb.toString();
     }
 
     @Override
@@ -130,31 +193,6 @@ public class DefaultCaptchaService implements CaptchaService {
     @Override
     public void delete(@NonNull String captchaKey) {
         captchaStorage.delete(captchaKey);
-    }
-
-    /**
-     * 生成验证码 key。
-     *
-     * @return 验证码 key
-     */
-    private String generateCaptchaKey() {
-        return UUID.randomUUID().toString().replace("-", "");
-    }
-
-    /**
-     * 生成验证码值。
-     *
-     * <p>从字符集中随机选择 4 个字符，排除易混淆字符。
-     *
-     * @return 验证码值
-     */
-    private String generateCaptchaValue() {
-        StringBuilder sb = new StringBuilder(CAPTCHA_LENGTH);
-        for (int i = 0; i < CAPTCHA_LENGTH; i++) {
-            int index = random.nextInt(CAPTCHA_CHARS.length());
-            sb.append(CAPTCHA_CHARS.charAt(index));
-        }
-        return sb.toString();
     }
 
     /**

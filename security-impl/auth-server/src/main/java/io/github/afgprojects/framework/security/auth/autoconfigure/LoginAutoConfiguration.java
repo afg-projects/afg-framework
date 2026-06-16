@@ -3,6 +3,7 @@ package io.github.afgprojects.framework.security.auth.autoconfigure;
 import lombok.extern.slf4j.Slf4j;
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.security.auth.captcha.DefaultCaptchaService;
+import io.github.afgprojects.framework.security.auth.captcha.FailureCountCaptchaTriggerStrategy;
 import io.github.afgprojects.framework.security.auth.key.JwksController;
 import io.github.afgprojects.framework.security.auth.key.RsaKeyPairManager;
 import io.github.afgprojects.framework.security.auth.login.DefaultLoginService;
@@ -19,11 +20,15 @@ import io.github.afgprojects.framework.security.core.authentication.AfgUserDetai
 import io.github.afgprojects.framework.security.core.login.CaptchaService;
 import io.github.afgprojects.framework.security.core.login.LoginService;
 import io.github.afgprojects.framework.security.core.login.TokenService;
+import io.github.afgprojects.framework.security.core.login.strategy.CaptchaTriggerStrategy;
 import io.github.afgprojects.framework.security.core.login.strategy.LoginStrategy;
 import io.github.afgprojects.framework.security.core.login.strategy.LoginStrategyFactory;
+import io.github.afgprojects.framework.security.core.security.LoginFailureTracker;
 import io.github.afgprojects.framework.security.core.storage.AfgCaptchaStorage;
 import io.github.afgprojects.framework.security.core.storage.AfgRefreshTokenStorage;
 import io.github.afgprojects.framework.security.core.storage.AfgTokenBlacklist;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -166,12 +171,31 @@ public class LoginAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    public CaptchaTriggerStrategy captchaTriggerStrategy(
+            @Autowired(required = false) LoginFailureTracker failureTracker) {
+        if (failureTracker != null) {
+            log.info("Initializing FailureCountCaptchaTriggerStrategy");
+            return new FailureCountCaptchaTriggerStrategy(failureTracker);
+        }
+        // 如果没有 LoginFailureTracker，返回一个永不需要验证码的策略
+        log.info("No LoginFailureTracker available, captcha trigger disabled");
+        return new CaptchaTriggerStrategy() {
+            @Override
+            public boolean shouldRequireCaptcha(@NonNull String username, @Nullable String tenantId, @NonNull String ip) {
+                return false;
+            }
+        };
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
     public LoginService loginService(
             LoginStrategyFactory strategyFactory,
             AfgUserDetailsService userDetailsService,
             TokenService tokenService,
-            CaptchaService captchaService) {
+            CaptchaService captchaService,
+            @Autowired(required = false) CaptchaTriggerStrategy captchaTriggerStrategy) {
         log.info("Initializing DefaultLoginService with {} strategies", strategyFactory.getRegisteredTypes().size());
-        return new DefaultLoginService(strategyFactory, userDetailsService, tokenService, captchaService);
+        return new DefaultLoginService(strategyFactory, userDetailsService, tokenService, captchaService, captchaTriggerStrategy);
     }
 }

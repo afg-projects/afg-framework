@@ -157,4 +157,35 @@ public class AuthorizationServerAutoConfiguration {
 
         return http.build();
     }
+
+    /**
+     * 权限管理端点安全配置。
+     *
+     * <p>覆盖 /auth-api/ 下除 auth 和 oauth2 之外的端点（如角色管理、权限管理等），
+     * 这些端点需要 Bearer Token 认证。
+     *
+     * @since 1.0.0
+     */
+    @Bean
+    @Order(4)
+    public SecurityFilterChain authMgmtSecurityFilterChain(
+            HttpSecurity http,
+            AuthServerBearerTokenFilter bearerTokenFilter) throws Exception {
+        log.info("Configuring auth management security filter chain");
+
+        http
+            .securityMatcher("/auth-api/**")
+            .addFilterBefore(bearerTokenFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
+            .authorizeHttpRequests(authorize ->
+                authorize.anyRequest().authenticated())
+            .csrf(AbstractHttpConfigurer::disable)
+            .formLogin(AbstractHttpConfigurer::disable)
+            .httpBasic(AbstractHttpConfigurer::disable)
+            .logout(AbstractHttpConfigurer::disable)
+            .exceptionHandling(exceptions ->
+                exceptions.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+            .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));
+
+        return http.build();
+    }
 }

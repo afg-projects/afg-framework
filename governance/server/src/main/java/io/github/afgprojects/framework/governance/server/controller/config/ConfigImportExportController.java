@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import io.github.afgprojects.framework.commons.model.Result;
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.governance.server.entity.config.ConfigGroup;
 import io.github.afgprojects.framework.governance.server.entity.config.ConfigItem;
@@ -66,7 +67,7 @@ public class ConfigImportExportController {
     }
 
     @PostMapping("/import")
-    public ImportResult importConfig(
+    public Result<ImportResult> importConfig(
             @RequestParam("file") MultipartFile file,
             @RequestParam(required = false) String mode) throws IOException {
 
@@ -87,7 +88,7 @@ public class ConfigImportExportController {
         log.info("Imported config: file={}, created={}, updated={}, skipped={}",
             filename, result.getCreated(), result.getUpdated(), result.getSkipped());
 
-        return result;
+        return Result.success(result);
     }
 
     // === 私有方法 ===

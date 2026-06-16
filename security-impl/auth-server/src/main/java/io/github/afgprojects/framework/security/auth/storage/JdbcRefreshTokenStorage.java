@@ -94,6 +94,16 @@ public class JdbcRefreshTokenStorage implements AfgRefreshTokenStorage {
     }
 
     @Override
+    public void deleteByTokenHash(@NonNull String tokenHash) {
+        dataManager.findOneByField(AuthRefreshToken.class,
+                AuthRefreshToken::getTokenHash, tokenHash)
+                .ifPresent(entity -> {
+                    dataManager.deleteById(AuthRefreshToken.class, entity.getId());
+                    log.debug("Deleted refresh token by hash: tokenHash={}", tokenHash);
+                });
+    }
+
+    @Override
     public void deleteByUserId(@NonNull String userId) {
         var entities = dataManager.findList(AuthRefreshToken.class,
                 builder(AuthRefreshToken.class)

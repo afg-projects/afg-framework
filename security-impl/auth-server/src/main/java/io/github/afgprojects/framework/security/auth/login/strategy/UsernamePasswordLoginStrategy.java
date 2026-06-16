@@ -51,7 +51,10 @@ public class UsernamePasswordLoginStrategy implements LoginStrategy {
 
         // 验证验证码（如果提供）
         if (request.captchaKey() != null && request.captchaValue() != null) {
-            if (captchaService != null && !captchaService.validate(request.captchaKey(), request.captchaValue())) {
+            if (captchaService == null) {
+                throw new BusinessException(CommonErrorCode.PARAM_ERROR, "验证码服务未配置");
+            }
+            if (!captchaService.validate(request.captchaKey(), request.captchaValue())) {
                 throw new BusinessException(CommonErrorCode.UNAUTHORIZED, "验证码错误");
             }
         }

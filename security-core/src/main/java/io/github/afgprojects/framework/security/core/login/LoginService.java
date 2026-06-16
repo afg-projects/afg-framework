@@ -44,6 +44,34 @@ public interface LoginService {
     void logout(@NonNull String token);
 
     /**
+     * 用户登出（带 IP 信息）。
+     *
+     * <p>撤销当前用户的所有访问令牌和刷新令牌。
+     * 默认实现委托给 {@link #logout(String)}。
+     *
+     * @param token 访问令牌，永不为 null
+     * @param ip 客户端 IP 地址，永不为 null
+     * @since 1.1.0
+     */
+    default void logout(@NonNull String token, @NonNull String ip) {
+        logout(token);
+    }
+
+    /**
+     * 全部设备登出。
+     *
+     * <p>撤销当前用户在所有设备上的所有访问令牌和刷新令牌。
+     * 与 {@link #logout(String)} 的区别在于此方法强制使用户所有设备的令牌失效。
+     *
+     * @param token 访问令牌，永不为 null
+     * @param ip 客户端 IP 地址，永不为 null
+     * @since 1.1.0
+     */
+    default void logoutAll(@NonNull String token, @NonNull String ip) {
+        logout(token, ip);
+    }
+
+    /**
      * 刷新访问令牌。
      *
      * <p>使用刷新令牌获取新的访问令牌。

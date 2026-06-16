@@ -311,6 +311,17 @@ public class DefaultTokenService implements TokenService {
     }
 
     @Override
+    public void invalidateRefreshToken(@NonNull String refreshToken) {
+        try {
+            String tokenHash = sha256(refreshToken);
+            refreshTokenStorage.deleteByTokenHash(tokenHash);
+            log.debug("Invalidated refresh token");
+        } catch (Exception e) {
+            log.warn("Failed to invalidate refresh token: {}", e.getMessage());
+        }
+    }
+
+    @Override
     public long getAccessTokenTtl() {
         return accessTokenTtl.getSeconds();
     }

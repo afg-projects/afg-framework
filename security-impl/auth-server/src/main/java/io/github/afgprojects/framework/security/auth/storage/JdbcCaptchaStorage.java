@@ -48,23 +48,61 @@ public class JdbcCaptchaStorage implements AfgCaptchaStorage {
         var existing = dataManager.findOneByField(AuthCaptcha.class,
                 AuthCaptcha::getCaptchaKey, key);
 
+        // 从 key 推断验证码类型和目标
+        String captchaType = inferCaptchaType(key);
+        String target = inferTarget(key, captchaType);
+
         AuthCaptcha entity;
         if (existing.isPresent()) {
             entity = existing.get();
             entity.setCaptchaValue(value);
+            entity.setCaptchaType(captchaType);
+            entity.setTarget(target);
             entity.setExpiresAt(expiresAt);
             entity.setUpdatedAt(now);
         } else {
             entity = new AuthCaptcha();
             entity.setCaptchaKey(key);
             entity.setCaptchaValue(value);
-            entity.setCaptchaType("IMAGE");
+            entity.setCaptchaType(captchaType);
+            entity.setTarget(target);
             entity.setExpiresAt(expiresAt);
             entity.setCreatedAt(now);
             entity.setUpdatedAt(now);
         }
         dataManager.save(AuthCaptcha.class, entity);
-        log.debug("Saved captcha: key={}, ttl={}", key, ttl);
+        log.debug("Saved captcha: key={}, type={}, target={}, ttl={}", key, captchaType, target, ttl);
+    }
+
+    /**
+     * 从 key 推断验证码类型。
+     *
+     * <p>key 格式约定：
+     * <ul>
+     *   <li>IMAGE: 随机 UUID（无前缀）</li>
+     *   <li>SMS: "sms:" + 手机号</li>
+     *   <li>EMAIL: "email:" + 邮箱</li>
+     * </ul>
+     */
+    private String inferCaptchaType(String key) {
+        if (key.startsWith("sms:")) {
+            return "SMS";
+        } else if (key.startsWith("email:")) {
+            return "EMAIL";
+        }
+        return "IMAGE";
+    }
+
+    /**
+     * 从 key 推断验证码目标（手机号或邮箱）。
+     */
+    @Nullable
+    private String inferTarget(String key, String captchaType) {
+        return switch (captchaType) {
+            case "SMS" -> key.substring(4); // 去掉 "sms:" 前缀
+            case "EMAIL" -> key.substring(6); // 去掉 "email:" 前缀
+            default -> null; // IMAGE 类型无 target
+        };
     }
 
     @Override
