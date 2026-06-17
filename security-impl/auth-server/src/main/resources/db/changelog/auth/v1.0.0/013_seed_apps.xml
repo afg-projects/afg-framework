@@ -2,34 +2,88 @@
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.26.xsd">
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
     <changeSet id="v1.0.0-013-seed-apps" author="afg">
 
-        <!-- OAuth2 客户端种子数据：使用 SQL 条件插入，避免与已有数据冲突 -->
+        <!-- 清理旧的 keystone/identity/governance 客户端（合并后不再需要） -->
+        <delete tableName="auth_client">
+            <where>client_id IN ('afg-keystone-ui', 'afg-identity-ui', 'afg-governance-ui')</where>
+        </delete>
 
-        <sql>
-            INSERT INTO auth_client (client_id, client_secret, client_name, redirect_uris, scopes, grant_types, require_pkce, access_token_ttl, refresh_token_ttl, status)
-            SELECT 'afg-workspace-ui', NULL, '工作台前端', 'http://localhost:8000/sso/callback', 'read,write', 'authorization_code,refresh_token', true, 7200, 604800, 1
-            WHERE NOT EXISTS (SELECT 1 FROM auth_client WHERE client_id = 'afg-workspace-ui');
+        <!-- 清理旧的应用记录（keystone/identity/governance 已合并为系统管理） -->
+        <delete tableName="auth_app">
+            <where>name IN ('Keystone', 'Identity', '身份管理', '治理中心', '系统管理', 'AI 平台')</where>
+        </delete>
 
-            INSERT INTO auth_client (client_id, client_secret, client_name, redirect_uris, scopes, grant_types, require_pkce, access_token_ttl, refresh_token_ttl, status)
-            SELECT 'afg-platform-ui', NULL, '系统管理前端', 'http://localhost:3001/sso/callback', 'read,write', 'authorization_code,refresh_token', true, 7200, 604800, 1
-            WHERE NOT EXISTS (SELECT 1 FROM auth_client WHERE client_id = 'afg-platform-ui');
+        <!-- OAuth2 客户端：工作台 -->
+        <insert tableName="auth_client">
+            <column name="client_id" value="afg-workspace-ui"/>
+            <column name="client_name" value="工作台前端"/>
+            <column name="redirect_uris" value="http://localhost:8000/sso-ui/callback"/>
+            <column name="scopes" value="read,write"/>
+            <column name="grant_types" value="authorization_code,refresh_token"/>
+            <column name="require_pkce" valueBoolean="true"/>
+            <column name="access_token_ttl" valueNumeric="7200"/>
+            <column name="refresh_token_ttl" valueNumeric="604800"/>
+            <column name="status" valueNumeric="1"/>
+        </insert>
 
-            INSERT INTO auth_client (client_id, client_secret, client_name, redirect_uris, scopes, grant_types, require_pkce, access_token_ttl, refresh_token_ttl, status)
-            SELECT 'afg-ai-ui', NULL, 'AI 平台前端', 'http://localhost:3002/sso/callback', 'read,write', 'authorization_code,refresh_token', true, 7200, 604800, 1
-            WHERE NOT EXISTS (SELECT 1 FROM auth_client WHERE client_id = 'afg-ai-ui');
+        <!-- OAuth2 客户端：系统管理 -->
+        <insert tableName="auth_client">
+            <column name="client_id" value="afg-platform-ui"/>
+            <column name="client_name" value="系统管理前端"/>
+            <column name="redirect_uris" value="http://localhost:3001/sso-ui/callback"/>
+            <column name="scopes" value="read,write"/>
+            <column name="grant_types" value="authorization_code,refresh_token"/>
+            <column name="require_pkce" valueBoolean="true"/>
+            <column name="access_token_ttl" valueNumeric="7200"/>
+            <column name="refresh_token_ttl" valueNumeric="604800"/>
+            <column name="status" valueNumeric="1"/>
+        </insert>
 
-            <!-- 应用种子数据：包含 logo(icon名称)、描述、微前端配置 -->
-            INSERT INTO auth_app (name, logo, description, app_type, status, sort_order, active_rule, entry_url, export_path, allowed_origins, client_id)
-            SELECT '系统管理', 'setting', '身份管理、服务治理、配置管理', 'mf', 1, 1, '/platform', 'http://localhost:3001/remoteEntry.js', './export-app', 'http://localhost:3001', 'afg-platform-ui'
-            WHERE NOT EXISTS (SELECT 1 FROM auth_app WHERE name = '系统管理');
+        <!-- OAuth2 客户端：AI 平台 -->
+        <insert tableName="auth_client">
+            <column name="client_id" value="afg-ai-ui"/>
+            <column name="client_name" value="AI 平台前端"/>
+            <column name="redirect_uris" value="http://localhost:3002/sso-ui/callback"/>
+            <column name="scopes" value="read,write"/>
+            <column name="grant_types" value="authorization_code,refresh_token"/>
+            <column name="require_pkce" valueBoolean="true"/>
+            <column name="access_token_ttl" valueNumeric="7200"/>
+            <column name="refresh_token_ttl" valueNumeric="604800"/>
+            <column name="status" valueNumeric="1"/>
+        </insert>
 
-            INSERT INTO auth_app (name, logo, description, app_type, status, sort_order, active_rule, entry_url, export_path, allowed_origins, client_id)
-            SELECT 'AI 平台', 'robot', 'AI 对话、技能、知识库管理', 'mf', 1, 2, '/ai', 'http://localhost:3002/remoteEntry.js', './export-app', 'http://localhost:3002', 'afg-ai-ui'
-            WHERE NOT EXISTS (SELECT 1 FROM auth_app WHERE name = 'AI 平台');
-        </sql>
+        <!-- 应用：系统管理 -->
+        <insert tableName="auth_app">
+            <column name="name" value="系统管理"/>
+            <column name="logo" value="setting"/>
+            <column name="description" value="身份管理、服务治理、配置管理"/>
+            <column name="app_type" value="mf"/>
+            <column name="status" valueNumeric="1"/>
+            <column name="sort_order" valueNumeric="1"/>
+            <column name="active_rule" value="/platform-ui"/>
+            <column name="entry_url" value="http://localhost:3001/platform-ui/remoteEntry.js"/>
+            <column name="export_path" value="./export-app"/>
+            <column name="allowed_origins" value="http://localhost:3001"/>
+            <column name="client_id" value="afg-platform-ui"/>
+        </insert>
+
+        <!-- 应用：AI 平台 -->
+        <insert tableName="auth_app">
+            <column name="name" value="AI 平台"/>
+            <column name="logo" value="robot"/>
+            <column name="description" value="AI 对话、技能、知识库管理"/>
+            <column name="app_type" value="mf"/>
+            <column name="status" valueNumeric="1"/>
+            <column name="sort_order" valueNumeric="2"/>
+            <column name="active_rule" value="/ai-ui"/>
+            <column name="entry_url" value="http://localhost:3002/ai-ui/remoteEntry.js"/>
+            <column name="export_path" value="./export-app"/>
+            <column name="allowed_origins" value="http://localhost:3002"/>
+            <column name="client_id" value="afg-ai-ui"/>
+        </insert>
 
         <rollback>
             <delete tableName="auth_app">
