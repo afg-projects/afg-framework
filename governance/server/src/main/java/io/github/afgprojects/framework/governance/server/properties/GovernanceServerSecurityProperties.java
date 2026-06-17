@@ -18,9 +18,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  *           key-id: "governance-server"
  *           secret: "your-secret-key-at-least-32-characters"
  *           timestamp-tolerance: 300
- *         token:
- *           enabled: true
- *           header: "authorization"
  * </pre>
  */
 @Data
@@ -36,11 +33,6 @@ public class GovernanceServerSecurityProperties {
      * 签名认证配置
      */
     private SignatureConfig signature = new SignatureConfig();
-
-    /**
-     * Token 认证配置
-     */
-    private TokenConfig token = new TokenConfig();
 
     @Data
     public static class SignatureConfig {
@@ -68,23 +60,5 @@ public class GovernanceServerSecurityProperties {
          * 签名算法
          */
         private String algorithm = "HMAC_SHA256";
-    }
-
-    @Data
-    public static class TokenConfig {
-        /**
-         * 是否启用 Token 认证
-         */
-        private boolean enabled = true;
-
-        /**
-         * Token 请求头名称
-         */
-        private String header = "authorization";
-
-        /**
-         * Token 前缀
-         */
-        private String prefix = "Bearer ";
     }
 }

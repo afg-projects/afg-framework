@@ -9,3 +9,4 @@ io.github.afgprojects.framework.security.auth.autoconfigure.TenantAutoConfigurat
 io.github.afgprojects.framework.security.auth.autoconfigure.SecurityStrategyAutoConfiguration
 io.github.afgprojects.framework.security.auth.autoconfigure.TotpAutoConfiguration
 io.github.afgprojects.framework.security.auth.autoconfigure.AuditAutoConfiguration
+io.github.afgprojects.framework.security.auth.autoconfigure.AppManagementAutoConfiguration

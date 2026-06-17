@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -96,5 +97,30 @@ public class ConfigGroupService {
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "配置分组不存在: " + id));
         group.markDeleted();
         dataManager.save(ConfigGroup.class, group);
+    }
+
+    /**
+     * 获取或创建配置组（按编码查找，不存在则创建）
+     */
+    @Transactional
+    public ConfigGroup getOrCreate(String groupCode, String serviceName, String environment) {
+        return findByCode(groupCode).orElseGet(() -> {
+            Instant now = Instant.now();
+            ConfigGroup group = new ConfigGroup();
+            group.setCode(groupCode);
+            String envName = switch (environment) {
+                case "dev" -> "开发环境";
+                case "test" -> "测试环境";
+                case "prod" -> "生产环境";
+                default -> environment.isEmpty() ? "开发环境" : environment;
+            };
+            group.setName((serviceName.isEmpty() ? "默认服务" : serviceName) + "-" + envName);
+            group.setDescription("自动创建的配置分组");
+            group.setSort(0);
+            group.setStatus(1);
+            group.setCreatedAt(now);
+            group.setUpdatedAt(now);
+            return dataManager.save(ConfigGroup.class, group);
+        });
     }
 }

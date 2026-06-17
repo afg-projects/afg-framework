@@ -10,7 +10,6 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":data-impl:data-jdbc"))
     implementation(project(":data-impl:data-liquibase"))
-    implementation(project(":security-impl:auth-server"))
     // spring-grpc 自动包含 grpc-netty，显式声明确保使用框架版本 1.81.0（高于 spring-grpc 默认的 1.77.1）
     implementation(libs.grpc.netty)
     implementation(libs.spring.grpc.server.spring.boot.starter)

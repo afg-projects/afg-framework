@@ -122,6 +122,7 @@ public class ConfigItemService {
         existing.setIsSecret(item.getIsSecret());
         existing.setIsRequired(item.getIsRequired());
         existing.setIsDynamic(item.getIsDynamic());
+        existing.setIsDeprecated(item.getIsDeprecated());
         existing.setSort(item.getSort());
         existing.setStatus(item.getStatus());
 

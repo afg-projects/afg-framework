@@ -26,4 +26,8 @@
     <include file="v1.0.0/010_auth_login_log.xml" relativeToChangelogFile="true"/>
     <include file="v1.0.0/011_auth_security_event.xml" relativeToChangelogFile="true"/>
 
+    <!-- Phase 6: 应用管理 -->
+    <include file="v1.0.0/012_auth_app.xml" relativeToChangelogFile="true"/>
+    <include file="v1.0.0/013_seed_apps.xml" relativeToChangelogFile="true"/>
+
 </databaseChangeLog>

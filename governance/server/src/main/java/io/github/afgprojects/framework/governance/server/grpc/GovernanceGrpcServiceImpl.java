@@ -1,12 +1,12 @@
 package io.github.afgprojects.framework.governance.server.grpc;
 
-import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.governance.proto.*;
 import io.github.afgprojects.framework.governance.server.entity.config.ConfigGroup;
-import io.github.afgprojects.framework.governance.server.entity.config.ConfigHistory;
 import io.github.afgprojects.framework.governance.server.entity.config.ConfigItem;
-import io.github.afgprojects.framework.governance.server.entity.config.ConfigValue;
 import io.github.afgprojects.framework.governance.server.entity.service.ServiceInstance;
+import io.github.afgprojects.framework.governance.server.service.config.ConfigGroupService;
+import io.github.afgprojects.framework.governance.server.service.config.ConfigItemService;
+import io.github.afgprojects.framework.governance.server.service.config.ConfigValueService;
 import io.github.afgprojects.framework.governance.server.service.registry.ServiceRegistryService;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
@@ -19,12 +19,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static io.github.afgprojects.framework.data.core.condition.Conditions.*;
-
 /**
  * gRPC service implementation for governance configuration management.
  * Provides configuration subscription, retrieval, and publishing capabilities.
- * Uses DataManager for all data operations.
+ * Delegates data operations to the Service layer.
  */
 @Slf4j
 @GrpcService
@@ -32,7 +30,9 @@ import static io.github.afgprojects.framework.data.core.condition.Conditions.*;
 public class GovernanceGrpcServiceImpl extends GovernanceServiceGrpc.GovernanceServiceImplBase {
 
     private final ConfigStreamManager streamManager;
-    private final DataManager dataManager;
+    private final ConfigItemService itemService;
+    private final ConfigValueService valueService;
+    private final ConfigGroupService groupService;
     private final ServiceRegistryService registryService;
     private final ServiceHeartbeatManager heartbeatManager;
 
@@ -51,7 +51,7 @@ public class GovernanceGrpcServiceImpl extends GovernanceServiceGrpc.GovernanceS
         streamManager.registerStream(serviceName, responseObserver);
 
         // Push current configurations immediately
-        Map<String, String> configs = getAllConfigValues();
+        Map<String, String> configs = valueService.getAllValues();
         configs.forEach((key, value) -> {
             ConfigChangeNotification notification = ConfigChangeNotification.newBuilder()
                 .setKey(key)
@@ -76,15 +76,15 @@ public class GovernanceGrpcServiceImpl extends GovernanceServiceGrpc.GovernanceS
             // Get specific keys
             configs = new HashMap<>();
             for (String key : request.getKeysList()) {
-                getConfigValueByKey(key)
+                valueService.getValueByCode(key)
                     .ifPresent(value -> configs.put(key, value));
             }
         } else if (!request.getPrefix().isEmpty()) {
             // Get by prefix
-            configs = getConfigValuesByPrefix(request.getPrefix());
+            configs = valueService.getValuesByPrefix(request.getPrefix());
         } else {
             // Get all
-            configs = getAllConfigValues();
+            configs = valueService.getAllValues();
         }
 
         GetConfigsResponse response = GetConfigsResponse.newBuilder()
@@ -117,7 +117,7 @@ public class GovernanceGrpcServiceImpl extends GovernanceServiceGrpc.GovernanceS
 
         try {
             // Find the config item by code, create if not exists
-            ConfigItem item = findConfigItemByCode(key);
+            ConfigItem item = itemService.findByCode(key).orElse(null);
 
             if (item == null) {
                 // Auto-create config item with service group and metadata
@@ -145,7 +145,7 @@ public class GovernanceGrpcServiceImpl extends GovernanceServiceGrpc.GovernanceS
                 }
                 if (needsUpdate) {
                     item.setUpdatedAt(Instant.now());
-                    dataManager.save(ConfigItem.class, item);
+                    itemService.update(item.getId(), item);
                     log.debug("Updated config item metadata: {}", key);
                 }
             }
@@ -162,7 +162,9 @@ public class GovernanceGrpcServiceImpl extends GovernanceServiceGrpc.GovernanceS
             }
 
             // Check if value is empty and we have a value to sync
-            String existingValue = getConfigValueByItemId(item.getId());
+            String existingValue = valueService.findByItemId(item.getId())
+                .map(v -> v.getValue())
+                .orElse(null);
 
             log.debug("Processing config {}: value={}, existingValue={}, defaultValue={}",
                     key, value, existingValue, metaDefaultValue);
@@ -178,15 +180,15 @@ public class GovernanceGrpcServiceImpl extends GovernanceServiceGrpc.GovernanceS
             // 2. Or we want to sync the current value (even if empty, to clear existing)
             if (value != null && !value.isEmpty()) {
                 log.info("Updating config value for {}: {}", key, value);
-                // Update the config value
-                updateConfigValue(item.getId(), value, reason, operator);
+                // Update the config value via service (includes history recording and event publishing)
+                valueService.updateValue(item.getId(), value, reason, operator);
 
-                // Push change notification
+                // Push change notification to gRPC clients
                 streamManager.pushConfigChange(key, value, ChangeType.CHANGE_TYPE_UPDATE);
             } else if (existingValue == null) {
                 // No existing value and no new value, create empty record
                 log.debug("Creating empty config value for: {}", key);
-                updateConfigValue(item.getId(), "", reason, operator);
+                valueService.updateValue(item.getId(), "", reason, operator);
             } else {
                 log.debug("Skipping config value update for {}: value is empty and existing value exists", key);
             }
@@ -331,14 +333,6 @@ public class GovernanceGrpcServiceImpl extends GovernanceServiceGrpc.GovernanceS
     // ==================== Private Helper Methods ====================
 
     /**
-     * Find a config item by its code.
-     */
-    private ConfigItem findConfigItemByCode(String code) {
-        return dataManager.findOneByField(ConfigItem.class, ConfigItem::getCode, code)
-            .orElse(null);
-    }
-
-    /**
      * Create a new config item with the given code and metadata.
      */
     private ConfigItem createConfigItem(String code, String serviceName, String environment,
@@ -349,7 +343,7 @@ public class GovernanceGrpcServiceImpl extends GovernanceServiceGrpc.GovernanceS
         // Get or create group by service name and environment
         String groupCode = (serviceName.isEmpty() ? "default" : serviceName) + "-" +
                           (environment.isEmpty() ? "dev" : environment);
-        ConfigGroup group = getOrCreateGroup(groupCode, serviceName, environment);
+        ConfigGroup group = groupService.getOrCreate(groupCode, serviceName, environment);
 
         ConfigItem item = new ConfigItem();
         item.setCode(code);
@@ -362,7 +356,7 @@ public class GovernanceGrpcServiceImpl extends GovernanceServiceGrpc.GovernanceS
         item.setGroupId(group.getId());
         item.setCreatedAt(now);
         item.setUpdatedAt(now);
-        return dataManager.save(ConfigItem.class, item);
+        return itemService.create(item);
     }
 
     /**
@@ -403,115 +397,5 @@ public class GovernanceGrpcServiceImpl extends GovernanceServiceGrpc.GovernanceS
         }
         // 默认为 STRING
         return "STRING";
-    }
-
-    /**
-     * 获取或创建配置组（按服务名+环境）
-     */
-    private ConfigGroup getOrCreateGroup(String groupCode, String serviceName, String environment) {
-        return dataManager.findOneByField(ConfigGroup.class, ConfigGroup::getCode, groupCode)
-            .orElseGet(() -> {
-                Instant now = Instant.now();
-                ConfigGroup group = new ConfigGroup();
-                group.setCode(groupCode);
-                // 中文分组名：服务名-环境
-                String envName = switch (environment) {
-                    case "dev" -> "开发环境";
-                    case "test" -> "测试环境";
-                    case "prod" -> "生产环境";
-                    default -> environment.isEmpty() ? "开发环境" : environment;
-                };
-                group.setName((serviceName.isEmpty() ? "默认服务" : serviceName) + "-" + envName);
-                group.setDescription("自动创建的配置分组");
-                group.setSort(0);
-                group.setStatus(1);
-                group.setCreatedAt(now);
-                group.setUpdatedAt(now);
-                return dataManager.save(ConfigGroup.class, group);
-            });
-    }
-
-    /**
-     * Get a config value by its key (config item code).
-     */
-    private java.util.Optional<String> getConfigValueByKey(String key) {
-        ConfigItem item = findConfigItemByCode(key);
-        if (item == null) {
-            return java.util.Optional.empty();
-        }
-        return dataManager.findOneByField(ConfigValue.class, ConfigValue::getItemId, item.getId())
-            .map(ConfigValue::getValue);
-    }
-
-    /**
-     * Get a config value by item ID.
-     */
-    private String getConfigValueByItemId(Long itemId) {
-        return dataManager.findOneByField(ConfigValue.class, ConfigValue::getItemId, itemId)
-            .map(ConfigValue::getValue)
-            .orElse(null);
-    }
-
-    /**
-     * Get all config values as a map of key -> value.
-     */
-    private Map<String, String> getAllConfigValues() {
-        return getConfigValuesByPrefix("");
-    }
-
-    /**
-     * Get config values by prefix.
-     */
-    private Map<String, String> getConfigValuesByPrefix(String prefix) {
-        Map<String, String> result = new HashMap<>();
-        List<ConfigItem> items = dataManager.findAll(ConfigItem.class);
-
-        for (ConfigItem item : items) {
-            if (prefix.isEmpty() || item.getCode().startsWith(prefix)) {
-                dataManager.findOneByField(ConfigValue.class, ConfigValue::getItemId, item.getId())
-                    .ifPresent(v -> result.put(item.getCode(), v.getValue()));
-            }
-        }
-
-        return result;
-    }
-
-    /**
-     * Update a config value and record history.
-     */
-    private void updateConfigValue(Long itemId, String newValue, String reason, String operatorName) {
-        ConfigValue value = dataManager.findOneByField(ConfigValue.class, ConfigValue::getItemId, itemId)
-            .orElseGet(() -> {
-                ConfigValue v = new ConfigValue();
-                v.setItemId(itemId);
-                v.setVersion(0);
-                return v;
-            });
-
-        String oldValue = value.getValue();
-        Instant now = Instant.now();
-
-        // Record history
-        ConfigHistory history = new ConfigHistory();
-        history.setItemId(itemId);
-        history.setOldValue(oldValue);
-        history.setNewValue(newValue);
-        history.setChangeType(value.getId() == null ? "CREATE" : "UPDATE");
-        history.setReason(reason);
-        history.setOperatorName(operatorName);
-        history.setCreatedAt(now);
-        history.setUpdatedAt(now);
-        dataManager.save(ConfigHistory.class, history);
-
-        // Update value
-        value.setValue(newValue);
-        value.setVersion(value.getVersion() + 1);
-        value.setUpdatedAt(now);
-        if (value.getCreatedAt() == null) {
-            value.setCreatedAt(now);
-        }
-        dataManager.save(ConfigValue.class, value);
-
-        log.info("Updated config value for item {}: {} -> {}", itemId, oldValue, newValue);
     }
 }

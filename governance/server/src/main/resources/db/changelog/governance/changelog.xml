@@ -10,17 +10,11 @@
     <include file="v1.0.0/003_gov_config_value.xml" relativeToChangelogFile="true"/>
     <include file="v1.0.0/004_gov_config_history.xml" relativeToChangelogFile="true"/>
     <include file="v1.0.0/005_gov_config_snapshot.xml" relativeToChangelogFile="true"/>
-    <include file="v1.0.0/006_gov_user.xml" relativeToChangelogFile="true"/>
-    <include file="v1.0.0/007_gov_role.xml" relativeToChangelogFile="true"/>
-    <include file="v1.0.0/008_gov_user_role.xml" relativeToChangelogFile="true"/>
     <include file="v1.0.0/009_gov_environment.xml" relativeToChangelogFile="true"/>
     <include file="v1.0.0/010_gov_service_registry.xml" relativeToChangelogFile="true"/>
     <include file="v1.0.0/011_gov_service_instance.xml" relativeToChangelogFile="true"/>
     <include file="v1.0.0/012_gov_gray_release.xml" relativeToChangelogFile="true"/>
     <include file="v1.0.0/013_gov_push_record.xml" relativeToChangelogFile="true"/>
     <include file="v1.0.0/014_gov_subscription.xml" relativeToChangelogFile="true"/>
-    <include file="v1.0.0/015_gov_permission.xml" relativeToChangelogFile="true"/>
-    <include file="v1.0.0/016_gov_role_permission.xml" relativeToChangelogFile="true"/>
-    <include file="v1.0.0/017_gov_user_environment.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>

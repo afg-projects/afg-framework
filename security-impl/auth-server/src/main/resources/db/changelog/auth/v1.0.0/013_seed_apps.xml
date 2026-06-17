@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.26.xsd">
+
+    <changeSet id="v1.0.0-013-seed-apps" author="afg">
+
+        <!-- OAuth2 客户端种子数据：使用 SQL 条件插入，避免与已有数据冲突 -->
+
+        <sql>
+            INSERT INTO auth_client (client_id, client_secret, client_name, redirect_uris, scopes, grant_types, require_pkce, access_token_ttl, refresh_token_ttl, status)
+            SELECT 'afg-workspace-ui', NULL, '工作台前端', 'http://localhost:8000/sso/callback', 'read,write', 'authorization_code,refresh_token', true, 7200, 604800, 1
+            WHERE NOT EXISTS (SELECT 1 FROM auth_client WHERE client_id = 'afg-workspace-ui');
+
+            INSERT INTO auth_client (client_id, client_secret, client_name, redirect_uris, scopes, grant_types, require_pkce, access_token_ttl, refresh_token_ttl, status)
+            SELECT 'afg-keystone-ui', NULL, 'Keystone 管理前端', 'http://localhost:3001/sso/callback', 'read,write', 'authorization_code,refresh_token', true, 7200, 604800, 1
+            WHERE NOT EXISTS (SELECT 1 FROM auth_client WHERE client_id = 'afg-keystone-ui');
+
+            INSERT INTO auth_client (client_id, client_secret, client_name, redirect_uris, scopes, grant_types, require_pkce, access_token_ttl, refresh_token_ttl, status)
+            SELECT 'afg-ai-ui', NULL, 'AI 平台前端', 'http://localhost:3002/sso/callback', 'read,write', 'authorization_code,refresh_token', true, 7200, 604800, 1
+            WHERE NOT EXISTS (SELECT 1 FROM auth_client WHERE client_id = 'afg-ai-ui');
+
+            <!-- 应用种子数据：包含 logo(icon名称)、描述、微前端配置 -->
+            INSERT INTO auth_app (name, logo, description, app_type, status, sort_order, active_rule, entry_url, export_path, allowed_origins, client_id)
+            SELECT 'Keystone', 'setting', '身份管理、服务治理、配置管理', 'mf', 1, 1, '/keystone', 'http://localhost:3001/remoteEntry.js', './export-app', 'http://localhost:3001', 'afg-keystone-ui'
+            WHERE NOT EXISTS (SELECT 1 FROM auth_app WHERE name = 'Keystone');
+
+            INSERT INTO auth_app (name, logo, description, app_type, status, sort_order, active_rule, entry_url, export_path, allowed_origins, client_id)
+            SELECT 'AI 平台', 'robot', 'AI 对话、技能、知识库管理', 'mf', 1, 2, '/ai', 'http://localhost:3002/remoteEntry.js', './export-app', 'http://localhost:3002', 'afg-ai-ui'
+            WHERE NOT EXISTS (SELECT 1 FROM auth_app WHERE name = 'AI 平台');
+        </sql>
+
+        <rollback>
+            <delete tableName="auth_app">
+                <where>name IN ('Keystone', 'AI 平台')</where>
+            </delete>
+            <delete tableName="auth_client">
+                <where>client_id IN ('afg-workspace-ui', 'afg-keystone-ui', 'afg-ai-ui')</where>
+            </delete>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
