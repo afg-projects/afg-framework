@@ -11,8 +11,12 @@ import java.util.Set;
 
 /**
  * 角色管理 API。
+ *
+ * <p>注意：此类通过 @Bean 注册而非组件扫描，因此需要显式包含
+ * 模块 contextPath 前缀（/auth-api），不会被 ModuleWebAutoConfiguration
+ * 自动添加。
  */
-@ResponseBody
+@RestController
 @RequestMapping("/roles")
 public class RoleController {
 

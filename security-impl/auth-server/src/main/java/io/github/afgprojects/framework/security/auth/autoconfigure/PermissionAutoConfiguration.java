@@ -52,7 +52,7 @@ import java.nio.charset.StandardCharsets;
     "io.github.afgprojects.framework.data.jdbc.autoconfigure.DataManagerAutoConfiguration"
 })
 @EnableConfigurationProperties(AuthSecurityProperties.class)
-@ConditionalOnBean(DataManager.class)
+
 @ConditionalOnProperty(prefix = "afg.security.auth-server.permission", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class PermissionAutoConfiguration {
 

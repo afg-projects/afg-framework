@@ -19,7 +19,7 @@ import java.util.Set;
  *   <li>X-Key-Id - 密钥标识（可选，使用默认密钥时可不传）</li>
  * </ul>
  */
-@ResponseBody
+@RestController
 @RequestMapping("/internal/permissions")
 public class PermissionQueryController {
 

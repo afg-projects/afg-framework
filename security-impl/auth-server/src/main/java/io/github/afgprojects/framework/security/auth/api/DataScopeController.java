@@ -11,7 +11,7 @@ import java.util.Set;
 /**
  * 数据范围管理 API。
  */
-@ResponseBody
+@RestController
 @RequestMapping("/data-scopes")
 public class DataScopeController {
 

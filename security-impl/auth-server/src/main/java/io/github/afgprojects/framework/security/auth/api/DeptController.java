@@ -11,7 +11,7 @@ import java.util.Set;
 /**
  * 部门管理 API。
  */
-@ResponseBody
+@RestController
 @RequestMapping("/depts")
 public class DeptController {
 

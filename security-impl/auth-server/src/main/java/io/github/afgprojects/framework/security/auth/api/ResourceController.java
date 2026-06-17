@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * 资源管理 API。
  */
-@ResponseBody
+@RestController
 @RequestMapping("/resources")
 public class ResourceController {
 

@@ -39,7 +39,8 @@ import io.github.afgprojects.framework.core.web.security.sanitizer.NoOpInputSani
  * XssFilter 和 SqlInjectionFilter 始终使用 {@link InputSecurityChecker}，不再依赖正则表达式回退。
  */
 @Slf4j
-@AutoConfiguration(after = {AfgAutoConfiguration.class, AfgCoreAutoConfiguration.class})
+@AutoConfiguration(after = {AfgAutoConfiguration.class, AfgCoreAutoConfiguration.class},
+    afterName = {"io.github.afgprojects.framework.security.auth.autoconfigure.CasbinAutoConfiguration"})
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @ConditionalOnClass(Servlet.class)
 @ConditionalOnProperty(prefix = "afg.core.security", name = "enabled", havingValue = "true", matchIfMissing = true)

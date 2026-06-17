@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * 权限管理 API。
  */
-@ResponseBody
+@RestController
 @RequestMapping("/permissions")
 public class PermissionController {
 

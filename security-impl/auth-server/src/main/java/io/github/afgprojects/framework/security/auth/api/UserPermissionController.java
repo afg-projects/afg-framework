@@ -12,7 +12,7 @@ import java.util.Set;
 /**
  * 用户权限管理 API。
  */
-@ResponseBody
+@RestController
 @RequestMapping("/user-permissions")
 public class UserPermissionController {
 
