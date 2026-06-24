@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.data.jdbc.metrics;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 
@@ -18,6 +19,7 @@ import org.jspecify.annotations.NonNull;
  *
  * @since 1.0.0
  */
+@Getter
 @Slf4j
 public final class RawSqlSecurityGuard {
 
@@ -69,15 +71,6 @@ public final class RawSqlSecurityGuard {
     }
 
     /**
-     * 获取当前安全模式
-     *
-     * @return 安全模式
-     */
-    public Mode getMode() {
-        return mode;
-    }
-
-    /**
      * 检查 SQL 语句安全性
      * <p>
      * 根据当前安全模式，对 SQL 语句进行前置检查。
@@ -87,7 +80,7 @@ public final class RawSqlSecurityGuard {
      * @throws SecurityException 如果 SQL 语句违反当前安全模式
      */
     public void check(@NonNull String sql, @NonNull String callerInfo) {
-        if (sql == null || sql.isBlank()) {
+        if (sql.isBlank()) {
             return;
         }
 
@@ -135,7 +128,7 @@ public final class RawSqlSecurityGuard {
             // 检查分号后是否有 SQL 关键字（多语句注入模式）
             String afterSemicolon = upperSql.substring(upperSql.indexOf(';') + 1).trim();
             String nextKeyword = extractFirstKeyword(afterSemicolon);
-            if (nextKeyword != null && !nextKeyword.isEmpty()) {
+            if (!nextKeyword.isEmpty()) {
                 throw new SecurityException(
                         "Raw SQL rejected in MODERATE mode: multi-statement SQL is not allowed. "
                         + "SQL: " + truncate(sql, 200));
