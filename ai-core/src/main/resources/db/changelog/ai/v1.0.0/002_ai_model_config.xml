@@ -6,10 +6,10 @@
 
     <changeSet id="v1.0.0-002-ai-model-config" author="afg">
         <createTable tableName="ai_model_config" remarks="模型配置">
-            <column name="id" type="BIGINT" autoIncrement="true">
+            <column name="id" type="VARCHAR(32)">
                 <constraints primaryKey="true" primaryKeyName="pk_ai_model_config"/>
             </column>
-            <column name="provider_id" type="BIGINT" remarks="供应商ID">
+            <column name="provider_id" type="VARCHAR(32)" remarks="供应商ID">
                 <constraints nullable="false"/>
             </column>
             <column name="model_name" type="VARCHAR(200)" remarks="模型名称">

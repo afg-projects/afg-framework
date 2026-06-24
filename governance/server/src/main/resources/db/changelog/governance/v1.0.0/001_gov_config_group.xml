@@ -6,10 +6,10 @@
 
     <changeSet id="v1.0.0-001-gov-config-group" author="afg">
         <createTable tableName="gov_config_group" remarks="配置分组表">
-            <column name="id" type="BIGINT" autoIncrement="true">
+            <column name="id" type="VARCHAR(32)">
                 <constraints primaryKey="true" primaryKeyName="pk_config_group"/>
             </column>
-            <column name="environment_id" type="BIGINT" remarks="环境ID"/>
+            <column name="environment_id" type="VARCHAR(32)" remarks="环境ID"/>
             <column name="code" type="VARCHAR(50)" remarks="分组编码">
                 <constraints nullable="false" unique="true" uniqueConstraintName="uk_config_group_code"/>
             </column>

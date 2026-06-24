@@ -6,13 +6,13 @@
 
     <changeSet id="v1.0.0-012-ai-document-chunk" author="afg">
         <createTable tableName="ai_document_chunk" remarks="文档分块">
-            <column name="id" type="BIGINT" autoIncrement="true">
+            <column name="id" type="VARCHAR(32)">
                 <constraints primaryKey="true" primaryKeyName="pk_ai_document_chunk"/>
             </column>
-            <column name="document_id" type="BIGINT" remarks="文档ID">
+            <column name="document_id" type="VARCHAR(32)" remarks="文档ID">
                 <constraints nullable="false"/>
             </column>
-            <column name="knowledge_base_id" type="BIGINT" remarks="知识库ID">
+            <column name="knowledge_base_id" type="VARCHAR(32)" remarks="知识库ID">
                 <constraints nullable="false"/>
             </column>
             <column name="content" type="CLOB" remarks="内容">

@@ -6,10 +6,10 @@
 
     <changeSet id="v1.0.0-011-gov-service-instance" author="afg">
         <createTable tableName="gov_service_instance" remarks="服务实例表">
-            <column name="id" type="BIGINT" autoIncrement="true">
+            <column name="id" type="VARCHAR(32)">
                 <constraints primaryKey="true" primaryKeyName="pk_service_instance"/>
             </column>
-            <column name="service_id" type="BIGINT" remarks="服务ID">
+            <column name="service_id" type="VARCHAR(32)" remarks="服务ID">
                 <constraints nullable="false"/>
             </column>
             <column name="instance_id" type="VARCHAR(100)" remarks="实例ID">

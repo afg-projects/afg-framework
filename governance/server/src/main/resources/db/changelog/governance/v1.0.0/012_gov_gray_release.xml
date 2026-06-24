@@ -6,13 +6,13 @@
 
     <changeSet id="v1.0.0-012-gov-gray-release" author="afg">
         <createTable tableName="gov_gray_release" remarks="灰度发布表">
-            <column name="id" type="BIGINT" autoIncrement="true">
+            <column name="id" type="VARCHAR(32)">
                 <constraints primaryKey="true" primaryKeyName="pk_gov_gray_release"/>
             </column>
-            <column name="config_item_id" type="BIGINT" remarks="配置项ID">
+            <column name="config_item_id" type="VARCHAR(32)" remarks="配置项ID">
                 <constraints nullable="false"/>
             </column>
-            <column name="environment_id" type="BIGINT" remarks="环境ID">
+            <column name="environment_id" type="VARCHAR(32)" remarks="环境ID">
                 <constraints nullable="false"/>
             </column>
             <column name="new_value" type="TEXT" remarks="新值">

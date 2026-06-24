@@ -6,7 +6,7 @@
 
     <changeSet id="v1.0.0-017-ai-tool-execution" author="afg">
         <createTable tableName="ai_tool_execution" remarks="工具执行">
-            <column name="id" type="BIGINT" autoIncrement="true">
+            <column name="id" type="VARCHAR(32)">
                 <constraints primaryKey="true" primaryKeyName="pk_ai_tool_execution"/>
             </column>
             <column name="tool_name" type="VARCHAR(200)" remarks="工具名称">

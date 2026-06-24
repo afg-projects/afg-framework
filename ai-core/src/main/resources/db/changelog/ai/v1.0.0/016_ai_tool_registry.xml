@@ -6,7 +6,7 @@
 
     <changeSet id="v1.0.0-016-ai-tool-registry" author="afg">
         <createTable tableName="ai_tool_registry" remarks="工具注册">
-            <column name="id" type="BIGINT" autoIncrement="true">
+            <column name="id" type="VARCHAR(32)">
                 <constraints primaryKey="true" primaryKeyName="pk_ai_tool_registry"/>
             </column>
             <column name="name" type="VARCHAR(200)" remarks="名称">

@@ -6,10 +6,10 @@
 
     <changeSet id="v1.0.0-007-ai-agent-session" author="afg">
         <createTable tableName="ai_agent_session" remarks="Agent会话">
-            <column name="id" type="BIGINT" autoIncrement="true">
+            <column name="id" type="VARCHAR(32)">
                 <constraints primaryKey="true" primaryKeyName="pk_ai_agent_session"/>
             </column>
-            <column name="agent_definition_id" type="BIGINT" remarks="Agent定义ID">
+            <column name="agent_definition_id" type="VARCHAR(32)" remarks="Agent定义ID">
                 <constraints nullable="false"/>
             </column>
             <column name="user_id" type="VARCHAR(64)" remarks="用户ID"/>

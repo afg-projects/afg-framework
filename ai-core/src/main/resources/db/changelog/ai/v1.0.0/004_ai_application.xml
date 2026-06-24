@@ -6,7 +6,7 @@
 
     <changeSet id="v1.0.0-004-ai-application" author="afg">
         <createTable tableName="ai_application" remarks="AI应用">
-            <column name="id" type="BIGINT" autoIncrement="true">
+            <column name="id" type="VARCHAR(32)">
                 <constraints primaryKey="true" primaryKeyName="pk_ai_application"/>
             </column>
             <column name="name" type="VARCHAR(200)" remarks="应用名称">

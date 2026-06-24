@@ -17,7 +17,4 @@
     <include file="v1.0.0/013_gov_push_record.xml" relativeToChangelogFile="true"/>
     <include file="v1.0.0/014_gov_subscription.xml" relativeToChangelogFile="true"/>
 
-    <!-- v1.1.0: ID String 迁移 -->
-    <include file="v1.1.0/001_id_string_migration.xml" relativeToChangelogFile="true"/>
-
 </databaseChangeLog>

@@ -6,7 +6,7 @@
 
     <changeSet id="v1.0.0-014-gov-subscription" author="afg">
         <createTable tableName="gov_subscription" remarks="配置订阅关系表">
-            <column name="id" type="BIGINT" autoIncrement="true">
+            <column name="id" type="VARCHAR(32)">
                 <constraints primaryKey="true" primaryKeyName="pk_gov_subscription"/>
             </column>
             <column name="service_name" type="VARCHAR(100)" remarks="服务名称">

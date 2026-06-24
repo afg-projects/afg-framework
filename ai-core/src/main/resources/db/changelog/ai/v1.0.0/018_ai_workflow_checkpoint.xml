@@ -6,7 +6,7 @@
 
     <changeSet id="v1.0.0-018-ai-workflow-checkpoint" author="afg">
         <createTable tableName="ai_workflow_checkpoint" remarks="工作流检查点">
-            <column name="id" type="BIGINT" autoIncrement="true">
+            <column name="id" type="VARCHAR(32)">
                 <constraints primaryKey="true" primaryKeyName="pk_ai_workflow_checkpoint"/>
             </column>
             <column name="execution_id" type="VARCHAR(100)" remarks="执行ID">

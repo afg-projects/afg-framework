@@ -6,17 +6,18 @@
 
     <changeSet id="v1.0.0-005-sec-role-hierarchy" author="afg">
         <createTable tableName="sec_role_hierarchy" remarks="角色继承关系表">
-            <column name="id" type="BIGINT" autoIncrement="true">
+            <column name="id" type="VARCHAR(32)">
                 <constraints primaryKey="true" primaryKeyName="pk_sec_role_hierarchy"/>
             </column>
-            <column name="role_id" type="BIGINT" remarks="角色ID">
+            <column name="role_id" type="VARCHAR(32)" remarks="角色ID">
                 <constraints nullable="false"/>
             </column>
-            <column name="parent_role_id" type="BIGINT" remarks="父角色ID">
+            <column name="parent_role_id" type="VARCHAR(32)" remarks="父角色ID">
                 <constraints nullable="false"/>
             </column>
             <column name="tenant_id" type="VARCHAR(50)" remarks="租户ID"/>
             <column name="created_at" type="TIMESTAMP" defaultValueDate="CURRENT_TIMESTAMP" remarks="创建时间"/>
+            <column name="updated_at" type="TIMESTAMP" defaultValueDate="CURRENT_TIMESTAMP" remarks="更新时间"/>
         </createTable>
 
         <addUniqueConstraint tableName="sec_role_hierarchy" columnNames="role_id,parent_role_id"

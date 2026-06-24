@@ -13,7 +13,4 @@
     <include file="v1.0.0/006_sec_user_role.xml" relativeToChangelogFile="true"/>
     <include file="v1.0.0/007_sec_casbin_rule.xml" relativeToChangelogFile="true"/>
 
-    <!-- v1.1.0: ID String 迁移 -->
-    <include file="v1.1.0/001_id_string_migration.xml" relativeToChangelogFile="true"/>
-
 </databaseChangeLog>

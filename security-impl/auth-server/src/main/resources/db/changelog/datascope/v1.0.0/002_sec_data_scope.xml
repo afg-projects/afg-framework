@@ -6,7 +6,7 @@
 
     <changeSet id="v1.0.0-002-sec-data-scope" author="afg">
         <createTable tableName="sec_data_scope" remarks="数据范围定义表">
-            <column name="id" type="BIGINT" autoIncrement="true">
+            <column name="id" type="VARCHAR(32)">
                 <constraints primaryKey="true" primaryKeyName="pk_sec_data_scope"/>
             </column>
             <column name="scope_code" type="VARCHAR(50)" remarks="范围编码">

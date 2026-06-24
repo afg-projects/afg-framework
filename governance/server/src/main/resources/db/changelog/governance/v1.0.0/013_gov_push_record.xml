@@ -6,10 +6,10 @@
 
     <changeSet id="v1.0.0-013-gov-push-record" author="afg">
         <createTable tableName="gov_push_record" remarks="配置推送记录表">
-            <column name="id" type="BIGINT" autoIncrement="true">
+            <column name="id" type="VARCHAR(32)">
                 <constraints primaryKey="true" primaryKeyName="pk_gov_push_record"/>
             </column>
-            <column name="config_item_id" type="BIGINT" remarks="配置项ID">
+            <column name="config_item_id" type="VARCHAR(32)" remarks="配置项ID">
                 <constraints nullable="false"/>
             </column>
             <column name="instance_id" type="VARCHAR(64)" remarks="实例ID">
@@ -20,6 +20,7 @@
             <column name="ack_time" type="TIMESTAMP" remarks="确认时间"/>
             <column name="error_message" type="TEXT" remarks="错误信息"/>
             <column name="created_at" type="TIMESTAMP" remarks="创建时间"/>
+            <column name="updated_at" type="TIMESTAMP" remarks="更新时间"/>
         </createTable>
 
         <createIndex indexName="idx_push_record_config_item" tableName="gov_push_record">

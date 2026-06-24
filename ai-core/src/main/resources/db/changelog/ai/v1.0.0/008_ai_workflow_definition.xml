@@ -6,7 +6,7 @@
 
     <changeSet id="v1.0.0-008-ai-workflow-definition" author="afg">
         <createTable tableName="ai_workflow_definition" remarks="工作流定义">
-            <column name="id" type="BIGINT" autoIncrement="true">
+            <column name="id" type="VARCHAR(32)">
                 <constraints primaryKey="true" primaryKeyName="pk_ai_workflow_definition"/>
             </column>
             <column name="name" type="VARCHAR(200)" remarks="名称">
@@ -20,7 +20,7 @@
             <column name="status" type="VARCHAR(50)" defaultValue="DRAFT" remarks="状态">
                 <constraints nullable="false"/>
             </column>
-            <column name="application_id" type="BIGINT" remarks="应用ID"/>
+            <column name="application_id" type="VARCHAR(32)" remarks="应用ID"/>
             <column name="user_id" type="VARCHAR(64)" remarks="用户ID"/>
             <column name="tenant_id" type="VARCHAR(64)" remarks="租户ID"/>
             <column name="deleted" type="BOOLEAN" defaultValueBoolean="false" remarks="删除标记">

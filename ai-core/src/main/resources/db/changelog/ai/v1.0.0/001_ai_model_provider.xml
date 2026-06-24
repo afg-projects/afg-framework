@@ -6,7 +6,7 @@
 
     <changeSet id="v1.0.0-001-ai-model-provider" author="afg">
         <createTable tableName="ai_model_provider" remarks="模型供应商">
-            <column name="id" type="BIGINT" autoIncrement="true">
+            <column name="id" type="VARCHAR(32)">
                 <constraints primaryKey="true" primaryKeyName="pk_ai_model_provider"/>
             </column>
             <column name="provider_name" type="VARCHAR(100)" remarks="供应商名称">

@@ -6,7 +6,7 @@
 
     <changeSet id="v1.0.0-003-sec-role" author="afg">
         <createTable tableName="sec_role" remarks="角色表">
-            <column name="id" type="BIGINT" autoIncrement="true">
+            <column name="id" type="VARCHAR(32)">
                 <constraints primaryKey="true" primaryKeyName="pk_sec_role"/>
             </column>
             <column name="role_code" type="VARCHAR(50)" remarks="角色编码">

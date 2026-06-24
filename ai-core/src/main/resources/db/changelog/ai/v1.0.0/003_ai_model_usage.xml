@@ -6,13 +6,13 @@
 
     <changeSet id="v1.0.0-003-ai-model-usage" author="afg">
         <createTable tableName="ai_model_usage" remarks="模型使用记录">
-            <column name="id" type="BIGINT" autoIncrement="true">
+            <column name="id" type="VARCHAR(32)">
                 <constraints primaryKey="true" primaryKeyName="pk_ai_model_usage"/>
             </column>
-            <column name="model_config_id" type="BIGINT" remarks="模型配置ID">
+            <column name="model_config_id" type="VARCHAR(32)" remarks="模型配置ID">
                 <constraints nullable="false"/>
             </column>
-            <column name="application_id" type="BIGINT" remarks="应用ID"/>
+            <column name="application_id" type="VARCHAR(32)" remarks="应用ID"/>
             <column name="user_id" type="VARCHAR(64)" remarks="用户ID"/>
             <column name="input_tokens" type="BIGINT" defaultValueNumeric="0" remarks="输入Token数"/>
             <column name="output_tokens" type="BIGINT" defaultValueNumeric="0" remarks="输出Token数"/>

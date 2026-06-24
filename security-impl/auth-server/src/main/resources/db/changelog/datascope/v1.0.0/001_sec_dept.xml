@@ -6,7 +6,7 @@
 
     <changeSet id="v1.0.0-001-sec-dept" author="afg">
         <createTable tableName="sec_dept" remarks="部门表">
-            <column name="id" type="BIGINT" autoIncrement="true">
+            <column name="id" type="VARCHAR(32)">
                 <constraints primaryKey="true" primaryKeyName="pk_sec_dept"/>
             </column>
             <column name="dept_code" type="VARCHAR(50)" remarks="部门编码">
@@ -15,7 +15,7 @@
             <column name="dept_name" type="VARCHAR(100)" remarks="部门名称">
                 <constraints nullable="false"/>
             </column>
-            <column name="parent_id" type="BIGINT" remarks="父部门ID"/>
+            <column name="parent_id" type="VARCHAR(32)" remarks="父部门ID"/>
             <column name="tenant_id" type="VARCHAR(50)" remarks="租户ID">
                 <constraints nullable="false"/>
             </column>

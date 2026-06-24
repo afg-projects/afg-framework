@@ -6,7 +6,7 @@
 
     <changeSet id="v1.0.0-014-ai-api-key" author="afg">
         <createTable tableName="ai_api_key" remarks="API密钥">
-            <column name="id" type="BIGINT" autoIncrement="true">
+            <column name="id" type="VARCHAR(32)">
                 <constraints primaryKey="true" primaryKeyName="pk_ai_api_key"/>
             </column>
             <column name="name" type="VARCHAR(200)" remarks="名称">
@@ -16,7 +16,7 @@
                 <constraints nullable="false"/>
             </column>
             <column name="key_prefix" type="VARCHAR(20)" remarks="密钥前缀"/>
-            <column name="application_id" type="BIGINT" remarks="应用ID"/>
+            <column name="application_id" type="VARCHAR(32)" remarks="应用ID"/>
             <column name="permissions" type="CLOB" remarks="权限(JSON)"/>
             <column name="allowed_origins" type="VARCHAR(500)" remarks="允许的来源"/>
             <column name="rate_limit" type="INT" remarks="速率限制"/>
