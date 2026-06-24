@@ -12,12 +12,12 @@ public record GrayscaleContext(
         /**
          * 用户ID
          */
-        @Nullable Long userId,
+        @Nullable String userId,
 
         /**
          * 租户ID
          */
-        @Nullable Long tenantId,
+        @Nullable String tenantId,
 
         /**
          * 用户名
@@ -50,7 +50,7 @@ public record GrayscaleContext(
      * @param userId 用户ID
      * @return 灰度上下文
      */
-    public static GrayscaleContext fromUserId(Long userId) {
+    public static GrayscaleContext fromUserId(String userId) {
         return new GrayscaleContext(userId, null, null, null);
     }
 
@@ -61,7 +61,7 @@ public record GrayscaleContext(
      * @param tenantId 租户ID
      * @return 灰度上下文
      */
-    public static GrayscaleContext of(Long userId, Long tenantId) {
+    public static GrayscaleContext of(String userId, String tenantId) {
         return new GrayscaleContext(userId, tenantId, null, null);
     }
 
@@ -70,17 +70,17 @@ public record GrayscaleContext(
      */
     public static class Builder {
 
-        private @Nullable Long userId;
-        private @Nullable Long tenantId;
+        private @Nullable String userId;
+        private @Nullable String tenantId;
         private @Nullable String username;
         private @Nullable String clientIp;
 
-        public Builder userId(@Nullable Long userId) {
+        public Builder userId(@Nullable String userId) {
             this.userId = userId;
             return this;
         }
 
-        public Builder tenantId(@Nullable Long tenantId) {
+        public Builder tenantId(@Nullable String tenantId) {
             this.tenantId = tenantId;
             return this;
         }

@@ -65,9 +65,9 @@ class DatabaseAuditLogStorageTest {
                 id VARCHAR(36) PRIMARY KEY,
                 trace_id VARCHAR(64),
                 request_id VARCHAR(64),
-                user_id BIGINT,
+                user_id VARCHAR(32),
                 username VARCHAR(128),
-                tenant_id BIGINT,
+                tenant_id VARCHAR(32),
                 module VARCHAR(128),
                 operation VARCHAR(256),
                 target VARCHAR(512),
@@ -114,9 +114,9 @@ class DatabaseAuditLogStorageTest {
         void shouldStoreAllFields() {
             AuditLog log = AuditLog.successBuilder()
                     .id("field-test-1")
-                    .userId(123L)
+                    .userId("123")
                     .username("testuser")
-                    .tenantId(1L)
+                    .tenantId("1")
                     .operation("CREATE")
                     .module("user")
                     .target("User:456")
@@ -142,9 +142,9 @@ class DatabaseAuditLogStorageTest {
                     "SELECT operation FROM audit_log WHERE id = ?", String.class, "field-test-1");
             assertThat(operation).isEqualTo("CREATE");
 
-            Long userId = jdbcTemplate.queryForObject(
-                    "SELECT user_id FROM audit_log WHERE id = ?", Long.class, "field-test-1");
-            assertThat(userId).isEqualTo(123L);
+            String userId = jdbcTemplate.queryForObject(
+                    "SELECT user_id FROM audit_log WHERE id = ?", String.class, "field-test-1");
+            assertThat(userId).isEqualTo("123");
 
             String result = jdbcTemplate.queryForObject(
                     "SELECT result FROM audit_log WHERE id = ?", String.class, "field-test-1");

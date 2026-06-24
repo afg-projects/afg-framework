@@ -34,7 +34,7 @@ public class EnvironmentController {
      * 根据ID查询环境
      */
     @GetMapping("/{id}")
-    public Result<Environment> getById(@PathVariable Long id) {
+    public Result<Environment> getById(@PathVariable String id) {
         // TODO: 应该使用 findById，暂时使用 findByCode
         log.warn("getById called with id: {}, but using findByCode as fallback", id);
         return Result.fail(404, "Environment not found: " + id);
@@ -64,7 +64,7 @@ public class EnvironmentController {
      * 更新环境
      */
     @PutMapping("/{id}")
-    public Result<Environment> update(@PathVariable Long id, @RequestBody Environment environment) {
+    public Result<Environment> update(@PathVariable String id, @RequestBody Environment environment) {
         return Result.success(environmentService.update(id, environment));
     }
 
@@ -76,8 +76,8 @@ public class EnvironmentController {
      */
     @PostMapping("/clone")
     public Result<Void> cloneConfig(
-            @RequestParam Long sourceEnvId,
-            @RequestParam Long targetEnvId) {
+            @RequestParam String sourceEnvId,
+            @RequestParam String targetEnvId) {
         environmentService.cloneConfig(sourceEnvId, targetEnvId);
         return Result.success(null);
     }

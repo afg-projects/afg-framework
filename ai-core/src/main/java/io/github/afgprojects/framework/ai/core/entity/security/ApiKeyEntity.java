@@ -33,7 +33,7 @@ public class ApiKeyEntity extends SoftDeleteEntity {
     private String keyPrefix;
 
     @Column(name = "application_id")
-    private Long applicationId;
+    private String applicationId;
 
     @Column(name = "permissions", columnDefinition = "JSON")
     private String permissions;

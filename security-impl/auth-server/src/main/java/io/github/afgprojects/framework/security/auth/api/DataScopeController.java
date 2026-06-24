@@ -27,7 +27,7 @@ public class DataScopeController {
     }
 
     @GetMapping("/{id}")
-    public SecDataScope getById(@PathVariable Long id) {
+    public SecDataScope getById(@PathVariable String id) {
         return dataScopeService.findById(id).orElse(null);
     }
 
@@ -42,12 +42,12 @@ public class DataScopeController {
     }
 
     @PostMapping("/user/{userId}")
-    public void setUserScopes(@PathVariable String userId, @RequestBody Set<Long> scopeIds, @RequestParam @Nullable String tenantId) {
+    public void setUserScopes(@PathVariable String userId, @RequestBody Set<String> scopeIds, @RequestParam @Nullable String tenantId) {
         dataScopeService.setUserDataScopes(userId, scopeIds, tenantId);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
+    public void delete(@PathVariable String id) {
         dataScopeService.delete(id);
     }
 }

@@ -198,7 +198,7 @@ public class EntityInsertHandler<T> {
 
         // 使用 IdGenerator 预生成 ID（如果配置了 IdGenerator）
         if (idGenerator != null) {
-            long generatedId = idGenerator.nextId();
+            String generatedId = idGenerator.nextIdAsString();
             queryHelper.setIdValue(entity, generatedId);
             String sql = queryHelper.buildInsertWithIdSql();
             List<Object> params = queryHelper.extractInsertWithIdParams(entity);
@@ -542,7 +542,7 @@ public class EntityInsertHandler<T> {
             return;
         }
 
-        Long parentId = treeable.getParentId();
+        String parentId = treeable.getParentId();
         if (parentId == null) {
             // 根节点
             treeable.setLevel(1);
@@ -553,7 +553,7 @@ public class EntityInsertHandler<T> {
             if (parentEntity instanceof Treeable<?> parent) {
                 int parentLevel = parent.getLevel() != null ? parent.getLevel() : 1;
                 String parentPath = parent.getPath() != null ? parent.getPath() : "/";
-                Long parentIdValue = parentEntity instanceof BaseEntity be ? be.getId() : parentId;
+                String parentIdValue = parentEntity instanceof BaseEntity be ? be.getId() : parentId;
                 treeable.setLevel(parentLevel + 1);
                 treeable.setPath(parentPath + parentIdValue + "/");
             } else {
@@ -572,7 +572,7 @@ public class EntityInsertHandler<T> {
      * @param parentId 父节点 ID
      * @return 父实体，可能为 null
      */
-    private @Nullable T findParentEntity(Long parentId) {
+    private @Nullable T findParentEntity(String parentId) {
         try {
             return dataManager.entity(entityClass).findById(parentId).orElse(null);
         } catch (Exception e) {

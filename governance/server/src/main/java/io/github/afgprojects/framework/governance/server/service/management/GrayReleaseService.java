@@ -67,7 +67,7 @@ public class GrayReleaseService {
      * <p>将新值推送到灰度实例，创建推送记录。
      */
     @Transactional
-    public GrayRelease publish(Long id) {
+    public GrayRelease publish(String id) {
         GrayRelease release = findByIdOrThrow(id);
 
         if (release.getStatus() != STATUS_DRAFT) {
@@ -91,7 +91,7 @@ public class GrayReleaseService {
      * <p>将灰度值更新为配置项的正式值，推送到所有实例。
      */
     @Transactional
-    public GrayRelease fullRollout(Long id) {
+    public GrayRelease fullRollout(String id) {
         GrayRelease release = findByIdOrThrow(id);
 
         if (release.getStatus() != STATUS_PUBLISHED) {
@@ -134,7 +134,7 @@ public class GrayReleaseService {
      * <p>恢复灰度实例的原始配置值。
      */
     @Transactional
-    public GrayRelease rollback(Long id) {
+    public GrayRelease rollback(String id) {
         GrayRelease release = findByIdOrThrow(id);
 
         if (release.getStatus() != STATUS_PUBLISHED) {
@@ -155,7 +155,7 @@ public class GrayReleaseService {
     /**
      * 查询灰度发布列表
      */
-    public List<GrayRelease> list(Long environmentId) {
+    public List<GrayRelease> list(String environmentId) {
         var builder = Conditions.builder(GrayRelease.class);
         if (environmentId != null) {
             builder.eq(GrayRelease::getEnvironmentId, environmentId);
@@ -169,13 +169,13 @@ public class GrayReleaseService {
     /**
      * 根据ID查询灰度发布
      */
-    public GrayRelease findById(Long id) {
+    public GrayRelease findById(String id) {
         return dataManager.findById(GrayRelease.class, id).orElse(null);
     }
 
     // ========== 私有方法 ==========
 
-    private GrayRelease findByIdOrThrow(Long id) {
+    private GrayRelease findByIdOrThrow(String id) {
         return dataManager.findById(GrayRelease.class, id)
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND,
                 "Gray release not found: " + id));

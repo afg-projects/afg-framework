@@ -42,7 +42,7 @@ public class ServiceRegistryController {
      * 根据ID获取服务
      */
     @GetMapping("/{id}")
-    public Result<ServiceRegistry> get(@PathVariable Long id) {
+    public Result<ServiceRegistry> get(@PathVariable String id) {
         return dataManager.findById(ServiceRegistry.class, id)
             .filter(s -> !s.isDeleted())
             .map(Result::success)

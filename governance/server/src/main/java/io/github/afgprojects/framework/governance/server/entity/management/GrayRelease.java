@@ -20,10 +20,10 @@ import lombok.Setter;
 public class GrayRelease extends FullEntity {
 
     @Column(name = "config_item_id", nullable = false)
-    private Long configItemId;
+    private String configItemId;
 
     @Column(name = "environment_id", nullable = false)
-    private Long environmentId;
+    private String environmentId;
 
     @Column(name = "new_value", columnDefinition = "TEXT")
     private String newValue;

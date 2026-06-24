@@ -26,13 +26,13 @@ public class ResourceController {
     }
 
     @PutMapping("/{id}")
-    public SecResource update(@PathVariable Long id, @RequestBody SecResource resource) {
+    public SecResource update(@PathVariable String id, @RequestBody SecResource resource) {
         resource.setId(id);
         return resourceService.update(resource);
     }
 
     @GetMapping("/{id}")
-    public SecResource getById(@PathVariable Long id) {
+    public SecResource getById(@PathVariable String id) {
         return resourceService.findById(id).orElse(null);
     }
 
@@ -52,7 +52,7 @@ public class ResourceController {
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
+    public void delete(@PathVariable String id) {
         resourceService.delete(id);
     }
 }

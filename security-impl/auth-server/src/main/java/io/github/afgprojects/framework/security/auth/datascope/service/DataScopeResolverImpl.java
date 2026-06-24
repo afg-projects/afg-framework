@@ -38,7 +38,7 @@ public class DataScopeResolverImpl {
         return dataScopes;
     }
 
-    public Set<Long> getAccessibleDeptIds(@NonNull String userId, @Nullable String tenantId) {
+    public Set<String> getAccessibleDeptIds(@NonNull String userId, @Nullable String tenantId) {
         List<DataScope> dataScopes = dataScopeService.resolveUserDataScopes(userId, tenantId, null);
 
         for (DataScope scope : dataScopes) {

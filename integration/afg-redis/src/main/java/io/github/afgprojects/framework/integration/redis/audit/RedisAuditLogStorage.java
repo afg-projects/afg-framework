@@ -84,7 +84,7 @@ public class RedisAuditLogStorage implements AuditLogStorage {
      * @param tenantId 租户 ID
      * @return Redis Key
      */
-    private String buildKey(Long tenantId) {
+    private String buildKey(String tenantId) {
         if (properties.isMultiTenant() && tenantId != null) {
             return KEY_PREFIX + tenantId;
         }

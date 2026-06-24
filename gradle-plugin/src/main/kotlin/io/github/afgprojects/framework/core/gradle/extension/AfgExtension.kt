@@ -8,7 +8,7 @@ import org.gradle.api.provider.Property
  * 使用方式：
  * <pre>
  * afg {
- *     springBootVersion.set("4.0.6")
+ *     springBootVersion.set("4.1.0")
  *     frameworkVersion.set("1.0.0-SNAPSHOT")
  *     standalone.set(true)
  *     useLombok.set(true)

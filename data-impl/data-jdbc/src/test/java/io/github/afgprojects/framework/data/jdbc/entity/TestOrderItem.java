@@ -16,7 +16,7 @@ import java.time.Instant;
 @Setter
 public class TestOrderItem extends BaseEntity implements LifecycleCallbacks {
 
-    private Long orderId;
+    private String orderId;
     private String productName;
     private BigDecimal price;
     private Integer quantity;
@@ -27,7 +27,7 @@ public class TestOrderItem extends BaseEntity implements LifecycleCallbacks {
     @ManyToOne(targetEntity = TestOrder.class, foreignKey = "order_id")
     private TestOrder order;
 
-    public static TestOrderItem create(Long orderId, String productName, BigDecimal price, int quantity) {
+    public static TestOrderItem create(String orderId, String productName, BigDecimal price, int quantity) {
         TestOrderItem item = new TestOrderItem();
         item.setOrderId(orderId);
         item.setProductName(productName);

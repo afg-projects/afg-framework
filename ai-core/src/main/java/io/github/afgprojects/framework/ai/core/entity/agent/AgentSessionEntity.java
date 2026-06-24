@@ -22,7 +22,7 @@ import lombok.Setter;
 public class AgentSessionEntity extends SoftDeleteEntity {
 
     @Column(name = "agent_definition_id", nullable = false)
-    private Long agentDefinitionId;
+    private String agentDefinitionId;
 
     @Column(name = "user_id", length = 64)
     private String userId;

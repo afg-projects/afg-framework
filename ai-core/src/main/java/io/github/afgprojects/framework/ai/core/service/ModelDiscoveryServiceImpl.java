@@ -48,7 +48,7 @@ public class ModelDiscoveryServiceImpl implements ModelDiscoveryService {
     );
 
     @Override
-    public List<DiscoveredModel> discoverModels(Long providerId) {
+    public List<DiscoveredModel> discoverModels(String providerId) {
         ModelProviderEntity provider = dataManager.findById(ModelProviderEntity.class, providerId)
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "供应商不存在: " + providerId));
 

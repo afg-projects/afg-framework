@@ -43,7 +43,7 @@ public class KnowledgeExtensionService {
      * @param threshold       相似度阈值
      * @return 检索结果列表
      */
-    public List<Document> questionAnswer(Long knowledgeBaseId, String question, int topK, double threshold) {
+    public List<Document> questionAnswer(String knowledgeBaseId, String question, int topK, double threshold) {
         // 验证知识库存在
         dataManager.findById(KnowledgeBaseEntity.class, knowledgeBaseId)
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "知识库不存在: " + knowledgeBaseId));
@@ -65,7 +65,7 @@ public class KnowledgeExtensionService {
      * @return 创建的文档实体
      */
     @Transactional
-    public DocumentEntity uploadFromUrl(Long knowledgeBaseId, String url, String title) {
+    public DocumentEntity uploadFromUrl(String knowledgeBaseId, String url, String title) {
         // 验证知识库存在
         dataManager.findById(KnowledgeBaseEntity.class, knowledgeBaseId)
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "知识库不存在: " + knowledgeBaseId));
@@ -91,7 +91,7 @@ public class KnowledgeExtensionService {
      * @return 更新后的文档实体
      */
     @Transactional
-    public DocumentEntity retryDocument(Long documentId) {
+    public DocumentEntity retryDocument(String documentId) {
         DocumentEntity document = dataManager.findById(DocumentEntity.class, documentId)
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "文档不存在: " + documentId));
 
@@ -114,7 +114,7 @@ public class KnowledgeExtensionService {
      * @param status          文档状态（可选）
      * @return 文档列表
      */
-    public List<DocumentEntity> listDocumentsByStatus(Long knowledgeBaseId, String status) {
+    public List<DocumentEntity> listDocumentsByStatus(String knowledgeBaseId, String status) {
         var builder = Conditions.builder(DocumentEntity.class)
             .eq(DocumentEntity::getKnowledgeBaseId, knowledgeBaseId);
 

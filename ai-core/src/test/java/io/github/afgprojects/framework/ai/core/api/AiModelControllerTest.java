@@ -128,7 +128,7 @@ class AiModelControllerTest extends AbstractAiWebTest {
     void shouldReturn404_whenGetNonExistentProvider() {
         // Act & Assert - RestClient throws HttpClientErrorException for 4xx responses
         assertThatThrownBy(() -> restClient().get()
-                .uri("/models/providers/{id}", 999999L)
+                .uri("/models/providers/{id}", "999999")
                 .retrieve()
                 .toEntity(Map.class))
             .isInstanceOf(org.springframework.web.client.HttpClientErrorException.NotFound.class);
@@ -183,7 +183,7 @@ class AiModelControllerTest extends AbstractAiWebTest {
         assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 
         // Assert - GET returns 404 (soft deleted)
-        Long deletedId = provider.getId();
+        String deletedId = provider.getId();
         assertThatThrownBy(() -> restClient().get()
                 .uri("/models/providers/{id}", deletedId)
                 .retrieve()
@@ -330,7 +330,7 @@ class AiModelControllerTest extends AbstractAiWebTest {
         assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 
         // Assert - GET returns 404 (soft deleted)
-        Long deletedConfigId = config.getId();
+        String deletedConfigId = config.getId();
         assertThatThrownBy(() -> restClient().get()
                 .uri("/models/configs/{id}", deletedConfigId)
                 .retrieve()

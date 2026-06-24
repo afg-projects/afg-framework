@@ -28,7 +28,7 @@ public class ModelTestService {
      * @param providerId 供应商 ID
      * @return 验证结果
      */
-    public ConnectionTestResponse verifyConnection(Long providerId) {
+    public ConnectionTestResponse verifyConnection(String providerId) {
         ModelProviderEntity provider = dataManager.findById(ModelProviderEntity.class, providerId)
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "供应商不存在: " + providerId));
 

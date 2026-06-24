@@ -67,7 +67,7 @@ public final class AfgRequestContextHolder {
     /**
      * 获取当前用户ID
      */
-    public static @Nullable Long getUserId() {
+    public static @Nullable String getUserId() {
         RequestContext context = getContext();
         return context != null ? context.getUserId() : null;
     }
@@ -83,7 +83,7 @@ public final class AfgRequestContextHolder {
     /**
      * 获取租户ID
      */
-    public static @Nullable Long getTenantId() {
+    public static @Nullable String getTenantId() {
         RequestContext context = getContext();
         return context != null ? context.getTenantId() : null;
     }

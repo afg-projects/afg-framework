@@ -166,7 +166,7 @@ class AiAgentControllerTest extends AbstractAiWebTest {
         assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 
         // Assert - GET returns 404 (soft deleted)
-        Long deletedDefId = definition.getId();
+        String deletedDefId = definition.getId();
         assertThatThrownBy(() -> restClient().get()
                 .uri("/agents/definitions/{id}", deletedDefId)
                 .retrieve()
@@ -304,7 +304,7 @@ class AiAgentControllerTest extends AbstractAiWebTest {
         assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 
         // Assert - GET returns 404 (soft deleted)
-        Long deletedSessionId = session.getId();
+        String deletedSessionId = session.getId();
         assertThatThrownBy(() -> restClient().get()
                 .uri("/agents/sessions/{id}", deletedSessionId)
                 .retrieve()

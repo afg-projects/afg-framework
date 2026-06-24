@@ -5,16 +5,16 @@ import io.github.afgprojects.framework.data.core.entity.FullEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.Instant;
 
 /**
  * 服务实例实体
  */
-@Data
-@EqualsAndHashCode(callSuper = true)
+@Getter
+@Setter
 @AfEntity
 @Entity
 @Table(name = "gov_service_instance")
@@ -24,7 +24,7 @@ public class ServiceInstance extends FullEntity {
      * 服务ID（关联 ServiceRegistry）
      */
     @Column(name = "service_id", nullable = false)
-    private Long serviceId;
+    private String serviceId;
 
     /**
      * 实例ID（唯一标识）

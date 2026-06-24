@@ -1,6 +1,7 @@
 package io.github.afgprojects.framework.security.auth.datascope.entity;
 
 import io.github.afgprojects.framework.apt.entity.AfEntity;
+import io.github.afgprojects.framework.data.core.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,17 +13,13 @@ import lombok.Setter;
 @Setter
 @AfEntity
 @Table(name = "sec_user_dept")
-public class SecUserDept {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class SecUserDept extends BaseEntity {
 
     @Column(name = "user_id", nullable = false, length = 100)
     private String userId;
 
     @Column(name = "dept_id", nullable = false)
-    private Long deptId;
+    private String deptId;
 
     @Column(name = "tenant_id", length = 50)
     private String tenantId;

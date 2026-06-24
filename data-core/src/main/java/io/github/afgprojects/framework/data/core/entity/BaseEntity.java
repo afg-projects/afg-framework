@@ -26,21 +26,17 @@ import java.time.Instant;
  * <p>使用 {@link Instant} 替代 {@link java.time.LocalDateTime}，
  * 以确保在分布式系统中时间戳的一致性（Instant 包含 UTC 时区信息）。
  *
- * <p>提供了基于 ID 的 {@link #equals(Object)} 和 {@link #hashCode()} 实现，
- * 符合 JPA 实体的最佳实践：
- * <ul>
- *   <li>新建实体（id 为 null）使用对象身份判断相等性</li>
- *   <li>已持久化实体使用 id 判断相等性</li>
- * </ul>
+ * <p>ID 类型为 {@code String}，由 {@code IdGenerator.nextIdAsString()} 生成，
+ * 解决前端 JavaScript 精度丢失问题（Long 超过 2^53-1 时精度丢失）。
  */
 @Setter
 @Getter
 public abstract class BaseEntity {
 
     /**
-     * 实体 ID
+     * 实体 ID（字符串类型，避免前端精度丢失）
      */
-    protected Long id;
+    protected String id;
 
     /**
      * 创建时间（UTC）
@@ -51,37 +47,4 @@ public abstract class BaseEntity {
      * 更新时间（UTC）
      */
     protected Instant updatedAt;
-
-    /**
-     * 基于 ID 的相等性判断。
-     *
-     * <p>如果两个实体的 ID 都不为 null 且相等，则认为它们相等。
-     * 如果两个实体的 ID 都为 null（新建实体），则使用对象身份（==）判断。
-     * 如果一个 ID 为 null 另一个不为 null，则不相等。
-     */
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
-        BaseEntity that = (BaseEntity) obj;
-        // 新建实体（id 为 null）使用对象身份
-        if (this.id == null || that.id == null) return false;
-        return id.equals(that.id);
-    }
-
-    /**
-     * 基于 ID 的哈希码。
-     *
-     * <p>新建实体（id 为 null）使用 {@link System#identityHashCode(Object)}，
-     * 已持久化实体使用 id 的哈希码。
-     */
-    @Override
-    public int hashCode() {
-        return id == null ? System.identityHashCode(this) : id.hashCode();
-    }
-
-    @Override
-    public String toString() {
-        return getClass().getSimpleName() + "(id=" + id + ")";
-    }
 }

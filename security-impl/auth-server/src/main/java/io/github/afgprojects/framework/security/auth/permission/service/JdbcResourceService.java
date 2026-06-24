@@ -36,7 +36,7 @@ public class JdbcResourceService {
         return dataManager.save(SecResource.class, resource);
     }
 
-    public Optional<SecResource> findById(@NonNull Long id) {
+    public Optional<SecResource> findById(@NonNull String id) {
         return dataManager.findById(SecResource.class, id);
     }
 
@@ -97,7 +97,7 @@ public class JdbcResourceService {
         return dataManager.findAll(SecPermission.class);
     }
 
-    public List<SecPermission> findPermissionsByResource(@NonNull Long resourceId, @Nullable String tenantId) {
+    public List<SecPermission> findPermissionsByResource(@NonNull String resourceId, @Nullable String tenantId) {
         var condition = Conditions.builder(SecPermission.class)
             .eq(SecPermission::getResourceId, resourceId);
         if (tenantId != null) {
@@ -107,7 +107,7 @@ public class JdbcResourceService {
     }
 
     @Transactional
-    public void delete(@NonNull Long id) {
+    public void delete(@NonNull String id) {
         dataManager.findList(SecPermission.class,
             Conditions.builder(SecPermission.class)
                 .eq(SecPermission::getResourceId, id)

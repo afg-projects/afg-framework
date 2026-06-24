@@ -185,15 +185,15 @@ public class EnhancedTraceInterceptor extends TraceInterceptor {
         request.getHeaders().add("X-Request-Id", requestId);
 
         // 传递租户ID
-        Long tenantId = AfgRequestContextHolder.getTenantId();
+        String tenantId = AfgRequestContextHolder.getTenantId();
         if (tenantId != null) {
-            request.getHeaders().add("X-Tenant-Id", String.valueOf(tenantId));
+            request.getHeaders().add("X-Tenant-Id", tenantId);
         }
 
         // 传递用户ID
-        Long userId = AfgRequestContextHolder.getUserId();
+        String userId = AfgRequestContextHolder.getUserId();
         if (userId != null) {
-            request.getHeaders().add("X-User-Id", String.valueOf(userId));
+            request.getHeaders().add("X-User-Id", userId);
         }
     }
 

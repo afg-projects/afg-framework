@@ -26,7 +26,7 @@ public class ConfigItemController {
     private final DataManager dataManager;
 
     @GetMapping
-    public Result<List<ConfigItemResponse>> list(@RequestParam(required = false) Long groupId) {
+    public Result<List<ConfigItemResponse>> list(@RequestParam(required = false) String groupId) {
         List<ConfigItem> items;
         if (groupId != null) {
             items = dataManager.entity(ConfigItem.class)
@@ -47,7 +47,7 @@ public class ConfigItemController {
         }
 
         // 批量获取当前值
-        Map<Long, String> valueMap = fetchCurrentValues(items);
+        Map<String, String> valueMap = fetchCurrentValues(items);
 
         return Result.success(items.stream()
             .map(item -> ConfigItemResponse.fromEntity(item, valueMap.get(item.getId())))
@@ -57,18 +57,18 @@ public class ConfigItemController {
     /**
      * 批量获取配置项的当前值
      */
-    private Map<Long, String> fetchCurrentValues(List<ConfigItem> items) {
+    private Map<String, String> fetchCurrentValues(List<ConfigItem> items) {
         if (items == null || items.isEmpty()) {
             return Map.of();
         }
 
-        List<Long> itemIds = items.stream()
+        List<String> itemIds = items.stream()
             .map(ConfigItem::getId)
             .toList();
 
         // 逐个查询，避免 IN 条件问题
-        Map<Long, String> result = new java.util.HashMap<>();
-        for (Long itemId : itemIds) {
+        Map<String, String> result = new java.util.HashMap<>();
+        for (String itemId : itemIds) {
             dataManager.findOneByField(ConfigValue.class, ConfigValue::getItemId, itemId)
                 .ifPresent(v -> result.put(itemId, v.getValue()));
         }
@@ -77,7 +77,7 @@ public class ConfigItemController {
     }
 
     @GetMapping("/{id}")
-    public Result<ConfigItemResponse> get(@PathVariable Long id) {
+    public Result<ConfigItemResponse> get(@PathVariable String id) {
         return dataManager.findById(ConfigItem.class, id)
             .filter(i -> !i.isDeleted())
             .map(item -> {
@@ -121,7 +121,7 @@ public class ConfigItemController {
 
     @PutMapping("/{id}")
     @Transactional
-    public Result<ConfigItem> update(@PathVariable Long id, @RequestBody ConfigItem item) {
+    public Result<ConfigItem> update(@PathVariable String id, @RequestBody ConfigItem item) {
         ConfigItem existing = dataManager.findById(ConfigItem.class, id)
             .filter(i -> !i.isDeleted())
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Config item not found: " + id));
@@ -145,7 +145,7 @@ public class ConfigItemController {
 
     @DeleteMapping("/{id}")
     @Transactional
-    public Result<Void> delete(@PathVariable Long id) {
+    public Result<Void> delete(@PathVariable String id) {
         ConfigItem item = dataManager.findById(ConfigItem.class, id)
             .filter(i -> !i.isDeleted())
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Config item not found: " + id));

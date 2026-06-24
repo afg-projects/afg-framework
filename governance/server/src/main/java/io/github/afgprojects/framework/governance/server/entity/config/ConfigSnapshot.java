@@ -29,10 +29,10 @@ public class ConfigSnapshot extends TenantEntity {
     private String data;
 
     @Column(name = "group_id")
-    private Long groupId;
+    private String groupId;
 
     @Column(name = "creator_id")
-    private Long creatorId;
+    private String creatorId;
 
     @Column(name = "creator_name", length = 50)
     private String creatorName;

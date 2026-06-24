@@ -51,7 +51,7 @@ public class AiAgentController {
      * 更新 Agent 定义
      */
     @PutMapping("/definitions/{id}")
-    public AgentDefinitionEntity updateDefinition(@PathVariable Long id, @RequestBody AgentDefinitionEntity definition) {
+    public AgentDefinitionEntity updateDefinition(@PathVariable String id, @RequestBody AgentDefinitionEntity definition) {
         definition.setId(id);
         return dataManager.save(AgentDefinitionEntity.class, definition);
     }
@@ -60,7 +60,7 @@ public class AiAgentController {
      * 获取 Agent 定义
      */
     @GetMapping("/definitions/{id}")
-    public ResponseEntity<AgentDefinitionEntity> getDefinition(@PathVariable Long id) {
+    public ResponseEntity<AgentDefinitionEntity> getDefinition(@PathVariable String id) {
         return dataManager.findById(AgentDefinitionEntity.class, id)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
@@ -78,7 +78,7 @@ public class AiAgentController {
      * 删除 Agent 定义（软删除）
      */
     @DeleteMapping("/definitions/{id}")
-    public ResponseEntity<Void> deleteDefinition(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteDefinition(@PathVariable String id) {
         dataManager.deleteById(AgentDefinitionEntity.class, id);
         return ResponseEntity.noContent().build();
     }
@@ -97,7 +97,7 @@ public class AiAgentController {
      * 获取会话
      */
     @GetMapping("/sessions/{id}")
-    public ResponseEntity<AgentSessionEntity> getSession(@PathVariable Long id) {
+    public ResponseEntity<AgentSessionEntity> getSession(@PathVariable String id) {
         return dataManager.findById(AgentSessionEntity.class, id)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
@@ -107,7 +107,7 @@ public class AiAgentController {
      * 列出会话
      */
     @GetMapping("/sessions")
-    public List<AgentSessionEntity> listSessions(@RequestParam Long agentDefinitionId) {
+    public List<AgentSessionEntity> listSessions(@RequestParam String agentDefinitionId) {
         return dataManager.entity(AgentSessionEntity.class)
             .query()
             .where(Conditions.builder(AgentSessionEntity.class)
@@ -120,7 +120,7 @@ public class AiAgentController {
      * 删除会话（软删除）
      */
     @DeleteMapping("/sessions/{id}")
-    public ResponseEntity<Void> deleteSession(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteSession(@PathVariable String id) {
         dataManager.deleteById(AgentSessionEntity.class, id);
         return ResponseEntity.noContent().build();
     }
@@ -133,7 +133,7 @@ public class AiAgentController {
      * 不使用 @Transactional：AgentService.execute() 内部已将 AI 执行与数据库操作分离。
      */
     @PostMapping("/sessions/{id}/execute")
-    public AgentResponse executeAgent(@PathVariable Long id, @RequestBody Map<String, String> body) {
+    public AgentResponse executeAgent(@PathVariable String id, @RequestBody Map<String, String> body) {
         String userInput = body.get("message");
         if (userInput == null || userInput.isBlank()) {
             throw new BusinessException(CommonErrorCode.PARAM_ERROR, "Message is required");
@@ -153,7 +153,7 @@ public class AiAgentController {
      * @return SSE 事件流
      */
     @GetMapping(value = "/sessions/{id}/execute/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<AgentResponse> executeAgentStream(@PathVariable Long id, @RequestBody Map<String, String> body) {
+    public Flux<AgentResponse> executeAgentStream(@PathVariable String id, @RequestBody Map<String, String> body) {
         String userInput = body.get("message");
         if (userInput == null || userInput.isBlank()) {
             return Flux.error(new BusinessException(CommonErrorCode.PARAM_ERROR, "Message is required"));

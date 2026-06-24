@@ -30,7 +30,7 @@ public class ConfigSnapshotController {
     private final ObjectMapper objectMapper;
 
     @GetMapping
-    public Result<List<ConfigSnapshotDTO>> list(@RequestParam(required = false) Long groupId) {
+    public Result<List<ConfigSnapshotDTO>> list(@RequestParam(required = false) String groupId) {
         List<ConfigSnapshot> snapshots;
         if (groupId != null) {
             snapshots = dataManager.findAllByField(ConfigSnapshot.class, ConfigSnapshot::getGroupId, groupId);
@@ -45,7 +45,7 @@ public class ConfigSnapshotController {
     }
 
     @GetMapping("/{id}")
-    public Result<ConfigSnapshotDTO> get(@PathVariable Long id) {
+    public Result<ConfigSnapshotDTO> get(@PathVariable String id) {
         return dataManager.findById(ConfigSnapshot.class, id)
             .map(this::toDTO)
             .map(Result::success)
@@ -80,7 +80,7 @@ public class ConfigSnapshotController {
     }
 
     @PostMapping("/{id}/rollback")
-    public Result<Void> rollback(@PathVariable Long id, @RequestBody(required = false) RollbackRequest request) {
+    public Result<Void> rollback(@PathVariable String id, @RequestBody(required = false) RollbackRequest request) {
         ConfigSnapshot snapshot = dataManager.findById(ConfigSnapshot.class, id)
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Snapshot not found: " + id));
 
@@ -99,7 +99,7 @@ public class ConfigSnapshotController {
     }
 
     @GetMapping("/compare/{id1}/{id2}")
-    public Result<ConfigDiffDTO> compare(@PathVariable Long id1, @PathVariable Long id2) {
+    public Result<ConfigDiffDTO> compare(@PathVariable String id1, @PathVariable String id2) {
         ConfigSnapshot snapshot1 = dataManager.findById(ConfigSnapshot.class, id1)
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Snapshot not found: " + id1));
         ConfigSnapshot snapshot2 = dataManager.findById(ConfigSnapshot.class, id2)
@@ -118,7 +118,7 @@ public class ConfigSnapshotController {
     }
 
     @DeleteMapping("/{id}")
-    public Result<Void> delete(@PathVariable Long id) {
+    public Result<Void> delete(@PathVariable String id) {
         dataManager.deleteById(ConfigSnapshot.class, id);
         log.info("Deleted config snapshot: id={}", id);
         return Result.success(null);
@@ -126,9 +126,9 @@ public class ConfigSnapshotController {
 
     // === 私有方法 ===
 
-    private Map<String, Object> collectConfigData(Long groupId) {
+    private Map<String, Object> collectConfigData(String groupId) {
         Map<String, Object> result = new LinkedHashMap<>();
-        Map<Long, String> groupNames = new HashMap<>();
+        Map<String, String> groupNames = new HashMap<>();
 
         // 获取所有分组名称
         List<ConfigGroup> groups = dataManager.findAll(ConfigGroup.class);
@@ -287,8 +287,8 @@ public class ConfigSnapshotController {
         private String name;
         private String description;
         private String tag;
-        private Long groupId;
-        private Long creatorId;
+        private String groupId;
+        private String creatorId;
         private String creatorName;
     }
 

@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.governance.server.config;
 
+import io.github.afgprojects.framework.core.autoconfigure.ModuleAutoConfiguration;
 import io.github.afgprojects.framework.governance.server.properties.GovernanceServerProperties;
 import io.github.afgprojects.framework.governance.server.properties.GovernanceServerSecurityProperties;
 import lombok.extern.slf4j.Slf4j;

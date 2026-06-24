@@ -33,7 +33,7 @@ public class ServiceInstanceController {
      * @param serviceId 可选的服务ID参数
      */
     @GetMapping
-    public Result<List<ServiceInstance>> list(@RequestParam(required = false) Long serviceId) {
+    public Result<List<ServiceInstance>> list(@RequestParam(required = false) String serviceId) {
         var builder = Conditions.builder(ServiceInstance.class)
             .eq(ServiceInstance::isDeleted, false);
 
@@ -51,7 +51,7 @@ public class ServiceInstanceController {
      * 根据ID获取实例
      */
     @GetMapping("/{id}")
-    public Result<ServiceInstance> get(@PathVariable Long id) {
+    public Result<ServiceInstance> get(@PathVariable String id) {
         return dataManager.findById(ServiceInstance.class, id)
             .filter(i -> !i.isDeleted())
             .map(Result::success)
@@ -63,7 +63,7 @@ public class ServiceInstanceController {
      */
     @PutMapping("/{id}/weight")
     @Transactional
-    public Result<ServiceInstance> updateWeight(@PathVariable Long id, @RequestBody Map<String, Integer> body) {
+    public Result<ServiceInstance> updateWeight(@PathVariable String id, @RequestBody Map<String, Integer> body) {
         ServiceInstance instance = dataManager.findById(ServiceInstance.class, id)
             .filter(i -> !i.isDeleted())
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Service instance not found: " + id));
@@ -84,7 +84,7 @@ public class ServiceInstanceController {
      */
     @DeleteMapping("/{id}")
     @Transactional
-    public Result<Void> deregister(@PathVariable Long id) {
+    public Result<Void> deregister(@PathVariable String id) {
         ServiceInstance instance = dataManager.findById(ServiceInstance.class, id)
             .filter(i -> !i.isDeleted())
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Service instance not found: " + id));

@@ -209,7 +209,7 @@ class AiResourceControllerTest extends AbstractAiWebTest {
         assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 
         // Assert - GET returns 404 (soft deleted)
-        Long deletedToolId = tool.getId();
+        String deletedToolId = tool.getId();
         assertThatThrownBy(() -> restClient().get()
                 .uri("/resources/tools/{id}", deletedToolId)
                 .retrieve()
@@ -361,7 +361,7 @@ class AiResourceControllerTest extends AbstractAiWebTest {
         assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 
         // Assert - GET returns 404 (soft deleted)
-        Long deletedAppId = app.getId();
+        String deletedAppId = app.getId();
         assertThatThrownBy(() -> restClient().get()
                 .uri("/resources/applications/{id}", deletedAppId)
                 .retrieve()

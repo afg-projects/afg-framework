@@ -41,7 +41,7 @@ public class WorkflowDefinitionEntity extends TenantEntity implements SoftDeleta
     private String status;
 
     @Column(name = "application_id")
-    private Long applicationId;
+    private String applicationId;
 
     @Column(name = "user_id", length = 64)
     private String userId;

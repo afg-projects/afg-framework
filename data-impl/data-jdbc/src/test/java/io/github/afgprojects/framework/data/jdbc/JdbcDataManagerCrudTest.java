@@ -84,7 +84,7 @@ class JdbcDataManagerCrudTest extends BaseDataTest {
         @Test
         @DisplayName("should return empty when findById with non-existing id")
         void shouldReturnEmpty_whenFindByIdWithNonExistingId() {
-            assertThat(dataManager.findById(TestUser.class, 99999L)).isEmpty();
+            assertThat(dataManager.findById(TestUser.class, "99999")).isEmpty();
         }
 
         @Test

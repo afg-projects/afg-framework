@@ -16,7 +16,7 @@ import lombok.Setter;
 public class ConfigGroup extends FullEntity {
 
     @Column(name = "environment_id")
-    private Long environmentId;
+    private String environmentId;
 
     @Column(name = "code", nullable = false, unique = true, length = 50)
     private String code;

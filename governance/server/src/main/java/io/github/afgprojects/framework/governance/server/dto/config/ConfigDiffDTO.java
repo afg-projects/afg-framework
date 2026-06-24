@@ -5,8 +5,8 @@ import java.util.List;
 
 @Data
 public class ConfigDiffDTO {
-    private Long snapshot1Id;
-    private Long snapshot2Id;
+    private String snapshot1Id;
+    private String snapshot2Id;
     private String snapshot1Name;
     private String snapshot2Name;
     private List<ConfigDiffItem> added;

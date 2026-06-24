@@ -35,7 +35,7 @@ public class ApplicationPublishService {
      * @throws IllegalStateException    应用配置不完整
      */
     @Transactional
-    public ApplicationEntity publish(Long applicationId) {
+    public ApplicationEntity publish(String applicationId) {
         ApplicationEntity app = dataManager.findById(ApplicationEntity.class, applicationId)
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "应用不存在: " + applicationId));
 
@@ -63,7 +63,7 @@ public class ApplicationPublishService {
      * @throws BusinessException 应用不存在
      */
     @Transactional
-    public ApplicationEntity unpublish(Long applicationId) {
+    public ApplicationEntity unpublish(String applicationId) {
         ApplicationEntity app = dataManager.findById(ApplicationEntity.class, applicationId)
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "应用不存在: " + applicationId));
 

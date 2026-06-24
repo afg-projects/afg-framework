@@ -21,7 +21,7 @@ public class ConfigItemService {
 
     private final DataManager dataManager;
 
-    public List<ConfigItem> findByGroupId(Long groupId) {
+    public List<ConfigItem> findByGroupId(String groupId) {
         var condition = Conditions.allOf(
             Conditions.eq(ConfigItem.class, ConfigItem::getGroupId, groupId),
             Conditions.eq(ConfigItem.class, ConfigItem::isDeleted, false)
@@ -33,7 +33,7 @@ public class ConfigItemService {
             .list();
     }
 
-    public List<ConfigItem> findActiveByGroupId(Long groupId) {
+    public List<ConfigItem> findActiveByGroupId(String groupId) {
         var condition = Conditions.allOf(
             Conditions.eq(ConfigItem.class, ConfigItem::getGroupId, groupId),
             Conditions.eq(ConfigItem.class, ConfigItem::getStatus, 1),
@@ -61,7 +61,7 @@ public class ConfigItemService {
             .list();
     }
 
-    public Optional<ConfigItem> findById(Long id) {
+    public Optional<ConfigItem> findById(String id) {
         return dataManager.findById(ConfigItem.class, id);
     }
 
@@ -108,7 +108,7 @@ public class ConfigItemService {
     }
 
     @Transactional
-    public ConfigItem update(Long id, ConfigItem item) {
+    public ConfigItem update(String id, ConfigItem item) {
         ConfigItem existing = dataManager.findById(ConfigItem.class, id)
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "配置项不存在: " + id));
 
@@ -130,7 +130,7 @@ public class ConfigItemService {
     }
 
     @Transactional
-    public void delete(Long id) {
+    public void delete(String id) {
         ConfigItem item = dataManager.findById(ConfigItem.class, id)
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "配置项不存在: " + id));
         item.markDeleted();

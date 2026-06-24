@@ -27,13 +27,13 @@ public class DeptController {
     }
 
     @PutMapping("/{id}")
-    public SecDept update(@PathVariable Long id, @RequestBody SecDept dept) {
+    public SecDept update(@PathVariable String id, @RequestBody SecDept dept) {
         dept.setId(id);
         return deptService.update(dept);
     }
 
     @GetMapping("/{id}")
-    public SecDept getById(@PathVariable Long id) {
+    public SecDept getById(@PathVariable String id) {
         return deptService.findById(id).orElse(null);
     }
 
@@ -58,17 +58,17 @@ public class DeptController {
     }
 
     @PostMapping("/user/{userId}")
-    public void setUserDept(@PathVariable String userId, @RequestParam Long deptId, @RequestParam @Nullable String tenantId, @RequestParam(defaultValue = "true") boolean isPrimary) {
+    public void setUserDept(@PathVariable String userId, @RequestParam String deptId, @RequestParam @Nullable String tenantId, @RequestParam(defaultValue = "true") boolean isPrimary) {
         deptService.setUserDept(userId, deptId, tenantId, isPrimary);
     }
 
     @GetMapping("/{id}/children")
-    public Set<Long> childIds(@PathVariable Long id, @RequestParam String tenantId) {
+    public Set<String> childIds(@PathVariable String id, @RequestParam String tenantId) {
         return deptService.getChildDeptIds(id, tenantId);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
+    public void delete(@PathVariable String id) {
         deptService.delete(id);
     }
 }

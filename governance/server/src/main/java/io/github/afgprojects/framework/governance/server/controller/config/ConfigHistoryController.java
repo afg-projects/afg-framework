@@ -31,12 +31,12 @@ public class ConfigHistoryController {
     }
 
     @GetMapping("/item/{itemId}")
-    public Result<List<ConfigHistory>> listByItem(@PathVariable Long itemId) {
+    public Result<List<ConfigHistory>> listByItem(@PathVariable String itemId) {
         return Result.success(dataManager.findAllByField(ConfigHistory.class, ConfigHistory::getItemId, itemId));
     }
 
     @GetMapping("/item/{itemId}/paged")
-    public Result<PageData<ConfigHistory>> listByItemPaged(@PathVariable Long itemId,
+    public Result<PageData<ConfigHistory>> listByItemPaged(@PathVariable String itemId,
                                                 @RequestParam(defaultValue = "1") int page,
                                                 @RequestParam(defaultValue = "10") int size) {
         return Result.success(dataManager.entity(ConfigHistory.class)

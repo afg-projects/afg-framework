@@ -60,7 +60,7 @@ class JdbcDataManagerOptimisticLockTest extends BaseDataTest {
     @DisplayName("并发冲突检测")
     class ConcurrentConflictDetection {
 
-        private Long testItemId;
+        private String testItemId;
 
         @BeforeEach
         void setUp() {
@@ -84,7 +84,7 @@ class JdbcDataManagerOptimisticLockTest extends BaseDataTest {
         @DisplayName("should throw OptimisticLockException when concurrent update with same version")
         @Transactional(propagation = Propagation.NOT_SUPPORTED)
         void shouldThrowOptimisticLockException_whenConcurrentUpdateWithSameVersion() throws Exception {
-            Long itemId = testItemId;
+            String itemId = testItemId;
 
             // 先读取实体，两个线程将使用相同的旧版本对象
             TestVersionedItem staleItem = dataManager.findById(TestVersionedItem.class, itemId).orElseThrow();
@@ -130,7 +130,7 @@ class JdbcDataManagerOptimisticLockTest extends BaseDataTest {
         void shouldSucceed_whenRetryWithFreshVersionAfterConflict() {
             // 准备：创建实体
             TestVersionedItem item = dataManager.save(TestVersionedItem.class, TestVersionedItem.create("retry-test", 100));
-            Long itemId = item.getId();
+            String itemId = item.getId();
 
             // 第一次更新成功
             TestVersionedItem item1 = dataManager.findById(TestVersionedItem.class, itemId).orElseThrow();

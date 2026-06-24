@@ -62,7 +62,7 @@ class JdbcDataManagerRestoreTest extends BaseDataTest {
         void shouldRestoreEntityWithSameIdAndData_whenRestoreById() {
             TestSoftDeleteItem item = TestSoftDeleteItem.create("data-check", 42);
             TestSoftDeleteItem saved = dataManager.save(TestSoftDeleteItem.class, item);
-            Long originalId = saved.getId();
+            String originalId = saved.getId();
 
             dataManager.deleteById(TestSoftDeleteItem.class, originalId);
             dataManager.restoreById(TestSoftDeleteItem.class, originalId);

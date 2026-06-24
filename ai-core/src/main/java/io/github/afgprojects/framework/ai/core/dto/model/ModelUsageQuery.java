@@ -5,9 +5,9 @@ import lombok.Data;
 @Data
 public class ModelUsageQuery {
 
-    private Long modelConfigId;
+    private String modelConfigId;
 
-    private Long applicationId;
+    private String applicationId;
 
     private String userId;
 

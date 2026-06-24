@@ -25,12 +25,12 @@ public record GrayscaleRule(
         /**
          * 用户ID白名单
          */
-        @Nullable Set<Long> userIds,
+        @Nullable Set<String> userIds,
 
         /**
          * 租户ID白名单
          */
-        @Nullable Set<Long> tenantIds
+        @Nullable Set<String> tenantIds
 ) {
 
     /**
@@ -68,7 +68,7 @@ public record GrayscaleRule(
      * @param userIds 用户ID集合
      * @return 灰度规则
      */
-    public static GrayscaleRule ofUserWhitelist(Set<Long> userIds) {
+    public static GrayscaleRule ofUserWhitelist(Set<String> userIds) {
         return new GrayscaleRule(GrayscaleStrategy.USER_WHITELIST, 0, new HashSet<>(userIds), null);
     }
 
@@ -78,7 +78,7 @@ public record GrayscaleRule(
      * @param tenantIds 租户ID集合
      * @return 灰度规则
      */
-    public static GrayscaleRule ofTenantWhitelist(Set<Long> tenantIds) {
+    public static GrayscaleRule ofTenantWhitelist(Set<String> tenantIds) {
         return new GrayscaleRule(GrayscaleStrategy.TENANT_WHITELIST, 0, null, new HashSet<>(tenantIds));
     }
 
@@ -103,8 +103,8 @@ public record GrayscaleRule(
 
         private @Nullable GrayscaleStrategy strategy;
         private int percentage;
-        private @Nullable Set<Long> userIds;
-        private @Nullable Set<Long> tenantIds;
+        private @Nullable Set<String> userIds;
+        private @Nullable Set<String> tenantIds;
 
         public Builder strategy(@Nullable GrayscaleStrategy strategy) {
             this.strategy = strategy;
@@ -116,31 +116,31 @@ public record GrayscaleRule(
             return this;
         }
 
-        public Builder userIds(@Nullable Set<Long> userIds) {
+        public Builder userIds(@Nullable Set<String> userIds) {
             this.userIds = userIds != null ? new HashSet<>(userIds) : null;
             return this;
         }
 
-        public Builder addUserIds(Long... userIds) {
+        public Builder addUserIds(String... userIds) {
             if (this.userIds == null) {
                 this.userIds = new HashSet<>();
             }
-            for (Long userId : userIds) {
+            for (String userId : userIds) {
                 this.userIds.add(userId);
             }
             return this;
         }
 
-        public Builder tenantIds(@Nullable Set<Long> tenantIds) {
+        public Builder tenantIds(@Nullable Set<String> tenantIds) {
             this.tenantIds = tenantIds != null ? new HashSet<>(tenantIds) : null;
             return this;
         }
 
-        public Builder addTenantIds(Long... tenantIds) {
+        public Builder addTenantIds(String... tenantIds) {
             if (this.tenantIds == null) {
                 this.tenantIds = new HashSet<>();
             }
-            for (Long tenantId : tenantIds) {
+            for (String tenantId : tenantIds) {
                 this.tenantIds.add(tenantId);
             }
             return this;

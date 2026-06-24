@@ -1,6 +1,7 @@
 package io.github.afgprojects.framework.security.auth.permission.entity;
 
 import io.github.afgprojects.framework.apt.entity.AfEntity;
+import io.github.afgprojects.framework.data.core.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,17 +13,13 @@ import lombok.Setter;
 @Setter
 @AfEntity
 @Table(name = "sec_role_hierarchy")
-public class SecRoleHierarchy {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class SecRoleHierarchy extends BaseEntity {
 
     @Column(name = "role_id", nullable = false)
-    private Long roleId;
+    private String roleId;
 
     @Column(name = "parent_role_id", nullable = false)
-    private Long parentRoleId;
+    private String parentRoleId;
 
     @Column(name = "tenant_id", length = 50)
     private String tenantId;

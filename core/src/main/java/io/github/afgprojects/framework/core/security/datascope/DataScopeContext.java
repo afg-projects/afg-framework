@@ -25,12 +25,12 @@ public class DataScopeContext {
     /**
      * 当前用户 ID
      */
-    private Long userId;
+    private String userId;
 
     /**
      * 当前用户所属部门 ID
      */
-    private @Nullable Long deptId;
+    private @Nullable String deptId;
 
     /**
      * 当前用户可访问的部门 ID 集合（包含子部门）
@@ -38,7 +38,7 @@ public class DataScopeContext {
      * 用于 DEPT_AND_CHILD 类型的权限判断
      */
     @Builder.Default
-    private Set<Long> accessibleDeptIds = new HashSet<>();
+    private Set<String> accessibleDeptIds = new HashSet<>();
 
     /**
      * 自定义权限条件
@@ -68,7 +68,7 @@ public class DataScopeContext {
      *
      * @return 部门 ID 集合
      */
-    public Set<Long> getAccessibleDeptIds() {
+    public Set<String> getAccessibleDeptIds() {
         return Collections.unmodifiableSet(accessibleDeptIds);
     }
 
@@ -77,7 +77,7 @@ public class DataScopeContext {
      *
      * @param deptId 部门 ID
      */
-    public void addAccessibleDeptId(Long deptId) {
+    public void addAccessibleDeptId(String deptId) {
         accessibleDeptIds.add(deptId);
     }
 
@@ -86,7 +86,7 @@ public class DataScopeContext {
      *
      * @param deptIds 部门 ID 集合
      */
-    public void addAccessibleDeptIds(Set<Long> deptIds) {
+    public void addAccessibleDeptIds(Set<String> deptIds) {
         accessibleDeptIds.addAll(deptIds);
     }
 
@@ -96,7 +96,7 @@ public class DataScopeContext {
      * @param deptId 部门 ID
      * @return 是否有权限
      */
-    public boolean hasDeptPermission(Long deptId) {
+    public boolean hasDeptPermission(String deptId) {
         if (allDataPermission || ignoreDataScope) {
             return true;
         }
@@ -112,7 +112,7 @@ public class DataScopeContext {
      * @param userId 用户 ID
      * @return 是否是自己的数据
      */
-    public boolean isSelfData(Long userId) {
+    public boolean isSelfData(String userId) {
         if (allDataPermission || ignoreDataScope) {
             return true;
         }
@@ -134,7 +134,7 @@ public class DataScopeContext {
      * @param userId 用户 ID
      * @return 管理员数据权限上下文
      */
-    public static DataScopeContext allPermission(Long userId) {
+    public static DataScopeContext allPermission(String userId) {
         return DataScopeContext.builder()
                 .userId(userId)
                 .allDataPermission(true)

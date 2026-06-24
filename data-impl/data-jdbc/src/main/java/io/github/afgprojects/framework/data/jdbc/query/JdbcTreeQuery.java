@@ -21,7 +21,6 @@ import io.github.afgprojects.framework.data.core.entity.BaseEntity;
 import io.github.afgprojects.framework.data.core.entity.Treeable;
 import io.github.afgprojects.framework.data.core.metadata.EntityMetadata;
 import io.github.afgprojects.framework.data.core.metadata.EntityTrait;
-import io.github.afgprojects.framework.data.core.query.Condition;
 import io.github.afgprojects.framework.data.core.query.TreeNode;
 import io.github.afgprojects.framework.data.core.query.TreeQuery;
 import io.github.afgprojects.framework.data.jdbc.JdbcDataManager;
@@ -66,7 +65,7 @@ public class JdbcTreeQuery<T> implements TreeQuery<Treeable<?>> {
     }
 
     @Override
-    public @NonNull List<Treeable<?>> findChildren(@Nullable Long parentId) {
+    public @NonNull List<Treeable<?>> findChildren(@Nullable String parentId) {
         String tableName = metadata.getTableName();
         String quotedTableName = proxy.getDialect().quoteIdentifier(tableName);
         String parentIdColumn = proxy.getDialect().quoteIdentifier(
@@ -92,7 +91,7 @@ public class JdbcTreeQuery<T> implements TreeQuery<Treeable<?>> {
     }
 
     @Override
-    public @NonNull List<Treeable<?>> findDescendants(@NonNull Long parentId) {
+    public @NonNull List<Treeable<?>> findDescendants(@NonNull String parentId) {
         // 查询父节点获取其 path
         T parent = proxy.findById(parentId).orElseThrow(() ->
                 new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND,
@@ -127,7 +126,7 @@ public class JdbcTreeQuery<T> implements TreeQuery<Treeable<?>> {
     }
 
     @Override
-    public @NonNull List<Treeable<?>> findAncestors(@NonNull Long id) {
+    public @NonNull List<Treeable<?>> findAncestors(@NonNull String id) {
         // 查询当前节点获取其 path
         T node = proxy.findById(id).orElseThrow(() ->
                 new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND,
@@ -145,14 +144,14 @@ public class JdbcTreeQuery<T> implements TreeQuery<Treeable<?>> {
 
         // 解析 path 获取祖先 ID 列表
         // 格式为 /1/5/12/，需要提取 [1, 5]
-        List<Long> ancestorIds = parseAncestorIds(path);
+        List<String> ancestorIds = parseAncestorIds(path);
         if (ancestorIds.isEmpty()) {
             return List.of();
         }
 
         // 批量查询祖先节点，保持从根到父的顺序
         List<Treeable<?>> ancestors = new ArrayList<>();
-        for (Long ancestorId : ancestorIds) {
+        for (String ancestorId : ancestorIds) {
             proxy.findById(ancestorId).ifPresent(a -> ancestors.add((Treeable<?>) a));
         }
 
@@ -186,7 +185,7 @@ public class JdbcTreeQuery<T> implements TreeQuery<Treeable<?>> {
     }
 
     @Override
-    public @NonNull List<TreeNode<Treeable<?>>> buildTree(@NonNull Long rootId) {
+    public @NonNull List<TreeNode<Treeable<?>>> buildTree(@NonNull String rootId) {
         // 查询指定节点及其所有后代
         T rootNode = proxy.findById(rootId).orElseThrow(() ->
                 new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND,
@@ -203,7 +202,7 @@ public class JdbcTreeQuery<T> implements TreeQuery<Treeable<?>> {
     }
 
     @Override
-    public void moveNode(@NonNull Long id, @Nullable Long newParentId) {
+    public void moveNode(@NonNull String id, @Nullable String newParentId) {
         // 查询要移动的节点
         T node = proxy.findById(id).orElseThrow(() ->
                 new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND,
@@ -217,7 +216,7 @@ public class JdbcTreeQuery<T> implements TreeQuery<Treeable<?>> {
             }
             // 检查 newParentId 是否是 id 的后代
             List<Treeable<?>> descendants = findDescendants(id);
-            Set<Long> descendantIds = descendants.stream()
+            Set<String> descendantIds = descendants.stream()
                     .map(d -> d instanceof BaseEntity be ? be.getId() : null)
                     .filter(Objects::nonNull)
                     .collect(Collectors.toSet());
@@ -257,20 +256,16 @@ public class JdbcTreeQuery<T> implements TreeQuery<Treeable<?>> {
      * @param path 祖先路径
      * @return 祖先 ID 列表（从根到父排列）
      */
-    private List<Long> parseAncestorIds(String path) {
+    private List<String> parseAncestorIds(String path) {
         if (path == null || path.isEmpty() || "/".equals(path)) {
             return List.of();
         }
 
         String[] segments = path.split("/");
-        List<Long> ids = new ArrayList<>();
+        List<String> ids = new ArrayList<>();
         for (String segment : segments) {
             if (!segment.isEmpty()) {
-                try {
-                    ids.add(Long.parseLong(segment));
-                } catch (NumberFormatException e) {
-                    log.warn("Invalid segment in path '{}': {}", path, segment);
-                }
+                ids.add(segment);
             }
         }
         return ids;
@@ -283,19 +278,19 @@ public class JdbcTreeQuery<T> implements TreeQuery<Treeable<?>> {
      * @param rootId   指定根节点 ID，null 表示构建完整树
      * @return 树结构列表
      */
-    private List<TreeNode<Treeable<?>>> doBuildTree(List<T> allNodes, @Nullable Long rootId) {
+    private List<TreeNode<Treeable<?>>> doBuildTree(List<T> allNodes, @Nullable String rootId) {
         // 按 ID 建立索引
-        Map<Long, Treeable<?>> nodeMap = new LinkedHashMap<>();
-        Map<Long, List<Treeable<?>>> childrenMap = new LinkedHashMap<>();
+        Map<String, Treeable<?>> nodeMap = new LinkedHashMap<>();
+        Map<String, List<Treeable<?>>> childrenMap = new LinkedHashMap<>();
 
         for (T node : allNodes) {
             if (node instanceof Treeable<?> treeable) {
-                Long nodeId = node instanceof BaseEntity be ? be.getId() : null;
+                String nodeId = node instanceof BaseEntity be ? be.getId() : null;
                 if (nodeId != null) {
                     nodeMap.put(nodeId, treeable);
                 }
 
-                Long parentId = treeable.getParentId();
+                String parentId = treeable.getParentId();
                 if (parentId != null) {
                     childrenMap.computeIfAbsent(parentId, k -> new ArrayList<>()).add(treeable);
                 }
@@ -329,8 +324,8 @@ public class JdbcTreeQuery<T> implements TreeQuery<Treeable<?>> {
     /**
      * 递归构建树节点
      */
-    private TreeNode<Treeable<?>> buildTreeNode(Treeable<?> node, Map<Long, List<Treeable<?>>> childrenMap) {
-        Long nodeId = node instanceof BaseEntity be ? be.getId() : null;
+    private TreeNode<Treeable<?>> buildTreeNode(Treeable<?> node, Map<String, List<Treeable<?>>> childrenMap) {
+        String nodeId = node instanceof BaseEntity be ? be.getId() : null;
         List<Treeable<?>> childEntities = nodeId != null ? childrenMap.getOrDefault(nodeId, List.of()) : List.of();
 
         // 排序子节点
@@ -361,7 +356,7 @@ public class JdbcTreeQuery<T> implements TreeQuery<Treeable<?>> {
             return;
         }
 
-        Long movedId = movedNode instanceof BaseEntity be ? be.getId() : null;
+        String movedId = movedNode instanceof BaseEntity be ? be.getId() : null;
         if (movedId == null) {
             return;
         }

@@ -5,14 +5,14 @@ import java.time.Instant;
 
 @Data
 public class ConfigSnapshotDTO {
-    private Long id;
+    private String id;
     private String name;
     private String description;
     private String tag;
     private String data;
-    private Long groupId;
+    private String groupId;
     private String groupName;
-    private Long creatorId;
+    private String creatorId;
     private String creatorName;
     private Instant createdAt;
 }

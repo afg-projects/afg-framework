@@ -91,7 +91,7 @@ public class AiResourceController {
      * 获取单个工具
      */
     @GetMapping("/tools/{id}")
-    public ResponseEntity<ToolRegistryEntity> getTool(@PathVariable Long id) {
+    public ResponseEntity<ToolRegistryEntity> getTool(@PathVariable String id) {
         return dataManager.findById(ToolRegistryEntity.class, id)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
@@ -102,7 +102,7 @@ public class AiResourceController {
      */
     @PutMapping("/tools/{id}")
     @Transactional
-    public ResponseEntity<ToolRegistryEntity> updateTool(@PathVariable Long id,
+    public ResponseEntity<ToolRegistryEntity> updateTool(@PathVariable String id,
                                          @Valid @RequestBody UpdateToolRequest request) {
         ToolRegistryEntity entity = dataManager.findById(ToolRegistryEntity.class, id)
             .orElse(null);
@@ -140,7 +140,7 @@ public class AiResourceController {
      */
     @DeleteMapping("/tools/{id}")
     @Transactional
-    public ResponseEntity<Void> deleteTool(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteTool(@PathVariable String id) {
         ToolRegistryEntity entity = dataManager.findById(ToolRegistryEntity.class, id)
             .orElse(null);
         if (entity == null) {
@@ -228,7 +228,7 @@ public class AiResourceController {
      * 获取单个应用
      */
     @GetMapping("/applications/{id}")
-    public ResponseEntity<ApplicationEntity> getApplication(@PathVariable Long id) {
+    public ResponseEntity<ApplicationEntity> getApplication(@PathVariable String id) {
         return dataManager.findById(ApplicationEntity.class, id)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
@@ -239,7 +239,7 @@ public class AiResourceController {
      */
     @PutMapping("/applications/{id}")
     @Transactional
-    public ResponseEntity<ApplicationEntity> updateApplication(@PathVariable Long id,
+    public ResponseEntity<ApplicationEntity> updateApplication(@PathVariable String id,
                                                 @Valid @RequestBody UpdateApplicationRequest request) {
         ApplicationEntity entity = dataManager.findById(ApplicationEntity.class, id)
             .orElse(null);
@@ -280,7 +280,7 @@ public class AiResourceController {
      */
     @DeleteMapping("/applications/{id}")
     @Transactional
-    public ResponseEntity<Void> deleteApplication(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteApplication(@PathVariable String id) {
         ApplicationEntity entity = dataManager.findById(ApplicationEntity.class, id)
             .orElse(null);
         if (entity == null) {
@@ -297,7 +297,7 @@ public class AiResourceController {
      * 列出应用版本
      */
     @GetMapping("/applications/{id}/versions")
-    public List<ApplicationVersionEntity> listApplicationVersions(@PathVariable Long id) {
+    public List<ApplicationVersionEntity> listApplicationVersions(@PathVariable String id) {
         return dataManager.entity(ApplicationVersionEntity.class)
             .query()
             .where(Conditions.builder(ApplicationVersionEntity.class)
@@ -312,7 +312,7 @@ public class AiResourceController {
      */
     @PostMapping("/applications/{id}/versions")
     @Transactional
-    public ResponseEntity<ApplicationVersionEntity> createApplicationVersion(@PathVariable Long id,
+    public ResponseEntity<ApplicationVersionEntity> createApplicationVersion(@PathVariable String id,
                                                               @Valid @RequestBody CreateApplicationVersionRequest request) {
         if (!dataManager.existsById(ApplicationEntity.class, id)) {
             return ResponseEntity.notFound().build();
@@ -335,7 +335,7 @@ public class AiResourceController {
      */
     @PostMapping("/applications/{id}/publish")
     @Transactional
-    public ResponseEntity<ApplicationEntity> publishApplication(@PathVariable Long id) {
+    public ResponseEntity<ApplicationEntity> publishApplication(@PathVariable String id) {
         return ResponseEntity.ok(applicationPublishService.publish(id));
     }
 
@@ -346,7 +346,7 @@ public class AiResourceController {
      */
     @PostMapping("/applications/{id}/unpublish")
     @Transactional
-    public ResponseEntity<ApplicationEntity> unpublishApplication(@PathVariable Long id) {
+    public ResponseEntity<ApplicationEntity> unpublishApplication(@PathVariable String id) {
         return ResponseEntity.ok(applicationPublishService.unpublish(id));
     }
 
@@ -356,7 +356,7 @@ public class AiResourceController {
      * <p>查询指定应用下的所有对话日志，按创建时间倒序排列。
      */
     @GetMapping("/applications/{id}/chat-logs")
-    public List<ChatLogEntity> listChatLogsByApplication(@PathVariable Long id) {
+    public List<ChatLogEntity> listChatLogsByApplication(@PathVariable String id) {
         return dataManager.entity(ChatLogEntity.class)
             .query()
             .where(Conditions.builder(ChatLogEntity.class)
@@ -372,7 +372,7 @@ public class AiResourceController {
      * 启用工具
      */
     @PostMapping("/tools/{id}/enable")
-    public ResponseEntity<ToolRegistryEntity> enableTool(@PathVariable Long id) {
+    public ResponseEntity<ToolRegistryEntity> enableTool(@PathVariable String id) {
         return ResponseEntity.ok(toolManagementService.enableTool(id));
     }
 
@@ -380,7 +380,7 @@ public class AiResourceController {
      * 禁用工具
      */
     @PostMapping("/tools/{id}/disable")
-    public ResponseEntity<ToolRegistryEntity> disableTool(@PathVariable Long id) {
+    public ResponseEntity<ToolRegistryEntity> disableTool(@PathVariable String id) {
         return ResponseEntity.ok(toolManagementService.disableTool(id));
     }
 

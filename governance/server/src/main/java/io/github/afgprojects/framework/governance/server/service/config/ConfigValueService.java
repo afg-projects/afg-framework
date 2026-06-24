@@ -33,7 +33,7 @@ public class ConfigValueService {
     private final ConfigHistoryService historyService;
     private final ApplicationEventPublisher eventPublisher;
 
-    public Optional<ConfigValue> findByItemId(Long itemId) {
+    public Optional<ConfigValue> findByItemId(String itemId) {
         var condition = Conditions.eq(ConfigValue.class, ConfigValue::getItemId, itemId);
         return dataManager.entity(ConfigValue.class)
             .query()
@@ -88,7 +88,7 @@ public class ConfigValueService {
     }
 
     @Transactional
-    public ConfigValue updateValue(Long itemId, String newValue, String reason, String operatorName) {
+    public ConfigValue updateValue(String itemId, String newValue, String reason, String operatorName) {
         ConfigItem item = itemService.findById(itemId)
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "配置项不存在: " + itemId));
 
@@ -130,7 +130,7 @@ public class ConfigValueService {
     }
 
     @Transactional
-    public void deleteByItemId(Long itemId) {
+    public void deleteByItemId(String itemId) {
         ConfigItem item = itemService.findById(itemId)
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "配置项不存在: " + itemId));
 

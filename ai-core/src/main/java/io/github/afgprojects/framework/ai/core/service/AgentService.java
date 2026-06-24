@@ -54,7 +54,7 @@ public class AgentService {
      * @param userInput  用户输入
      * @return Agent 响应
      */
-    public AgentResponse execute(Long sessionId, String userInput) {
+    public AgentResponse execute(String sessionId, String userInput) {
         // 1. 加载会话（读操作，无需事务）
         AgentSessionEntity session = dataManager.findById(AgentSessionEntity.class, sessionId)
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Agent session not found: " + sessionId));
@@ -100,7 +100,7 @@ public class AgentService {
      * 使用 TransactionTemplate 而非 @Transactional，因为此方法从同一 bean 内部调用，
      * Spring AOP 代理不会拦截自调用。
      */
-    private void updateSessionStatusInTransaction(Long sessionId, String status, String metadataJson) {
+    private void updateSessionStatusInTransaction(String sessionId, String status, String metadataJson) {
         new TransactionTemplate(transactionManager).executeWithoutResult(txStatus -> {
             AgentSessionEntity session = dataManager.findById(AgentSessionEntity.class, sessionId)
                 .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Agent session not found: " + sessionId));

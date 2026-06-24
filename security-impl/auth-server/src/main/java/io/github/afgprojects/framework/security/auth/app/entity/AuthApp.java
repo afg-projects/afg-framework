@@ -1,12 +1,11 @@
 package io.github.afgprojects.framework.security.auth.app.entity;
 
 import io.github.afgprojects.framework.apt.entity.AfEntity;
+import io.github.afgprojects.framework.data.core.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.jspecify.annotations.Nullable;
-
-import java.time.Instant;
 
 /**
  * 应用实体。
@@ -21,11 +20,7 @@ import java.time.Instant;
 @Setter
 @AfEntity
 @Table(name = "auth_app")
-public class AuthApp {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class AuthApp extends BaseEntity {
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;
@@ -101,14 +96,6 @@ public class AuthApp {
      */
     @Column(name = "tenant_id", length = 50)
     private @Nullable String tenantId;
-
-    // ========== 审计 ==========
-
-    @Column(name = "created_at")
-    private @Nullable Instant createdAt;
-
-    @Column(name = "updated_at")
-    private @Nullable Instant updatedAt;
 
     /**
      * 检查应用是否为微前端类型（mf 或 wujie）。

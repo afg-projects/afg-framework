@@ -1,12 +1,11 @@
 package io.github.afgprojects.framework.security.auth.app.entity;
 
 import io.github.afgprojects.framework.apt.entity.AfEntity;
+import io.github.afgprojects.framework.data.core.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.jspecify.annotations.Nullable;
-
-import java.time.Instant;
 
 /**
  * OAuth2 客户端实体。
@@ -24,11 +23,7 @@ import java.time.Instant;
 @Setter
 @AfEntity
 @Table(name = "auth_client")
-public class AuthClient {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class AuthClient extends BaseEntity {
 
     @Column(name = "client_id", nullable = false, length = 100)
     private String clientId;
@@ -71,12 +66,6 @@ public class AuthClient {
      */
     @Column(name = "status")
     private Integer status = 1;
-
-    @Column(name = "created_at")
-    private @Nullable Instant createdAt;
-
-    @Column(name = "updated_at")
-    private @Nullable Instant updatedAt;
 
     /**
      * 检查客户端是否启用。

@@ -1,6 +1,7 @@
 package io.github.afgprojects.framework.governance.server.entity.management;
 
 import io.github.afgprojects.framework.apt.entity.AfEntity;
+import io.github.afgprojects.framework.data.core.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,17 +20,13 @@ import java.time.Instant;
     @Index(name = "idx_push_instance", columnList = "instance_id"),
     @Index(name = "idx_push_status", columnList = "push_status")
 })
-public class PushRecord {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class PushRecord extends BaseEntity {
 
     @Column(name = "config_item_id", nullable = false)
-    private Long configItemId;
+    private String configItemId;
 
     @Column(name = "instance_id", nullable = false)
-    private Long instanceId;
+    private String instanceId;
 
     @Column(name = "push_status", nullable = false, length = 20)
     private String pushStatus;
@@ -42,7 +39,4 @@ public class PushRecord {
 
     @Column(name = "error_message", columnDefinition = "TEXT")
     private String errorMessage;
-
-    @Column(name = "created_at")
-    private Instant createdAt;
 }

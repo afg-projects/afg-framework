@@ -34,21 +34,21 @@ class DataScopeContextHolderTest {
         @DisplayName("should set and get context")
         void shouldSetAndGetContext() {
             DataScopeContext context = DataScopeContext.builder()
-                    .userId(1L)
-                    .deptId(10L)
+                    .userId("1")
+                    .deptId("10")
                     .build();
 
             DataScopeContextHolder.setContext(context);
 
             assertThat(DataScopeContextHolder.getContext()).isSameAs(context);
-            assertThat(DataScopeContextHolder.getContext().getUserId()).isEqualTo(1L);
-            assertThat(DataScopeContextHolder.getContext().getDeptId()).isEqualTo(10L);
+            assertThat(DataScopeContextHolder.getContext().getUserId()).isEqualTo("1");
+            assertThat(DataScopeContextHolder.getContext().getDeptId()).isEqualTo("10");
         }
 
         @Test
         @DisplayName("should clear context when set to null")
         void shouldClearContext_whenSetToNull() {
-            DataScopeContext context = DataScopeContext.builder().userId(1L).build();
+            DataScopeContext context = DataScopeContext.builder().userId("1").build();
             DataScopeContextHolder.setContext(context);
             assertThat(DataScopeContextHolder.getContext()).isNotNull();
 
@@ -65,15 +65,15 @@ class DataScopeContextHolderTest {
         @DisplayName("should return context when set")
         void shouldReturnContext_whenSet() {
             DataScopeContext context = DataScopeContext.builder()
-                    .userId(1L)
-                    .deptId(10L)
+                    .userId("1")
+                    .deptId("10")
                     .build();
             DataScopeContextHolder.setContext(context);
 
             DataScopeContext required = DataScopeContextHolder.getRequiredContext();
 
             assertThat(required).isNotNull();
-            assertThat(required.getUserId()).isEqualTo(1L);
+            assertThat(required.getUserId()).isEqualTo("1");
         }
 
         @Test
@@ -94,7 +94,7 @@ class DataScopeContextHolderTest {
         @Test
         @DisplayName("should clear context")
         void shouldClearContext() {
-            DataScopeContextHolder.setContext(DataScopeContext.builder().userId(1L).build());
+            DataScopeContextHolder.setContext(DataScopeContext.builder().userId("1").build());
             assertThat(DataScopeContextHolder.getContext()).isNotNull();
 
             DataScopeContextHolder.clear();
@@ -121,8 +121,8 @@ class DataScopeContextHolderTest {
             AtomicReference<DataScopeContext> captured = new AtomicReference<>();
 
             DataScopeContext context = DataScopeContext.builder()
-                    .userId(1L)
-                    .deptId(10L)
+                    .userId("1")
+                    .deptId("10")
                     .build();
 
             DataScopeContextHolder.runWithContext(context, () -> {
@@ -135,10 +135,10 @@ class DataScopeContextHolderTest {
         @Test
         @DisplayName("should restore previous context after execution")
         void shouldRestorePreviousContext_afterExecution() {
-            DataScopeContext original = DataScopeContext.builder().userId(1L).build();
+            DataScopeContext original = DataScopeContext.builder().userId("1").build();
             DataScopeContextHolder.setContext(original);
 
-            DataScopeContext temporary = DataScopeContext.builder().userId(2L).build();
+            DataScopeContext temporary = DataScopeContext.builder().userId("2").build();
             DataScopeContextHolder.runWithContext(temporary, () -> {
                 // Inside: temporary context
             });
@@ -150,7 +150,7 @@ class DataScopeContextHolderTest {
         @Test
         @DisplayName("should restore null context after execution")
         void shouldRestoreNullContext_afterExecution() {
-            DataScopeContext temporary = DataScopeContext.builder().userId(1L).build();
+            DataScopeContext temporary = DataScopeContext.builder().userId("1").build();
             DataScopeContextHolder.runWithContext(temporary, () -> {
                 // Inside: temporary context
             });
@@ -162,10 +162,10 @@ class DataScopeContextHolderTest {
         @Test
         @DisplayName("should restore previous context even when exception occurs")
         void shouldRestorePreviousContext_evenWhenExceptionOccurs() {
-            DataScopeContext original = DataScopeContext.builder().userId(1L).build();
+            DataScopeContext original = DataScopeContext.builder().userId("1").build();
             DataScopeContextHolder.setContext(original);
 
-            DataScopeContext temporary = DataScopeContext.builder().userId(2L).build();
+            DataScopeContext temporary = DataScopeContext.builder().userId("2").build();
             try {
                 DataScopeContextHolder.runWithContext(temporary, () -> {
                     throw new RuntimeException("test exception");
@@ -198,14 +198,14 @@ class DataScopeContextHolderTest {
         @Test
         @DisplayName("should preserve userId from current context")
         void shouldPreserveUserId_fromCurrentContext() {
-            DataScopeContextHolder.setContext(DataScopeContext.builder().userId(42L).build());
+            DataScopeContextHolder.setContext(DataScopeContext.builder().userId("42").build());
 
             AtomicReference<DataScopeContext> captured = new AtomicReference<>();
             DataScopeContextHolder.runWithoutDataScope(() -> {
                 captured.set(DataScopeContextHolder.getContext());
             });
 
-            assertThat(captured.get().getUserId()).isEqualTo(42L);
+            assertThat(captured.get().getUserId()).isEqualTo("42");
             assertThat(captured.get().isIgnoreDataScope()).isTrue();
         }
 
@@ -213,7 +213,7 @@ class DataScopeContextHolderTest {
         @DisplayName("should restore previous context after execution")
         void shouldRestorePreviousContext_afterExecution() {
             DataScopeContext original = DataScopeContext.builder()
-                    .userId(1L)
+                    .userId("1")
                     .ignoreDataScope(false)
                     .build();
             DataScopeContextHolder.setContext(original);
@@ -235,7 +235,7 @@ class DataScopeContextHolderTest {
         @Test
         @DisplayName("should isolate context between threads")
         void shouldIsolateContextBetweenThreads() throws InterruptedException {
-            DataScopeContextHolder.setContext(DataScopeContext.builder().userId(1L).build());
+            DataScopeContextHolder.setContext(DataScopeContext.builder().userId("1").build());
 
             AtomicReference<DataScopeContext> otherThreadContext = new AtomicReference<>();
             Thread thread = new Thread(() -> {
@@ -248,7 +248,7 @@ class DataScopeContextHolderTest {
             assertThat(otherThreadContext.get()).isNull();
             // Main thread still has its context
             assertThat(DataScopeContextHolder.getContext()).isNotNull();
-            assertThat(DataScopeContextHolder.getContext().getUserId()).isEqualTo(1L);
+            assertThat(DataScopeContextHolder.getContext().getUserId()).isEqualTo("1");
         }
     }
 }

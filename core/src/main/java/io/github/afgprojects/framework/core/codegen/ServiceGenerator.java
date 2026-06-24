@@ -98,7 +98,7 @@ public class ServiceGenerator implements CodeGenerator {
     }
 
     private String generateGetByIdMethod(String entityName, String entityVar) {
-        return "    public " + entityName + " getById(Long id) {\n" +
+        return "    public " + entityName + " getById(String id) {\n" +
                "        return " + entityVar + "Mapper.selectById(id);\n" +
                "    }\n\n";
     }
@@ -110,7 +110,7 @@ public class ServiceGenerator implements CodeGenerator {
     }
 
     private String generateUpdateMethod(String entityName, String entityVar) {
-        return "    public " + entityName + " update(Long id, " + entityName + "UpdateRequest request) {\n" +
+        return "    public " + entityName + " update(String id, " + entityName + "UpdateRequest request) {\n" +
                "        " + entityName + " entity = " + entityVar + "Mapper.selectById(id);\n" +
                "        if (entity == null) {\n" +
                "            throw new RuntimeException(\"" + entityName + " not found\");\n" +
@@ -122,7 +122,7 @@ public class ServiceGenerator implements CodeGenerator {
     }
 
     private String generateDeleteMethod(String entityName, String entityVar) {
-        return "    public void delete(Long id) {\n" +
+        return "    public void delete(String id) {\n" +
                "        " + entityVar + "Mapper.deleteById(id);\n" +
                "    }\n\n";
     }

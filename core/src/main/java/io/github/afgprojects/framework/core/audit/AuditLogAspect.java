@@ -85,9 +85,9 @@ public class AuditLogAspect {
         // 获取上下文信息
         String traceId = AfgRequestContextHolder.getTraceId();
         String requestId = AfgRequestContextHolder.getRequestId();
-        Long userId = AfgRequestContextHolder.getUserId();
+        String userId = AfgRequestContextHolder.getUserId();
         String username = AfgRequestContextHolder.getUsername();
-        Long tenantId = AfgRequestContextHolder.getTenantId();
+        String tenantId = AfgRequestContextHolder.getTenantId();
         String clientIp = AfgRequestContextHolder.getClientIp();
 
         // 序列化方法参数（脱敏）

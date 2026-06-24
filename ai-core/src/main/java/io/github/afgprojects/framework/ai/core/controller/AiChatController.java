@@ -201,7 +201,7 @@ public class AiChatController {
      */
     @PutMapping("/logs/{id}/vote")
     @Transactional
-    public ResponseEntity<ChatLogEntity> voteChatLog(@PathVariable Long id,
+    public ResponseEntity<ChatLogEntity> voteChatLog(@PathVariable String id,
                                                       @RequestBody Map<String, Object> voteRequest) {
         ChatLogEntity entity = dataManager.findById(ChatLogEntity.class, id)
             .orElse(null);

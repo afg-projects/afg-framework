@@ -18,7 +18,7 @@ import lombok.Setter;
 public class ConfigItem extends FullEntity {
 
     @Column(name = "group_id", nullable = false)
-    private Long groupId;
+    private String groupId;
 
     @Column(name = "code", nullable = false, length = 100)
     private String code;

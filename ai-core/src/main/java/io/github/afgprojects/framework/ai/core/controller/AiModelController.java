@@ -87,7 +87,7 @@ public class AiModelController {
      * 获取单个模型提供商
      */
     @GetMapping("/providers/{id}")
-    public ResponseEntity<ModelProviderEntity> getProvider(@PathVariable Long id) {
+    public ResponseEntity<ModelProviderEntity> getProvider(@PathVariable String id) {
         return dataManager.findById(ModelProviderEntity.class, id)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
@@ -98,7 +98,7 @@ public class AiModelController {
      */
     @PutMapping("/providers/{id}")
     @Transactional
-    public ResponseEntity<ModelProviderEntity> updateProvider(@PathVariable Long id,
+    public ResponseEntity<ModelProviderEntity> updateProvider(@PathVariable String id,
                                                @Valid @RequestBody UpdateProviderRequest request) {
         ModelProviderEntity entity = dataManager.findById(ModelProviderEntity.class, id)
             .orElse(null);
@@ -133,7 +133,7 @@ public class AiModelController {
      */
     @DeleteMapping("/providers/{id}")
     @Transactional
-    public ResponseEntity<Void> deleteProvider(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteProvider(@PathVariable String id) {
         if (!dataManager.existsById(ModelProviderEntity.class, id)) {
             return ResponseEntity.notFound().build();
         }
@@ -164,7 +164,7 @@ public class AiModelController {
      * 列出模型配置（支持按 providerId 筛选）
      */
     @GetMapping("/configs")
-    public List<ModelConfigEntity> listModelConfigs(@RequestParam(required = false) Long providerId) {
+    public List<ModelConfigEntity> listModelConfigs(@RequestParam(required = false) String providerId) {
         if (providerId != null) {
             return dataManager.entity(ModelConfigEntity.class)
                 .query()
@@ -184,7 +184,7 @@ public class AiModelController {
      * 获取单个模型配置
      */
     @GetMapping("/configs/{id}")
-    public ResponseEntity<ModelConfigEntity> getModelConfig(@PathVariable Long id) {
+    public ResponseEntity<ModelConfigEntity> getModelConfig(@PathVariable String id) {
         return dataManager.findById(ModelConfigEntity.class, id)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
@@ -195,7 +195,7 @@ public class AiModelController {
      */
     @PutMapping("/configs/{id}")
     @Transactional
-    public ResponseEntity<ModelConfigEntity> updateModelConfig(@PathVariable Long id,
+    public ResponseEntity<ModelConfigEntity> updateModelConfig(@PathVariable String id,
                                                 @Valid @RequestBody UpdateModelConfigRequest request) {
         ModelConfigEntity entity = dataManager.findById(ModelConfigEntity.class, id)
             .orElse(null);
@@ -230,7 +230,7 @@ public class AiModelController {
      */
     @DeleteMapping("/configs/{id}")
     @Transactional
-    public ResponseEntity<Void> deleteModelConfig(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteModelConfig(@PathVariable String id) {
         if (!dataManager.existsById(ModelConfigEntity.class, id)) {
             return ResponseEntity.notFound().build();
         }
@@ -333,7 +333,7 @@ public class AiModelController {
      * @return 发现的模型列表
      */
     @PostMapping("/providers/{id}/discover-models")
-    public ResponseEntity<List<DiscoveredModel>> discoverModels(@PathVariable Long id) {
+    public ResponseEntity<List<DiscoveredModel>> discoverModels(@PathVariable String id) {
         List<DiscoveredModel> models = modelDiscoveryService.discoverModels(id);
         return ResponseEntity.ok(models);
     }
@@ -364,7 +364,7 @@ public class AiModelController {
      * @return 测试结果
      */
     @PostMapping("/providers/{id}/test")
-    public ResponseEntity<ConnectionTestResponse> verifyConnection(@PathVariable Long id) {
+    public ResponseEntity<ConnectionTestResponse> verifyConnection(@PathVariable String id) {
         ConnectionTestResponse response = modelTestService.verifyConnection(id);
         return ResponseEntity.ok(response);
     }
@@ -378,7 +378,7 @@ public class AiModelController {
      * @return 脱敏后的 API Key
      */
     @GetMapping("/providers/{id}/masked-api-key")
-    public ResponseEntity<Map<String, String>> getMaskedApiKey(@PathVariable Long id) {
+    public ResponseEntity<Map<String, String>> getMaskedApiKey(@PathVariable String id) {
         return dataManager.findById(ModelProviderEntity.class, id)
             .map(provider -> {
                 String maskedKey = credentialService.mask(provider.getApiKey());

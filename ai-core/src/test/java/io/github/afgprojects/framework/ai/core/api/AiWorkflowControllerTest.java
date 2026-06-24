@@ -177,7 +177,7 @@ class AiWorkflowControllerTest extends AbstractAiWebTest {
         assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 
         // Assert - GET returns 404 (soft deleted)
-        Long deletedWfId = wf.getId();
+        String deletedWfId = wf.getId();
         assertThatThrownBy(() -> restClient().get()
                 .uri("/workflows/definitions/{id}", deletedWfId)
                 .retrieve()

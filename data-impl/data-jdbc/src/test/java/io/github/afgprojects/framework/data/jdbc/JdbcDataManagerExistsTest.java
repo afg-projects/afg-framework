@@ -35,7 +35,7 @@ class JdbcDataManagerExistsTest extends BaseDataTest {
         @Test
         @DisplayName("should return false when existsById with non-existing id")
         void shouldReturnFalse_whenExistsByIdWithNonExistingId() {
-            assertThat(dataManager.existsById(TestUser.class, 99999L)).isFalse();
+            assertThat(dataManager.existsById(TestUser.class, "99999")).isFalse();
         }
 
         @Test

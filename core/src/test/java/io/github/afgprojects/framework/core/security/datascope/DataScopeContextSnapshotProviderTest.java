@@ -36,8 +36,8 @@ class DataScopeContextSnapshotProviderTest {
         @DisplayName("should capture context when set")
         void shouldCaptureContext_whenSet() {
             DataScopeContext context = DataScopeContext.builder()
-                    .userId(1L)
-                    .deptId(10L)
+                    .userId("1")
+                    .deptId("10")
                     .build();
             DataScopeContextHolder.setContext(context);
 
@@ -66,8 +66,8 @@ class DataScopeContextSnapshotProviderTest {
         @DisplayName("should restore context from snapshot")
         void shouldRestoreContext_fromSnapshot() {
             DataScopeContext context = DataScopeContext.builder()
-                    .userId(1L)
-                    .deptId(10L)
+                    .userId("1")
+                    .deptId("10")
                     .build();
 
             Map<String, Object> snapshot = new HashMap<>();
@@ -81,7 +81,7 @@ class DataScopeContextSnapshotProviderTest {
         @Test
         @DisplayName("should clear context when snapshot does not contain key")
         void shouldClearContext_whenSnapshotDoesNotContainKey() {
-            DataScopeContextHolder.setContext(DataScopeContext.builder().userId(1L).build());
+            DataScopeContextHolder.setContext(DataScopeContext.builder().userId("1").build());
 
             Map<String, Object> snapshot = new HashMap<>();
             provider.restore(snapshot);
@@ -97,7 +97,7 @@ class DataScopeContextSnapshotProviderTest {
         @Test
         @DisplayName("should clear context")
         void shouldClearContext() {
-            DataScopeContextHolder.setContext(DataScopeContext.builder().userId(1L).build());
+            DataScopeContextHolder.setContext(DataScopeContext.builder().userId("1").build());
 
             provider.clear();
 
@@ -113,8 +113,8 @@ class DataScopeContextSnapshotProviderTest {
         @DisplayName("should propagate DataScopeContext across threads")
         void shouldPropagateDataScopeContext_acrossThreads() throws InterruptedException {
             DataScopeContext context = DataScopeContext.builder()
-                    .userId(42L)
-                    .deptId(100L)
+                    .userId("42")
+                    .deptId("100")
                     .build();
             DataScopeContextHolder.setContext(context);
 
@@ -133,8 +133,8 @@ class DataScopeContextSnapshotProviderTest {
             thread.join();
 
             assertThat(captured.get()).isNotNull();
-            assertThat(captured.get().getUserId()).isEqualTo(42L);
-            assertThat(captured.get().getDeptId()).isEqualTo(100L);
+            assertThat(captured.get().getUserId()).isEqualTo("42");
+            assertThat(captured.get().getDeptId()).isEqualTo("100");
 
             // Main thread context unchanged
             assertThat(DataScopeContextHolder.getContext()).isSameAs(context);

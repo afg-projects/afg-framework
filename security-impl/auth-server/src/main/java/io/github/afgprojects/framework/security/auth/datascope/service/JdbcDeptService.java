@@ -32,7 +32,7 @@ public class JdbcDeptService {
         return dataManager.save(SecDept.class, dept);
     }
 
-    public Optional<SecDept> findById(@NonNull Long id) {
+    public Optional<SecDept> findById(@NonNull String id) {
         return dataManager.findById(SecDept.class, id);
     }
 
@@ -48,7 +48,7 @@ public class JdbcDeptService {
         return buildTree(allDepts, null);
     }
 
-    private List<SecDept> buildTree(List<SecDept> allDepts, Long parentId) {
+    private List<SecDept> buildTree(List<SecDept> allDepts, String parentId) {
         return allDepts.stream()
             .filter(d -> Objects.equals(d.getParentId(), parentId))
             .collect(Collectors.toList());
@@ -66,7 +66,7 @@ public class JdbcDeptService {
             return List.of();
         }
 
-        Set<Long> deptIds = userDepts.stream()
+        Set<String> deptIds = userDepts.stream()
             .map(SecUserDept::getDeptId)
             .collect(Collectors.toSet());
 
@@ -89,7 +89,7 @@ public class JdbcDeptService {
     }
 
     @Transactional
-    public void setUserDept(@NonNull String userId, @NonNull Long deptId, @Nullable String tenantId, boolean isPrimary) {
+    public void setUserDept(@NonNull String userId, @NonNull String deptId, @Nullable String tenantId, boolean isPrimary) {
         var condition = Conditions.builder(SecUserDept.class)
             .eq(SecUserDept::getUserId, userId);
         if (tenantId != null) {
@@ -108,14 +108,14 @@ public class JdbcDeptService {
         log.info("Set user dept: userId={}, deptId={}", userId, deptId);
     }
 
-    public Set<Long> getChildDeptIds(@NonNull Long deptId, @NonNull String tenantId) {
-        Set<Long> result = new HashSet<>();
+    public Set<String> getChildDeptIds(@NonNull String deptId, @NonNull String tenantId) {
+        Set<String> result = new HashSet<>();
         result.add(deptId);
         collectChildDeptIds(deptId, tenantId, result);
         return result;
     }
 
-    private void collectChildDeptIds(Long parentId, String tenantId, Set<Long> result) {
+    private void collectChildDeptIds(String parentId, String tenantId, Set<String> result) {
         List<SecDept> children = dataManager.findList(SecDept.class,
             Conditions.builder(SecDept.class)
                 .eq(SecDept::getParentId, parentId)
@@ -129,7 +129,7 @@ public class JdbcDeptService {
     }
 
     @Transactional
-    public void delete(@NonNull Long id) {
+    public void delete(@NonNull String id) {
         dataManager.findList(SecUserDept.class,
             Conditions.builder(SecUserDept.class)
                 .eq(SecUserDept::getDeptId, id)

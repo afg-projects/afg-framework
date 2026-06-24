@@ -139,9 +139,16 @@ class EntityQueryHelper<T> {
     }
 
     /**
-     * 设置 ID 值
+     * 设置 ID 值（数据库自增回退路径，long 值会自动适配 String 字段类型）
      */
     void setIdValue(T entity, long id) {
+        parameterExtractor.setIdValue(entity, id);
+    }
+
+    /**
+     * 设置 ID 值（IdGenerator 预生成 String ID 场景）
+     */
+    void setIdValue(T entity, String id) {
         parameterExtractor.setIdValue(entity, id);
     }
 

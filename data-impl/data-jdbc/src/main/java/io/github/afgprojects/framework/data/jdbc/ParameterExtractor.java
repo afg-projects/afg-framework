@@ -168,6 +168,22 @@ class ParameterExtractor<T> {
                 setFieldValue(entity, idField.getPropertyName(), id);
             } else if (fieldType == Integer.class || fieldType == int.class) {
                 setFieldValue(entity, idField.getPropertyName(), (int) id);
+            } else if (fieldType == String.class) {
+                setFieldValue(entity, idField.getPropertyName(), String.valueOf(id));
+            } else {
+                setFieldValue(entity, idField.getPropertyName(), id);
+            }
+        }
+    }
+
+    void setIdValue(T entity, String id) {
+        FieldMetadata idField = metadata.getIdField();
+        if (idField != null) {
+            Class<?> fieldType = idField.getFieldType();
+            if (fieldType == String.class) {
+                setFieldValue(entity, idField.getPropertyName(), id);
+            } else if (fieldType == Long.class || fieldType == long.class) {
+                setFieldValue(entity, idField.getPropertyName(), Long.parseLong(id));
             } else {
                 setFieldValue(entity, idField.getPropertyName(), id);
             }

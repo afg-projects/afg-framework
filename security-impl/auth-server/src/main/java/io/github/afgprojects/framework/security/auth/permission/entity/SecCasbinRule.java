@@ -1,6 +1,7 @@
 package io.github.afgprojects.framework.security.auth.permission.entity;
 
 import io.github.afgprojects.framework.apt.entity.AfEntity;
+import io.github.afgprojects.framework.data.core.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,11 +20,7 @@ import org.jspecify.annotations.Nullable;
 @Setter
 @AfEntity
 @Table(name = "sec_casbin_rule")
-public class SecCasbinRule {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class SecCasbinRule extends BaseEntity {
 
     @Column(name = "ptype", length = 10)
     private String ptype;

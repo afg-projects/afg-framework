@@ -49,14 +49,14 @@ public interface Treeable<T> {
      *
      * @return 父节点 ID，根节点返回 null
      */
-    Long getParentId();
+    String getParentId();
 
     /**
      * 设置父节点 ID
      *
      * @param parentId 父节点 ID，根节点设为 null
      */
-    void setParentId(Long parentId);
+    void setParentId(String parentId);
 
     /**
      * 获取层级深度

@@ -64,9 +64,9 @@ public class TraceInterceptor implements ClientHttpRequestInterceptor {
         request.getHeaders().add(REQUEST_ID_HEADER, requestId);
 
         // 传递租户ID
-        Long tenantId = AfgRequestContextHolder.getTenantId();
+        String tenantId = AfgRequestContextHolder.getTenantId();
         if (tenantId != null) {
-            request.getHeaders().add(TENANT_ID_HEADER, String.valueOf(tenantId));
+            request.getHeaders().add(TENANT_ID_HEADER, tenantId);
         }
 
         return execution.execute(request, body);

@@ -21,7 +21,7 @@ public interface SecurityEventService {
     List<SecurityEventInfo> getEventsByType(@NonNull String eventType, @NonNull Duration duration);
 
     interface SecurityEventInfo {
-        Long getId();
+        String getId();
         String getEventType();
         String getUserId();
         String getTenantId();

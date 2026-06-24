@@ -103,7 +103,7 @@ public class JdbcSecurityEventService implements SecurityEventService {
         @Override
         public SecurityEventInfo map(ResultSet rs, int rowNum) throws SQLException {
             return SecurityEvent.builder()
-                    .id(rs.getLong("id"))
+                    .id(rs.getString("id"))
                     .eventType(SecurityEventType.valueOf(rs.getString("event_type")))
                     .userId(rs.getString("user_id"))
                     .tenantId(rs.getString("tenant_id"))

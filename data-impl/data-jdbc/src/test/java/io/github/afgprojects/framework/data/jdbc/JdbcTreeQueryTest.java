@@ -75,7 +75,7 @@ class JdbcTreeQueryTest extends BaseDataTest {
             saveCategory("Root-A", null);
             saveCategory("Root-B", null);
             TestCategory child = saveCategory("Child", null);
-            child.setParentId(99999L); // non-root
+            child.setParentId("99999"); // non-root
             dataManager.save(TestCategory.class, child);
 
             TreeQuery<Treeable<?>> treeQuery = dataManager.entity(TestCategory.class).treeQuery();
@@ -92,7 +92,7 @@ class JdbcTreeQueryTest extends BaseDataTest {
             saveCategory("Root", null);
 
             TreeQuery<Treeable<?>> treeQuery = dataManager.entity(TestCategory.class).treeQuery();
-            List<Treeable<?>> children = treeQuery.findChildren(99999L);
+            List<Treeable<?>> children = treeQuery.findChildren("99999");
 
             assertThat(children).isEmpty();
         }
@@ -137,7 +137,7 @@ class JdbcTreeQueryTest extends BaseDataTest {
         void shouldThrowException_whenFindDescendantsWithNonExistingId() {
             TreeQuery<Treeable<?>> treeQuery = dataManager.entity(TestCategory.class).treeQuery();
 
-            assertThatThrownBy(() -> treeQuery.findDescendants(99999L))
+            assertThatThrownBy(() -> treeQuery.findDescendants("99999"))
                 .isInstanceOf(BusinessException.class);
         }
     }
@@ -375,7 +375,7 @@ class JdbcTreeQueryTest extends BaseDataTest {
 
     // --- Helper methods ---
 
-    private TestCategory saveCategory(String name, Long parentId) {
+    private TestCategory saveCategory(String name, String parentId) {
         TestCategory category;
         if (parentId != null) {
             category = TestCategory.create(name, "Description of " + name, parentId);

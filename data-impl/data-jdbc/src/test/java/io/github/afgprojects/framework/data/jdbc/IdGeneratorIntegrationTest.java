@@ -42,7 +42,6 @@ class IdGeneratorIntegrationTest extends BaseDataTest {
             TestUser saved = dataManager.save(TestUser.class, user);
 
             assertThat(saved.getId()).isNotNull();
-            assertThat(saved.getId()).isPositive();
         }
     }
 
@@ -61,8 +60,6 @@ class IdGeneratorIntegrationTest extends BaseDataTest {
             TestUser saved = dataManager.save(TestUser.class, user);
 
             assertThat(saved.getId()).isNotNull();
-            // IdGenerator 生成的 ID 应该大于 Integer.MAX_VALUE（Snowflake ID 很大）
-            assertThat(saved.getId()).isGreaterThan(0);
         }
 
         @Test

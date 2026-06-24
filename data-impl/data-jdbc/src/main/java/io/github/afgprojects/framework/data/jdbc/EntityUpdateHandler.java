@@ -288,7 +288,7 @@ public class EntityUpdateHandler<T> {
             return;
         }
 
-        Long parentId = treeable.getParentId();
+        String parentId = treeable.getParentId();
         if (parentId == null) {
             // 根节点
             treeable.setLevel(1);
@@ -299,7 +299,7 @@ public class EntityUpdateHandler<T> {
             if (parentEntity instanceof Treeable<?> parent) {
                 int parentLevel = parent.getLevel() != null ? parent.getLevel() : 1;
                 String parentPath = parent.getPath() != null ? parent.getPath() : "/";
-                Long parentIdValue = parentEntity instanceof BaseEntity be ? be.getId() : parentId;
+                String parentIdValue = parentEntity instanceof BaseEntity be ? be.getId() : parentId;
                 treeable.setLevel(parentLevel + 1);
                 treeable.setPath(parentPath + parentIdValue + "/");
             }
@@ -313,7 +313,7 @@ public class EntityUpdateHandler<T> {
      * @param parentId 父节点 ID
      * @return 父实体，可能为 null
      */
-    private @Nullable T findParentEntity(Long parentId) {
+    private @Nullable T findParentEntity(String parentId) {
         try {
             return dataManager.entity(entityClass).findById(parentId).orElse(null);
         } catch (Exception e) {

@@ -83,7 +83,7 @@ public class EnvironmentService {
      * @return 更新后的环境
      */
     @Transactional
-    public Environment update(Long id, Environment environment) {
+    public Environment update(String id, Environment environment) {
         log.info("Updating environment: {}", id);
         Environment existing = dataManager.findById(Environment.class, id)
                 .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Environment not found: " + id));
@@ -106,7 +106,7 @@ public class EnvironmentService {
      * @param targetEnvId 目标环境ID
      */
     @Transactional
-    public void cloneConfig(Long sourceEnvId, Long targetEnvId) {
+    public void cloneConfig(String sourceEnvId, String targetEnvId) {
         log.info("Cloning config from environment {} to {}", sourceEnvId, targetEnvId);
 
         // 1. 查询源环境的所有配置组
@@ -119,7 +119,7 @@ public class EnvironmentService {
                 .list();
 
         // 2. 克隆配置组，并记录新旧ID映射
-        Map<Long, ConfigGroup> oldToNewGroupMap = sourceGroups.stream()
+        Map<String, ConfigGroup> oldToNewGroupMap = sourceGroups.stream()
                 .collect(Collectors.toMap(
                         ConfigGroup::getId,
                         sourceGroup -> {
@@ -136,7 +136,7 @@ public class EnvironmentService {
                 ));
 
         // 3. 查询所有配置项
-        List<Long> sourceGroupIds = sourceGroups.stream()
+        List<String> sourceGroupIds = sourceGroups.stream()
                 .map(ConfigGroup::getId)
                 .toList();
 
@@ -149,7 +149,7 @@ public class EnvironmentService {
                 .list();
 
         // 4. 克隆配置项，并记录新旧ID映射
-        Map<Long, ConfigItem> oldToNewItemMap = sourceItems.stream()
+        Map<String, ConfigItem> oldToNewItemMap = sourceItems.stream()
                 .collect(Collectors.toMap(
                         ConfigItem::getId,
                         sourceItem -> {
@@ -175,7 +175,7 @@ public class EnvironmentService {
                 ));
 
         // 5. 查询所有配置值
-        List<Long> sourceItemIds = sourceItems.stream()
+        List<String> sourceItemIds = sourceItems.stream()
                 .map(ConfigItem::getId)
                 .toList();
 

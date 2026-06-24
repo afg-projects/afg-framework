@@ -28,7 +28,7 @@ public class TestCategory extends TreeEntity<TestCategory> implements LifecycleC
         return category;
     }
 
-    public static TestCategory create(String name, String description, Long parentId) {
+    public static TestCategory create(String name, String description, String parentId) {
         TestCategory category = create(name, description);
         category.setParentId(parentId);
         return category;

@@ -104,7 +104,7 @@ public class ServiceRegistryService {
             return List.of();
         }
 
-        Long serviceId = registryOpt.get().getId();
+        String serviceId = registryOpt.get().getId();
 
         // 查询所有在线实例
         return dataManager.entity(ServiceInstance.class)

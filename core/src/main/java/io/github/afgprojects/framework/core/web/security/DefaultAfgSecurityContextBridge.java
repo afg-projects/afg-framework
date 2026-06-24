@@ -15,19 +15,13 @@ public class DefaultAfgSecurityContextBridge implements AfgSecurityContextBridge
     public void populate(AfgSecurityContext securityContext, RequestContext requestContext) {
         AfgPrincipal principal = securityContext.getPrincipal();
         if (principal != null) {
-            try {
-                requestContext.setUserId(Long.valueOf(principal.getId()));
-            } catch (NumberFormatException ignored) {
-            }
+            requestContext.setUserId(principal.getId());
             requestContext.setUsername(principal.getName());
         }
 
         String tenantId = securityContext.getTenantId();
         if (tenantId != null) {
-            try {
-                requestContext.setTenantId(Long.valueOf(tenantId));
-            } catch (NumberFormatException ignored) {
-            }
+            requestContext.setTenantId(tenantId);
         }
     }
 }

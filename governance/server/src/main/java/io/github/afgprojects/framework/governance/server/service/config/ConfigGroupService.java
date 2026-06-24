@@ -43,7 +43,7 @@ public class ConfigGroupService {
             .list();
     }
 
-    public Optional<ConfigGroup> findById(Long id) {
+    public Optional<ConfigGroup> findById(String id) {
         return dataManager.findById(ConfigGroup.class, id);
     }
 
@@ -78,7 +78,7 @@ public class ConfigGroupService {
     }
 
     @Transactional
-    public ConfigGroup update(Long id, ConfigGroup group) {
+    public ConfigGroup update(String id, ConfigGroup group) {
         ConfigGroup existing = dataManager.findById(ConfigGroup.class, id)
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "配置分组不存在: " + id));
 
@@ -92,7 +92,7 @@ public class ConfigGroupService {
     }
 
     @Transactional
-    public void delete(Long id) {
+    public void delete(String id) {
         ConfigGroup group = dataManager.findById(ConfigGroup.class, id)
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "配置分组不存在: " + id));
         group.markDeleted();

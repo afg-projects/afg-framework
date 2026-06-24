@@ -22,7 +22,7 @@ import lombok.Setter;
 public class ChatLogEntity extends BaseEntity {
 
     @Column(name = "application_id")
-    private Long applicationId;
+    private String applicationId;
 
     @Column(name = "session_id", length = 64)
     private String sessionId;
@@ -46,7 +46,7 @@ public class ChatLogEntity extends BaseEntity {
     private Long durationMs;
 
     @Column(name = "model_config_id")
-    private Long modelConfigId;
+    private String modelConfigId;
 
     @Column(name = "vote")
     private Integer vote;

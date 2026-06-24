@@ -54,7 +54,7 @@ public final class TreePathCalculator {
             return;
         }
 
-        Long parentId = treeable.getParentId();
+        String parentId = treeable.getParentId();
         if (parentId == null) {
             // 根节点
             treeable.setLevel(1);
@@ -63,7 +63,7 @@ public final class TreePathCalculator {
             // 子节点：从父节点派生
             int parentLevel = parent.getLevel() != null ? parent.getLevel() : 1;
             String parentPath = parent.getPath() != null ? parent.getPath() : "/";
-            Long parentIdValue = parentEntity instanceof BaseEntity be ? be.getId() : parentId;
+            String parentIdValue = parentEntity instanceof BaseEntity be ? be.getId() : parentId;
             treeable.setLevel(parentLevel + 1);
             treeable.setPath(parentPath + parentIdValue + "/");
         }

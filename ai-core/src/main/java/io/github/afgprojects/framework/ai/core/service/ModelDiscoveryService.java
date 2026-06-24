@@ -15,7 +15,7 @@ public interface ModelDiscoveryService {
      * @param providerId 供应商 ID
      * @return 发现的模型列表
      */
-    List<DiscoveredModel> discoverModels(Long providerId);
+    List<DiscoveredModel> discoverModels(String providerId);
 
     /**
      * 根据 base URL + credential 拉取（创建供应商前预览）

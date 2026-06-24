@@ -79,7 +79,7 @@ public class AiWorkflowController {
      * 获取单个工作流定义
      */
     @GetMapping("/definitions/{id}")
-    public ResponseEntity<WorkflowDefinitionEntity> getDefinition(@PathVariable Long id) {
+    public ResponseEntity<WorkflowDefinitionEntity> getDefinition(@PathVariable String id) {
         return dataManager.findById(WorkflowDefinitionEntity.class, id)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
@@ -90,7 +90,7 @@ public class AiWorkflowController {
      */
     @PutMapping("/definitions/{id}")
     @Transactional
-    public ResponseEntity<WorkflowDefinitionEntity> updateDefinition(@PathVariable Long id,
+    public ResponseEntity<WorkflowDefinitionEntity> updateDefinition(@PathVariable String id,
                                                       @Valid @RequestBody UpdateWorkflowRequest request) {
         WorkflowDefinitionEntity entity = dataManager.findById(WorkflowDefinitionEntity.class, id)
             .orElse(null);
@@ -125,7 +125,7 @@ public class AiWorkflowController {
      */
     @DeleteMapping("/definitions/{id}")
     @Transactional
-    public ResponseEntity<Void> deleteDefinition(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteDefinition(@PathVariable String id) {
         WorkflowDefinitionEntity entity = dataManager.findById(WorkflowDefinitionEntity.class, id)
             .orElse(null);
         if (entity == null) {
@@ -144,7 +144,7 @@ public class AiWorkflowController {
      * 如果 request.stream=true，返回 SSE 事件流；否则同步返回执行结果。
      */
     @PostMapping("/definitions/{id}/execute")
-    public Object executeWorkflow(@PathVariable Long id,
+    public Object executeWorkflow(@PathVariable String id,
                                    @RequestBody(required = false) WorkflowExecuteRequest request) {
         WorkflowExecuteRequest effectiveRequest = request != null ? request : new WorkflowExecuteRequest();
 
@@ -161,7 +161,7 @@ public class AiWorkflowController {
      * 流式执行工作流（SSE）
      */
     @GetMapping(value = "/definitions/{id}/execute/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<DagEvent> executeWorkflowStream(@PathVariable Long id,
+    public Flux<DagEvent> executeWorkflowStream(@PathVariable String id,
                                                  @RequestParam(required = false) Map<String, Object> inputs) {
         String userId = getCurrentUserId();
         return workflowService.executeStream(id, inputs, userId);
@@ -173,7 +173,7 @@ public class AiWorkflowController {
      * 列出工作流执行记录（可选按 definitionId 筛选）
      */
     @GetMapping("/executions")
-    public List<WorkflowExecutionEntity> listExecutions(@RequestParam(required = false) Long definitionId) {
+    public List<WorkflowExecutionEntity> listExecutions(@RequestParam(required = false) String definitionId) {
         if (definitionId != null) {
             return dataManager.entity(WorkflowExecutionEntity.class)
                 .query()
@@ -193,7 +193,7 @@ public class AiWorkflowController {
      * 获取单个工作流执行记录
      */
     @GetMapping("/executions/{id}")
-    public ResponseEntity<WorkflowExecutionEntity> getExecution(@PathVariable Long id) {
+    public ResponseEntity<WorkflowExecutionEntity> getExecution(@PathVariable String id) {
         return dataManager.findById(WorkflowExecutionEntity.class, id)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());

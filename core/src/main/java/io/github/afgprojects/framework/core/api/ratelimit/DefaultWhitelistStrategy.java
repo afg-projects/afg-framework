@@ -96,7 +96,7 @@ public class DefaultWhitelistStrategy implements WhitelistStrategy {
         }
 
         // 检查用户ID白名单
-        Long userId = context.getUserId();
+        String userId = context.getUserId();
         if (userId != null && whitelist.getUserIds().contains(userId)) {
             return true;
         }
@@ -121,7 +121,7 @@ public class DefaultWhitelistStrategy implements WhitelistStrategy {
             return false;
         }
 
-        Long tenantId = context.getTenantId();
+        String tenantId = context.getTenantId();
         return tenantId != null && whitelist.getTenantIds().contains(tenantId);
     }
 }

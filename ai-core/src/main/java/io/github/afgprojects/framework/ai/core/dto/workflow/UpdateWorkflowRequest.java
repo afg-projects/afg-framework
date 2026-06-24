@@ -21,5 +21,5 @@ public class UpdateWorkflowRequest {
 
     private String status;
 
-    private Long applicationId;
+    private String applicationId;
 }

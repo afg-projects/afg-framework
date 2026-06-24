@@ -271,7 +271,7 @@ class AiChatControllerTest extends AbstractAiWebTest {
     void shouldListLogs_whenGetLogs() {
         // Arrange - create a ChatLogEntity via DataManager
         ChatLogEntity logEntity = new ChatLogEntity();
-        logEntity.setApplicationId(1L);
+        logEntity.setApplicationId("1");
         logEntity.setSessionId("session-" + UUID.randomUUID());
         logEntity.setUserId("test-user");
         logEntity.setQuestion("test question");

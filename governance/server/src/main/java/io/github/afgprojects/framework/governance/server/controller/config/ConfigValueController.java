@@ -30,7 +30,7 @@ public class ConfigValueController {
     private final ConfigStreamManager streamManager;
 
     @GetMapping
-    public Result<ConfigValue> getByItemId(@RequestParam Long itemId) {
+    public Result<ConfigValue> getByItemId(@RequestParam String itemId) {
         return Result.success(dataManager.findOneByField(ConfigValue.class, ConfigValue::getItemId, itemId).orElse(null));
     }
 
@@ -65,7 +65,7 @@ public class ConfigValueController {
 
     @PutMapping("/{itemId}")
     @Transactional
-    public Result<ConfigValue> update(@PathVariable Long itemId, @RequestBody UpdateValueRequest request) {
+    public Result<ConfigValue> update(@PathVariable String itemId, @RequestBody UpdateValueRequest request) {
         ConfigItem item = dataManager.findById(ConfigItem.class, itemId)
             .filter(i -> !i.isDeleted())
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Config item not found: " + itemId));
@@ -116,7 +116,7 @@ public class ConfigValueController {
 
     @DeleteMapping("/{itemId}")
     @Transactional
-    public Result<Void> delete(@PathVariable Long itemId) {
+    public Result<Void> delete(@PathVariable String itemId) {
         ConfigItem item = dataManager.findById(ConfigItem.class, itemId)
             .filter(i -> !i.isDeleted())
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Config item not found: " + itemId));
@@ -141,7 +141,7 @@ public class ConfigValueController {
 
     @Data
     public static class UpdateValueRequest {
-        private Long itemId;
+        private String itemId;
         private String value;
         private String reason;
         private String operator;

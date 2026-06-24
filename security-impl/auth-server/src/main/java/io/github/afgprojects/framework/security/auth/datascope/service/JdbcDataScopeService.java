@@ -34,7 +34,7 @@ public class JdbcDataScopeService {
         return dataManager.save(SecDataScope.class, dataScope);
     }
 
-    public Optional<SecDataScope> findById(@NonNull Long id) {
+    public Optional<SecDataScope> findById(@NonNull String id) {
         return dataManager.findById(SecDataScope.class, id);
     }
 
@@ -60,7 +60,7 @@ public class JdbcDataScopeService {
             return List.of();
         }
 
-        Set<Long> scopeIds = userDataScopes.stream()
+        Set<String> scopeIds = userDataScopes.stream()
             .map(SecUserDataScope::getDataScopeId)
             .collect(Collectors.toSet());
 
@@ -71,7 +71,7 @@ public class JdbcDataScopeService {
     }
 
     @Transactional
-    public void setUserDataScopes(@NonNull String userId, @NonNull Set<Long> scopeIds, @Nullable String tenantId) {
+    public void setUserDataScopes(@NonNull String userId, @NonNull Set<String> scopeIds, @Nullable String tenantId) {
         var condition = Conditions.builder(SecUserDataScope.class)
             .eq(SecUserDataScope::getUserId, userId);
         if (tenantId != null) {
@@ -81,7 +81,7 @@ public class JdbcDataScopeService {
         dataManager.findList(SecUserDataScope.class, condition.build())
             .forEach(uds -> dataManager.deleteById(SecUserDataScope.class, uds.getId()));
 
-        for (Long scopeId : scopeIds) {
+        for (String scopeId : scopeIds) {
             SecUserDataScope userDataScope = new SecUserDataScope();
             userDataScope.setUserId(userId);
             userDataScope.setDataScopeId(scopeId);
@@ -114,7 +114,7 @@ public class JdbcDataScopeService {
     }
 
     @Transactional
-    public void delete(@NonNull Long id) {
+    public void delete(@NonNull String id) {
         dataManager.findList(SecUserDataScope.class,
             Conditions.builder(SecUserDataScope.class)
                 .eq(SecUserDataScope::getDataScopeId, id)

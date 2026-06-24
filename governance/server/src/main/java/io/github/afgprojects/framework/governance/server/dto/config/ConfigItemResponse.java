@@ -10,8 +10,8 @@ import lombok.Data;
 @Data
 public class ConfigItemResponse {
 
-    private Long id;
-    private Long groupId;
+    private String id;
+    private String groupId;
     private String code;
     private String name;
     private String description;

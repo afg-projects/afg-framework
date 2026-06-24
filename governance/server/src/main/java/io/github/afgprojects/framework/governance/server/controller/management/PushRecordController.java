@@ -30,8 +30,8 @@ public class PushRecordController {
 
     @GetMapping
     public Result<PageData<PushRecord>> list(
-            @RequestParam(required = false) Long configItemId,
-            @RequestParam(required = false) Long instanceId,
+            @RequestParam(required = false) String configItemId,
+            @RequestParam(required = false) String instanceId,
             @RequestParam(required = false) String pushStatus,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -40,7 +40,7 @@ public class PushRecordController {
     }
 
     @GetMapping("/{id}")
-    public Result<PushRecord> get(@PathVariable Long id) {
+    public Result<PushRecord> get(@PathVariable String id) {
         return Result.success(pushRecordService.findById(id));
     }
 }

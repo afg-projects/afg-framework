@@ -36,7 +36,7 @@ public class ToolManagementService {
      * @return 更新后的工具实体
      */
     @Transactional
-    public ToolRegistryEntity enableTool(Long toolId) {
+    public ToolRegistryEntity enableTool(String toolId) {
         ToolRegistryEntity tool = dataManager.findById(ToolRegistryEntity.class, toolId)
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "工具不存在: " + toolId));
         tool.setEnabled(true);
@@ -51,7 +51,7 @@ public class ToolManagementService {
      * @return 更新后的工具实体
      */
     @Transactional
-    public ToolRegistryEntity disableTool(Long toolId) {
+    public ToolRegistryEntity disableTool(String toolId) {
         ToolRegistryEntity tool = dataManager.findById(ToolRegistryEntity.class, toolId)
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "工具不存在: " + toolId));
         tool.setEnabled(false);

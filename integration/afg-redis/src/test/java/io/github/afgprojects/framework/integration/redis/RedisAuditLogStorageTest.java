@@ -56,7 +56,7 @@ class RedisAuditLogStorageTest extends BaseRedisTest {
                     .module("user")
                     .className("UserService")
                     .methodName("createUser")
-                    .tenantId(1L)
+                    .tenantId("1")
                     .build();
 
             assertThatCode(() -> auditLogStorage.save(log)).doesNotThrowAnyException();

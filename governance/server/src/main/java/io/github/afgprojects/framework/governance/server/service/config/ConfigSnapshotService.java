@@ -37,7 +37,7 @@ public class ConfigSnapshotService {
             .collect(Collectors.toList());
     }
 
-    public List<ConfigSnapshot> findByGroupId(Long groupId) {
+    public List<ConfigSnapshot> findByGroupId(String groupId) {
         var condition = Conditions.eq(ConfigSnapshot.class, ConfigSnapshot::getGroupId, groupId);
         return dataManager.entity(ConfigSnapshot.class)
             .query()
@@ -48,7 +48,7 @@ public class ConfigSnapshotService {
             .collect(Collectors.toList());
     }
 
-    public Optional<ConfigSnapshot> findById(Long id) {
+    public Optional<ConfigSnapshot> findById(String id) {
         return dataManager.findById(ConfigSnapshot.class, id);
     }
 
@@ -56,12 +56,12 @@ public class ConfigSnapshotService {
         return findAll().stream().findFirst();
     }
 
-    public Optional<ConfigSnapshot> findLatestByGroupId(Long groupId) {
+    public Optional<ConfigSnapshot> findLatestByGroupId(String groupId) {
         return findByGroupId(groupId).stream().findFirst();
     }
 
     @Transactional
-    public ConfigSnapshot createSnapshot(String name, String description, String tag, Long groupId,
+    public ConfigSnapshot createSnapshot(String name, String description, String tag, String groupId,
                                          String creatorName) {
         // 收集配置数据
         Map<String, String> configData = new HashMap<>();
@@ -99,7 +99,7 @@ public class ConfigSnapshotService {
     }
 
     @Transactional
-    public void rollbackToSnapshot(Long snapshotId, String operatorName) {
+    public void rollbackToSnapshot(String snapshotId, String operatorName) {
         ConfigSnapshot snapshot = dataManager.findById(ConfigSnapshot.class, snapshotId)
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "快照不存在: " + snapshotId));
 
@@ -120,7 +120,7 @@ public class ConfigSnapshotService {
         }
     }
 
-    public Map<String, String> compareSnapshots(Long snapshotId1, Long snapshotId2) {
+    public Map<String, String> compareSnapshots(String snapshotId1, String snapshotId2) {
         ConfigSnapshot snapshot1 = dataManager.findById(ConfigSnapshot.class, snapshotId1)
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "快照不存在: " + snapshotId1));
         ConfigSnapshot snapshot2 = dataManager.findById(ConfigSnapshot.class, snapshotId2)

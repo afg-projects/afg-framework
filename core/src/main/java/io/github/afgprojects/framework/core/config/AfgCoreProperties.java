@@ -859,9 +859,9 @@ public class AfgCoreProperties {
         public static class RateLimitWhitelistConfig {
             private boolean enabled = true;
             private List<String> ips = new ArrayList<>();
-            private List<Long> userIds = new ArrayList<>();
+            private List<String> userIds = new ArrayList<>();
             private List<String> usernames = new ArrayList<>();
-            private List<Long> tenantIds = new ArrayList<>();
+            private List<String> tenantIds = new ArrayList<>();
             private @Nullable String customCheckerBean;
         }
 

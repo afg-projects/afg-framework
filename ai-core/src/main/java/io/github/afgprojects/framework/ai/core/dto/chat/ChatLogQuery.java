@@ -11,7 +11,7 @@ import lombok.Data;
 @Data
 public class ChatLogQuery {
 
-    private Long applicationId;
+    private String applicationId;
 
     private String sessionId;
 

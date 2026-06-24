@@ -162,7 +162,7 @@ class AiKnowledgeControllerTest extends AbstractAiWebTest {
         assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 
         // Assert - GET returns 404 (soft deleted)
-        Long deletedKbId = kb.getId();
+        String deletedKbId = kb.getId();
         assertThatThrownBy(() -> restClient().get()
                 .uri("/knowledge/bases/{id}", deletedKbId)
                 .retrieve()
@@ -308,8 +308,8 @@ class AiKnowledgeControllerTest extends AbstractAiWebTest {
         assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 
         // Assert - GET returns 404 (soft deleted)
-        Long deletedKbId2 = kb.getId();
-        Long deletedDocId = doc.getId();
+        String deletedKbId2 = kb.getId();
+        String deletedDocId = doc.getId();
         assertThatThrownBy(() -> restClient().get()
                 .uri("/knowledge/bases/{id}/documents/{docId}", deletedKbId2, deletedDocId)
                 .retrieve()
@@ -391,7 +391,7 @@ class AiKnowledgeControllerTest extends AbstractAiWebTest {
 
         // Act - search
         KnowledgeSearchRequest searchRequest = new KnowledgeSearchRequest();
-        searchRequest.setKnowledgeBaseIds(List.of(String.valueOf(kb.getId())));
+        searchRequest.setKnowledgeBaseIds(List.of(kb.getId()));
         searchRequest.setQuery("What is machine learning?");
         searchRequest.setTopK(3);
 

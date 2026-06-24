@@ -30,12 +30,12 @@ public class DefaultDimensionResolver implements DimensionResolver {
                 yield clientIp != null ? clientIp : "unknown";
             }
             case USER -> {
-                Long userId = context.getUserId();
-                yield userId != null ? userId.toString() : "anonymous";
+                String userId = context.getUserId();
+                yield userId != null ? userId : "anonymous";
             }
             case TENANT -> {
-                Long tenantId = context.getTenantId();
-                yield tenantId != null ? tenantId.toString() : "default";
+                String tenantId = context.getTenantId();
+                yield tenantId != null ? tenantId : "default";
             }
             case API -> "global";
         };

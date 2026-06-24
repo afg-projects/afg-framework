@@ -33,12 +33,12 @@ public record FeatureFlagRequest(
         /**
          * 用户ID白名单
          */
-        @Nullable Set<Long> userIds,
+        @Nullable Set<String> userIds,
 
         /**
          * 租户ID白名单
          */
-        @Nullable Set<Long> tenantIds,
+        @Nullable Set<String> tenantIds,
 
         /**
          * 功能描述

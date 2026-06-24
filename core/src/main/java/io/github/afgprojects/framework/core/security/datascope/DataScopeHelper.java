@@ -123,11 +123,11 @@ public final class DataScopeHelper {
      * 生成本部门数据条件
      */
     private static String buildDeptCondition(String table, String column, DataScopeContext context) {
-        Long deptId = context.getDeptId();
+        String deptId = context.getDeptId();
         if (deptId == null) {
             return null;
         }
-        return String.format("%s.%s = %d", table, column, deptId);
+        return String.format("%s.%s = '%s'", table, column, deptId);
     }
 
     /**
@@ -140,22 +140,22 @@ public final class DataScopeHelper {
 
         String table = resolveTableAlias(dataScope);
         String column = dataScope.column();
-        Set<Long> deptIds = context.getAccessibleDeptIds();
+        Set<String> deptIds = context.getAccessibleDeptIds();
 
         if (deptIds == null || deptIds.isEmpty()) {
             // 如果没有子部门，退化为仅本部门
-            Long deptId = context.getDeptId();
+            String deptId = context.getDeptId();
             if (deptId == null) {
                 return null;
             }
-            return String.format("%s.%s = %d", table, column, deptId);
+            return String.format("%s.%s = '%s'", table, column, deptId);
         }
 
         // 生成 IN 条件
         String deptIdStr = deptIds.stream()
-                .map(String::valueOf)
+                .map(id -> "'" + id + "'")
                 .reduce((a, b) -> a + ", " + b)
-                .orElse("-1");
+                .orElse("'-'");
 
         return String.format("%s.%s IN (%s)", table, column, deptIdStr);
     }
@@ -168,11 +168,11 @@ public final class DataScopeHelper {
             String userIdColumn,
             DataScopeContext context) {
 
-        Long userId = context.getUserId();
+        String userId = context.getUserId();
         if (userId == null) {
             return null;
         }
-        return String.format("%s.%s = %d", table, userIdColumn, userId);
+        return String.format("%s.%s = '%s'", table, userIdColumn, userId);
     }
 
     /**

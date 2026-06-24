@@ -57,7 +57,7 @@ public class KnowledgeDocumentService {
      * @param title           文档标题
      * @return 保存后的文档实体
      */
-    public DocumentEntity uploadDocument(Long knowledgeBaseId, MultipartFile file, String title) {
+    public DocumentEntity uploadDocument(String knowledgeBaseId, MultipartFile file, String title) {
         // 1. 验证知识库是否存在
         KnowledgeBaseEntity kb = dataManager.findById(KnowledgeBaseEntity.class, knowledgeBaseId)
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Knowledge base not found: " + knowledgeBaseId));
@@ -116,7 +116,7 @@ public class KnowledgeDocumentService {
     /**
      * 在独立短事务中创建文档实体
      */
-    private DocumentEntity createDocumentInTransaction(Long knowledgeBaseId, MultipartFile file, String title) {
+    private DocumentEntity createDocumentInTransaction(String knowledgeBaseId, MultipartFile file, String title) {
         return new TransactionTemplate(transactionManager).execute(status -> {
             DocumentEntity document = new DocumentEntity();
             document.setKnowledgeBaseId(knowledgeBaseId);
@@ -131,7 +131,7 @@ public class KnowledgeDocumentService {
     /**
      * 在独立短事务中保存分块实体
      */
-    private void saveChunkInTransaction(Long documentId, Long knowledgeBaseId, String content, int chunkIndex) {
+    private void saveChunkInTransaction(String documentId, String knowledgeBaseId, String content, int chunkIndex) {
         new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
             DocumentChunkEntity chunkEntity = new DocumentChunkEntity();
             chunkEntity.setDocumentId(documentId);
@@ -145,7 +145,7 @@ public class KnowledgeDocumentService {
     /**
      * 在独立短事务中更新文档状态为 COMPLETED 并更新知识库计数
      */
-    private void completeDocumentInTransaction(Long documentId, int chunkCount, Long knowledgeBaseId) {
+    private void completeDocumentInTransaction(String documentId, int chunkCount, String knowledgeBaseId) {
         new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
             dataManager.findById(DocumentEntity.class, documentId).ifPresent(doc -> {
                 doc.setStatus("COMPLETED");
@@ -163,7 +163,7 @@ public class KnowledgeDocumentService {
     /**
      * 在独立短事务中更新文档状态为 FAILED
      */
-    private void failDocumentInTransaction(Long documentId, String errorMessage) {
+    private void failDocumentInTransaction(String documentId, String errorMessage) {
         try {
             new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
                 dataManager.findById(DocumentEntity.class, documentId).ifPresent(doc -> {
@@ -183,7 +183,7 @@ public class KnowledgeDocumentService {
      * @param documentId 文档ID
      */
     @Transactional
-    public void deleteDocument(Long documentId) {
+    public void deleteDocument(String documentId) {
         DocumentEntity document = dataManager.findById(DocumentEntity.class, documentId)
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Document not found: " + documentId));
 
@@ -210,7 +210,7 @@ public class KnowledgeDocumentService {
         }
 
         // 更新知识库计数
-        Long kbId = document.getKnowledgeBaseId();
+        String kbId = document.getKnowledgeBaseId();
         dataManager.findById(KnowledgeBaseEntity.class, kbId).ifPresent(kb -> {
             kb.setDocumentCount(Math.max(0, kb.getDocumentCount() - 1));
             kb.setChunkCount(Math.max(0, kb.getChunkCount() - chunks.size()));
@@ -226,7 +226,7 @@ public class KnowledgeDocumentService {
      * @param chunkId 分块ID
      */
     @Transactional
-    public void deleteChunk(Long chunkId) {
+    public void deleteChunk(String chunkId) {
         DocumentChunkEntity chunk = dataManager.findById(DocumentChunkEntity.class, chunkId)
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Chunk not found: " + chunkId));
 

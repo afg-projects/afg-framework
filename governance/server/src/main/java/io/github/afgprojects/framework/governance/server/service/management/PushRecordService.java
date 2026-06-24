@@ -34,7 +34,7 @@ public class PushRecordService {
      * @param pushStatus   可选的推送状态过滤
      * @param pageRequest  分页参数
      */
-    public PageData<PushRecord> list(Long configItemId, Long instanceId, String pushStatus, PageRequest pageRequest) {
+    public PageData<PushRecord> list(String configItemId, String instanceId, String pushStatus, PageRequest pageRequest) {
         var builder = Conditions.builder(PushRecord.class);
         if (configItemId != null) {
             builder.eq(PushRecord::getConfigItemId, configItemId);
@@ -55,7 +55,7 @@ public class PushRecordService {
     /**
      * 根据ID查询推送记录
      */
-    public PushRecord findById(Long id) {
+    public PushRecord findById(String id) {
         return dataManager.findById(PushRecord.class, id).orElse(null);
     }
 
@@ -69,7 +69,7 @@ public class PushRecordService {
     /**
      * 标记推送成功
      */
-    public void markSuccess(Long id) {
+    public void markSuccess(String id) {
         PushRecord record = dataManager.findById(PushRecord.class, id).orElse(null);
         if (record != null) {
             record.setPushStatus("SUCCESS");
@@ -82,7 +82,7 @@ public class PushRecordService {
     /**
      * 标记推送失败
      */
-    public void markFailed(Long id, String errorMessage) {
+    public void markFailed(String id, String errorMessage) {
         PushRecord record = dataManager.findById(PushRecord.class, id).orElse(null);
         if (record != null) {
             record.setPushStatus("FAILED");

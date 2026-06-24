@@ -1,6 +1,7 @@
 package io.github.afgprojects.framework.security.auth.datascope.entity;
 
 import io.github.afgprojects.framework.apt.entity.AfEntity;
+import io.github.afgprojects.framework.data.core.entity.BaseEntity;
 import io.github.afgprojects.framework.data.core.scope.DataScopeType;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -13,11 +14,7 @@ import lombok.Setter;
 @Setter
 @AfEntity
 @Table(name = "sec_data_scope")
-public class SecDataScope {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class SecDataScope extends BaseEntity {
 
     @Column(name = "scope_code", nullable = false, length = 50)
     private String scopeCode;

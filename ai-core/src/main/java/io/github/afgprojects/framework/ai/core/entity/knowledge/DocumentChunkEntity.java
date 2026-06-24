@@ -22,10 +22,10 @@ import lombok.Setter;
 public class DocumentChunkEntity extends BaseEntity {
 
     @Column(name = "document_id", nullable = false)
-    private Long documentId;
+    private String documentId;
 
     @Column(name = "knowledge_base_id", nullable = false)
-    private Long knowledgeBaseId;
+    private String knowledgeBaseId;
 
     @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;

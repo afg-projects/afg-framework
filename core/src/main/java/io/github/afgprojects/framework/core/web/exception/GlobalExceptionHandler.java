@@ -282,7 +282,7 @@ public class GlobalExceptionHandler {
     /**
      * 获取当前用户ID
      */
-    private Long getUserId() {
+    private String getUserId() {
         RequestContext context = AfgRequestContextHolder.getContext();
         return context != null ? context.getUserId() : null;
     }

@@ -101,7 +101,7 @@ public class JdbcAppService {
      * @param id 应用 ID
      * @return 应用信息，如果不存在则返回 empty
      */
-    public Optional<AuthApp> findById(@NonNull Long id) {
+    public Optional<AuthApp> findById(@NonNull String id) {
         return dataManager.findById(AuthApp.class, id);
     }
 
@@ -131,7 +131,7 @@ public class JdbcAppService {
      * @param id 应用 ID
      */
     @Transactional
-    public void delete(@NonNull Long id) {
+    public void delete(@NonNull String id) {
         var app = dataManager.findById(AuthApp.class, id);
         if (app.isEmpty()) {
             return;
@@ -155,7 +155,7 @@ public class JdbcAppService {
      * @param status 状态：1=启用，0=停用
      */
     @Transactional
-    public void updateStatus(@NonNull Long id, int status) {
+    public void updateStatus(@NonNull String id, int status) {
         var app = dataManager.findById(AuthApp.class, id);
         if (app.isEmpty()) {
             return;

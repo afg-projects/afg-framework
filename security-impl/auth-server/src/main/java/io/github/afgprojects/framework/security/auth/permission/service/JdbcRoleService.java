@@ -33,7 +33,7 @@ public class JdbcRoleService {
         return dataManager.save(SecRole.class, role);
     }
 
-    public Optional<SecRole> findById(@NonNull Long id) {
+    public Optional<SecRole> findById(@NonNull String id) {
         return dataManager.findById(SecRole.class, id);
     }
 
@@ -57,14 +57,14 @@ public class JdbcRoleService {
     }
 
     @Transactional
-    public void setRolePermissions(@NonNull Long roleId, @NonNull Set<Long> permissionIds, @Nullable String tenantId) {
+    public void setRolePermissions(@NonNull String roleId, @NonNull Set<String> permissionIds, @Nullable String tenantId) {
         dataManager.findList(SecRolePermission.class,
             Conditions.builder(SecRolePermission.class)
                 .eq(SecRolePermission::getRoleId, roleId)
                 .build())
             .forEach(rp -> dataManager.deleteById(SecRolePermission.class, rp.getId()));
 
-        for (Long permissionId : permissionIds) {
+        for (String permissionId : permissionIds) {
             SecRolePermission rp = new SecRolePermission();
             rp.setRoleId(roleId);
             rp.setPermissionId(permissionId);
@@ -74,7 +74,7 @@ public class JdbcRoleService {
         log.info("Set role permissions: roleId={}, permissions={}", roleId, permissionIds);
     }
 
-    public Set<Long> getRolePermissions(@NonNull Long roleId) {
+    public Set<String> getRolePermissions(@NonNull String roleId) {
         return dataManager.findList(SecRolePermission.class,
             Conditions.builder(SecRolePermission.class)
                 .eq(SecRolePermission::getRoleId, roleId)
@@ -85,7 +85,7 @@ public class JdbcRoleService {
     }
 
     @Transactional
-    public void setParentRole(@NonNull Long roleId, @NonNull Long parentRoleId, @Nullable String tenantId) {
+    public void setParentRole(@NonNull String roleId, @NonNull String parentRoleId, @Nullable String tenantId) {
         dataManager.findList(SecRoleHierarchy.class,
             Conditions.builder(SecRoleHierarchy.class)
                 .eq(SecRoleHierarchy::getRoleId, roleId)
@@ -101,7 +101,7 @@ public class JdbcRoleService {
     }
 
     @Transactional
-    public void assignRoleToUser(@NonNull String userId, @NonNull Long roleId, @Nullable String tenantId) {
+    public void assignRoleToUser(@NonNull String userId, @NonNull String roleId, @Nullable String tenantId) {
         var condition = Conditions.builder(SecUserRole.class)
             .eq(SecUserRole::getUserId, userId)
             .eq(SecUserRole::getRoleId, roleId);
@@ -120,7 +120,7 @@ public class JdbcRoleService {
     }
 
     @Transactional
-    public void removeRoleFromUser(@NonNull String userId, @NonNull Long roleId, @Nullable String tenantId) {
+    public void removeRoleFromUser(@NonNull String userId, @NonNull String roleId, @Nullable String tenantId) {
         var condition = Conditions.builder(SecUserRole.class)
             .eq(SecUserRole::getUserId, userId)
             .eq(SecUserRole::getRoleId, roleId);
@@ -147,7 +147,7 @@ public class JdbcRoleService {
             return List.of();
         }
 
-        Set<Long> roleIds = userRoles.stream()
+        Set<String> roleIds = userRoles.stream()
             .map(SecUserRole::getRoleId)
             .collect(Collectors.toSet());
 
@@ -158,7 +158,7 @@ public class JdbcRoleService {
     }
 
     @Transactional
-    public void delete(@NonNull Long id) {
+    public void delete(@NonNull String id) {
         dataManager.findList(SecRolePermission.class,
             Conditions.builder(SecRolePermission.class)
                 .eq(SecRolePermission::getRoleId, id)

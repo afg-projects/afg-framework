@@ -24,4 +24,7 @@
     <include file="v1.0.0/017_ai_tool_execution.xml" relativeToChangelogFile="true"/>
     <include file="v1.0.0/018_ai_workflow_checkpoint.xml" relativeToChangelogFile="true"/>
 
+    <!-- v1.1.0: ID String 迁移 -->
+    <include file="v1.1.0/001_id_string_migration.xml" relativeToChangelogFile="true"/>
+
 </databaseChangeLog>

@@ -20,9 +20,9 @@ public class RequestContext {
 
     private String traceId;
     private String requestId;
-    private Long userId;
+    private String userId;
     private String username;
-    private Long tenantId;
+    private String tenantId;
     private String clientIp;
     private String source;
     private LocalDateTime requestTime;

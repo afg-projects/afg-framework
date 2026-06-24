@@ -50,12 +50,12 @@ public class UserPermissionController {
     }
 
     @PostMapping("/{userId}/roles/{roleId}")
-    public void assignRole(@PathVariable String userId, @PathVariable Long roleId, @RequestParam @Nullable String tenantId) {
+    public void assignRole(@PathVariable String userId, @PathVariable String roleId, @RequestParam @Nullable String tenantId) {
         roleService.assignRoleToUser(userId, roleId, tenantId);
     }
 
     @DeleteMapping("/{userId}/roles/{roleId}")
-    public void removeRole(@PathVariable String userId, @PathVariable Long roleId, @RequestParam @Nullable String tenantId) {
+    public void removeRole(@PathVariable String userId, @PathVariable String roleId, @RequestParam @Nullable String tenantId) {
         roleService.removeRoleFromUser(userId, roleId, tenantId);
     }
 }

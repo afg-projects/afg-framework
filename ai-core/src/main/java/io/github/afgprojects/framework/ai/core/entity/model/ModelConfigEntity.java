@@ -24,7 +24,7 @@ import lombok.Setter;
 public class ModelConfigEntity extends SoftDeleteEntity {
 
     @Column(name = "provider_id", nullable = false)
-    private Long providerId;
+    private String providerId;
 
     @Column(name = "model_name", nullable = false, length = 200)
     private String modelName;

@@ -33,7 +33,7 @@ public class ConfigGroupController {
     }
 
     @GetMapping("/{id}")
-    public Result<ConfigGroup> get(@PathVariable Long id) {
+    public Result<ConfigGroup> get(@PathVariable String id) {
         return dataManager.findById(ConfigGroup.class, id)
             .filter(g -> !g.isDeleted())
             .map(Result::success)
@@ -60,7 +60,7 @@ public class ConfigGroupController {
 
     @PutMapping("/{id}")
     @Transactional
-    public Result<ConfigGroup> update(@PathVariable Long id, @RequestBody ConfigGroup group) {
+    public Result<ConfigGroup> update(@PathVariable String id, @RequestBody ConfigGroup group) {
         ConfigGroup existing = dataManager.findById(ConfigGroup.class, id)
             .filter(g -> !g.isDeleted())
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Config group not found: " + id));
@@ -76,7 +76,7 @@ public class ConfigGroupController {
 
     @DeleteMapping("/{id}")
     @Transactional
-    public Result<Void> delete(@PathVariable Long id) {
+    public Result<Void> delete(@PathVariable String id) {
         ConfigGroup group = dataManager.findById(ConfigGroup.class, id)
             .filter(g -> !g.isDeleted())
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Config group not found: " + id));

@@ -22,7 +22,7 @@ import lombok.Setter;
 public class WorkflowExecutionEntity extends BaseEntity {
 
     @Column(name = "workflow_definition_id", nullable = false)
-    private Long workflowDefinitionId;
+    private String workflowDefinitionId;
 
     @Column(name = "status", nullable = false, length = 50)
     private String status;

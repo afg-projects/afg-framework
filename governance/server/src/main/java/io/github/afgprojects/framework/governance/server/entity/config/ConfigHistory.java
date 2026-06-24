@@ -18,7 +18,7 @@ import lombok.Setter;
 public class ConfigHistory extends TenantEntity {
 
     @Column(name = "item_id", nullable = false)
-    private Long itemId;
+    private String itemId;
 
     @Column(name = "old_value", columnDefinition = "TEXT")
     private String oldValue;
@@ -33,7 +33,7 @@ public class ConfigHistory extends TenantEntity {
     private String reason;
 
     @Column(name = "operator_id")
-    private Long operatorId;
+    private String operatorId;
 
     @Column(name = "operator_name", length = 50)
     private String operatorName;

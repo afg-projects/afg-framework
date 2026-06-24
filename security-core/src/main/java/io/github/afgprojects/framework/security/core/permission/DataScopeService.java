@@ -18,7 +18,7 @@ import java.util.Set;
  * DataScope scope = dataScopeService.getDataScope(userId, tenantId);
  *
  * // 获取用户可访问的部门 ID
- * Set<Long> deptIds = dataScopeService.getAccessibleDeptIds(userId, tenantId);
+ * Set<String> deptIds = dataScopeService.getAccessibleDeptIds(userId, tenantId);
  *
  * // 设置用户的数据范围
  * DataScope scope = DataScope.of("sys_user", "dept_id", DataScopeType.DEPT);
@@ -52,7 +52,7 @@ public interface DataScopeService {
      * @return 可访问的部门 ID 集合，永不为 null（可能为空集合）
      */
     @NonNull
-    Set<Long> getAccessibleDeptIds(@NonNull String userId, @Nullable String tenantId);
+    Set<String> getAccessibleDeptIds(@NonNull String userId, @Nullable String tenantId);
 
     /**
      * 设置用户的数据范围配置。

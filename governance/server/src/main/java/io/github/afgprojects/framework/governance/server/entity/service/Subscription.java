@@ -1,32 +1,24 @@
 package io.github.afgprojects.framework.governance.server.entity.service;
 
 import io.github.afgprojects.framework.apt.entity.AfEntity;
+import io.github.afgprojects.framework.data.core.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.Instant;
 
 /**
  * 订阅关系实体
  */
-@Data
+@Getter
+@Setter
 @AfEntity
 @Entity
 @Table(name = "gov_subscription")
-public class Subscription {
-
-    /**
-     * 主键ID
-     */
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
+public class Subscription extends BaseEntity {
 
     /**
      * 服务名称
@@ -63,16 +55,4 @@ public class Subscription {
      */
     @Column(name = "status", nullable = false)
     private Integer status = 1;
-
-    /**
-     * 创建时间
-     */
-    @Column(name = "created_at")
-    private Instant createdAt;
-
-    /**
-     * 更新时间
-     */
-    @Column(name = "updated_at")
-    private Instant updatedAt;
 }

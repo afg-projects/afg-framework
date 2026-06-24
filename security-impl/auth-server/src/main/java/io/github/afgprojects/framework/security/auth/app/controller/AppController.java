@@ -41,7 +41,7 @@ public class AppController {
      * 获取应用详情。
      */
     @GetMapping("/{id}")
-    public Result<AuthApp> getById(@PathVariable Long id) {
+    public Result<AuthApp> getById(@PathVariable String id) {
         return Result.success(appService.findById(id).orElse(null));
     }
 
@@ -65,7 +65,7 @@ public class AppController {
      * <p>请求体可包含 {@code oAuth2Client} 字段，用于同时更新 OAuth2 客户端。
      */
     @PutMapping("/{id}")
-    public Result<AuthApp> update(@PathVariable Long id, @RequestBody AppUpdateRequest request) {
+    public Result<AuthApp> update(@PathVariable String id, @RequestBody AppUpdateRequest request) {
         AuthApp app = request.toAuthApp();
         app.setId(id);
         ClientDetails clientDetails = null;
@@ -79,7 +79,7 @@ public class AppController {
      * 删除应用，级联删除关联的 OAuth2 客户端。
      */
     @DeleteMapping("/{id}")
-    public Result<Boolean> delete(@PathVariable Long id) {
+    public Result<Boolean> delete(@PathVariable String id) {
         appService.delete(id);
         return Result.success(true);
     }
@@ -91,7 +91,7 @@ public class AppController {
      * @param status 状态：1=启用，0=停用
      */
     @PutMapping("/{id}/status")
-    public Result<Boolean> updateStatus(@PathVariable Long id, @RequestBody StatusRequest statusRequest) {
+    public Result<Boolean> updateStatus(@PathVariable String id, @RequestBody StatusRequest statusRequest) {
         appService.updateStatus(id, statusRequest.status);
         return Result.success(true);
     }

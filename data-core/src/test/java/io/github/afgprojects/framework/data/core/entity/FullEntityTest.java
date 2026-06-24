@@ -87,8 +87,8 @@ class FullEntityTest {
         @DisplayName("id 继承自 BaseEntity")
         void shouldGetAndSetId() {
             FullEntity entity = new ConcreteFullEntity();
-            entity.setId(42L);
-            assertThat(entity.getId()).isEqualTo(42L);
+            entity.setId("42");
+            assertThat(entity.getId()).isEqualTo("42");
         }
 
         @Test

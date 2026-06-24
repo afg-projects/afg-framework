@@ -26,7 +26,7 @@ public class DocumentEntity extends TenantEntity implements SoftDeletable {
     private Boolean deleted = false;
 
     @Column(name = "knowledge_base_id", nullable = false)
-    private Long knowledgeBaseId;
+    private String knowledgeBaseId;
 
     @Column(name = "title", length = 500)
     private String title;

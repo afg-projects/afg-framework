@@ -19,10 +19,10 @@ import lombok.Setter;
 public class ConfigValue extends TenantEntity implements Versioned {
 
     @Column(name = "environment_id")
-    private Long environmentId;
+    private String environmentId;
 
     @Column(name = "item_id", nullable = false)
-    private Long itemId;
+    private String itemId;
 
     @Column(name = "config_value", columnDefinition = "TEXT")
     private String value;

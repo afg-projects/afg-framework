@@ -8,7 +8,7 @@ import lombok.Data;
 public class CreateModelConfigRequest {
 
     @NotNull(message = "供应商ID不能为空")
-    private Long providerId;
+    private String providerId;
 
     @NotBlank(message = "模型名称不能为空")
     private String modelName;

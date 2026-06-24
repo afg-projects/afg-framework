@@ -42,8 +42,8 @@ class TenantEntityTest {
         @DisplayName("应能设置和获取 id")
         void shouldSetAndGetId() {
             TenantEntity entity = new TenantEntity();
-            entity.setId(1L);
-            assertThat(entity.getId()).isEqualTo(1L);
+            entity.setId("1");
+            assertThat(entity.getId()).isEqualTo("1");
         }
 
         @Test

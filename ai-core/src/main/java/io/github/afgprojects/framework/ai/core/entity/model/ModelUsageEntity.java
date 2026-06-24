@@ -26,10 +26,10 @@ import java.math.BigDecimal;
 public class ModelUsageEntity extends BaseEntity {
 
     @Column(name = "model_config_id", nullable = false)
-    private Long modelConfigId;
+    private String modelConfigId;
 
     @Column(name = "application_id")
-    private Long applicationId;
+    private String applicationId;
 
     @Column(name = "user_id", length = 64)
     private String userId;

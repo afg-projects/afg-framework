@@ -36,9 +36,9 @@ class DataScopeContextTest {
         @Test
         @DisplayName("should create context with all data permission")
         void shouldCreateContextWithAllDataPermission() {
-            DataScopeContext context = DataScopeContext.allPermission(1L);
+            DataScopeContext context = DataScopeContext.allPermission("1");
 
-            assertThat(context.getUserId()).isEqualTo(1L);
+            assertThat(context.getUserId()).isEqualTo("1");
             assertThat(context.isAllDataPermission()).isTrue();
         }
     }
@@ -50,55 +50,55 @@ class DataScopeContextTest {
         @Test
         @DisplayName("should return true when allDataPermission is true")
         void shouldReturnTrue_whenAllDataPermissionIsTrue() {
-            DataScopeContext context = DataScopeContext.allPermission(1L);
+            DataScopeContext context = DataScopeContext.allPermission("1");
 
-            assertThat(context.hasDeptPermission(999L)).isTrue();
+            assertThat(context.hasDeptPermission("999")).isTrue();
         }
 
         @Test
         @DisplayName("should return true when ignoreDataScope is true")
         void shouldReturnTrue_whenIgnoreDataScopeIsTrue() {
             DataScopeContext context = DataScopeContext.builder()
-                    .userId(1L)
+                    .userId("1")
                     .ignoreDataScope(true)
                     .build();
 
-            assertThat(context.hasDeptPermission(999L)).isTrue();
+            assertThat(context.hasDeptPermission("999")).isTrue();
         }
 
         @Test
         @DisplayName("should return true when deptId matches")
         void shouldReturnTrue_whenDeptIdMatches() {
             DataScopeContext context = DataScopeContext.builder()
-                    .userId(1L)
-                    .deptId(10L)
+                    .userId("1")
+                    .deptId("10")
                     .build();
 
-            assertThat(context.hasDeptPermission(10L)).isTrue();
+            assertThat(context.hasDeptPermission("10")).isTrue();
         }
 
         @Test
         @DisplayName("should return true when deptId in accessibleDeptIds")
         void shouldReturnTrue_whenDeptIdInAccessibleDeptIds() {
             DataScopeContext context = DataScopeContext.builder()
-                    .userId(1L)
-                    .deptId(10L)
-                    .accessibleDeptIds(Set.of(10L, 20L, 30L))
+                    .userId("1")
+                    .deptId("10")
+                    .accessibleDeptIds(Set.of("10", "20", "30"))
                     .build();
 
-            assertThat(context.hasDeptPermission(20L)).isTrue();
-            assertThat(context.hasDeptPermission(30L)).isTrue();
+            assertThat(context.hasDeptPermission("20")).isTrue();
+            assertThat(context.hasDeptPermission("30")).isTrue();
         }
 
         @Test
         @DisplayName("should return false when no permission")
         void shouldReturnFalse_whenNoPermission() {
             DataScopeContext context = DataScopeContext.builder()
-                    .userId(1L)
-                    .deptId(10L)
+                    .userId("1")
+                    .deptId("10")
                     .build();
 
-            assertThat(context.hasDeptPermission(999L)).isFalse();
+            assertThat(context.hasDeptPermission("999")).isFalse();
         }
     }
 
@@ -109,9 +109,9 @@ class DataScopeContextTest {
         @Test
         @DisplayName("should return true when allDataPermission is true")
         void shouldReturnTrue_whenAllDataPermissionIsTrue() {
-            DataScopeContext context = DataScopeContext.allPermission(1L);
+            DataScopeContext context = DataScopeContext.allPermission("1");
 
-            assertThat(context.isSelfData(999L)).isTrue();
+            assertThat(context.isSelfData("999")).isTrue();
         }
 
         @Test
@@ -121,27 +121,27 @@ class DataScopeContextTest {
                     .ignoreDataScope(true)
                     .build();
 
-            assertThat(context.isSelfData(999L)).isTrue();
+            assertThat(context.isSelfData("999")).isTrue();
         }
 
         @Test
         @DisplayName("should return true when userId matches")
         void shouldReturnTrue_whenUserIdMatches() {
             DataScopeContext context = DataScopeContext.builder()
-                    .userId(1L)
+                    .userId("1")
                     .build();
 
-            assertThat(context.isSelfData(1L)).isTrue();
+            assertThat(context.isSelfData("1")).isTrue();
         }
 
         @Test
         @DisplayName("should return false when userId does not match")
         void shouldReturnFalse_whenUserIdDoesNotMatch() {
             DataScopeContext context = DataScopeContext.builder()
-                    .userId(1L)
+                    .userId("1")
                     .build();
 
-            assertThat(context.isSelfData(2L)).isFalse();
+            assertThat(context.isSelfData("2")).isFalse();
         }
 
         @Test
@@ -149,7 +149,7 @@ class DataScopeContextTest {
         void shouldReturnFalse_whenUserIdIsNull() {
             DataScopeContext context = DataScopeContext.empty();
 
-            assertThat(context.isSelfData(1L)).isFalse();
+            assertThat(context.isSelfData("1")).isFalse();
         }
     }
 
@@ -161,28 +161,28 @@ class DataScopeContextTest {
         @DisplayName("should add accessible dept id")
         void shouldAddAccessibleDeptId() {
             DataScopeContext context = DataScopeContext.empty();
-            context.addAccessibleDeptId(10L);
+            context.addAccessibleDeptId("10");
 
-            assertThat(context.getAccessibleDeptIds()).contains(10L);
+            assertThat(context.getAccessibleDeptIds()).contains("10");
         }
 
         @Test
         @DisplayName("should add multiple accessible dept ids")
         void shouldAddMultipleAccessibleDeptIds() {
             DataScopeContext context = DataScopeContext.empty();
-            context.addAccessibleDeptIds(Set.of(10L, 20L, 30L));
+            context.addAccessibleDeptIds(Set.of("10", "20", "30"));
 
-            assertThat(context.getAccessibleDeptIds()).containsExactlyInAnyOrder(10L, 20L, 30L);
+            assertThat(context.getAccessibleDeptIds()).containsExactlyInAnyOrder("10", "20", "30");
         }
 
         @Test
         @DisplayName("should return unmodifiable set")
         void shouldReturnUnmodifiableSet() {
             DataScopeContext context = DataScopeContext.empty();
-            context.addAccessibleDeptId(10L);
+            context.addAccessibleDeptId("10");
 
-            Set<Long> deptIds = context.getAccessibleDeptIds();
-            assertThatThrownBy(() -> deptIds.add(99L))
+            Set<String> deptIds = context.getAccessibleDeptIds();
+            assertThatThrownBy(() -> deptIds.add("99"))
                     .isInstanceOf(UnsupportedOperationException.class);
         }
     }

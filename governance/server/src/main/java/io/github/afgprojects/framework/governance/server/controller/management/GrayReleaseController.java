@@ -33,12 +33,12 @@ public class GrayReleaseController {
     private final GrayReleaseService grayReleaseService;
 
     @GetMapping
-    public Result<List<GrayRelease>> list(@RequestParam(required = false) Long environmentId) {
+    public Result<List<GrayRelease>> list(@RequestParam(required = false) String environmentId) {
         return Result.success(grayReleaseService.list(environmentId));
     }
 
     @GetMapping("/{id}")
-    public Result<GrayRelease> get(@PathVariable Long id) {
+    public Result<GrayRelease> get(@PathVariable String id) {
         return Result.success(grayReleaseService.findById(id));
     }
 
@@ -48,17 +48,17 @@ public class GrayReleaseController {
     }
 
     @PostMapping("/{id}/publish")
-    public Result<GrayRelease> publish(@PathVariable Long id) {
+    public Result<GrayRelease> publish(@PathVariable String id) {
         return Result.success(grayReleaseService.publish(id));
     }
 
     @PostMapping("/{id}/full-rollout")
-    public Result<GrayRelease> fullRollout(@PathVariable Long id) {
+    public Result<GrayRelease> fullRollout(@PathVariable String id) {
         return Result.success(grayReleaseService.fullRollout(id));
     }
 
     @PostMapping("/{id}/rollback")
-    public Result<GrayRelease> rollback(@PathVariable Long id) {
+    public Result<GrayRelease> rollback(@PathVariable String id) {
         return Result.success(grayReleaseService.rollback(id));
     }
 }

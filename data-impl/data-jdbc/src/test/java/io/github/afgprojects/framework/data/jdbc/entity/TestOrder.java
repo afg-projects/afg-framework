@@ -18,7 +18,7 @@ import java.util.List;
 public class TestOrder extends BaseEntity implements LifecycleCallbacks {
 
     private String orderNo;
-    private Long userId;
+    private String userId;
 
     /**
      * 订单项列表（一对多关联）
@@ -26,7 +26,7 @@ public class TestOrder extends BaseEntity implements LifecycleCallbacks {
     @OneToMany(mappedBy = "order", targetEntity = TestOrderItem.class)
     private List<TestOrderItem> items = new ArrayList<>();
 
-    public static TestOrder create(String orderNo, Long userId) {
+    public static TestOrder create(String orderNo, String userId) {
         TestOrder order = new TestOrder();
         order.setOrderNo(orderNo);
         order.setUserId(userId);

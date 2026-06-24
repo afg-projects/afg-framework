@@ -93,8 +93,8 @@ class TreeEntityTest {
         @DisplayName("应能设置和获取 parentId")
         void shouldSetAndGetParentId() {
             TestTreeNode entity = new TestTreeNode();
-            entity.setParentId(100L);
-            assertThat(entity.getParentId()).isEqualTo(100L);
+            entity.setParentId("100");
+            assertThat(entity.getParentId()).isEqualTo("100");
             entity.setParentId(null);
             assertThat(entity.getParentId()).isNull();
         }
@@ -149,12 +149,12 @@ class TreeEntityTest {
         @DisplayName("Treeable 接口方法应正常工作")
         void treeableMethodsShouldWork() {
             Treeable<TestTreeNode> entity = new TestTreeNode();
-            entity.setParentId(50L);
+            entity.setParentId("50");
             entity.setLevel(2);
             entity.setPath("/1/");
             entity.setSortOrder(5);
 
-            assertThat(entity.getParentId()).isEqualTo(50L);
+            assertThat(entity.getParentId()).isEqualTo("50");
             assertThat(entity.getLevel()).isEqualTo(2);
             assertThat(entity.getPath()).isEqualTo("/1/");
             assertThat(entity.getSortOrder()).isEqualTo(5);
@@ -176,39 +176,8 @@ class TreeEntityTest {
         @DisplayName("应能设置和获取 id（来自 BaseEntity）")
         void shouldSetAndGetId() {
             TestTreeNode entity = new TestTreeNode();
-            entity.setId(1L);
-            assertThat(entity.getId()).isEqualTo(1L);
-        }
-
-        @Test
-        @DisplayName("equals 应基于 id 判断（来自 BaseEntity）")
-        void equalsShouldBeBasedOnId() {
-            TestTreeNode entity1 = new TestTreeNode();
-            entity1.setId(1L);
-            TestTreeNode entity2 = new TestTreeNode();
-            entity2.setId(1L);
-
-            assertThat(entity1).isEqualTo(entity2);
-        }
-
-        @Test
-        @DisplayName("hashCode 应基于 id 计算（来自 BaseEntity）")
-        void hashCodeShouldBeBasedOnId() {
-            TestTreeNode entity1 = new TestTreeNode();
-            entity1.setId(1L);
-            TestTreeNode entity2 = new TestTreeNode();
-            entity2.setId(1L);
-
-            assertThat(entity1.hashCode()).isEqualTo(entity2.hashCode());
-        }
-
-        @Test
-        @DisplayName("新建实体（id=null）equals 应返回 false")
-        void newEntitiesShouldNotBeEqual() {
-            TestTreeNode entity1 = new TestTreeNode();
-            TestTreeNode entity2 = new TestTreeNode();
-
-            assertThat(entity1).isNotEqualTo(entity2);
+            entity.setId("1");
+            assertThat(entity.getId()).isEqualTo("1");
         }
     }
 
@@ -221,7 +190,7 @@ class TreeEntityTest {
         void shouldBuildParentChildRelationship() {
             // 创建根节点
             TestTreeNode root = new TestTreeNode();
-            root.setId(1L);
+            root.setId("1");
             root.setName("root");
             root.setParentId(null);
             root.setLevel(1);
@@ -229,16 +198,16 @@ class TreeEntityTest {
 
             // 创建子节点
             TestTreeNode child1 = new TestTreeNode();
-            child1.setId(2L);
+            child1.setId("2");
             child1.setName("child1");
-            child1.setParentId(1L);
+            child1.setParentId("1");
             child1.setLevel(2);
             child1.setPath("/1/");
 
             TestTreeNode child2 = new TestTreeNode();
-            child2.setId(3L);
+            child2.setId("3");
             child2.setName("child2");
-            child2.setParentId(1L);
+            child2.setParentId("1");
             child2.setLevel(2);
             child2.setPath("/1/");
 
@@ -253,8 +222,8 @@ class TreeEntityTest {
             assertThat(root.getLevel()).isEqualTo(1);
             assertThat(root.getPath()).isEqualTo("/");
             assertThat(root.getChildren()).hasSize(2);
-            assertThat(root.getChildren().get(0).getParentId()).isEqualTo(1L);
-            assertThat(root.getChildren().get(1).getParentId()).isEqualTo(1L);
+            assertThat(root.getChildren().get(0).getParentId()).isEqualTo("1");
+            assertThat(root.getChildren().get(1).getParentId()).isEqualTo("1");
         }
 
         @Test
@@ -262,21 +231,21 @@ class TreeEntityTest {
         void shouldBuildMultiLevelTree() {
             // Level 1: root
             TestTreeNode root = new TestTreeNode();
-            root.setId(1L);
+            root.setId("1");
             root.setLevel(1);
             root.setPath("/");
 
             // Level 2: child
             TestTreeNode child = new TestTreeNode();
-            child.setId(2L);
-            child.setParentId(1L);
+            child.setId("2");
+            child.setParentId("1");
             child.setLevel(2);
             child.setPath("/1/");
 
             // Level 3: grandchild
             TestTreeNode grandchild = new TestTreeNode();
-            grandchild.setId(3L);
-            grandchild.setParentId(2L);
+            grandchild.setId("3");
+            grandchild.setParentId("2");
             grandchild.setLevel(3);
             grandchild.setPath("/1/2/");
 
@@ -346,7 +315,7 @@ class TreeEntityTest {
         @DisplayName("一级子节点 path 应为 /parentId/")
         void firstLevelChildPathShouldBeSlashParentIdSlash() {
             TestTreeNode child = new TestTreeNode();
-            child.setParentId(1L);
+            child.setParentId("1");
             child.setPath("/1/");
             assertThat(child.getPath()).isEqualTo("/1/");
         }
@@ -355,7 +324,7 @@ class TreeEntityTest {
         @DisplayName("二级子节点 path 应为 /grandparentId/parentId/")
         void secondLevelChildPathShouldContainAncestors() {
             TestTreeNode grandchild = new TestTreeNode();
-            grandchild.setParentId(5L);
+            grandchild.setParentId("5");
             grandchild.setPath("/1/5/");
             assertThat(grandchild.getPath()).isEqualTo("/1/5/");
         }

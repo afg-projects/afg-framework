@@ -32,13 +32,13 @@ public class RoleController {
     }
 
     @PutMapping("/{id}")
-    public Result<SecRole> update(@PathVariable Long id, @RequestBody SecRole role) {
+    public Result<SecRole> update(@PathVariable String id, @RequestBody SecRole role) {
         role.setId(id);
         return Result.success(roleService.update(role));
     }
 
     @GetMapping("/{id}")
-    public Result<SecRole> getById(@PathVariable Long id) {
+    public Result<SecRole> getById(@PathVariable String id) {
         return Result.success(roleService.findById(id).orElse(null));
     }
 
@@ -48,24 +48,24 @@ public class RoleController {
     }
 
     @PostMapping("/{id}/permissions")
-    public Result<Boolean> setPermissions(@PathVariable Long id, @RequestBody Set<Long> permissionIds, @RequestParam @Nullable String tenantId) {
+    public Result<Boolean> setPermissions(@PathVariable String id, @RequestBody Set<String> permissionIds, @RequestParam @Nullable String tenantId) {
         roleService.setRolePermissions(id, permissionIds, tenantId);
         return Result.success(true);
     }
 
     @GetMapping("/{id}/permissions")
-    public Result<Set<Long>> getPermissions(@PathVariable Long id) {
+    public Result<Set<String>> getPermissions(@PathVariable String id) {
         return Result.success(roleService.getRolePermissions(id));
     }
 
     @PostMapping("/{id}/parent/{parentId}")
-    public Result<Boolean> setParent(@PathVariable Long id, @PathVariable Long parentId, @RequestParam @Nullable String tenantId) {
+    public Result<Boolean> setParent(@PathVariable String id, @PathVariable String parentId, @RequestParam @Nullable String tenantId) {
         roleService.setParentRole(id, parentId, tenantId);
         return Result.success(true);
     }
 
     @DeleteMapping("/{id}")
-    public Result<Boolean> delete(@PathVariable Long id) {
+    public Result<Boolean> delete(@PathVariable String id) {
         roleService.delete(id);
         return Result.success(true);
     }

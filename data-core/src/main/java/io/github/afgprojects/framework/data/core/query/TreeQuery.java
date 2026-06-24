@@ -31,19 +31,19 @@ import java.util.List;
  * <pre>
  * // 查询直接子节点
  * TreeQuery&lt;Dept&gt; treeQuery = dataManager.entity(Dept.class).treeQuery();
- * List&lt;Dept&gt; children = treeQuery.findChildren(1L);
+ * List&lt;Dept&gt; children = treeQuery.findChildren("1");
  *
  * // 查询所有后代（含自身）
- * List&lt;Dept&gt; descendants = treeQuery.findDescendants(1L);
+ * List&lt;Dept&gt; descendants = treeQuery.findDescendants("1");
  *
  * // 构建完整树
  * List&lt;TreeNode&lt;Dept&gt;&gt; tree = treeQuery.buildTree();
  *
  * // 从指定节点构建子树
- * List&lt;TreeNode&lt;Dept&gt;&gt; subTree = treeQuery.buildTree(1L);
+ * List&lt;TreeNode&lt;Dept&gt;&gt; subTree = treeQuery.buildTree("1");
  *
  * // 移动节点
- * treeQuery.moveNode(5L, 10L);
+ * treeQuery.moveNode("5", "10");
  * </pre>
  *
  * @param <T> 实体类型，必须实现 {@link Treeable} 接口
@@ -61,7 +61,7 @@ public interface TreeQuery<T extends Treeable<?>> {
      * @param parentId 父节点 ID，null 表示查询根节点
      * @return 直接子节点列表
      */
-    @NonNull List<T> findChildren(@Nullable Long parentId);
+    @NonNull List<T> findChildren(@Nullable String parentId);
 
     /**
      * 查询指定节点的所有后代节点（不含自身）
@@ -72,7 +72,7 @@ public interface TreeQuery<T extends Treeable<?>> {
      * @param parentId 祖先节点 ID
      * @return 所有后代节点列表
      */
-    @NonNull List<T> findDescendants(@NonNull Long parentId);
+    @NonNull List<T> findDescendants(@NonNull String parentId);
 
     /**
      * 查询指定节点的所有祖先节点（不含自身）
@@ -83,7 +83,7 @@ public interface TreeQuery<T extends Treeable<?>> {
      * @param id 节点 ID
      * @return 所有祖先节点列表（从根到父排列）
      */
-    @NonNull List<T> findAncestors(@NonNull Long id);
+    @NonNull List<T> findAncestors(@NonNull String id);
 
     /**
      * 查询所有根节点
@@ -113,7 +113,7 @@ public interface TreeQuery<T extends Treeable<?>> {
      * @param rootId 根节点 ID
      * @return 子树结构列表（以指定节点为根）
      */
-    @NonNull List<TreeNode<T>> buildTree(@NonNull Long rootId);
+    @NonNull List<TreeNode<T>> buildTree(@NonNull String rootId);
 
     /**
      * 移动节点到新的父节点下
@@ -124,5 +124,5 @@ public interface TreeQuery<T extends Treeable<?>> {
      * @param id          要移动的节点 ID
      * @param newParentId 新的父节点 ID，null 表示移动到根级别
      */
-    void moveNode(@NonNull Long id, @Nullable Long newParentId);
+    void moveNode(@NonNull String id, @Nullable String newParentId);
 }

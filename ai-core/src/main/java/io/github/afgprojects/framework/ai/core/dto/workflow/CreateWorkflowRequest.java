@@ -24,5 +24,5 @@ public class CreateWorkflowRequest {
 
     private String status = "DRAFT";
 
-    private Long applicationId;
+    private String applicationId;
 }

@@ -120,7 +120,7 @@ class JdbcDataManagerBatchTest extends BaseDataTest {
         @Test
         @DisplayName("should return empty list when findAllById with non-existing ids")
         void shouldReturnEmptyList_whenFindAllByIdWithNonExistingIds() {
-            List<TestUser> found = dataManager.findAllById(TestUser.class, List.of(99999L, 99998L));
+            List<TestUser> found = dataManager.findAllById(TestUser.class, List.of("99999", "99998"));
 
             assertThat(found).isEmpty();
         }

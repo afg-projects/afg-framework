@@ -52,14 +52,15 @@ import java.util.List;
  * @see Treeable
  * @see io.github.afgprojects.framework.data.core.metadata.EntityTrait#TREEABLE
  */
-public abstract class TreeEntity<T> extends BaseEntity implements Treeable<T> {
+public abstract class
+TreeEntity<T> extends BaseEntity implements Treeable<T> {
 
     /**
      * 父节点 ID
      * <p>
      * 根节点的 parentId 为 null。非根节点的 parentId 指向其直接父节点的 id。
      */
-    protected Long parentId;
+    protected String parentId;
 
     /**
      * 层级深度
@@ -95,12 +96,12 @@ public abstract class TreeEntity<T> extends BaseEntity implements Treeable<T> {
     protected List<T> children;
 
     @Override
-    public Long getParentId() {
+    public String getParentId() {
         return parentId;
     }
 
     @Override
-    public void setParentId(Long parentId) {
+    public void setParentId(String parentId) {
         this.parentId = parentId;
     }
 

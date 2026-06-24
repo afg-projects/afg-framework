@@ -71,7 +71,7 @@ public class AiKnowledgeController {
      * 获取单个知识库
      */
     @GetMapping("/bases/{id}")
-    public ResponseEntity<KnowledgeBaseEntity> getKnowledgeBase(@PathVariable Long id) {
+    public ResponseEntity<KnowledgeBaseEntity> getKnowledgeBase(@PathVariable String id) {
         return dataManager.findById(KnowledgeBaseEntity.class, id)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
@@ -82,7 +82,7 @@ public class AiKnowledgeController {
      */
     @PutMapping("/bases/{id}")
     @Transactional
-    public ResponseEntity<KnowledgeBaseEntity> updateKnowledgeBase(@PathVariable Long id,
+    public ResponseEntity<KnowledgeBaseEntity> updateKnowledgeBase(@PathVariable String id,
                                                     @Valid @RequestBody UpdateKnowledgeBaseRequest request) {
         KnowledgeBaseEntity entity = dataManager.findById(KnowledgeBaseEntity.class, id)
             .orElse(null);
@@ -111,7 +111,7 @@ public class AiKnowledgeController {
      */
     @DeleteMapping("/bases/{id}")
     @Transactional
-    public ResponseEntity<Void> deleteKnowledgeBase(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteKnowledgeBase(@PathVariable String id) {
         KnowledgeBaseEntity entity = dataManager.findById(KnowledgeBaseEntity.class, id)
             .orElse(null);
         if (entity == null) {
@@ -129,7 +129,7 @@ public class AiKnowledgeController {
      */
     @PostMapping("/bases/{id}/documents")
     @Transactional
-    public DocumentEntity uploadDocument(@PathVariable Long id,
+    public DocumentEntity uploadDocument(@PathVariable String id,
                                          @RequestParam("file") MultipartFile file,
                                          @RequestParam(value = "title", required = false) String title) {
         return knowledgeDocumentService.uploadDocument(id, file, title);
@@ -139,7 +139,7 @@ public class AiKnowledgeController {
      * 列出知识库下的文档
      */
     @GetMapping("/bases/{id}/documents")
-    public List<DocumentEntity> listDocuments(@PathVariable Long id) {
+    public List<DocumentEntity> listDocuments(@PathVariable String id) {
         return dataManager.entity(DocumentEntity.class)
             .query()
             .where(Conditions.builder(DocumentEntity.class)
@@ -153,8 +153,8 @@ public class AiKnowledgeController {
      * 获取单个文档
      */
     @GetMapping("/bases/{id}/documents/{docId}")
-    public ResponseEntity<DocumentEntity> getDocument(@PathVariable Long id,
-                                                       @PathVariable Long docId) {
+    public ResponseEntity<DocumentEntity> getDocument(@PathVariable String id,
+                                                       @PathVariable String docId) {
         return dataManager.findById(DocumentEntity.class, docId)
             .filter(doc -> doc.getKnowledgeBaseId().equals(id))
             .map(ResponseEntity::ok)
@@ -166,8 +166,8 @@ public class AiKnowledgeController {
      */
     @DeleteMapping("/bases/{id}/documents/{docId}")
     @Transactional
-    public ResponseEntity<Void> deleteDocument(@PathVariable Long id,
-                                                @PathVariable Long docId) {
+    public ResponseEntity<Void> deleteDocument(@PathVariable String id,
+                                                @PathVariable String docId) {
         DocumentEntity doc = dataManager.findById(DocumentEntity.class, docId)
             .filter(d -> d.getKnowledgeBaseId().equals(id))
             .orElse(null);
@@ -184,8 +184,8 @@ public class AiKnowledgeController {
      * 列出文档的分块
      */
     @GetMapping("/bases/{id}/documents/{docId}/chunks")
-    public List<DocumentChunkEntity> listChunks(@PathVariable Long id,
-                                                 @PathVariable Long docId) {
+    public List<DocumentChunkEntity> listChunks(@PathVariable String id,
+                                                 @PathVariable String docId) {
         return dataManager.entity(DocumentChunkEntity.class)
             .query()
             .where(Conditions.builder(DocumentChunkEntity.class)
@@ -201,7 +201,7 @@ public class AiKnowledgeController {
      */
     @DeleteMapping("/chunks/{chunkId}")
     @Transactional
-    public ResponseEntity<Void> deleteChunk(@PathVariable Long chunkId) {
+    public ResponseEntity<Void> deleteChunk(@PathVariable String chunkId) {
         if (!dataManager.existsById(DocumentChunkEntity.class, chunkId)) {
             return ResponseEntity.notFound().build();
         }
@@ -234,7 +234,7 @@ public class AiKnowledgeController {
      */
     @PostMapping("/bases/{baseId}/qa")
     public ResponseEntity<List<Document>> questionAnswer(
-            @PathVariable Long baseId,
+            @PathVariable String baseId,
             @RequestBody Map<String, Object> request) {
         String question = (String) request.get("question");
         int topK = request.containsKey("topK") ? ((Number) request.get("topK")).intValue() : 5;
@@ -249,7 +249,7 @@ public class AiKnowledgeController {
      */
     @PostMapping("/bases/{baseId}/documents/url")
     public ResponseEntity<DocumentEntity> uploadFromUrl(
-            @PathVariable Long baseId,
+            @PathVariable String baseId,
             @RequestBody Map<String, String> request) {
         String url = request.get("url");
         String title = request.get("title");
@@ -261,7 +261,7 @@ public class AiKnowledgeController {
      */
     @GetMapping("/bases/{baseId}/documents/status")
     public ResponseEntity<List<DocumentEntity>> listDocumentsByStatus(
-            @PathVariable Long baseId,
+            @PathVariable String baseId,
             @RequestParam(required = false) String status) {
         return ResponseEntity.ok(knowledgeExtensionService.listDocumentsByStatus(baseId, status));
     }
@@ -270,7 +270,7 @@ public class AiKnowledgeController {
      * 重试处理失败的文档
      */
     @PostMapping("/documents/{docId}/retry")
-    public ResponseEntity<DocumentEntity> retryDocument(@PathVariable Long docId) {
+    public ResponseEntity<DocumentEntity> retryDocument(@PathVariable String docId) {
         return ResponseEntity.ok(knowledgeExtensionService.retryDocument(docId));
     }
 }

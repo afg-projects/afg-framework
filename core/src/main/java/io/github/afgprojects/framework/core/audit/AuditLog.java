@@ -32,9 +32,9 @@ import org.jspecify.annotations.Nullable;
  */
 public record AuditLog(
         String id,
-        @Nullable Long userId,
+        @Nullable String userId,
         @Nullable String username,
-        @Nullable Long tenantId,
+        @Nullable String tenantId,
         String operation,
         String module,
         @Nullable String target,
@@ -85,9 +85,9 @@ public record AuditLog(
     @SuppressWarnings("PMD.TooManyFields")
     public static final class Builder {
         private String id;
-        private Long userId;
+        private String userId;
         private String username;
-        private Long tenantId;
+        private String tenantId;
         private String operation;
         private String module;
         private String target;
@@ -109,7 +109,7 @@ public record AuditLog(
             return this;
         }
 
-        public Builder userId(Long userId) {
+        public Builder userId(String userId) {
             this.userId = userId;
             return this;
         }
@@ -119,7 +119,7 @@ public record AuditLog(
             return this;
         }
 
-        public Builder tenantId(Long tenantId) {
+        public Builder tenantId(String tenantId) {
             this.tenantId = tenantId;
             return this;
         }

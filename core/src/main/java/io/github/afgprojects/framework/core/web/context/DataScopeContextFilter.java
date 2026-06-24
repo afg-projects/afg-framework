@@ -95,9 +95,9 @@ public class DataScopeContextFilter extends OncePerRequestFilter {
         DataScopeContext.DataScopeContextBuilder builder = DataScopeContext.builder();
 
         // 尝试从请求上下文获取用户信息
-        Long userId = AfgRequestContextHolder.getUserId();
+        String userId = AfgRequestContextHolder.getUserId();
         String username = AfgRequestContextHolder.getUsername();
-        Long tenantId = AfgRequestContextHolder.getTenantId();
+        String tenantId = AfgRequestContextHolder.getTenantId();
 
         if (userId != null) {
             builder.userId(userId);

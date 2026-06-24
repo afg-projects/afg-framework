@@ -4,8 +4,8 @@ import io.github.afgprojects.framework.apt.entity.AfEntity;
 import io.github.afgprojects.framework.data.core.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Table;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
@@ -17,8 +17,8 @@ import java.time.Instant;
  *
  * @since 1.0.0
  */
-@Data
-@EqualsAndHashCode(callSuper = true)
+@Getter
+@Setter
 @AfEntity
 @Table(name = "auth_user_device")
 public class AuthUserDevice extends BaseEntity {

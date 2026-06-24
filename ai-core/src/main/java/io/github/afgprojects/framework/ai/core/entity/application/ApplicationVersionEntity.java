@@ -24,7 +24,7 @@ import java.time.LocalDateTime;
 public class ApplicationVersionEntity extends SoftDeleteEntity {
 
     @Column(name = "application_id", nullable = false)
-    private Long applicationId;
+    private String applicationId;
 
     @Column(name = "version", nullable = false, length = 50)
     private String version;

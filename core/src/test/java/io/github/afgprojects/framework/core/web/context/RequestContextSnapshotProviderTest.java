@@ -50,7 +50,7 @@ class RequestContextSnapshotProviderTest {
         void shouldRestoreContext_andMakeAvailableViaGetAsyncContext() {
             RequestContext context = RequestContext.builder()
                     .traceId("trace-123")
-                    .userId(1L)
+                    .userId("1")
                     .build();
 
             Map<String, Object> snapshot = new HashMap<>();
@@ -61,7 +61,7 @@ class RequestContextSnapshotProviderTest {
             RequestContext restored = RequestContextSnapshotProvider.getAsyncContext();
             assertThat(restored).isNotNull();
             assertThat(restored.getTraceId()).isEqualTo("trace-123");
-            assertThat(restored.getUserId()).isEqualTo(1L);
+            assertThat(restored.getUserId()).isEqualTo("1");
         }
 
         @Test
@@ -113,7 +113,7 @@ class RequestContextSnapshotProviderTest {
         void shouldPropagateRequestContext_acrossThreads() throws InterruptedException {
             RequestContext context = RequestContext.builder()
                     .traceId("trace-abc")
-                    .userId(42L)
+                    .userId("42")
                     .build();
 
             // Manually put context in snapshot (AfgRequestContextHolder needs HTTP request binding)
@@ -132,7 +132,7 @@ class RequestContextSnapshotProviderTest {
 
             assertThat(captured.get()).isNotNull();
             assertThat(captured.get().getTraceId()).isEqualTo("trace-abc");
-            assertThat(captured.get().getUserId()).isEqualTo(42L);
+            assertThat(captured.get().getUserId()).isEqualTo("42");
         }
     }
 }

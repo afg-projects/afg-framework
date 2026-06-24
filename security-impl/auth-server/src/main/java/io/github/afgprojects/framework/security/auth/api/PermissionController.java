@@ -36,12 +36,12 @@ public class PermissionController {
     }
 
     @GetMapping("/resource/{resourceId}")
-    public List<SecPermission> listByResource(@PathVariable Long resourceId, @RequestParam @Nullable String tenantId) {
+    public List<SecPermission> listByResource(@PathVariable String resourceId, @RequestParam @Nullable String tenantId) {
         return resourceService.findPermissionsByResource(resourceId, tenantId);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
+    public void delete(@PathVariable String id) {
         resourceService.delete(id);
     }
 }

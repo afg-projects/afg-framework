@@ -35,12 +35,12 @@ class JdbcDataManagerProjectionTest extends BaseDataTest {
     /**
      * 用户摘要 Record 投影
      */
-    record UserSummary(Long id, String username, String email) {}
+    record UserSummary(String id, String username, String email) {}
 
     /**
      * 用户状态 Record 投影（部分字段）
      */
-    record UserStatus(Long id, Integer status) {}
+    record UserStatus(String id, Integer status) {}
 
     /**
      * 订单项摘要 Record 投影
@@ -53,13 +53,13 @@ class JdbcDataManagerProjectionTest extends BaseDataTest {
      * 用户详情 POJO 投影
      */
     static class UserDetail {
-        private Long id;
+        private String id;
         private String username;
         private String email;
         private Integer status;
 
-        public Long getId() { return id; }
-        public void setId(Long id) { this.id = id; }
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
         public String getUsername() { return username; }
         public void setUsername(String username) { this.username = username; }
         public String getEmail() { return email; }

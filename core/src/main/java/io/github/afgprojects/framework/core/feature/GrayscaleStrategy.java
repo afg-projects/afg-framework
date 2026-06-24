@@ -40,7 +40,7 @@ public enum GrayscaleStrategy {
                 return true;
             }
             // 使用用户ID的哈希值进行确定性分配
-            Long userId = context.userId();
+            String userId = context.userId();
             if (userId != null) {
                 // 基于用户ID的确定性分配，同一用户始终得到相同结果
                 return Math.abs(userId.hashCode()) % 100 < percentage;
@@ -59,11 +59,11 @@ public enum GrayscaleStrategy {
     USER_WHITELIST {
         @Override
         public boolean isEnabled(GrayscaleContext context, GrayscaleRule rule) {
-            Long userId = context.userId();
+            String userId = context.userId();
             if (userId == null) {
                 return false;
             }
-            Set<Long> whitelist = rule.userIds();
+            Set<String> whitelist = rule.userIds();
             return whitelist != null && whitelist.contains(userId);
         }
     },
@@ -77,11 +77,11 @@ public enum GrayscaleStrategy {
     TENANT_WHITELIST {
         @Override
         public boolean isEnabled(GrayscaleContext context, GrayscaleRule rule) {
-            Long tenantId = context.tenantId();
+            String tenantId = context.tenantId();
             if (tenantId == null) {
                 return false;
             }
-            Set<Long> whitelist = rule.tenantIds();
+            Set<String> whitelist = rule.tenantIds();
             return whitelist != null && whitelist.contains(tenantId);
         }
     },

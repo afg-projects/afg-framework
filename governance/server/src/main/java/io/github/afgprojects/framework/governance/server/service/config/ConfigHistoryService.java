@@ -22,7 +22,7 @@ public class ConfigHistoryService {
 
     private final DataManager dataManager;
 
-    public List<ConfigHistory> findByItemId(Long itemId) {
+    public List<ConfigHistory> findByItemId(String itemId) {
         var condition = Conditions.eq(ConfigHistory.class, ConfigHistory::getItemId, itemId);
         return dataManager.entity(ConfigHistory.class)
             .query()
@@ -33,14 +33,14 @@ public class ConfigHistoryService {
             .collect(Collectors.toList());
     }
 
-    public List<ConfigHistory> findRecentByItemId(Long itemId) {
+    public List<ConfigHistory> findRecentByItemId(String itemId) {
         return findByItemId(itemId)
             .stream()
             .limit(10)
             .collect(Collectors.toList());
     }
 
-    public Page<ConfigHistory> findByItemId(Long itemId, Pageable pageable) {
+    public Page<ConfigHistory> findByItemId(String itemId, Pageable pageable) {
         List<ConfigHistory> all = findByItemId(itemId);
         int start = (int) pageable.getOffset();
         int end = Math.min(start + pageable.getPageSize(), all.size());

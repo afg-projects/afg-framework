@@ -5,14 +5,14 @@ import io.github.afgprojects.framework.data.core.entity.FullEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 服务注册实体
  */
-@Data
-@EqualsAndHashCode(callSuper = true)
+@Getter
+@Setter
 @AfEntity
 @Entity
 @Table(name = "gov_service_registry")

@@ -18,9 +18,10 @@
 
         <!-- OAuth2 客户端：工作台 -->
         <insert tableName="auth_client">
+            <column name="id" value="1894567890000000001"/>
             <column name="client_id" value="afg-workspace-ui"/>
             <column name="client_name" value="工作台前端"/>
-            <column name="redirect_uris" value="http://localhost:8000/sso-ui/callback"/>
+            <column name="redirect_uris" value="http://localhost:8000/sso/callback"/>
             <column name="scopes" value="read,write"/>
             <column name="grant_types" value="authorization_code,refresh_token"/>
             <column name="require_pkce" valueBoolean="true"/>
@@ -31,9 +32,10 @@
 
         <!-- OAuth2 客户端：系统管理 -->
         <insert tableName="auth_client">
+            <column name="id" value="1894567890000000002"/>
             <column name="client_id" value="afg-platform-ui"/>
             <column name="client_name" value="系统管理前端"/>
-            <column name="redirect_uris" value="http://localhost:3001/sso-ui/callback"/>
+            <column name="redirect_uris" value="http://localhost:3001/platform-ui/sso/callback"/>
             <column name="scopes" value="read,write"/>
             <column name="grant_types" value="authorization_code,refresh_token"/>
             <column name="require_pkce" valueBoolean="true"/>
@@ -44,9 +46,10 @@
 
         <!-- OAuth2 客户端：AI 平台 -->
         <insert tableName="auth_client">
+            <column name="id" value="1894567890000000003"/>
             <column name="client_id" value="afg-ai-ui"/>
             <column name="client_name" value="AI 平台前端"/>
-            <column name="redirect_uris" value="http://localhost:3002/sso-ui/callback"/>
+            <column name="redirect_uris" value="http://localhost:3002/ai-ui/sso/callback"/>
             <column name="scopes" value="read,write"/>
             <column name="grant_types" value="authorization_code,refresh_token"/>
             <column name="require_pkce" valueBoolean="true"/>
@@ -57,6 +60,7 @@
 
         <!-- 应用：系统管理 -->
         <insert tableName="auth_app">
+            <column name="id" value="1894567890000000004"/>
             <column name="name" value="系统管理"/>
             <column name="logo" value="setting"/>
             <column name="description" value="身份管理、服务治理、配置管理"/>
@@ -72,6 +76,7 @@
 
         <!-- 应用：AI 平台 -->
         <insert tableName="auth_app">
+            <column name="id" value="1894567890000000005"/>
             <column name="name" value="AI 平台"/>
             <column name="logo" value="robot"/>
             <column name="description" value="AI 对话、技能、知识库管理"/>

@@ -38,7 +38,7 @@ public class ConfigImportExportController {
 
     @GetMapping("/export")
     public ResponseEntity<String> exportConfig(
-            @RequestParam(required = false) Long groupId,
+            @RequestParam(required = false) String groupId,
             @RequestParam(defaultValue = "json") String format) throws JsonProcessingException {
 
         // 收集配置数据
@@ -93,7 +93,7 @@ public class ConfigImportExportController {
 
     // === 私有方法 ===
 
-    private Map<String, Object> collectExportData(Long groupId) {
+    private Map<String, Object> collectExportData(String groupId) {
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("exportTime", Instant.now().toString());
         result.put("version", "1.0");
@@ -108,7 +108,7 @@ public class ConfigImportExportController {
             groups = dataManager.findAll(ConfigGroup.class);
         }
 
-        Map<Long, String> groupNames = new HashMap<>();
+        Map<String, String> groupNames = new HashMap<>();
         for (ConfigGroup group : groups) {
             if (group.getStatus() != 1 || group.isDeleted()) {
                 continue;
@@ -168,7 +168,7 @@ public class ConfigImportExportController {
         ImportResult result = new ImportResult();
 
         // 构建分组 code -> id 映射
-        Map<String, Long> groupCodeToId = new HashMap<>();
+        Map<String, String> groupCodeToId = new HashMap<>();
         List<ConfigGroup> existingGroups = dataManager.findAll(ConfigGroup.class);
         for (ConfigGroup group : existingGroups) {
             groupCodeToId.put(group.getCode(), group.getId());
@@ -193,7 +193,7 @@ public class ConfigImportExportController {
                     result.incrementCreated();
                 } else if (!mergeMode) {
                     // 更新现有分组
-                    Long id = groupCodeToId.get(code);
+                    String id = groupCodeToId.get(code);
                     dataManager.findById(ConfigGroup.class, id).ifPresent(group -> {
                         group.setName((String) groupData.get("name"));
                         group.setDescription((String) groupData.get("description"));
@@ -210,7 +210,7 @@ public class ConfigImportExportController {
             for (Map<String, Object> itemData : itemsData) {
                 String code = (String) itemData.get("code");
                 String groupCode = (String) itemData.get("groupCode");
-                Long groupId = groupCodeToId.get(groupCode);
+                String groupId = groupCodeToId.get(groupCode);
 
                 if (groupId == null) {
                     result.incrementSkipped();

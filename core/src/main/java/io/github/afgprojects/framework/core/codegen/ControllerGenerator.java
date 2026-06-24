@@ -121,7 +121,7 @@ public class ControllerGenerator implements CodeGenerator {
                "    @ApiResponse(responseCode = \"200\", description = \"查询成功\")\n" +
                "    @GetMapping(\"/{id}\")\n" +
                "    public Result<" + entityName + "> getById(\n" +
-               "            @Parameter(description = \"ID\") @PathVariable Long id) {\n" +
+               "            @Parameter(description = \"ID\") @PathVariable String id) {\n" +
                "        return Results.success(" + entityVar + "Service.getById(id));\n" +
                "    }\n\n";
     }
@@ -140,7 +140,7 @@ public class ControllerGenerator implements CodeGenerator {
                "    @ApiResponse(responseCode = \"200\", description = \"更新成功\")\n" +
                "    @PutMapping(\"/{id}\")\n" +
                "    public Result<" + entityName + "> update(\n" +
-               "            @Parameter(description = \"ID\") @PathVariable Long id,\n" +
+               "            @Parameter(description = \"ID\") @PathVariable String id,\n" +
                "            @Valid @RequestBody " + entityName + "UpdateRequest request) {\n" +
                "        return Results.success(" + entityVar + "Service.update(id, request));\n" +
                "    }\n\n";
@@ -151,7 +151,7 @@ public class ControllerGenerator implements CodeGenerator {
                "    @ApiResponse(responseCode = \"200\", description = \"删除成功\")\n" +
                "    @DeleteMapping(\"/{id}\")\n" +
                "    public Result<Void> delete(\n" +
-               "            @Parameter(description = \"ID\") @PathVariable Long id) {\n" +
+               "            @Parameter(description = \"ID\") @PathVariable String id) {\n" +
                "        " + entityVar + "Service.delete(id);\n" +
                "        return Results.success();\n" +
                "    }\n\n";

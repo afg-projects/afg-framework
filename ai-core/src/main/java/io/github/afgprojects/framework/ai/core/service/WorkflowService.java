@@ -54,7 +54,7 @@ public class WorkflowService {
      * @param userId       执行用户 ID
      * @return 执行结果
      */
-    public DagResult execute(Long definitionId, Map<String, Object> inputs, String userId) {
+    public DagResult execute(String definitionId, Map<String, Object> inputs, String userId) {
         WorkflowDefinitionEntity entity = dataManager.findById(WorkflowDefinitionEntity.class, definitionId)
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Workflow definition not found: " + definitionId));
 
@@ -83,7 +83,7 @@ public class WorkflowService {
      * @param userId       执行用户 ID
      * @return 事件流
      */
-    public Flux<DagEvent> executeStream(Long definitionId, Map<String, Object> inputs, String userId) {
+    public Flux<DagEvent> executeStream(String definitionId, Map<String, Object> inputs, String userId) {
         WorkflowDefinitionEntity entity = dataManager.findById(WorkflowDefinitionEntity.class, definitionId)
             .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Workflow definition not found: " + definitionId));
 
@@ -100,7 +100,7 @@ public class WorkflowService {
             .doOnError(err -> saveExecutionRecordAsync(entity.getId(), DagStatus.FAILED, err.getMessage(), inputs, userId));
     }
 
-    private void doSaveExecutionRecord(Long definitionId, DagResult result, Map<String, Object> inputs, String userId) {
+    private void doSaveExecutionRecord(String definitionId, DagResult result, Map<String, Object> inputs, String userId) {
         WorkflowExecutionEntity execution = new WorkflowExecutionEntity();
         execution.setWorkflowDefinitionId(definitionId);
         execution.setStatus(result.status().name());
@@ -113,7 +113,7 @@ public class WorkflowService {
             definitionId, result.status(), result.durationMs());
     }
 
-    private void saveExecutionRecordAsync(Long definitionId, DagStatus status, String error,
+    private void saveExecutionRecordAsync(String definitionId, DagStatus status, String error,
                                            Map<String, Object> inputs, String userId) {
         try {
             new TransactionTemplate(transactionManager).executeWithoutResult(txStatus -> {

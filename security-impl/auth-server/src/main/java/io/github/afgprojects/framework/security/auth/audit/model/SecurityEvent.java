@@ -12,7 +12,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SecurityEvent implements SecurityEventInfo {
-    private Long id;
+    private String id;
     private SecurityEventType eventType;
     private String userId;
     private String tenantId;

@@ -113,8 +113,7 @@ public class ChatService {
         }
 
         try {
-            Long id = Long.parseLong(applicationId);
-            return dataManager.findById(ApplicationEntity.class, id)
+            return dataManager.findById(ApplicationEntity.class, applicationId)
                 .map(entity -> parseApplicationConfig(entity.getConfig()))
                 .orElseGet(() -> {
                     log.debug("Application not found: {}, using default config", applicationId);
@@ -152,10 +151,7 @@ public class ChatService {
             new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
                 ChatLogEntity logEntity = new ChatLogEntity();
                 if (applicationId != null && !applicationId.isBlank()) {
-                    try {
-                        logEntity.setApplicationId(Long.parseLong(applicationId));
-                    } catch (NumberFormatException ignored) {
-                    }
+                    logEntity.setApplicationId(applicationId);
                 }
                 logEntity.setSessionId(conversationId);
                 logEntity.setUserId(userId);
@@ -186,10 +182,7 @@ public class ChatService {
             new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
                 ChatLogEntity logEntity = new ChatLogEntity();
                 if (applicationId != null && !applicationId.isBlank()) {
-                    try {
-                        logEntity.setApplicationId(Long.parseLong(applicationId));
-                    } catch (NumberFormatException ignored) {
-                    }
+                    logEntity.setApplicationId(applicationId);
                 }
                 logEntity.setSessionId(conversationId);
                 logEntity.setUserId(userId);
