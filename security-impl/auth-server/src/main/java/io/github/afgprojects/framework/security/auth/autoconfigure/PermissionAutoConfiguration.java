@@ -2,6 +2,7 @@ package io.github.afgprojects.framework.security.auth.autoconfigure;
 
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.security.auth.api.*;
+import io.github.afgprojects.framework.security.auth.casbin.enforcer.CasbinAfgEnforcer;
 import io.github.afgprojects.framework.security.auth.permission.adapter.JdbcCasbinAdapter;
 import io.github.afgprojects.framework.security.auth.permission.service.CasbinRbacService;
 import io.github.afgprojects.framework.security.auth.permission.service.JdbcResourceService;
@@ -122,12 +123,14 @@ public class PermissionAutoConfiguration {
      * 配置角色服务。
      *
      * @param dataManager 数据管理器
+     * @param casbinEnforcer Casbin 执行器（用于双写后 reload 策略）
      * @return JdbcRoleService 实例
      */
     @Bean
     @ConditionalOnMissingBean
-    public JdbcRoleService jdbcRoleService(DataManager dataManager) {
-        return new JdbcRoleService(dataManager);
+    @ConditionalOnBean(CasbinAfgEnforcer.class)
+    public JdbcRoleService jdbcRoleService(DataManager dataManager, CasbinAfgEnforcer casbinEnforcer) {
+        return new JdbcRoleService(dataManager, casbinEnforcer);
     }
 
     /**
@@ -161,14 +164,15 @@ public class PermissionAutoConfiguration {
      * 配置角色管理 API。
      *
      * @param roleService 角色服务
+     * @param dataManager 数据管理器
      * @return RoleController 实例
      */
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = "afg.security.auth-server.permission", name = "api-enabled", havingValue = "true", matchIfMissing = true)
-    public RoleController roleController(JdbcRoleService roleService) {
+    public RoleController roleController(JdbcRoleService roleService, DataManager dataManager) {
         log.info("Initializing RoleController");
-        return new RoleController(roleService);
+        return new RoleController(roleService, dataManager);
     }
 
     /**

@@ -28,11 +28,15 @@ public class CasbinRbacService implements RbacService {
     @Override
     public boolean hasPermission(@NonNull String userId, @NonNull String permission, @Nullable String tenantId) {
         String domain = tenantId != null ? tenantId : "default";
-        String[] parts = permission.split(":");
-        if (parts.length < 2) {
-            return enforcer.enforce(userId, domain, permission, "access");
+        // 权限码格式：module:resource:action（三段式）
+        // 拆分为 Casbin 的 obj(module:resource) 和 act(action)
+        int lastColon = permission.lastIndexOf(':');
+        if (lastColon > 0) {
+            String obj = permission.substring(0, lastColon);
+            String act = permission.substring(lastColon + 1);
+            return enforcer.enforce(userId, domain, obj, act);
         }
-        return enforcer.enforce(userId, domain, parts[0], parts[1]);
+        return enforcer.enforce(userId, domain, permission, "access");
     }
 
     @Override
@@ -43,8 +47,14 @@ public class CasbinRbacService implements RbacService {
         } else {
             permissions = enforcer.getImplicitPermissionsForUser(userId);
         }
+        // Casbin 策略格式：p = sub, dom, obj, act
+        // obj = module:resource, act = action
+        // 拼接为三段式：obj:act = module:resource:action
         return permissions.stream()
             .map(p -> {
+                if (p.size() >= 4) {
+                    return p.get(2) + ":" + p.get(3);
+                }
                 if (p.size() >= 3) {
                     return p.get(1) + ":" + p.get(2);
                 }
@@ -89,38 +99,30 @@ public class CasbinRbacService implements RbacService {
 
     @Override
     public void grantPermission(@NonNull String role, @NonNull String permission, @Nullable String tenantId) {
-        String[] parts = permission.split(":");
+        // 权限码格式：module:resource:action（三段式）
+        // 拆分为 Casbin 的 obj(module:resource) 和 act(action)
+        int lastColon = permission.lastIndexOf(':');
+        String obj = lastColon > 0 ? permission.substring(0, lastColon) : permission;
+        String act = lastColon > 0 ? permission.substring(lastColon + 1) : "access";
+
         if (tenantId != null) {
-            if (parts.length >= 2) {
-                enforcer.addPermissionForUser(role, tenantId, parts[0], parts[1]);
-            } else {
-                enforcer.addPermissionForUser(role, tenantId, permission, "access");
-            }
+            enforcer.addPermissionForUser(role, tenantId, obj, act);
         } else {
-            if (parts.length >= 2) {
-                enforcer.addPermissionForUser(role, parts[0], parts[1]);
-            } else {
-                enforcer.addPermissionForUser(role, permission, "access");
-            }
+            enforcer.addPermissionForUser(role, obj, act);
         }
         log.info("Granted permission to role: role={}, permission={}, tenantId={}", role, permission, tenantId);
     }
 
     @Override
     public void revokePermission(@NonNull String role, @NonNull String permission, @Nullable String tenantId) {
-        String[] parts = permission.split(":");
+        int lastColon = permission.lastIndexOf(':');
+        String obj = lastColon > 0 ? permission.substring(0, lastColon) : permission;
+        String act = lastColon > 0 ? permission.substring(lastColon + 1) : "access";
+
         if (tenantId != null) {
-            if (parts.length >= 2) {
-                enforcer.deletePermissionForUser(role, tenantId, parts[0], parts[1]);
-            } else {
-                enforcer.deletePermissionForUser(role, tenantId, permission, "access");
-            }
+            enforcer.deletePermissionForUser(role, tenantId, obj, act);
         } else {
-            if (parts.length >= 2) {
-                enforcer.deletePermissionForUser(role, parts[0], parts[1]);
-            } else {
-                enforcer.deletePermissionForUser(role, permission, "access");
-            }
+            enforcer.deletePermissionForUser(role, obj, act);
         }
         log.info("Revoked permission from role: role={}, permission={}, tenantId={}", role, permission, tenantId);
     }

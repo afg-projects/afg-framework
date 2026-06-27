@@ -29,6 +29,7 @@
 
         <!-- 初始化默认环境 -->
         <insert tableName="gov_environment">
+            <column name="id" value="1"/>
             <column name="code" value="dev"/>
             <column name="name" value="开发环境"/>
             <column name="description" value="开发测试环境"/>
@@ -36,6 +37,7 @@
             <column name="status" valueNumeric="1"/>
         </insert>
         <insert tableName="gov_environment">
+            <column name="id" value="2"/>
             <column name="code" value="test"/>
             <column name="name" value="测试环境"/>
             <column name="description" value="功能测试环境"/>
@@ -43,6 +45,7 @@
             <column name="status" valueNumeric="1"/>
         </insert>
         <insert tableName="gov_environment">
+            <column name="id" value="3"/>
             <column name="code" value="staging"/>
             <column name="name" value="预发布环境"/>
             <column name="description" value="预发布验证环境"/>
@@ -50,6 +53,7 @@
             <column name="status" valueNumeric="1"/>
         </insert>
         <insert tableName="gov_environment">
+            <column name="id" value="4"/>
             <column name="code" value="prod"/>
             <column name="name" value="生产环境"/>
             <column name="description" value="正式生产环境"/>
