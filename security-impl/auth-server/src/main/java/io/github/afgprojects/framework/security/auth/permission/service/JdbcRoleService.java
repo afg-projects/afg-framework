@@ -129,18 +129,46 @@ public class JdbcRoleService {
 
     @Transactional
     public void setParentRole(@NonNull String roleId, @NonNull String parentRoleId, @Nullable String tenantId) {
+        String domain = tenantId != null ? tenantId : "default";
+
+        // 删除旧的 sec_role_hierarchy 记录
         dataManager.findList(SecRoleHierarchy.class,
             Conditions.builder(SecRoleHierarchy.class)
                 .eq(SecRoleHierarchy::getRoleId, roleId)
                 .build())
             .forEach(rh -> dataManager.deleteById(SecRoleHierarchy.class, rh.getId()));
 
+        // 写入新的 sec_role_hierarchy
         SecRoleHierarchy hierarchy = new SecRoleHierarchy();
         hierarchy.setRoleId(roleId);
         hierarchy.setParentRoleId(parentRoleId);
         hierarchy.setTenantId(tenantId);
         dataManager.save(SecRoleHierarchy.class, hierarchy);
-        log.info("Set role hierarchy: roleId={}, parentId={}", roleId, parentRoleId);
+
+        // 双写：更新 sec_casbin_rule g 策略（角色继承）
+        // 查找当前角色和父角色的 roleCode
+        dataManager.findById(SecRole.class, roleId).ifPresent(childRole -> {
+            String childCode = childRole.getRoleCode();
+
+            // 删除旧的该子角色的继承 g 策略
+            dataManager.findList(SecCasbinRule.class,
+                Conditions.builder(SecCasbinRule.class)
+                    .eq(SecCasbinRule::getPtype, "g")
+                    .eq(SecCasbinRule::getV0, childCode)
+                    .build())
+                .forEach(rule -> dataManager.deleteById(SecCasbinRule.class, rule.getId()));
+
+            // 写入新的继承 g 策略
+            dataManager.findById(SecRole.class, parentRoleId).ifPresent(parentRole -> {
+                String parentCode = parentRole.getRoleCode();
+                SecCasbinRule casbinRule = SecCasbinRule.createRole(childCode, domain, parentCode);
+                dataManager.save(SecCasbinRule.class, casbinRule);
+            });
+        });
+
+        // 重新加载 Casbin 策略
+        casbinEnforcer.reloadPolicies();
+        log.info("Set role hierarchy (dual-write): roleId={}, parentId={}", roleId, parentRoleId);
     }
 
     @Transactional
@@ -235,26 +263,57 @@ public class JdbcRoleService {
 
     @Transactional
     public void delete(@NonNull String id) {
+        // 查找角色信息（用于清理 sec_casbin_rule）
+        SecRole role = dataManager.findById(SecRole.class, id).orElse(null);
+        String roleCode = role != null ? role.getRoleCode() : null;
+
+        // 删除 sec_role_permission
         dataManager.findList(SecRolePermission.class,
             Conditions.builder(SecRolePermission.class)
                 .eq(SecRolePermission::getRoleId, id)
                 .build())
             .forEach(rp -> dataManager.deleteById(SecRolePermission.class, rp.getId()));
 
+        // 删除 sec_user_role + 对应的 sec_casbin_rule g 策略
         dataManager.findList(SecUserRole.class,
             Conditions.builder(SecUserRole.class)
                 .eq(SecUserRole::getRoleId, id)
                 .build())
-            .forEach(ur -> dataManager.deleteById(SecUserRole.class, ur.getId()));
+            .forEach(ur -> {
+                dataManager.deleteById(SecUserRole.class, ur.getId());
+                // 删除该用户-角色关联的 g 策略
+                String domain = ur.getTenantId() != null ? ur.getTenantId() : "default";
+                dataManager.findList(SecCasbinRule.class,
+                    Conditions.builder(SecCasbinRule.class)
+                        .eq(SecCasbinRule::getPtype, "g")
+                        .eq(SecCasbinRule::getV0, ur.getUserId())
+                        .eq(SecCasbinRule::getV1, domain)
+                        .build())
+                    .forEach(rule -> dataManager.deleteById(SecCasbinRule.class, rule.getId()));
+            });
 
+        // 删除 sec_role_hierarchy
         dataManager.findList(SecRoleHierarchy.class,
             Conditions.builder(SecRoleHierarchy.class)
                 .eq(SecRoleHierarchy::getRoleId, id)
                 .build())
             .forEach(rh -> dataManager.deleteById(SecRoleHierarchy.class, rh.getId()));
 
+        // 删除该角色的 sec_casbin_rule p 策略
+        if (roleCode != null) {
+            dataManager.findList(SecCasbinRule.class,
+                Conditions.builder(SecCasbinRule.class)
+                    .eq(SecCasbinRule::getPtype, "p")
+                    .eq(SecCasbinRule::getV0, roleCode)
+                    .build())
+                .forEach(rule -> dataManager.deleteById(SecCasbinRule.class, rule.getId()));
+        }
+
         dataManager.deleteById(SecRole.class, id);
-        log.info("Deleted role: {}", id);
+
+        // 重新加载 Casbin 策略
+        casbinEnforcer.reloadPolicies();
+        log.info("Deleted role (dual-write): id={}, roleCode={}", id, roleCode);
     }
 
     /**
