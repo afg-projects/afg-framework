@@ -189,11 +189,25 @@ class AiWorkflowControllerTest extends AbstractAiWebTest {
 
     @Test
     void shouldExecuteWorkflow_whenPostExecute() {
-        // Arrange - create a simple workflow definition
+        // Arrange - create a real executable workflow: input -> output
+        // (InputNode/OutputNode 纯透传，不依赖 AI/chat client，适合集成测试)
+        // DSL 对齐前端 workflowToJson 产出：{version, nodes[{id,type,name,data,position}], edges[{id,source,target,sourceAnchor}]}
+        String dsl = """
+            {
+              "version": "1.0",
+              "nodes": [
+                {"id":"n1","type":"input","name":"输入","data":{"data":{"hello":"world"}},"position":{"x":0,"y":0}},
+                {"id":"n2","type":"output","name":"输出","data":{"format":"raw","data":"${n1.hello}"},"position":{"x":300,"y":0}}
+              ],
+              "edges": [
+                {"id":"e1","source":"n1","target":"n2","sourceAnchor":"output"}
+              ]
+            }
+            """;
         WorkflowDefinitionEntity wf = new WorkflowDefinitionEntity();
         wf.setName("exec-wf-" + UUID.randomUUID());
-        wf.setDescription("Workflow for execution test");
-        wf.setDslContent("{\"nodes\":[],\"edges\":[]}");
+        wf.setDescription("Workflow for execution test (input->output)");
+        wf.setDslContent(dsl);
         wf.setStatus("PUBLISHED");
         wf = dataManager.save(WorkflowDefinitionEntity.class, wf);
 
@@ -201,7 +215,7 @@ class AiWorkflowControllerTest extends AbstractAiWebTest {
         request.setStream(false);
         request.setInputs(Map.of("input1", "test"));
 
-        // Act - execute workflow (may fail if DagEngine needs valid DSL, but endpoint should respond)
+        // Act & Assert - 真实执行不抛 ParamBindingException（验证前端产出的 DSL 能被后端解析执行）
         try {
             Object result = restClient().post()
                 .uri("/workflows/definitions/{id}/execute", wf.getId())
@@ -209,14 +223,13 @@ class AiWorkflowControllerTest extends AbstractAiWebTest {
                 .retrieve()
                 .body(Object.class);
 
-            // Assert - if execution succeeds, result should not be null
-            assertThat(result).isNotNull();
+            // 执行成功：result 非空（DagResult 序列化为 Map）
+            assertThat(result).as("工作流执行应返回结果").isNotNull();
         } catch (Exception e) {
-            // If execution fails due to invalid DSL or missing AI, that's acceptable
-            // The test verifies the endpoint responds, not that the workflow executes correctly
-            assertThat(e).isNotNull();
+            // ParamBindingException 表示前端 DSL 与后端 Params 不对齐——这是契约失败，不应发生
+            throw new AssertionError(
+                "工作流执行失败，可能为前端 DSL 与后端节点 Params 不对齐: " + e.getMessage(), e);
         } finally {
-            // Cleanup
             dataManager.deleteById(WorkflowDefinitionEntity.class, wf.getId());
         }
     }
@@ -301,6 +314,34 @@ class AiWorkflowControllerTest extends AbstractAiWebTest {
 
         // Assert - node types list should not be null (may be empty if no types registered)
         assertThat(nodeTypes).isNotNull();
+        if (nodeTypes.isEmpty()) {
+            return;
+        }
+
+        // Every registered node type must carry non-null displayName, category,
+        // displayNameZh (Chinese) and editorMeta (icon + color). Sample at least
+        // 5 entries covering different categories.
+        List<Map> sample = nodeTypes.size() >= 5 ? nodeTypes.subList(0, 5) : nodeTypes;
+        for (Map<?, ?> nt : sample) {
+            assertThat(nt.get("type")).as("type").isNotNull();
+            assertThat(nt.get("displayName")).as("displayName").isNotNull();
+            assertThat(nt.get("category")).as("category").isNotNull();
+            assertThat(nt.get("displayNameZh")).as("displayNameZh")
+                .as("displayNameZh should be Chinese, not null").isNotNull();
+            assertThat(nt.get("editorMeta")).as("editorMeta").isNotNull();
+            @SuppressWarnings("unchecked")
+            Map<String, Object> meta = (Map<String, Object>) nt.get("editorMeta");
+            assertThat(meta.get("icon")).as("editorMeta.icon").isNotNull();
+            assertThat(meta.get("color")).as("editorMeta.color").isNotNull();
+        }
+
+        // Spot-check a known node: ai-chat must exist with Chinese name and icon.
+        Map<?, ?> aiChat = nodeTypes.stream()
+            .filter(nt -> "ai-chat".equals(nt.get("type")))
+            .findFirst()
+            .orElse(null);
+        assertThat(aiChat).as("ai-chat node type registered").isNotNull();
+        assertThat(aiChat.get("displayNameZh")).isEqualTo("AI 对话");
     }
 
     @Test

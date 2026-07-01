@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.ai.core.workflow.node;
 
+import io.github.afgprojects.framework.ai.core.api.workflow.definition.EditorMeta;
 import io.github.afgprojects.framework.ai.core.api.workflow.definition.NodeDefinition;
 import io.github.afgprojects.framework.ai.core.api.workflow.definition.OutputSchema;
 import io.github.afgprojects.framework.ai.core.api.workflow.definition.ParamSchema;
@@ -67,8 +68,9 @@ public final class BuiltinNodeRegistrar {
 
     private BuiltinNodeRegistrar() {}
 
-    /** Editor metadata for a node type: friendly name + category. */
-    private record Meta(String type, String displayName, String category,
+    /** Editor metadata for a node type: friendly name + category + editor meta. */
+    private record Meta(String type, String displayName, String displayNameZh,
+                        String category, EditorMeta editorMeta,
                         Function<String, AbstractWorkflowNode<?>> factory) {}
 
     /**
@@ -77,54 +79,55 @@ public final class BuiltinNodeRegistrar {
      */
     private static final List<Meta> METAS = List.of(
             // INPUT
-            meta(NodeTypes.INPUT, "Input", NodeCategory.INPUT, InputNode::new),
-            meta(NodeTypes.FILE_INPUT, "File Input", NodeCategory.INPUT, FileInputNode::new),
-            meta(NodeTypes.HTTP_REQUEST, "HTTP Request", NodeCategory.INPUT, HttpRequestNode::new),
-            meta(NodeTypes.DATABASE_QUERY, "Database Query", NodeCategory.INPUT, DatabaseQueryNode::new),
+            meta(NodeTypes.INPUT, "Input", "输入", NodeCategory.INPUT, EditorMeta.of("LoginOutlined", "#52c41a"), InputNode::new),
+            meta(NodeTypes.FILE_INPUT, "File Input", "文件输入", NodeCategory.INPUT, EditorMeta.of("FileOutlined", "#52c41a"), FileInputNode::new),
+            meta(NodeTypes.HTTP_REQUEST, "HTTP Request", "HTTP 请求", NodeCategory.INPUT, EditorMeta.of("ApiOutlined", "#52c41a"), HttpRequestNode::new),
+            meta(NodeTypes.DATABASE_QUERY, "Database Query", "数据库查询", NodeCategory.INPUT, EditorMeta.of("DatabaseOutlined", "#52c41a"), DatabaseQueryNode::new),
             // AI
-            meta(NodeTypes.AI_CHAT, "AI Chat", NodeCategory.AI, AiChatNode::new),
-            meta(NodeTypes.AI_EMBEDDING, "AI Embedding", NodeCategory.AI, AiEmbeddingNode::new),
+            meta(NodeTypes.AI_CHAT, "AI Chat", "AI 对话", NodeCategory.AI, EditorMeta.of("RobotOutlined", "#1677ff"), AiChatNode::new),
+            meta(NodeTypes.AI_EMBEDDING, "AI Embedding", "AI 向量化", NodeCategory.AI, EditorMeta.of("BlockOutlined", "#1677ff"), AiEmbeddingNode::new),
             // LOGIC
-            meta(NodeTypes.CONDITION, "Condition", NodeCategory.LOGIC, ConditionNode::new),
-            meta(NodeTypes.LOOP, "Loop", NodeCategory.LOGIC, LoopNode::new),
-            meta(NodeTypes.SWITCH, "Switch", NodeCategory.LOGIC, SwitchNode::new),
-            meta(NodeTypes.MERGE, "Merge", NodeCategory.LOGIC, MergeNode::new),
-            meta(NodeTypes.DELAY, "Delay", NodeCategory.LOGIC, DelayNode::new),
-            meta(NodeTypes.SUB_WORKFLOW, "Sub-Workflow", NodeCategory.LOGIC, SubWorkflowNode::new),
+            meta(NodeTypes.CONDITION, "Condition", "条件判断", NodeCategory.LOGIC, EditorMeta.of("ForkOutlined", "#faad14"), ConditionNode::new),
+            meta(NodeTypes.LOOP, "Loop", "循环", NodeCategory.LOGIC, EditorMeta.of("SyncOutlined", "#fa8c16"), LoopNode::new),
+            meta(NodeTypes.SWITCH, "Switch", "分支", NodeCategory.LOGIC, EditorMeta.of("SwitcherOutlined", "#faad14"), SwitchNode::new),
+            meta(NodeTypes.MERGE, "Merge", "合并", NodeCategory.LOGIC, EditorMeta.of("MergeCellsOutlined", "#faad14"), MergeNode::new),
+            meta(NodeTypes.DELAY, "Delay", "延迟", NodeCategory.LOGIC, EditorMeta.of("ClockCircleOutlined", "#faad14"), DelayNode::new),
+            meta(NodeTypes.SUB_WORKFLOW, "Sub-Workflow", "子工作流", NodeCategory.LOGIC, EditorMeta.of("ApartmentOutlined", "#faad14"), SubWorkflowNode::new),
             // TOOL
-            meta(NodeTypes.TOOL, "Tool", NodeCategory.TOOL, ToolNode::new),
-            meta(NodeTypes.HTTP_CALL, "HTTP Call", NodeCategory.TOOL, HttpCallNode::new),
-            meta(NodeTypes.DATABASE_WRITE, "Database Write", NodeCategory.TOOL, DatabaseWriteNode::new),
-            meta(NodeTypes.CODE_EXECUTE, "Code Execute", NodeCategory.TOOL, CodeExecuteNode::new),
-            meta(NodeTypes.MCP_TOOL, "MCP Tool", NodeCategory.TOOL, McpToolNode::new),
+            meta(NodeTypes.TOOL, "Tool", "函数工具", NodeCategory.TOOL, EditorMeta.of("CodeOutlined", "#8c8c8c"), ToolNode::new),
+            meta(NodeTypes.HTTP_CALL, "HTTP Call", "HTTP 调用", NodeCategory.TOOL, EditorMeta.of("ApiOutlined", "#8c8c8c"), HttpCallNode::new),
+            meta(NodeTypes.DATABASE_WRITE, "Database Write", "数据库写入", NodeCategory.TOOL, EditorMeta.of("DatabaseOutlined", "#8c8c8c"), DatabaseWriteNode::new),
+            meta(NodeTypes.CODE_EXECUTE, "Code Execute", "代码执行", NodeCategory.TOOL, EditorMeta.of("ConsoleSqlOutlined", "#8c8c8c"), CodeExecuteNode::new),
+            meta(NodeTypes.MCP_TOOL, "MCP Tool", "MCP 工具", NodeCategory.TOOL, EditorMeta.of("ToolOutlined", "#8c8c8c"), McpToolNode::new),
             // OUTPUT
-            meta(NodeTypes.OUTPUT, "Output", NodeCategory.OUTPUT, OutputNode::new),
-            meta(NodeTypes.FILE_OUTPUT, "File Output", NodeCategory.OUTPUT, FileOutputNode::new),
-            meta(NodeTypes.NOTIFICATION, "Notification", NodeCategory.OUTPUT, NotificationNode::new),
-            meta(NodeTypes.WEBHOOK, "Webhook", NodeCategory.OUTPUT, WebhookNode::new),
-            meta(NodeTypes.LOG_OUTPUT, "Log Output", NodeCategory.OUTPUT, LogOutputNode::new),
+            meta(NodeTypes.OUTPUT, "Output", "输出", NodeCategory.OUTPUT, EditorMeta.of("ExportOutlined", "#722ed1"), OutputNode::new),
+            meta(NodeTypes.FILE_OUTPUT, "File Output", "文件输出", NodeCategory.OUTPUT, EditorMeta.of("FileOutlined", "#722ed1"), FileOutputNode::new),
+            meta(NodeTypes.NOTIFICATION, "Notification", "通知", NodeCategory.OUTPUT, EditorMeta.of("BellOutlined", "#722ed1"), NotificationNode::new),
+            meta(NodeTypes.WEBHOOK, "Webhook", "Webhook", NodeCategory.OUTPUT, EditorMeta.of("WebhookOutlined", "#722ed1"), WebhookNode::new),
+            meta(NodeTypes.LOG_OUTPUT, "Log Output", "日志输出", NodeCategory.OUTPUT, EditorMeta.of("FileTextOutlined", "#722ed1"), LogOutputNode::new),
             // HUMAN
-            meta(NodeTypes.HUMAN_APPROVAL, "Human Approval", NodeCategory.HUMAN, HumanApprovalNode::new),
-            meta(NodeTypes.HUMAN_INPUT, "Human Input", NodeCategory.HUMAN, HumanInputNode::new),
-            meta(NodeTypes.HUMAN_CHOICE, "Human Choice", NodeCategory.HUMAN, HumanChoiceNode::new),
+            meta(NodeTypes.HUMAN_APPROVAL, "Human Approval", "人工审批", NodeCategory.HUMAN, EditorMeta.of("CheckCircleOutlined", "#eb2f96"), HumanApprovalNode::new),
+            meta(NodeTypes.HUMAN_INPUT, "Human Input", "人工输入", NodeCategory.HUMAN, EditorMeta.of("EditOutlined", "#eb2f96"), HumanInputNode::new),
+            meta(NodeTypes.HUMAN_CHOICE, "Human Choice", "人工选择", NodeCategory.HUMAN, EditorMeta.of("SelectOutlined", "#eb2f96"), HumanChoiceNode::new),
             // TRANSFORM
-            meta(NodeTypes.JSON_TRANSFORM, "JSON Transform", NodeCategory.TRANSFORM, JsonTransformNode::new),
-            meta(NodeTypes.TEXT_TRANSFORM, "Text Transform", NodeCategory.TRANSFORM, TextTransformNode::new),
-            meta(NodeTypes.MAPPING, "Mapping", NodeCategory.TRANSFORM, MappingNode::new),
-            meta(NodeTypes.FILTER, "Filter", NodeCategory.TRANSFORM, FilterNode::new),
-            meta(NodeTypes.AGGREGATE, "Aggregate", NodeCategory.TRANSFORM, AggregateNode::new),
+            meta(NodeTypes.JSON_TRANSFORM, "JSON Transform", "JSON 转换", NodeCategory.TRANSFORM, EditorMeta.of("BlockOutlined", "#13c2c2"), JsonTransformNode::new),
+            meta(NodeTypes.TEXT_TRANSFORM, "Text Transform", "文本转换", NodeCategory.TRANSFORM, EditorMeta.of("FontSizeOutlined", "#13c2c2"), TextTransformNode::new),
+            meta(NodeTypes.MAPPING, "Mapping", "字段映射", NodeCategory.TRANSFORM, EditorMeta.of("SwapOutlined", "#13c2c2"), MappingNode::new),
+            meta(NodeTypes.FILTER, "Filter", "过滤", NodeCategory.TRANSFORM, EditorMeta.of("FilterOutlined", "#13c2c2"), FilterNode::new),
+            meta(NodeTypes.AGGREGATE, "Aggregate", "聚合", NodeCategory.TRANSFORM, EditorMeta.of("GroupOutlined", "#13c2c2"), AggregateNode::new),
             // RAG
-            meta(NodeTypes.RETRIEVAL, "Retrieval", NodeCategory.RAG, RetrievalNode::new),
-            meta(NodeTypes.EMBEDDING, "Embedding", NodeCategory.RAG, EmbeddingNode::new),
-            meta(NodeTypes.RE_RANK, "Re-Rank", NodeCategory.RAG, ReRankNode::new),
+            meta(NodeTypes.RETRIEVAL, "Retrieval", "知识检索", NodeCategory.RAG, EditorMeta.of("SearchOutlined", "#2f54eb"), RetrievalNode::new),
+            meta(NodeTypes.EMBEDDING, "Embedding", "向量化", NodeCategory.RAG, EditorMeta.of("BlockOutlined", "#2f54eb"), EmbeddingNode::new),
+            meta(NodeTypes.RE_RANK, "Re-Rank", "重排序", NodeCategory.RAG, EditorMeta.of("OrderedListOutlined", "#2f54eb"), ReRankNode::new),
             // CHECKPOINT
-            meta(NodeTypes.CHECKPOINT, "Checkpoint", NodeCategory.CHECKPOINT, CheckpointNode::new),
-            meta(NodeTypes.RECOVERY, "Recovery", NodeCategory.CHECKPOINT, RecoveryNode::new)
+            meta(NodeTypes.CHECKPOINT, "Checkpoint", "检查点", NodeCategory.CHECKPOINT, EditorMeta.of("SaveOutlined", "#a0d911"), CheckpointNode::new),
+            meta(NodeTypes.RECOVERY, "Recovery", "恢复", NodeCategory.CHECKPOINT, EditorMeta.of("RollbackOutlined", "#a0d911"), RecoveryNode::new)
     );
 
-    private static Meta meta(String type, String displayName, NodeCategory category,
+    private static Meta meta(String type, String displayName, String displayNameZh,
+                             NodeCategory category, EditorMeta editorMeta,
                              Function<String, AbstractWorkflowNode<?>> factory) {
-        return new Meta(type, displayName, category.name(), factory);
+        return new Meta(type, displayName, displayNameZh, category.name(), editorMeta, factory);
     }
 
     /**
@@ -144,7 +147,11 @@ public final class BuiltinNodeRegistrar {
                 @Override
                 public String getDisplayName() { return m.displayName(); }
                 @Override
+                public String getDisplayNameZh() { return m.displayNameZh(); }
+                @Override
                 public String getCategory() { return m.category(); }
+                @Override
+                public EditorMeta getEditorMeta() { return m.editorMeta(); }
                 @Override
                 public Map<String, ParamSchema> getParamSchema() {
                     return instance.getParamSchema();
