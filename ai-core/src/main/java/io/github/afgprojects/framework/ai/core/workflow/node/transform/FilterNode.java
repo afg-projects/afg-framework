@@ -1,6 +1,9 @@
 package io.github.afgprojects.framework.ai.core.workflow.node.transform;
 
+import io.github.afgprojects.framework.ai.core.api.workflow.definition.ParamType;
 import io.github.afgprojects.framework.ai.core.api.workflow.engine.ExecutionContext;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Out;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Param;
 import io.github.afgprojects.framework.ai.core.workflow.node.AbstractWorkflowNode;
 import lombok.extern.slf4j.Slf4j;
 
@@ -15,35 +18,57 @@ import java.util.Map;
  * <p>Applies filter conditions to a list of items, keeping only those
  * that match the specified criteria.</p>
  *
- * <p>Parameters:</p>
- * <ul>
- *   <li>{@code items} (required) - list of items to filter</li>
- *   <li>{@code field} (optional) - field name to filter on (for item maps)</li>
- *   <li>{@code operator} (optional) - filter operator: "eq", "ne", "contains", "gt", "lt", "regex"</li>
- *   <li>{@code value} (optional) - value to compare against</li>
- *   <li>{@code condition} (optional) - custom predicate expression</li>
- * </ul>
+ * <p>Parameters are declared on {@link Params} so the node is self-describing.</p>
  */
 @Slf4j
-public class FilterNode extends AbstractWorkflowNode {
+public class FilterNode extends AbstractWorkflowNode<FilterNode.Params> {
 
     public static final String TYPE = "filter";
 
+    /** Strongly-typed parameters for {@link FilterNode}. */
+    public record Params(
+            @Param(displayName = "Items", description = "List of items to filter", required = true)
+            List<Object> items,
+            @Param(displayName = "Field", description = "Field name to filter on (for item maps)")
+            String field,
+            @Param(displayName = "Operator", description = "Filter operator",
+                    type = ParamType.ENUM,
+                    enumValues = {"eq", "ne", "contains", "gt", "lt", "regex"},
+                    defaultValue = "eq")
+            String operator,
+            @Param(displayName = "Value", description = "Value to compare against")
+            Object value,
+            @Param(displayName = "Condition", description = "Custom predicate expression")
+            String condition
+    ) {
+        /** Effective operator, defaulting to "eq". */
+        public String effectiveOperator() {
+            return operator == null || operator.isBlank() ? "eq" : operator;
+        }
+    }
+
+    /** Output descriptor for {@link FilterNode}. */
+    public record Output(
+            @Out(description = "Filtered items") List<Object> filteredItems,
+            @Out(description = "Original count") int originalCount,
+            @Out(description = "Filtered count") int filteredCount
+    ) {}
+
     public FilterNode(String nodeId) {
-        super(nodeId, TYPE);
+        super(nodeId, TYPE, Params.class);
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    protected Map<String, Object> doExecute(ExecutionContext context, Map<String, Object> params) {
-        List<Object> items = (List<Object>) params.get("items");
-        if (items == null) {
-            throw new IllegalArgumentException("Required parameter 'items' is missing");
-        }
+    protected Class<?> outputRecordType() {
+        return Output.class;
+    }
 
-        String field = getParam(params, "field", null);
-        String operator = getParam(params, "operator", "eq");
-        Object value = params.get("value");
+    @Override
+    protected Map<String, Object> doExecute(ExecutionContext context, Params params) {
+        List<Object> items = params.items();
+        String field = params.field();
+        String operator = params.effectiveOperator();
+        Object value = params.value();
 
         log.debug("FilterNode [{}] filtering {} items with {} on {}", getNodeId(), items.size(), operator, field);
 
@@ -90,10 +115,5 @@ public class FilterNode extends AbstractWorkflowNode {
             case "regex" -> fieldStr != null && fieldStr.matches(valueStr);
             default -> true;
         };
-    }
-
-    private String getParam(Map<String, Object> params, String key, String defaultValue) {
-        Object value = params.get(key);
-        return value != null ? value.toString() : defaultValue;
     }
 }

@@ -16,7 +16,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 
 import io.github.afgprojects.framework.core.config.AfgCoreProperties;
-import io.github.afgprojects.framework.core.web.security.AfgEnforcer;
 import io.github.afgprojects.framework.core.web.security.AfgSecurityConfiguration;
 import io.github.afgprojects.framework.core.web.security.AfgSecurityConfigurer;
 import io.github.afgprojects.framework.core.web.security.AfgSecurityContextBridge;
@@ -131,12 +130,6 @@ public class AfgSecurityAutoConfiguration {
     @ConditionalOnMissingBean
     public AfgSecurityContextBridge afgSecurityContextBridge() {
         return new DefaultAfgSecurityContextBridge();
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public AfgEnforcer afgEnforcer() {
-        return (context, resource, action) -> false;
     }
 
     @Bean

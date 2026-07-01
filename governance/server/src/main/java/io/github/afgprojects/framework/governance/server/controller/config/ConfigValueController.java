@@ -13,7 +13,6 @@ import io.github.afgprojects.framework.governance.server.grpc.ConfigStreamManage
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -64,79 +63,82 @@ public class ConfigValueController {
     }
 
     @PutMapping("/{itemId}")
-    @Transactional
     public Result<ConfigValue> update(@PathVariable String itemId, @RequestBody UpdateValueRequest request) {
-        ConfigItem item = dataManager.findById(ConfigItem.class, itemId)
-            .filter(i -> !i.isDeleted())
-            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Config item not found: " + itemId));
+        return dataManager.executeInTransaction(() -> {
+            ConfigItem item = dataManager.findById(ConfigItem.class, itemId)
+                .filter(i -> !i.isDeleted())
+                .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Config item not found: " + itemId));
 
-        ConfigValue value = dataManager.findOneByField(ConfigValue.class, ConfigValue::getItemId, itemId)
-            .orElseGet(() -> {
-                ConfigValue v = new ConfigValue();
-                v.setItemId(itemId);
-                v.setVersion(0);
-                return v;
-            });
+            ConfigValue value = dataManager.findOneByField(ConfigValue.class, ConfigValue::getItemId, itemId)
+                .orElseGet(() -> {
+                    ConfigValue v = new ConfigValue();
+                    v.setItemId(itemId);
+                    v.setVersion(0);
+                    return v;
+                });
 
-        String oldValue = value.getValue();
+            String oldValue = value.getValue();
 
-        // Record history
-        ConfigHistory history = new ConfigHistory();
-        history.setItemId(itemId);
-        history.setOldValue(oldValue);
-        history.setNewValue(request.getValue());
-        history.setChangeType(value.getId() == null ? "CREATE" : "UPDATE");
-        history.setReason(request.getReason());
-        history.setOperatorName(request.getOperator());
-        dataManager.save(ConfigHistory.class, history);
-
-        // Update value
-        value.setValue(request.getValue());
-        value.setVersion(value.getVersion() + 1);
-        value.setValueType(item.getType());
-
-        ConfigValue saved = dataManager.save(ConfigValue.class, value);
-
-        // Push config change via gRPC stream
-        ChangeType changeType = value.getId() == null ? ChangeType.CHANGE_TYPE_CREATE : ChangeType.CHANGE_TYPE_UPDATE;
-        streamManager.pushConfigChange(item.getCode(), request.getValue(), changeType);
-        log.info("Config updated and pushed: key={}, value={}", item.getCode(), request.getValue());
-
-        return Result.success(saved);
-    }
-
-    @PostMapping("/batch")
-    @Transactional
-    public Result<Void> batchUpdate(@RequestBody List<UpdateValueRequest> requests) {
-        for (UpdateValueRequest request : requests) {
-            update(request.getItemId(), request);
-        }
-        return Result.success(null);
-    }
-
-    @DeleteMapping("/{itemId}")
-    @Transactional
-    public Result<Void> delete(@PathVariable String itemId) {
-        ConfigItem item = dataManager.findById(ConfigItem.class, itemId)
-            .filter(i -> !i.isDeleted())
-            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Config item not found: " + itemId));
-
-        ConfigValue value = dataManager.findOneByField(ConfigValue.class, ConfigValue::getItemId, itemId)
-            .orElse(null);
-
-        if (value != null) {
             // Record history
             ConfigHistory history = new ConfigHistory();
             history.setItemId(itemId);
-            history.setOldValue(value.getValue());
-            history.setNewValue(null);
-            history.setChangeType("DELETE");
+            history.setOldValue(oldValue);
+            history.setNewValue(request.getValue());
+            history.setChangeType(value.getId() == null ? "CREATE" : "UPDATE");
+            history.setReason(request.getReason());
+            history.setOperatorName(request.getOperator());
             dataManager.save(ConfigHistory.class, history);
 
-            dataManager.deleteById(ConfigValue.class, value.getId());
-        }
+            // Update value
+            value.setValue(request.getValue());
+            value.setVersion(value.getVersion() + 1);
+            value.setValueType(item.getType());
 
-        return Result.success(null);
+            ConfigValue saved = dataManager.save(ConfigValue.class, value);
+
+            // Push config change via gRPC stream
+            ChangeType changeType = value.getId() == null ? ChangeType.CHANGE_TYPE_CREATE : ChangeType.CHANGE_TYPE_UPDATE;
+            streamManager.pushConfigChange(item.getCode(), request.getValue(), changeType);
+            log.info("Config updated and pushed: key={}, value={}", item.getCode(), request.getValue());
+
+            return Result.success(saved);
+        });
+    }
+
+    @PostMapping("/batch")
+    public Result<Void> batchUpdate(@RequestBody List<UpdateValueRequest> requests) {
+        return dataManager.executeInTransaction(() -> {
+            for (UpdateValueRequest request : requests) {
+                update(request.getItemId(), request);
+            }
+            return Result.<Void>success(null);
+        });
+    }
+
+    @DeleteMapping("/{itemId}")
+    public Result<Void> delete(@PathVariable String itemId) {
+        return dataManager.executeInTransaction(() -> {
+            ConfigItem item = dataManager.findById(ConfigItem.class, itemId)
+                .filter(i -> !i.isDeleted())
+                .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Config item not found: " + itemId));
+
+            ConfigValue value = dataManager.findOneByField(ConfigValue.class, ConfigValue::getItemId, itemId)
+                .orElse(null);
+
+            if (value != null) {
+                // Record history
+                ConfigHistory history = new ConfigHistory();
+                history.setItemId(itemId);
+                history.setOldValue(value.getValue());
+                history.setNewValue(null);
+                history.setChangeType("DELETE");
+                dataManager.save(ConfigHistory.class, history);
+
+                dataManager.deleteById(ConfigValue.class, value.getId());
+            }
+
+            return Result.<Void>success(null);
+        });
     }
 
     @Data

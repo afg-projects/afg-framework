@@ -3,120 +3,140 @@ package io.github.afgprojects.framework.ai.core.workflow.node.human;
 import io.github.afgprojects.framework.ai.core.api.multiagent.human.HumanDecision;
 import io.github.afgprojects.framework.ai.core.api.multiagent.human.HumanInteraction;
 import io.github.afgprojects.framework.ai.core.api.workflow.engine.ExecutionContext;
-import io.github.afgprojects.framework.ai.core.api.workflow.engine.NodeOutput;
-import io.github.afgprojects.framework.ai.core.api.workflow.engine.WorkflowNode;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Out;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Param;
+import io.github.afgprojects.framework.ai.core.workflow.node.AbstractWorkflowNode;
 import lombok.extern.slf4j.Slf4j;
-import reactor.core.publisher.Flux;
 
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Human approval node - pauses execution for human approval.
  *
  * <p>Pauses the workflow until a human approves or rejects the proposed action.
  * The node outputs the approval decision (approved/rejected) along with
- * optional comments from the approver.</p>
+ * optional comments from the approver. The output anchor is "approved" or
+ * "rejected", enabling the DAG engine to route to different downstream nodes.</p>
  *
- * <p>Parameters:</p>
- * <ul>
- *   <li>{@code title} (optional) - title of the approval request</li>
- *   <li>{@code description} (optional) - description of what needs approval</li>
- *   <li>{@code timeoutMs} (optional) - timeout for the approval, defaults to 0 (no timeout)</li>
- *   <li>{@code assignee} (optional) - user or role assigned to approve</li>
- * </ul>
+ * <p>Parameters are declared on {@link Params} so the node is self-describing.
+ * The {@link HumanInteraction} is a construction-time dependency; the no-arg
+ * constructor leaves it null so the node auto-approves when no interaction
+ * service is configured.</p>
  */
 @Slf4j
-public class HumanApprovalNode implements WorkflowNode {
+public class HumanApprovalNode extends AbstractWorkflowNode<HumanApprovalNode.Params> {
 
     public static final String TYPE = "human-approval";
 
-    private final String nodeId;
+    /** Strongly-typed parameters for {@link HumanApprovalNode}. */
+    public record Params(
+            @Param(displayName = "Title", description = "Title of the approval request", defaultValue = "Approval Required")
+            String title,
+            @Param(displayName = "Description", description = "Description of what needs approval")
+            String description,
+            @Param(displayName = "Assignee", description = "User or role assigned to approve")
+            String assignee,
+            @Param(displayName = "Timeout (ms)", description = "Timeout for the approval in milliseconds", defaultValue = "0")
+            Long timeoutMs
+    ) {
+        /** Effective title, defaulting to "Approval Required". */
+        public String effectiveTitle() {
+            return title == null || title.isBlank() ? "Approval Required" : title;
+        }
+
+        /** Effective timeout in milliseconds, defaulting to 0 (no timeout). */
+        public long effectiveTimeoutMs() {
+            return timeoutMs == null ? 0L : timeoutMs;
+        }
+    }
+
+    /** Output descriptor for {@link HumanApprovalNode}. */
+    public record Output(
+            @Out(description = "Whether approved") boolean approved,
+            @Out(description = "Decision name") String decision,
+            @Out(description = "Comments") String comments
+    ) {}
+
     private final HumanInteraction humanInteraction;
 
     public HumanApprovalNode(String nodeId, HumanInteraction humanInteraction) {
-        this.nodeId = nodeId;
+        super(nodeId, TYPE, Params.class);
         this.humanInteraction = humanInteraction;
     }
 
     public HumanApprovalNode(String nodeId) {
-        this.nodeId = nodeId;
+        super(nodeId, TYPE, Params.class);
         this.humanInteraction = null;
     }
 
     @Override
-    public String getNodeId() {
-        return nodeId;
+    protected Class<?> outputRecordType() {
+        return Output.class;
     }
 
     @Override
-    public String getType() {
-        return TYPE;
+    public Set<String> getSourceAnchors() {
+        return Set.of("approved", "rejected");
     }
 
     @Override
-    public NodeOutput execute(ExecutionContext context, Map<String, Object> params) {
-        long startTime = System.currentTimeMillis();
-        try {
-            String title = getParam(params, "title", "Approval Required");
-            String description = getParam(params, "description", null);
-            String assignee = getParam(params, "assignee", null);
+    public Set<String> getTargetAnchors() {
+        return Set.of("input");
+    }
 
-            log.debug("HumanApprovalNode [{}] requesting approval: {}", nodeId, title);
+    @Override
+    protected NodeResult doExecuteRich(ExecutionContext context, Params params) {
+        String title = params.effectiveTitle();
+        String description = params.description();
+        String assignee = params.assignee();
 
-            if (humanInteraction == null) {
-                // No human interaction available - auto-approve
-                Map<String, Object> result = new LinkedHashMap<>();
-                result.put("approved", true);
-                result.put("comments", "Auto-approved (no HumanInteraction configured)");
-                result.put("autoApproved", true);
-                long duration = System.currentTimeMillis() - startTime;
-                return NodeOutput.of(result).withDuration(duration);
-            }
+        log.debug("HumanApprovalNode [{}] requesting approval: {}", getNodeId(), title);
 
-            // Request human approval
-            String prompt = title;
-            Object content = description != null ? Map.of("description", description, "assignee", assignee != null ? assignee : "") : null;
-            long timeoutMs = getLongParam(params, "timeoutMs", 0L);
-            Duration timeout = timeoutMs > 0 ? Duration.ofMillis(timeoutMs) : Duration.ofHours(24);
-
-            HumanDecision decision = humanInteraction.requestApproval(
-                    context.getWorkflowId(), prompt, content, timeout).get();
-
-            boolean approved = decision == HumanDecision.APPROVED;
+        if (humanInteraction == null) {
+            // No human interaction available - auto-approve (default "output" anchor)
             Map<String, Object> result = new LinkedHashMap<>();
-            result.put("approved", approved);
-            result.put("decision", decision.name());
-            String anchor = approved ? "approved" : "rejected";
-
-            long duration = System.currentTimeMillis() - startTime;
-            return new NodeOutput(result, anchor, 0, 0, duration);
-
-        } catch (Exception e) {
-            log.error("HumanApprovalNode [{}] execution failed", nodeId, e);
-            long duration = System.currentTimeMillis() - startTime;
-            Map<String, Object> errorData = new HashMap<>();
-            errorData.put("error", e.getMessage() != null ? e.getMessage() : "Unknown error");
-            return NodeOutput.of(errorData).withDuration(duration);
+            result.put("approved", true);
+            result.put("comments", "Auto-approved (no HumanInteraction configured)");
+            result.put("autoApproved", true);
+            return NodeResult.of(result);
         }
+
+        // Request human approval
+        String prompt = title;
+        Object content = description != null ? Map.of("description", description, "assignee", assignee != null ? assignee : "") : null;
+        long timeoutMs = params.effectiveTimeoutMs();
+        Duration timeout = timeoutMs > 0 ? Duration.ofMillis(timeoutMs) : Duration.ofHours(24);
+
+        HumanDecision decision = awaitInteraction(() -> humanInteraction.requestApproval(
+                context.getWorkflowId(), prompt, content, timeout).get());
+
+        boolean approved = decision == HumanDecision.APPROVED;
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("approved", approved);
+        result.put("decision", decision.name());
+
+        String anchor = approved ? "approved" : "rejected";
+        return NodeResult.of(result, anchor);
     }
 
     @Override
-    public Flux<NodeEvent> executeStream(ExecutionContext context, Map<String, Object> params) {
-        return Flux.just(NodeEvent.complete(execute(context, params)));
+    protected Map<String, Object> doExecute(ExecutionContext context, Params params) {
+        return doExecuteRich(context, params).data();
     }
 
-    private String getParam(Map<String, Object> params, String key, String defaultValue) {
-        Object value = params.get(key);
-        return value != null ? value.toString() : defaultValue;
-    }
-
-    private long getLongParam(Map<String, Object> params, String key, long defaultValue) {
-        Object value = params.get(key);
-        if (value == null) return defaultValue;
-        if (value instanceof Number num) return num.longValue();
-        return Long.parseLong(value.toString());
+    /**
+     * Await a blocking human-interaction call, unwrapping checked exceptions
+     * into a {@link RuntimeException} so the base class {@code execute} can
+     * handle them uniformly.
+     */
+    private <T> T awaitInteraction(java.util.concurrent.Callable<T> task) {
+        try {
+            return task.call();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

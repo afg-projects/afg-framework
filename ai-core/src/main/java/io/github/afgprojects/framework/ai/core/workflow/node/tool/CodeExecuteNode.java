@@ -1,6 +1,8 @@
 package io.github.afgprojects.framework.ai.core.workflow.node.tool;
 
 import io.github.afgprojects.framework.ai.core.api.workflow.engine.ExecutionContext;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Out;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Param;
 import io.github.afgprojects.framework.ai.core.workflow.node.AbstractWorkflowNode;
 import lombok.extern.slf4j.Slf4j;
 
@@ -14,33 +16,63 @@ import java.util.Map;
  * environment and returns the execution result. Used for custom data
  * transformation and logic that is not covered by built-in nodes.</p>
  *
- * <p>Parameters:</p>
- * <ul>
- *   <li>{@code code} (required) - the code to execute</li>
- *   <li>{@code language} (optional) - programming language, defaults to "javascript"</li>
- *   <li>{@code timeoutMs} (optional) - execution timeout, defaults to 5000</li>
- *   <li>{@code input} (optional) - input data available to the code</li>
- * </ul>
+ * <p>Parameters are declared on {@link Params} so the node is self-describing.</p>
  *
  * <p><strong>Alpha feature:</strong> Sandboxed code execution requires a GraalVM
  * or equivalent runtime integration. Current implementation validates parameters
  * and stores the code for later execution.</p>
  */
 @Slf4j
-public class CodeExecuteNode extends AbstractWorkflowNode {
+public class CodeExecuteNode extends AbstractWorkflowNode<CodeExecuteNode.Params> {
 
     public static final String TYPE = "code-execute";
 
+    /** Strongly-typed parameters for {@link CodeExecuteNode}. */
+    public record Params(
+            @Param(displayName = "Code", description = "The code to execute", required = true)
+            String code,
+            @Param(displayName = "Language", description = "Programming language", defaultValue = "javascript")
+            String language,
+            @Param(displayName = "Timeout (ms)", description = "Execution timeout in milliseconds", defaultValue = "5000")
+            Long timeoutMs,
+            @Param(displayName = "Input", description = "Input data available to the code")
+            Object input
+    ) {
+        /** Effective language, defaulting to javascript. */
+        public String effectiveLanguage() {
+            return language == null || language.isBlank() ? "javascript" : language;
+        }
+
+        /** Effective timeout, defaulting to 5000ms. */
+        public long effectiveTimeoutMs() {
+            return timeoutMs == null ? 5000L : timeoutMs;
+        }
+    }
+
+    /** Output descriptor for {@link CodeExecuteNode}. */
+    public record Output(
+            @Out(description = "Language") String language,
+            @Out(description = "Code length") int codeLength,
+            @Out(description = "Timeout (ms)") long timeoutMs,
+            @Out(description = "Whether has input") boolean hasInput,
+            @Out(description = "Whether executed") boolean executed
+    ) {}
+
     public CodeExecuteNode(String nodeId) {
-        super(nodeId, TYPE);
+        super(nodeId, TYPE, Params.class);
     }
 
     @Override
-    protected Map<String, Object> doExecute(ExecutionContext context, Map<String, Object> params) {
-        String code = getRequiredParam(params, "code");
-        String language = getParam(params, "language", "javascript");
-        long timeoutMs = getLongParam(params, "timeoutMs", 5000L);
-        Object input = params.get("input");
+    protected Class<?> outputRecordType() {
+        return Output.class;
+    }
+
+    @Override
+    protected Map<String, Object> doExecute(ExecutionContext context, Params params) {
+        String code = params.code();
+        String language = params.effectiveLanguage();
+        long timeoutMs = params.effectiveTimeoutMs();
+        Object input = params.input();
 
         log.debug("CodeExecuteNode [{}] executing {} code ({} chars)", getNodeId(), language, code.length());
 
@@ -53,25 +85,5 @@ public class CodeExecuteNode extends AbstractWorkflowNode {
         result.put("executed", false);
         result.put("message", "Code execution requires sandboxed runtime integration (GraalVM/JavaScript engine)");
         return result;
-    }
-
-    private String getRequiredParam(Map<String, Object> params, String key) {
-        Object value = params.get(key);
-        if (value == null) {
-            throw new IllegalArgumentException("Required parameter '" + key + "' is missing");
-        }
-        return value.toString();
-    }
-
-    private String getParam(Map<String, Object> params, String key, String defaultValue) {
-        Object value = params.get(key);
-        return value != null ? value.toString() : defaultValue;
-    }
-
-    private long getLongParam(Map<String, Object> params, String key, long defaultValue) {
-        Object value = params.get(key);
-        if (value == null) return defaultValue;
-        if (value instanceof Number num) return num.longValue();
-        return Long.parseLong(value.toString());
     }
 }

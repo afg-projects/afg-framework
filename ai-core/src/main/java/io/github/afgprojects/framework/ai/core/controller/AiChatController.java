@@ -20,7 +20,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
@@ -53,7 +52,6 @@ public class AiChatController {
      * 创建对话会话
      */
     @PostMapping("/conversations")
-    @Transactional
     public Map<String, Object> createConversation(@Valid @RequestBody CreateConversationRequest request) {
         String userId = getCurrentUserId();
 
@@ -102,15 +100,16 @@ public class AiChatController {
      * 删除对话会话
      */
     @DeleteMapping("/conversations/{id}")
-    @Transactional
     public ResponseEntity<Void> deleteConversation(@PathVariable String id) {
-        SessionStore.Session session = sessionStore.getSession(id);
-        if (session == null) {
-            return ResponseEntity.notFound().build();
-        }
-        messageHistoryStore.deleteSessionMessages(id);
-        sessionStore.deleteSession(id);
-        return ResponseEntity.noContent().build();
+        return dataManager.executeInTransaction(() -> {
+            SessionStore.Session session = sessionStore.getSession(id);
+            if (session == null) {
+                return ResponseEntity.<Void>notFound().build();
+            }
+            messageHistoryStore.deleteSessionMessages(id);
+            sessionStore.deleteSession(id);
+            return ResponseEntity.noContent().build();
+        });
     }
 
     // ==================== 消息 ====================
@@ -200,27 +199,28 @@ public class AiChatController {
      * 对对话日志投票
      */
     @PutMapping("/logs/{id}/vote")
-    @Transactional
     public ResponseEntity<ChatLogEntity> voteChatLog(@PathVariable String id,
                                                       @RequestBody Map<String, Object> voteRequest) {
-        ChatLogEntity entity = dataManager.findById(ChatLogEntity.class, id)
-            .orElse(null);
-        if (entity == null) {
-            return ResponseEntity.notFound().build();
-        }
+        return dataManager.executeInTransaction(() -> {
+            ChatLogEntity entity = dataManager.findById(ChatLogEntity.class, id)
+                .orElse(null);
+            if (entity == null) {
+                return ResponseEntity.<ChatLogEntity>notFound().build();
+            }
 
-        Object vote = voteRequest.get("vote");
-        if (vote instanceof Number number) {
-            entity.setVote(number.intValue());
-        }
+            Object vote = voteRequest.get("vote");
+            if (vote instanceof Number number) {
+                entity.setVote(number.intValue());
+            }
 
-        Object reason = voteRequest.get("reason");
-        if (reason instanceof String s) {
-            entity.setVoteReason(s);
-        }
+            Object reason = voteRequest.get("reason");
+            if (reason instanceof String s) {
+                entity.setVoteReason(s);
+            }
 
-        ChatLogEntity saved = dataManager.save(ChatLogEntity.class, entity);
-        return ResponseEntity.ok(saved);
+            ChatLogEntity saved = dataManager.save(ChatLogEntity.class, entity);
+            return ResponseEntity.ok(saved);
+        });
     }
 
     // ==================== 辅助方法 ====================

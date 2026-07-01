@@ -1,6 +1,9 @@
 package io.github.afgprojects.framework.ai.core.workflow.node.transform;
 
+import io.github.afgprojects.framework.ai.core.api.workflow.definition.ParamType;
 import io.github.afgprojects.framework.ai.core.api.workflow.engine.ExecutionContext;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Out;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Param;
 import io.github.afgprojects.framework.ai.core.workflow.node.AbstractWorkflowNode;
 import lombok.extern.slf4j.Slf4j;
 
@@ -15,28 +18,55 @@ import java.util.regex.Pattern;
  * <p>Applies text transformations such as regex replacement, trimming,
  * case conversion, template rendering, and custom transformations.</p>
  *
- * <p>Parameters:</p>
- * <ul>
- *   <li>{@code text} (required) - input text to transform</li>
- *   <li>{@code operation} (required) - transformation operation: "replace", "trim", "uppercase", "lowercase", "template"</li>
- *   <li>{@code pattern} (optional) - regex pattern for "replace" operation</li>
- *   <li>{@code replacement} (optional) - replacement string for "replace" operation</li>
- *   <li>{@code template} (optional) - template string for "template" operation</li>
- * </ul>
+ * <p>Parameters are declared on {@link Params} so the node is self-describing.</p>
  */
 @Slf4j
-public class TextTransformNode extends AbstractWorkflowNode {
+public class TextTransformNode extends AbstractWorkflowNode<TextTransformNode.Params> {
 
     public static final String TYPE = "text-transform";
 
+    /** Strongly-typed parameters for {@link TextTransformNode}. */
+    public record Params(
+            @Param(displayName = "Text", description = "Input text to transform", required = true)
+            String text,
+            @Param(displayName = "Operation", description = "Transformation operation",
+                    type = ParamType.ENUM,
+                    enumValues = {"replace", "trim", "uppercase", "lowercase", "capitalize", "template"},
+                    required = true)
+            String operation,
+            @Param(displayName = "Pattern", description = "Regex pattern for \"replace\" operation")
+            String pattern,
+            @Param(displayName = "Replacement", description = "Replacement string for \"replace\" operation",
+                    defaultValue = "")
+            String replacement,
+            @Param(displayName = "Template", description = "Template string for \"template\" operation")
+            String template
+    ) {
+        /** Effective replacement, defaulting to empty string. */
+        public String effectiveReplacement() {
+            return replacement == null ? "" : replacement;
+        }
+    }
+
+    /** Output descriptor for {@link TextTransformNode}. */
+    public record Output(
+            @Out(description = "Transformed text") String text,
+            @Out(description = "Text length") int length
+    ) {}
+
     public TextTransformNode(String nodeId) {
-        super(nodeId, TYPE);
+        super(nodeId, TYPE, Params.class);
     }
 
     @Override
-    protected Map<String, Object> doExecute(ExecutionContext context, Map<String, Object> params) {
-        String text = getRequiredParam(params, "text");
-        String operation = getRequiredParam(params, "operation");
+    protected Class<?> outputRecordType() {
+        return Output.class;
+    }
+
+    @Override
+    protected Map<String, Object> doExecute(ExecutionContext context, Params params) {
+        String text = params.text();
+        String operation = params.operation();
 
         log.debug("TextTransformNode [{}] applying operation: {}", getNodeId(), operation);
 
@@ -46,12 +76,12 @@ public class TextTransformNode extends AbstractWorkflowNode {
             case "lowercase" -> text.toLowerCase();
             case "capitalize" -> text.isEmpty() ? text : Character.toUpperCase(text.charAt(0)) + text.substring(1);
             case "replace" -> {
-                String pattern = getRequiredParam(params, "pattern");
-                String replacement = getParam(params, "replacement", "");
+                String pattern = params.pattern();
+                String replacement = params.effectiveReplacement();
                 yield text.replaceAll(pattern, replacement);
             }
             case "template" -> {
-                String template = getRequiredParam(params, "template");
+                String template = params.template();
                 yield renderTemplate(template, context);
             }
             default -> throw new IllegalArgumentException("Unknown text transform operation: " + operation);
@@ -80,18 +110,5 @@ public class TextTransformNode extends AbstractWorkflowNode {
             result = sb.toString();
         }
         return result;
-    }
-
-    private String getRequiredParam(Map<String, Object> params, String key) {
-        Object value = params.get(key);
-        if (value == null) {
-            throw new IllegalArgumentException("Required parameter '" + key + "' is missing");
-        }
-        return value.toString();
-    }
-
-    private String getParam(Map<String, Object> params, String key, String defaultValue) {
-        Object value = params.get(key);
-        return value != null ? value.toString() : defaultValue;
     }
 }

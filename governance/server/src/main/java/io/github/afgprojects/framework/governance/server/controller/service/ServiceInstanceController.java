@@ -9,7 +9,6 @@ import io.github.afgprojects.framework.governance.server.entity.service.ServiceI
 import io.github.afgprojects.framework.governance.server.service.registry.ServiceRegistryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -62,28 +61,28 @@ public class ServiceInstanceController {
      * 更新实例权重
      */
     @PutMapping("/{id}/weight")
-    @Transactional
     public Result<ServiceInstance> updateWeight(@PathVariable String id, @RequestBody Map<String, Integer> body) {
-        ServiceInstance instance = dataManager.findById(ServiceInstance.class, id)
-            .filter(i -> !i.isDeleted())
-            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Service instance not found: " + id));
+        return dataManager.executeInTransaction(() -> {
+            ServiceInstance instance = dataManager.findById(ServiceInstance.class, id)
+                .filter(i -> !i.isDeleted())
+                .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Service instance not found: " + id));
 
-        Integer weight = body.get("weight");
-        if (weight == null || weight < 0 || weight > 1000) {
-            throw new BusinessException(CommonErrorCode.PARAM_ERROR, "Weight must be between 0 and 1000");
-        }
+            Integer weight = body.get("weight");
+            if (weight == null || weight < 0 || weight > 1000) {
+                throw new BusinessException(CommonErrorCode.PARAM_ERROR, "Weight must be between 0 and 1000");
+            }
 
-        instance.setWeight(weight);
-        ServiceInstance saved = dataManager.save(ServiceInstance.class, instance);
-        log.info("Updated instance {} weight to {}", instance.getInstanceId(), weight);
-        return Result.success(saved);
+            instance.setWeight(weight);
+            ServiceInstance saved = dataManager.save(ServiceInstance.class, instance);
+            log.info("Updated instance {} weight to {}", instance.getInstanceId(), weight);
+            return Result.success(saved);
+        });
     }
 
     /**
      * 注销实例
      */
     @DeleteMapping("/{id}")
-    @Transactional
     public Result<Void> deregister(@PathVariable String id) {
         ServiceInstance instance = dataManager.findById(ServiceInstance.class, id)
             .filter(i -> !i.isDeleted())

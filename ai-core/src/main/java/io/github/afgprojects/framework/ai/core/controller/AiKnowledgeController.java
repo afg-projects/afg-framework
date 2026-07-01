@@ -16,7 +16,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -49,7 +48,6 @@ public class AiKnowledgeController {
      * 创建知识库
      */
     @PostMapping("/bases")
-    @Transactional
     public KnowledgeBaseEntity createKnowledgeBase(@Valid @RequestBody CreateKnowledgeBaseRequest request) {
         KnowledgeBaseEntity entity = new KnowledgeBaseEntity();
         entity.setName(request.getName());
@@ -81,45 +79,47 @@ public class AiKnowledgeController {
      * 更新知识库
      */
     @PutMapping("/bases/{id}")
-    @Transactional
     public ResponseEntity<KnowledgeBaseEntity> updateKnowledgeBase(@PathVariable String id,
                                                     @Valid @RequestBody UpdateKnowledgeBaseRequest request) {
-        KnowledgeBaseEntity entity = dataManager.findById(KnowledgeBaseEntity.class, id)
-            .orElse(null);
-        if (entity == null) {
-            return ResponseEntity.notFound().build();
-        }
+        return dataManager.executeInTransaction(() -> {
+            KnowledgeBaseEntity entity = dataManager.findById(KnowledgeBaseEntity.class, id)
+                .orElse(null);
+            if (entity == null) {
+                return ResponseEntity.<KnowledgeBaseEntity>notFound().build();
+            }
 
-        if (request.getName() != null) {
-            entity.setName(request.getName());
-        }
-        if (request.getDescription() != null) {
-            entity.setDescription(request.getDescription());
-        }
-        if (request.getEmbeddingModelName() != null) {
-            entity.setEmbeddingModelName(request.getEmbeddingModelName());
-        }
-        if (request.getConfig() != null) {
-            entity.setConfig(request.getConfig());
-        }
+            if (request.getName() != null) {
+                entity.setName(request.getName());
+            }
+            if (request.getDescription() != null) {
+                entity.setDescription(request.getDescription());
+            }
+            if (request.getEmbeddingModelName() != null) {
+                entity.setEmbeddingModelName(request.getEmbeddingModelName());
+            }
+            if (request.getConfig() != null) {
+                entity.setConfig(request.getConfig());
+            }
 
-        return ResponseEntity.ok(dataManager.save(KnowledgeBaseEntity.class, entity));
+            return ResponseEntity.ok(dataManager.save(KnowledgeBaseEntity.class, entity));
+        });
     }
 
     /**
      * 删除知识库（软删除）
      */
     @DeleteMapping("/bases/{id}")
-    @Transactional
     public ResponseEntity<Void> deleteKnowledgeBase(@PathVariable String id) {
-        KnowledgeBaseEntity entity = dataManager.findById(KnowledgeBaseEntity.class, id)
-            .orElse(null);
-        if (entity == null) {
-            return ResponseEntity.notFound().build();
-        }
-        entity.markDeleted();
-        dataManager.save(KnowledgeBaseEntity.class, entity);
-        return ResponseEntity.noContent().build();
+        return dataManager.executeInTransaction(() -> {
+            KnowledgeBaseEntity entity = dataManager.findById(KnowledgeBaseEntity.class, id)
+                .orElse(null);
+            if (entity == null) {
+                return ResponseEntity.<Void>notFound().build();
+            }
+            entity.markDeleted();
+            dataManager.save(KnowledgeBaseEntity.class, entity);
+            return ResponseEntity.noContent().build();
+        });
     }
 
     // ==================== 文档管理 ====================
@@ -128,7 +128,6 @@ public class AiKnowledgeController {
      * 上传文档到知识库
      */
     @PostMapping("/bases/{id}/documents")
-    @Transactional
     public DocumentEntity uploadDocument(@PathVariable String id,
                                          @RequestParam("file") MultipartFile file,
                                          @RequestParam(value = "title", required = false) String title) {
@@ -165,7 +164,6 @@ public class AiKnowledgeController {
      * 删除文档（软删除）
      */
     @DeleteMapping("/bases/{id}/documents/{docId}")
-    @Transactional
     public ResponseEntity<Void> deleteDocument(@PathVariable String id,
                                                 @PathVariable String docId) {
         DocumentEntity doc = dataManager.findById(DocumentEntity.class, docId)
@@ -200,7 +198,6 @@ public class AiKnowledgeController {
      * 删除分块
      */
     @DeleteMapping("/chunks/{chunkId}")
-    @Transactional
     public ResponseEntity<Void> deleteChunk(@PathVariable String chunkId) {
         if (!dataManager.existsById(DocumentChunkEntity.class, chunkId)) {
             return ResponseEntity.notFound().build();

@@ -2,6 +2,8 @@ package io.github.afgprojects.framework.ai.core.workflow.node.tool;
 
 import io.github.afgprojects.framework.ai.core.api.tool.remote.ToolDiscoveryClient;
 import io.github.afgprojects.framework.ai.core.api.workflow.engine.ExecutionContext;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Out;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Param;
 import io.github.afgprojects.framework.ai.core.workflow.node.AbstractWorkflowNode;
 import lombok.extern.slf4j.Slf4j;
 
@@ -14,41 +16,61 @@ import java.util.Map;
  * <p>Calls a tool discovered through the MCP protocol, which enables
  * dynamic tool discovery and invocation across distributed services.</p>
  *
- * <p>Parameters:</p>
- * <ul>
- *   <li>{@code toolName} (required) - name of the MCP tool to invoke</li>
- *   <li>{@code serverName} (optional) - name of the MCP server providing the tool</li>
- *   <li>{@code arguments} (optional) - arguments for the tool invocation</li>
- * </ul>
+ * <p>Parameters are declared on {@link Params} so the node is self-describing.
+ * The {@link ToolDiscoveryClient} is a construction-time dependency; the no-arg
+ * constructor leaves it null so the node degrades gracefully when MCP is not
+ * configured.</p>
  *
  * <p><strong>Alpha feature:</strong> MCP protocol integration is in early development.
  * Current implementation stores the invocation metadata.</p>
  */
 @Slf4j
-public class McpToolNode extends AbstractWorkflowNode {
+public class McpToolNode extends AbstractWorkflowNode<McpToolNode.Params> {
 
     public static final String TYPE = "mcp-tool";
+
+    /** Strongly-typed parameters for {@link McpToolNode}. */
+    public record Params(
+            @Param(displayName = "Tool name", description = "Name of the MCP tool to invoke", required = true)
+            String toolName,
+            @Param(displayName = "Server name", description = "Name of the MCP server providing the tool")
+            String serverName,
+            @Param(displayName = "Arguments", description = "Arguments for the tool invocation")
+            Object arguments
+    ) {}
+
+    /** Output descriptor for {@link McpToolNode}. */
+    public record Output(
+            @Out(description = "Tool name") String toolName,
+            @Out(description = "Server name") String serverName,
+            @Out(description = "Whether has arguments") boolean hasArguments,
+            @Out(description = "Whether executed") boolean executed
+    ) {}
 
     private final ToolDiscoveryClient toolDiscoveryClient;
 
     public McpToolNode(String nodeId, ToolDiscoveryClient toolDiscoveryClient) {
-        super(nodeId, TYPE);
+        super(nodeId, TYPE, Params.class);
         this.toolDiscoveryClient = toolDiscoveryClient;
     }
 
     public McpToolNode(String nodeId) {
-        super(nodeId, TYPE);
+        super(nodeId, TYPE, Params.class);
         this.toolDiscoveryClient = null;
     }
 
     @Override
-    protected Map<String, Object> doExecute(ExecutionContext context, Map<String, Object> params) {
-        String toolName = getRequiredParam(params, "toolName");
-        String serverName = getParam(params, "serverName", null);
+    protected Class<?> outputRecordType() {
+        return Output.class;
+    }
+
+    @Override
+    protected Map<String, Object> doExecute(ExecutionContext context, Params params) {
+        String toolName = params.toolName();
+        String serverName = params.serverName();
+        Object arguments = params.arguments();
 
         log.debug("McpToolNode [{}] invoking MCP tool: {} from server: {}", getNodeId(), toolName, serverName);
-
-        Object arguments = params.get("arguments");
 
         if (toolDiscoveryClient == null) {
             Map<String, Object> result = new LinkedHashMap<>();
@@ -66,18 +88,5 @@ public class McpToolNode extends AbstractWorkflowNode {
         result.put("executed", false);
         result.put("message", "MCP tool invocation pending full MCP protocol integration");
         return result;
-    }
-
-    private String getRequiredParam(Map<String, Object> params, String key) {
-        Object value = params.get(key);
-        if (value == null) {
-            throw new IllegalArgumentException("Required parameter '" + key + "' is missing");
-        }
-        return value.toString();
-    }
-
-    private String getParam(Map<String, Object> params, String key, String defaultValue) {
-        Object value = params.get(key);
-        return value != null ? value.toString() : defaultValue;
     }
 }

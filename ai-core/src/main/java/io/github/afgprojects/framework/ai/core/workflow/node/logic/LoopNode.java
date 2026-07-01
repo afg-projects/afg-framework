@@ -1,6 +1,8 @@
 package io.github.afgprojects.framework.ai.core.workflow.node.logic;
 
 import io.github.afgprojects.framework.ai.core.api.workflow.engine.ExecutionContext;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Out;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Param;
 import io.github.afgprojects.framework.ai.core.workflow.node.AbstractWorkflowNode;
 import lombok.extern.slf4j.Slf4j;
 
@@ -15,34 +17,61 @@ import java.util.Map;
  * <p>Executes a sub-workflow or repeated logic for each item in a collection
  * or for a specified number of iterations. Collects results from each iteration.</p>
  *
- * <p>Parameters:</p>
- * <ul>
- *   <li>{@code items} (optional) - a list of items to iterate over</li>
- *   <li>{@code count} (optional) - number of iterations (if items not provided)</li>
- *   <li>{@code itemVariable} (optional) - variable name for current item, defaults to "item"</li>
- *   <li>{@code indexVariable} (optional) - variable name for current index, defaults to "index"</li>
- * </ul>
+ * <p>Parameters are declared on {@link Params}.</p>
  *
  * <p><strong>Alpha feature:</strong> The loop body execution requires integration with
  * the DAG engine's sub-workflow execution capability. Current implementation collects
  * iteration metadata; actual sub-node execution will be added in a future version.</p>
  */
 @Slf4j
-public class LoopNode extends AbstractWorkflowNode {
+public class LoopNode extends AbstractWorkflowNode<LoopNode.Params> {
 
     public static final String TYPE = "loop";
 
+    /** Strongly-typed parameters for {@link LoopNode}. */
+    public record Params(
+            @Param(displayName = "Items to iterate", description = "A list of items to iterate over")
+            List<Object> items,
+            @Param(displayName = "Iteration count", description = "Number of iterations (if items not provided)")
+            Integer count,
+            @Param(displayName = "Item variable name", description = "Variable name for current item", defaultValue = "item")
+            String itemVariable,
+            @Param(displayName = "Index variable name", description = "Variable name for current index", defaultValue = "index")
+            String indexVariable
+    ) {
+        /** Effective item variable name. */
+        public String effectiveItemVariable() {
+            return itemVariable == null || itemVariable.isBlank() ? "item" : itemVariable;
+        }
+
+        /** Effective index variable name. */
+        public String effectiveIndexVariable() {
+            return indexVariable == null || indexVariable.isBlank() ? "index" : indexVariable;
+        }
+    }
+
+    /** Output descriptor for {@link LoopNode}. */
+    public record Output(
+            @Out(description = "Number of iterations") int iterations,
+            @Out(description = "Iteration results") List<Map<String, Object>> iterationResults,
+            @Out(description = "Loop completed") boolean completed
+    ) {}
+
     public LoopNode(String nodeId) {
-        super(nodeId, TYPE);
+        super(nodeId, TYPE, Params.class);
     }
 
     @Override
-    protected Map<String, Object> doExecute(ExecutionContext context, Map<String, Object> params) {
-        @SuppressWarnings("unchecked")
-        List<Object> items = (List<Object>) params.get("items");
-        Integer count = getIntParam(params, "count", null);
-        String itemVariable = getParam(params, "itemVariable", "item");
-        String indexVariable = getParam(params, "indexVariable", "index");
+    protected Class<?> outputRecordType() {
+        return Output.class;
+    }
+
+    @Override
+    protected Map<String, Object> doExecute(ExecutionContext context, Params params) {
+        List<Object> items = params.items();
+        Integer count = params.count();
+        String itemVariable = params.effectiveItemVariable();
+        String indexVariable = params.effectiveIndexVariable();
 
         int iterations;
         if (items != null) {
@@ -74,17 +103,5 @@ public class LoopNode extends AbstractWorkflowNode {
         result.put("completed", true);
 
         return result;
-    }
-
-    private Integer getIntParam(Map<String, Object> params, String key, Integer defaultValue) {
-        Object value = params.get(key);
-        if (value == null) return defaultValue;
-        if (value instanceof Number num) return num.intValue();
-        return Integer.parseInt(value.toString());
-    }
-
-    private String getParam(Map<String, Object> params, String key, String defaultValue) {
-        Object value = params.get(key);
-        return value != null ? value.toString() : defaultValue;
     }
 }

@@ -1,6 +1,9 @@
 package io.github.afgprojects.framework.ai.core.workflow.node.tool;
 
+import io.github.afgprojects.framework.ai.core.api.workflow.definition.ParamType;
 import io.github.afgprojects.framework.ai.core.api.workflow.engine.ExecutionContext;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Out;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Param;
 import io.github.afgprojects.framework.ai.core.workflow.node.AbstractWorkflowNode;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,41 +22,82 @@ import java.util.Map;
  * Sends an HTTP request to an external API and returns the response.
  * Intended for calling external tool/service APIs.</p>
  *
- * <p>Parameters:</p>
- * <ul>
- *   <li>{@code url} (required) - the URL to call</li>
- *   <li>{@code method} (optional) - HTTP method, defaults to POST</li>
- *   <li>{@code headers} (optional) - Map of HTTP headers</li>
- *   <li>{@code body} (optional) - request body</li>
- *   <li>{@code contentType} (optional) - Content-Type header, defaults to "application/json"</li>
- *   <li>{@code timeoutMs} (optional) - request timeout in milliseconds, defaults to 30000</li>
- * </ul>
+ * <p>Parameters are declared on {@link Params} so the node is self-describing.
+ * An {@link HttpClient} is a construction-time dependency; the no-arg
+ * constructor creates one internally.</p>
  */
 @Slf4j
-public class HttpCallNode extends AbstractWorkflowNode {
+public class HttpCallNode extends AbstractWorkflowNode<HttpCallNode.Params> {
 
     public static final String TYPE = "http-call";
+
+    /** Strongly-typed parameters for {@link HttpCallNode}. */
+    public record Params(
+            @Param(displayName = "URL", description = "The URL to call", required = true)
+            String url,
+            @Param(displayName = "HTTP method", description = "HTTP method",
+                    type = ParamType.ENUM,
+                    enumValues = {"GET", "POST", "PUT", "DELETE", "PATCH"},
+                    defaultValue = "POST")
+            String method,
+            @Param(displayName = "Headers", description = "Map of HTTP headers")
+            Map<String, String> headers,
+            @Param(displayName = "Body", description = "Request body")
+            String body,
+            @Param(displayName = "Content-Type", description = "Content-Type header", defaultValue = "application/json")
+            String contentType,
+            @Param(displayName = "Timeout (ms)", description = "Request timeout in milliseconds", defaultValue = "30000")
+            Long timeoutMs
+    ) {
+        /** Effective method, defaulting to POST. */
+        public String effectiveMethod() {
+            return method == null || method.isBlank() ? "POST" : method.toUpperCase();
+        }
+
+        /** Effective Content-Type, defaulting to application/json. */
+        public String effectiveContentType() {
+            return contentType == null || contentType.isBlank() ? "application/json" : contentType;
+        }
+
+        /** Effective timeout, defaulting to 30000ms. */
+        public long effectiveTimeoutMs() {
+            return timeoutMs == null ? 30000L : timeoutMs;
+        }
+    }
+
+    /** Output descriptor for {@link HttpCallNode}. */
+    public record Output(
+            @Out(description = "Status code") int statusCode,
+            @Out(description = "Response body") String body,
+            @Out(description = "URL") String url,
+            @Out(description = "HTTP method") String method
+    ) {}
 
     private final HttpClient httpClient;
 
     public HttpCallNode(String nodeId) {
-        super(nodeId, TYPE);
+        super(nodeId, TYPE, Params.class);
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
                 .build();
     }
 
     public HttpCallNode(String nodeId, HttpClient httpClient) {
-        super(nodeId, TYPE);
+        super(nodeId, TYPE, Params.class);
         this.httpClient = httpClient;
     }
 
     @Override
-    protected Map<String, Object> doExecute(ExecutionContext context, Map<String, Object> params) {
-        String url = getRequiredParam(params, "url");
-        String method = getParam(params, "method", "POST");
-        String contentType = getParam(params, "contentType", "application/json");
-        long timeoutMs = getLongParam(params, "timeoutMs", 30000L);
+    protected Class<?> outputRecordType() {
+        return Output.class;
+    }
+
+    @Override
+    protected Map<String, Object> doExecute(ExecutionContext context, Params params) {
+        String url = params.url();
+        String method = params.effectiveMethod();
+        String contentType = params.effectiveContentType();
+        long timeoutMs = params.effectiveTimeoutMs();
 
         log.debug("HttpCallNode [{}] calling {} {}", getNodeId(), method, url);
 
@@ -63,18 +107,17 @@ public class HttpCallNode extends AbstractWorkflowNode {
                     .timeout(Duration.ofMillis(timeoutMs))
                     .header("Content-Type", contentType);
 
-            @SuppressWarnings("unchecked")
-            Map<String, String> headers = (Map<String, String>) params.get("headers");
+            Map<String, String> headers = params.headers();
             if (headers != null) {
                 headers.forEach(requestBuilder::header);
             }
 
-            String body = getParam(params, "body", null);
+            String body = params.body();
             HttpRequest.BodyPublisher bodyPublisher = body != null
                     ? HttpRequest.BodyPublishers.ofString(body)
                     : HttpRequest.BodyPublishers.noBody();
 
-            switch (method.toUpperCase()) {
+            switch (method) {
                 case "GET" -> requestBuilder.GET();
                 case "POST" -> requestBuilder.POST(bodyPublisher);
                 case "PUT" -> requestBuilder.PUT(bodyPublisher);
@@ -99,25 +142,5 @@ public class HttpCallNode extends AbstractWorkflowNode {
         } catch (Exception e) {
             throw new RuntimeException("HTTP call failed: " + url, e);
         }
-    }
-
-    private String getRequiredParam(Map<String, Object> params, String key) {
-        Object value = params.get(key);
-        if (value == null) {
-            throw new IllegalArgumentException("Required parameter '" + key + "' is missing");
-        }
-        return value.toString();
-    }
-
-    private String getParam(Map<String, Object> params, String key, String defaultValue) {
-        Object value = params.get(key);
-        return value != null ? value.toString() : defaultValue;
-    }
-
-    private long getLongParam(Map<String, Object> params, String key, long defaultValue) {
-        Object value = params.get(key);
-        if (value == null) return defaultValue;
-        if (value instanceof Number num) return num.longValue();
-        return Long.parseLong(value.toString());
     }
 }

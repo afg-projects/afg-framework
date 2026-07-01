@@ -3,6 +3,8 @@ package io.github.afgprojects.framework.ai.core.workflow.node.rag;
 import io.github.afgprojects.framework.ai.core.api.chat.AfgEmbeddingClient;
 import io.github.afgprojects.framework.ai.core.api.rag.VectorStore;
 import io.github.afgprojects.framework.ai.core.api.workflow.engine.ExecutionContext;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Out;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Param;
 import io.github.afgprojects.framework.ai.core.workflow.node.AbstractWorkflowNode;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,58 +19,93 @@ import java.util.Map;
  * <p>Converts text to vector embeddings using an embedding model, and optionally
  * stores the embeddings in a vector store for later retrieval.</p>
  *
- * <p>Parameters:</p>
- * <ul>
- *   <li>{@code texts} (required) - list of text strings to embed</li>
- *   <li>{@code store} (optional) - whether to store embeddings, defaults to false</li>
- *   <li>{@code collection} (optional) - collection name for storage</li>
- *   <li>{@code metadata} (optional) - metadata to associate with stored embeddings</li>
- * </ul>
+ * <p>Parameters are declared on {@link Params} so the node is self-describing.
+ * The {@link AfgEmbeddingClient} and {@link VectorStore} are construction-time
+ * dependencies; the no-arg constructor leaves them null so the node degrades
+ * gracefully when embedding is not configured.</p>
  */
 @Slf4j
-public class EmbeddingNode extends AbstractWorkflowNode {
+public class EmbeddingNode extends AbstractWorkflowNode<EmbeddingNode.Params> {
 
     public static final String TYPE = "embedding";
+
+    /** Strongly-typed parameters for {@link EmbeddingNode}. */
+    public record Params(
+            @Param(displayName = "Texts", description = "List of text strings to embed")
+            List<String> texts,
+            @Param(displayName = "Text", description = "Single text to embed (fallback if texts is absent)")
+            String text,
+            @Param(displayName = "Store", description = "Whether to store embeddings", defaultValue = "false")
+            Boolean store,
+            @Param(displayName = "Collection", description = "Collection name for storage", defaultValue = "default")
+            String collection,
+            @Param(displayName = "Metadata", description = "Metadata to associate with stored embeddings")
+            Map<String, Object> metadata
+    ) {
+        /** Whether to store embeddings. */
+        public boolean isStore() {
+            return Boolean.TRUE.equals(store);
+        }
+
+        /** Effective collection name, defaulting to "default". */
+        public String effectiveCollection() {
+            return collection == null || collection.isBlank() ? "default" : collection;
+        }
+
+        /** Normalized list of texts, falling back to the single text field. */
+        public List<String> effectiveTexts() {
+            if (texts != null && !texts.isEmpty()) {
+                return texts;
+            }
+            List<String> result = new ArrayList<>();
+            if (text != null) {
+                result.add(text);
+            }
+            return result;
+        }
+    }
+
+    /** Output descriptor for {@link EmbeddingNode}. */
+    public record Output(
+            @Out(description = "Embedding count") int count,
+            @Out(description = "Dimensions") int dimensions,
+            @Out(description = "Whether stored") boolean stored
+    ) {}
 
     private final AfgEmbeddingClient embeddingClient;
     private final VectorStore vectorStore;
 
     public EmbeddingNode(String nodeId, AfgEmbeddingClient embeddingClient, VectorStore vectorStore) {
-        super(nodeId, TYPE);
+        super(nodeId, TYPE, Params.class);
         this.embeddingClient = embeddingClient;
         this.vectorStore = vectorStore;
     }
 
     public EmbeddingNode(String nodeId, AfgEmbeddingClient embeddingClient) {
-        super(nodeId, TYPE);
+        super(nodeId, TYPE, Params.class);
         this.embeddingClient = embeddingClient;
         this.vectorStore = null;
     }
 
     public EmbeddingNode(String nodeId) {
-        super(nodeId, TYPE);
+        super(nodeId, TYPE, Params.class);
         this.embeddingClient = null;
         this.vectorStore = null;
     }
 
     @Override
-    protected Map<String, Object> doExecute(ExecutionContext context, Map<String, Object> params) {
-        Object textInput = params.get("texts");
-        if (textInput == null) textInput = params.get("text");
-        if (textInput == null) {
+    protected Class<?> outputRecordType() {
+        return Output.class;
+    }
+
+    @Override
+    protected Map<String, Object> doExecute(ExecutionContext context, Params params) {
+        List<String> texts = params.effectiveTexts();
+        if (texts.isEmpty()) {
             throw new IllegalArgumentException("Required parameter 'texts' or 'text' is missing");
         }
 
-        List<String> texts = new ArrayList<>();
-        if (textInput instanceof List<?> list) {
-            for (Object item : list) {
-                texts.add(item.toString());
-            }
-        } else {
-            texts.add(textInput.toString());
-        }
-
-        boolean store = getBooleanParam(params, "store", false);
+        boolean store = params.isStore();
 
         log.debug("EmbeddingNode [{}] embedding {} texts, store={}", getNodeId(), texts.size(), store);
 
@@ -87,9 +124,8 @@ public class EmbeddingNode extends AbstractWorkflowNode {
         result.put("stored", false);
 
         if (store && vectorStore != null) {
-            String collection = getParam(params, "collection", "default");
-            @SuppressWarnings("unchecked")
-            Map<String, Object> metadata = (Map<String, Object>) params.get("metadata");
+            String collection = params.effectiveCollection();
+            Map<String, Object> metadata = params.metadata();
             // Store embeddings in vector store
             // Future: call vectorStore.store(collection, texts, embeddings, metadata)
             result.put("stored", true);
@@ -97,17 +133,5 @@ public class EmbeddingNode extends AbstractWorkflowNode {
         }
 
         return result;
-    }
-
-    private boolean getBooleanParam(Map<String, Object> params, String key, boolean defaultValue) {
-        Object value = params.get(key);
-        if (value == null) return defaultValue;
-        if (value instanceof Boolean bool) return bool;
-        return Boolean.parseBoolean(value.toString());
-    }
-
-    private String getParam(Map<String, Object> params, String key, String defaultValue) {
-        Object value = params.get(key);
-        return value != null ? value.toString() : defaultValue;
     }
 }

@@ -1,6 +1,8 @@
 package io.github.afgprojects.framework.ai.core.workflow.node.output;
 
 import io.github.afgprojects.framework.ai.core.api.workflow.engine.ExecutionContext;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Out;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Param;
 import io.github.afgprojects.framework.ai.core.workflow.node.AbstractWorkflowNode;
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,30 +20,57 @@ import java.util.Map;
  * <p>Writes the provided content to a file on the filesystem.
  * Supports text content with configurable encoding and append mode.</p>
  *
- * <p>Parameters:</p>
- * <ul>
- *   <li>{@code filePath} (required) - path to the output file</li>
- *   <li>{@code content} (required) - content to write</li>
- *   <li>{@code encoding} (optional) - file encoding, defaults to UTF-8</li>
- *   <li>{@code append} (optional) - whether to append to existing file, defaults to false</li>
- *   <li>{@code createParentDirs} (optional) - create parent directories if needed, defaults to true</li>
- * </ul>
+ * <p>Parameters are declared on {@link Params} so the node is self-describing.</p>
  */
 @Slf4j
-public class FileOutputNode extends AbstractWorkflowNode {
+public class FileOutputNode extends AbstractWorkflowNode<FileOutputNode.Params> {
 
     public static final String TYPE = "file-output";
 
+    /** Strongly-typed parameters for {@link FileOutputNode}. */
+    public record Params(
+            @Param(displayName = "File path", description = "Path to the output file", required = true)
+            String filePath,
+            @Param(displayName = "Content", description = "Content to write", required = true)
+            String content,
+            @Param(displayName = "Append", description = "Whether to append to existing file", defaultValue = "false")
+            Boolean append,
+            @Param(displayName = "Create parent dirs", description = "Create parent directories if needed", defaultValue = "true")
+            Boolean createParentDirs
+    ) {
+        /** Whether to append to existing file. */
+        public boolean isAppend() {
+            return Boolean.TRUE.equals(append);
+        }
+
+        /** Whether to create parent directories. */
+        public boolean isCreateParentDirs() {
+            return createParentDirs == null || createParentDirs;
+        }
+    }
+
+    /** Output descriptor for {@link FileOutputNode}. */
+    public record Output(
+            @Out(description = "File path") String filePath,
+            @Out(description = "Bytes written") int bytesWritten,
+            @Out(description = "Whether appended") boolean appended
+    ) {}
+
     public FileOutputNode(String nodeId) {
-        super(nodeId, TYPE);
+        super(nodeId, TYPE, Params.class);
     }
 
     @Override
-    protected Map<String, Object> doExecute(ExecutionContext context, Map<String, Object> params) {
-        String filePath = getRequiredParam(params, "filePath");
-        String content = getRequiredParam(params, "content");
-        boolean append = getBooleanParam(params, "append", false);
-        boolean createParentDirs = getBooleanParam(params, "createParentDirs", true);
+    protected Class<?> outputRecordType() {
+        return Output.class;
+    }
+
+    @Override
+    protected Map<String, Object> doExecute(ExecutionContext context, Params params) {
+        String filePath = params.filePath();
+        String content = params.content();
+        boolean append = params.isAppend();
+        boolean createParentDirs = params.isCreateParentDirs();
 
         log.debug("FileOutputNode [{}] writing to: {}", getNodeId(), filePath);
 
@@ -69,20 +98,5 @@ public class FileOutputNode extends AbstractWorkflowNode {
         } catch (IOException e) {
             throw new RuntimeException("Failed to write file: " + filePath, e);
         }
-    }
-
-    private String getRequiredParam(Map<String, Object> params, String key) {
-        Object value = params.get(key);
-        if (value == null) {
-            throw new IllegalArgumentException("Required parameter '" + key + "' is missing");
-        }
-        return value.toString();
-    }
-
-    private boolean getBooleanParam(Map<String, Object> params, String key, boolean defaultValue) {
-        Object value = params.get(key);
-        if (value == null) return defaultValue;
-        if (value instanceof Boolean bool) return bool;
-        return Boolean.parseBoolean(value.toString());
     }
 }

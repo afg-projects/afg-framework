@@ -2,6 +2,9 @@ package io.github.afgprojects.framework.ai.core.workflow.node.logic;
 
 import io.github.afgprojects.framework.ai.core.api.workflow.engine.ExecutionContext;
 import io.github.afgprojects.framework.ai.core.api.workflow.engine.NodeOutput;
+import io.github.afgprojects.framework.ai.core.api.workflow.definition.ParamType;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Out;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Param;
 import io.github.afgprojects.framework.ai.core.workflow.node.AbstractWorkflowNode;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,35 +20,55 @@ import java.util.Map;
  * execution) and merges them into a single output. Supports different merge
  * strategies for combining data.</p>
  *
- * <p>Parameters:</p>
- * <ul>
- *   <li>{@code strategy} (optional) - merge strategy: "merge_all" (default), "first", "last", "flatten"</li>
- *   <li>{@code sourceNodes} (optional) - list of node IDs to merge outputs from</li>
- *   <li>{@code keyMapping} (optional) - Map to rename keys during merge</li>
- * </ul>
+ * <p>Parameters are declared on {@link Params}.</p>
  */
 @Slf4j
-public class MergeNode extends AbstractWorkflowNode {
+public class MergeNode extends AbstractWorkflowNode<MergeNode.Params> {
 
     public static final String TYPE = "merge";
 
+    /** Strongly-typed parameters for {@link MergeNode}. */
+    public record Params(
+            @Param(displayName = "Merge strategy", description = "Merge strategy",
+                    type = ParamType.ENUM, enumValues = {"merge_all", "first", "last", "flatten"},
+                    defaultValue = "merge_all")
+            String strategy,
+            @Param(displayName = "Source nodes", description = "List of node IDs to merge outputs from")
+            List<String> sourceNodes,
+            @Param(displayName = "Key mapping", description = "Map to rename keys during merge")
+            Map<String, String> keyMapping
+    ) {
+        /** Effective strategy, defaulting to merge_all. */
+        public String effectiveStrategy() {
+            return strategy == null || strategy.isBlank() ? "merge_all" : strategy;
+        }
+    }
+
+    /** Output descriptor for {@link MergeNode}. */
+    public record Output(
+            @Out(description = "Number of merged sources") int mergedCount
+    ) {}
+
     public MergeNode(String nodeId) {
-        super(nodeId, TYPE);
+        super(nodeId, TYPE, Params.class);
     }
 
     @Override
-    protected Map<String, Object> doExecute(ExecutionContext context, Map<String, Object> params) {
-        String strategy = getParam(params, "strategy", "merge_all");
+    protected Class<?> outputRecordType() {
+        return Output.class;
+    }
 
-        @SuppressWarnings("unchecked")
-        List<String> sourceNodes = (List<String>) params.get("sourceNodes");
+    @Override
+    protected Map<String, Object> doExecute(ExecutionContext context, Params params) {
+        String strategy = params.effectiveStrategy();
+        List<String> sourceNodes = params.sourceNodes();
 
         log.debug("MergeNode [{}] merging with strategy={}, sources={}", getNodeId(), strategy, sourceNodes);
 
         Map<String, NodeOutput> nodeOutputs = context.getNodeOutputs();
         List<Map<String, Object>> collectedData = new ArrayList<>();
 
-        if (sourceNodes != null) {
+        if (sourceNodes != null && nodeOutputs != null) {
             for (String sourceNodeId : sourceNodes) {
                 NodeOutput output = nodeOutputs.get(sourceNodeId);
                 if (output != null && output.data() != null) {
@@ -71,12 +94,8 @@ public class MergeNode extends AbstractWorkflowNode {
             case "flatten" -> {
                 result.put("items", collectedData);
             }
-            case "merge_all" -> {
-                for (Map<String, Object> data : collectedData) {
-                    result.putAll(data);
-                }
-            }
             default -> {
+                // merge_all and any unknown strategy
                 for (Map<String, Object> data : collectedData) {
                     result.putAll(data);
                 }
@@ -84,10 +103,5 @@ public class MergeNode extends AbstractWorkflowNode {
         }
 
         return result;
-    }
-
-    private String getParam(Map<String, Object> params, String key, String defaultValue) {
-        Object value = params.get(key);
-        return value != null ? value.toString() : defaultValue;
     }
 }

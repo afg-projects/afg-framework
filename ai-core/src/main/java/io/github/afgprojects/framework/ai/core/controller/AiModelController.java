@@ -27,7 +27,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -60,7 +59,6 @@ public class AiModelController {
      * 创建模型提供商
      */
     @PostMapping("/providers")
-    @Transactional
     public ModelProviderEntity createProvider(@Valid @RequestBody CreateProviderRequest request) {
         ModelProviderEntity entity = new ModelProviderEntity();
         entity.setProviderName(request.getProviderName());
@@ -97,48 +95,50 @@ public class AiModelController {
      * 更新模型提供商
      */
     @PutMapping("/providers/{id}")
-    @Transactional
     public ResponseEntity<ModelProviderEntity> updateProvider(@PathVariable String id,
                                                @Valid @RequestBody UpdateProviderRequest request) {
-        ModelProviderEntity entity = dataManager.findById(ModelProviderEntity.class, id)
-            .orElse(null);
-        if (entity == null) {
-            return ResponseEntity.notFound().build();
-        }
+        return dataManager.executeInTransaction(() -> {
+            ModelProviderEntity entity = dataManager.findById(ModelProviderEntity.class, id)
+                .orElse(null);
+            if (entity == null) {
+                return ResponseEntity.<ModelProviderEntity>notFound().build();
+            }
 
-        if (request.getProviderName() != null) {
-            entity.setProviderName(request.getProviderName());
-        }
-        if (request.getProviderType() != null) {
-            entity.setProviderType(request.getProviderType());
-        }
-        if (request.getBaseUrl() != null) {
-            entity.setBaseUrl(request.getBaseUrl());
-        }
-        if (request.getApiKey() != null) {
-            entity.setApiKey(request.getApiKey());
-        }
-        if (request.getEnabled() != null) {
-            entity.setEnabled(request.getEnabled());
-        }
-        if (request.getConfig() != null) {
-            entity.setConfig(request.getConfig());
-        }
+            if (request.getProviderName() != null) {
+                entity.setProviderName(request.getProviderName());
+            }
+            if (request.getProviderType() != null) {
+                entity.setProviderType(request.getProviderType());
+            }
+            if (request.getBaseUrl() != null) {
+                entity.setBaseUrl(request.getBaseUrl());
+            }
+            if (request.getApiKey() != null) {
+                entity.setApiKey(request.getApiKey());
+            }
+            if (request.getEnabled() != null) {
+                entity.setEnabled(request.getEnabled());
+            }
+            if (request.getConfig() != null) {
+                entity.setConfig(request.getConfig());
+            }
 
-        return ResponseEntity.ok(dataManager.save(ModelProviderEntity.class, entity));
+            return ResponseEntity.ok(dataManager.save(ModelProviderEntity.class, entity));
+        });
     }
 
     /**
      * 删除模型提供商
      */
     @DeleteMapping("/providers/{id}")
-    @Transactional
     public ResponseEntity<Void> deleteProvider(@PathVariable String id) {
-        if (!dataManager.existsById(ModelProviderEntity.class, id)) {
-            return ResponseEntity.notFound().build();
-        }
-        dataManager.deleteById(ModelProviderEntity.class, id);
-        return ResponseEntity.noContent().build();
+        return dataManager.executeInTransaction(() -> {
+            if (!dataManager.existsById(ModelProviderEntity.class, id)) {
+                return ResponseEntity.<Void>notFound().build();
+            }
+            dataManager.deleteById(ModelProviderEntity.class, id);
+            return ResponseEntity.noContent().build();
+        });
     }
 
     // ==================== 模型配置 CRUD ====================
@@ -147,7 +147,6 @@ public class AiModelController {
      * 创建模型配置
      */
     @PostMapping("/configs")
-    @Transactional
     public ModelConfigEntity createModelConfig(@Valid @RequestBody CreateModelConfigRequest request) {
         ModelConfigEntity entity = new ModelConfigEntity();
         entity.setProviderId(request.getProviderId());
@@ -194,48 +193,50 @@ public class AiModelController {
      * 更新模型配置
      */
     @PutMapping("/configs/{id}")
-    @Transactional
     public ResponseEntity<ModelConfigEntity> updateModelConfig(@PathVariable String id,
                                                 @Valid @RequestBody UpdateModelConfigRequest request) {
-        ModelConfigEntity entity = dataManager.findById(ModelConfigEntity.class, id)
-            .orElse(null);
-        if (entity == null) {
-            return ResponseEntity.notFound().build();
-        }
+        return dataManager.executeInTransaction(() -> {
+            ModelConfigEntity entity = dataManager.findById(ModelConfigEntity.class, id)
+                .orElse(null);
+            if (entity == null) {
+                return ResponseEntity.<ModelConfigEntity>notFound().build();
+            }
 
-        if (request.getModelName() != null) {
-            entity.setModelName(request.getModelName());
-        }
-        if (request.getDisplayName() != null) {
-            entity.setDisplayName(request.getDisplayName());
-        }
-        if (request.getModelType() != null) {
-            entity.setModelType(request.getModelType());
-        }
-        if (request.getCapabilities() != null) {
-            entity.setCapabilities(request.getCapabilities());
-        }
-        if (request.getConfig() != null) {
-            entity.setConfig(request.getConfig());
-        }
-        if (request.getEnabled() != null) {
-            entity.setEnabled(request.getEnabled());
-        }
+            if (request.getModelName() != null) {
+                entity.setModelName(request.getModelName());
+            }
+            if (request.getDisplayName() != null) {
+                entity.setDisplayName(request.getDisplayName());
+            }
+            if (request.getModelType() != null) {
+                entity.setModelType(request.getModelType());
+            }
+            if (request.getCapabilities() != null) {
+                entity.setCapabilities(request.getCapabilities());
+            }
+            if (request.getConfig() != null) {
+                entity.setConfig(request.getConfig());
+            }
+            if (request.getEnabled() != null) {
+                entity.setEnabled(request.getEnabled());
+            }
 
-        return ResponseEntity.ok(dataManager.save(ModelConfigEntity.class, entity));
+            return ResponseEntity.ok(dataManager.save(ModelConfigEntity.class, entity));
+        });
     }
 
     /**
      * 删除模型配置
      */
     @DeleteMapping("/configs/{id}")
-    @Transactional
     public ResponseEntity<Void> deleteModelConfig(@PathVariable String id) {
-        if (!dataManager.existsById(ModelConfigEntity.class, id)) {
-            return ResponseEntity.notFound().build();
-        }
-        dataManager.deleteById(ModelConfigEntity.class, id);
-        return ResponseEntity.noContent().build();
+        return dataManager.executeInTransaction(() -> {
+            if (!dataManager.existsById(ModelConfigEntity.class, id)) {
+                return ResponseEntity.<Void>notFound().build();
+            }
+            dataManager.deleteById(ModelConfigEntity.class, id);
+            return ResponseEntity.noContent().build();
+        });
     }
 
     // ==================== 模型用量查询 ====================

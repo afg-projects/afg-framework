@@ -1,6 +1,8 @@
 package io.github.afgprojects.framework.ai.core.workflow.node.logic;
 
 import io.github.afgprojects.framework.ai.core.api.workflow.engine.ExecutionContext;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Out;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Param;
 import io.github.afgprojects.framework.ai.core.workflow.node.AbstractWorkflowNode;
 import lombok.extern.slf4j.Slf4j;
 
@@ -13,25 +15,41 @@ import java.util.Map;
  * <p>Pauses workflow execution for a specified duration. Useful for rate limiting,
  * waiting for external processes, or simulating delays in testing.</p>
  *
- * <p>Parameters:</p>
- * <ul>
- *   <li>{@code delayMs} (required) - delay duration in milliseconds</li>
- *   <li>{@code reason} (optional) - description of why the delay is needed</li>
- * </ul>
+ * <p>Parameters are declared on {@link Params}.</p>
  */
 @Slf4j
-public class DelayNode extends AbstractWorkflowNode {
+public class DelayNode extends AbstractWorkflowNode<DelayNode.Params> {
 
     public static final String TYPE = "delay";
 
+    /** Strongly-typed parameters for {@link DelayNode}. */
+    public record Params(
+            @Param(displayName = "Delay (ms)", description = "Delay duration in milliseconds", required = true)
+            Long delayMs,
+            @Param(displayName = "Delay reason", description = "Description of why the delay is needed")
+            String reason
+    ) {}
+
+    /** Output descriptor for {@link DelayNode}. */
+    public record Output(
+            @Out(description = "Delay duration") long delayMs,
+            @Out(description = "Delay reason") String reason,
+            @Out(description = "Delay completed") boolean completed
+    ) {}
+
     public DelayNode(String nodeId) {
-        super(nodeId, TYPE);
+        super(nodeId, TYPE, Params.class);
     }
 
     @Override
-    protected Map<String, Object> doExecute(ExecutionContext context, Map<String, Object> params) {
-        long delayMs = getLongParam(params, "delayMs", 0);
-        String reason = getParam(params, "reason", null);
+    protected Class<?> outputRecordType() {
+        return Output.class;
+    }
+
+    @Override
+    protected Map<String, Object> doExecute(ExecutionContext context, Params params) {
+        long delayMs = params.delayMs() == null ? 0 : params.delayMs();
+        String reason = params.reason();
 
         if (delayMs <= 0) {
             throw new IllegalArgumentException("Required parameter 'delayMs' must be a positive number");
@@ -52,17 +70,5 @@ public class DelayNode extends AbstractWorkflowNode {
         result.put("reason", reason);
         result.put("completed", true);
         return result;
-    }
-
-    private long getLongParam(Map<String, Object> params, String key, long defaultValue) {
-        Object value = params.get(key);
-        if (value == null) return defaultValue;
-        if (value instanceof Number num) return num.longValue();
-        return Long.parseLong(value.toString());
-    }
-
-    private String getParam(Map<String, Object> params, String key, String defaultValue) {
-        Object value = params.get(key);
-        return value != null ? value.toString() : defaultValue;
     }
 }

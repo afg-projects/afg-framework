@@ -2,7 +2,7 @@
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-                                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+                                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
     <!-- 测试实体表 -->
     <include file="test-data/v1.0.0/001_test_user.xml" relativeToChangelogFile="true"/>
     <include file="test-data/v1.0.0/002_test_soft_delete_item.xml" relativeToChangelogFile="true"/>

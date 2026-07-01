@@ -78,9 +78,9 @@ public class DefaultDagEngine implements DagEngine {
                     String type = nodeTypes.get(nodeId);
                     Map<String, Object> params = renderParams(nodeParams.get(nodeId), context);
 
-                    WorkflowNode node = nodeResolver.apply(nodeId);
+                    WorkflowNode node = nodeResolver.apply(type);
                     if (node == null) {
-                        log.warn("No node resolver found for nodeId: {}, skipping", nodeId);
+                        log.warn("No node resolver found for type: {} (nodeId: {}), skipping", type, nodeId);
                         return;
                     }
 
@@ -195,9 +195,9 @@ public class DefaultDagEngine implements DagEngine {
                             String type = nodeTypes.get(nodeId);
                             Map<String, Object> params = renderParams(nodeParams.get(nodeId), context);
 
-                            WorkflowNode node = nodeResolver.apply(nodeId);
+                            WorkflowNode node = nodeResolver.apply(type);
                             if (node == null) {
-                                log.warn("No node resolver found for nodeId: {}, skipping", nodeId);
+                                log.warn("No node resolver found for type: {} (nodeId: {}), skipping", type, nodeId);
                                 continue;
                             }
 

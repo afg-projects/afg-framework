@@ -2,12 +2,11 @@ package io.github.afgprojects.framework.ai.core.workflow.node.checkpoint;
 
 import io.github.afgprojects.framework.ai.core.api.workflow.checkpoint.CheckpointManager;
 import io.github.afgprojects.framework.ai.core.api.workflow.engine.ExecutionContext;
-import io.github.afgprojects.framework.ai.core.api.workflow.engine.NodeOutput;
-import io.github.afgprojects.framework.ai.core.api.workflow.engine.WorkflowNode;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Out;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Param;
+import io.github.afgprojects.framework.ai.core.workflow.node.AbstractWorkflowNode;
 import lombok.extern.slf4j.Slf4j;
-import reactor.core.publisher.Flux;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -18,84 +17,74 @@ import java.util.Map;
  * the workflow to be resumed from this point if it fails or is interrupted.
  * Essential for long-running workflows that need fault tolerance.</p>
  *
- * <p>Parameters:</p>
- * <ul>
- *   <li>{@code label} (optional) - descriptive label for this checkpoint</li>
- *   <li>{@code metadata} (optional) - additional metadata to store with the checkpoint</li>
- * </ul>
+ * <p>Parameters are declared on {@link Params} so the node is self-describing.
+ * The {@link CheckpointManager} is a construction-time dependency; the no-arg
+ * constructor leaves it null so the node degrades gracefully when checkpointing
+ * is not configured.</p>
  */
 @Slf4j
-public class CheckpointNode implements WorkflowNode {
+public class CheckpointNode extends AbstractWorkflowNode<CheckpointNode.Params> {
 
     public static final String TYPE = "checkpoint";
 
-    private final String nodeId;
+    /** Strongly-typed parameters for {@link CheckpointNode}. */
+    public record Params(
+            @Param(displayName = "Label", description = "Descriptive label for this checkpoint")
+            String label,
+            @Param(displayName = "Metadata", description = "Additional metadata to store with the checkpoint")
+            Map<String, Object> metadata
+    ) {
+        /** Effective label, defaulting to "checkpoint-&lt;nodeId&gt;". */
+        public String effectiveLabel(String nodeId) {
+            return label == null || label.isBlank() ? "checkpoint-" + nodeId : label;
+        }
+    }
+
+    /** Output descriptor for {@link CheckpointNode}. */
+    public record Output(
+            @Out(description = "Whether checkpoint saved") boolean checkpointSaved,
+            @Out(description = "Label") String label,
+            @Out(description = "Workflow ID") String workflowId
+    ) {}
+
     private final CheckpointManager checkpointManager;
 
     public CheckpointNode(String nodeId, CheckpointManager checkpointManager) {
-        this.nodeId = nodeId;
+        super(nodeId, TYPE, Params.class);
         this.checkpointManager = checkpointManager;
     }
 
     public CheckpointNode(String nodeId) {
-        this.nodeId = nodeId;
+        super(nodeId, TYPE, Params.class);
         this.checkpointManager = null;
     }
 
     @Override
-    public String getNodeId() {
-        return nodeId;
+    protected Class<?> outputRecordType() {
+        return Output.class;
     }
 
     @Override
-    public String getType() {
-        return TYPE;
-    }
+    protected Map<String, Object> doExecute(ExecutionContext context, Params params) {
+        String label = params.effectiveLabel(getNodeId());
 
-    @Override
-    public NodeOutput execute(ExecutionContext context, Map<String, Object> params) {
-        long startTime = System.currentTimeMillis();
-        try {
-            String label = getParam(params, "label", "checkpoint-" + nodeId);
+        log.debug("CheckpointNode [{}] saving checkpoint: {}", getNodeId(), label);
 
-            log.debug("CheckpointNode [{}] saving checkpoint: {}", nodeId, label);
-
-            if (checkpointManager == null) {
-                Map<String, Object> result = new LinkedHashMap<>();
-                result.put("checkpointSaved", false);
-                result.put("label", label);
-                result.put("message", "No CheckpointManager available - checkpoint not saved");
-                long duration = System.currentTimeMillis() - startTime;
-                return NodeOutput.of(result).withDuration(duration);
-            }
-
-            checkpointManager.save(context.getWorkflowId(), context, nodeId);
-
+        if (checkpointManager == null) {
             Map<String, Object> result = new LinkedHashMap<>();
-            result.put("checkpointSaved", true);
+            result.put("checkpointSaved", false);
             result.put("label", label);
-            result.put("workflowId", context.getWorkflowId());
-            result.put("currentNodeId", nodeId);
-
-            long duration = System.currentTimeMillis() - startTime;
-            return NodeOutput.of(result).withDuration(duration);
-
-        } catch (Exception e) {
-            log.error("CheckpointNode [{}] execution failed", nodeId, e);
-            long duration = System.currentTimeMillis() - startTime;
-            Map<String, Object> errorData = new HashMap<>();
-            errorData.put("error", e.getMessage() != null ? e.getMessage() : "Unknown error");
-            return NodeOutput.of(errorData).withDuration(duration);
+            result.put("message", "No CheckpointManager available - checkpoint not saved");
+            return result;
         }
-    }
 
-    @Override
-    public Flux<NodeEvent> executeStream(ExecutionContext context, Map<String, Object> params) {
-        return Flux.just(NodeEvent.complete(execute(context, params)));
-    }
+        checkpointManager.save(context.getWorkflowId(), context, getNodeId());
 
-    private String getParam(Map<String, Object> params, String key, String defaultValue) {
-        Object value = params.get(key);
-        return value != null ? value.toString() : defaultValue;
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("checkpointSaved", true);
+        result.put("label", label);
+        result.put("workflowId", context.getWorkflowId());
+        result.put("currentNodeId", getNodeId());
+        return result;
     }
 }

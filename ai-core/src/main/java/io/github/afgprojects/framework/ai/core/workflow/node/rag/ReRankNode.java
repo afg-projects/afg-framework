@@ -2,6 +2,8 @@ package io.github.afgprojects.framework.ai.core.workflow.node.rag;
 
 import io.github.afgprojects.framework.ai.core.api.chat.AfgChatClient;
 import io.github.afgprojects.framework.ai.core.api.workflow.engine.ExecutionContext;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Out;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Param;
 import io.github.afgprojects.framework.ai.core.workflow.node.AbstractWorkflowNode;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,45 +19,75 @@ import java.util.Map;
  * Improves retrieval quality by applying more sophisticated relevance
  * scoring than initial vector similarity.</p>
  *
- * <p>Parameters:</p>
- * <ul>
- *   <li>{@code query} (required) - the original search query</li>
- *   <li>{@code results} (required) - list of search results to re-rank</li>
- *   <li>{@code topK} (optional) - number of top results to return, defaults to 5</li>
- *   <li>{@code method} (optional) - re-ranking method: "llm" or "score", defaults to "score"</li>
- * </ul>
+ * <p>Parameters are declared on {@link Params} so the node is self-describing.
+ * The {@link AfgChatClient} is a construction-time dependency; the no-arg
+ * constructor leaves it null (score-based re-ranking still works without it).</p>
  *
  * <p><strong>Alpha feature:</strong> LLM-based re-ranking requires an AfgChatClient.
  * Current implementation supports score-based re-ranking using existing relevance scores.</p>
  */
 @Slf4j
-public class ReRankNode extends AbstractWorkflowNode {
+public class ReRankNode extends AbstractWorkflowNode<ReRankNode.Params> {
 
     public static final String TYPE = "re-rank";
+
+    /** Strongly-typed parameters for {@link ReRankNode}. */
+    public record Params(
+            @Param(displayName = "Query", description = "The original search query", required = true)
+            String query,
+            @Param(displayName = "Results", description = "List of search results to re-rank", required = true)
+            List<Object> results,
+            @Param(displayName = "Top K", description = "Number of top results to return", defaultValue = "5")
+            Integer topK,
+            @Param(displayName = "Method", description = "Re-ranking method: \"llm\" or \"score\"", defaultValue = "score")
+            String method
+    ) {
+        /** Effective topK, defaulting to 5. */
+        public int effectiveTopK() {
+            return topK == null ? 5 : topK;
+        }
+
+        /** Effective method, defaulting to "score". */
+        public String effectiveMethod() {
+            return method == null || method.isBlank() ? "score" : method;
+        }
+    }
+
+    /** Output descriptor for {@link ReRankNode}. */
+    public record Output(
+            @Out(description = "Query") String query,
+            @Out(description = "Result count") int resultCount,
+            @Out(description = "Method") String method,
+            @Out(description = "Re-ranked results") List<Object> results
+    ) {}
 
     private final AfgChatClient chatClient;
 
     public ReRankNode(String nodeId, AfgChatClient chatClient) {
-        super(nodeId, TYPE);
+        super(nodeId, TYPE, Params.class);
         this.chatClient = chatClient;
     }
 
     public ReRankNode(String nodeId) {
-        super(nodeId, TYPE);
+        super(nodeId, TYPE, Params.class);
         this.chatClient = null;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    protected Map<String, Object> doExecute(ExecutionContext context, Map<String, Object> params) {
-        String query = getRequiredParam(params, "query");
-        List<Object> results = (List<Object>) params.get("results");
+    protected Class<?> outputRecordType() {
+        return Output.class;
+    }
+
+    @Override
+    protected Map<String, Object> doExecute(ExecutionContext context, Params params) {
+        String query = params.query();
+        List<Object> results = params.results();
         if (results == null) {
             throw new IllegalArgumentException("Required parameter 'results' is missing");
         }
 
-        int topK = getIntParam(params, "topK", 5);
-        String method = getParam(params, "method", "score");
+        int topK = params.effectiveTopK();
+        String method = params.effectiveMethod();
 
         log.debug("ReRankNode [{}] re-ranking {} results for query: {}", getNodeId(), results.size(), truncate(query, 100));
 
@@ -85,26 +117,6 @@ public class ReRankNode extends AbstractWorkflowNode {
             if (score instanceof Number num) return num.doubleValue();
         }
         return 0.0;
-    }
-
-    private String getRequiredParam(Map<String, Object> params, String key) {
-        Object value = params.get(key);
-        if (value == null) {
-            throw new IllegalArgumentException("Required parameter '" + key + "' is missing");
-        }
-        return value.toString();
-    }
-
-    private String getParam(Map<String, Object> params, String key, String defaultValue) {
-        Object value = params.get(key);
-        return value != null ? value.toString() : defaultValue;
-    }
-
-    private int getIntParam(Map<String, Object> params, String key, int defaultValue) {
-        Object value = params.get(key);
-        if (value == null) return defaultValue;
-        if (value instanceof Number num) return num.intValue();
-        return Integer.parseInt(value.toString());
     }
 
     private static String truncate(String str, int maxLen) {

@@ -10,7 +10,6 @@ import io.github.afgprojects.framework.governance.server.entity.config.ConfigIte
 import io.github.afgprojects.framework.governance.server.entity.config.ConfigValue;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -103,54 +102,57 @@ public class ConfigItemController {
     }
 
     @PostMapping
-    @Transactional
     public Result<ConfigItem> create(@RequestBody ConfigItem item) {
-        // Check if code already exists in the group
-        var existing = dataManager.entity(ConfigItem.class)
-            .query()
-            .where(Conditions.builder(ConfigItem.class)
-                .eq(ConfigItem::getGroupId, item.getGroupId())
-                .eq(ConfigItem::getCode, item.getCode())
-                .build())
-            .one();
-        if (existing.isPresent()) {
-            throw new BusinessException(CommonErrorCode.ENTITY_ALREADY_EXISTS, "Config item code already exists in this group: " + item.getCode());
-        }
-                return Result.success(dataManager.save(ConfigItem.class, item));
+        return dataManager.executeInTransaction(() -> {
+            // Check if code already exists in the group
+            var existing = dataManager.entity(ConfigItem.class)
+                .query()
+                .where(Conditions.builder(ConfigItem.class)
+                    .eq(ConfigItem::getGroupId, item.getGroupId())
+                    .eq(ConfigItem::getCode, item.getCode())
+                    .build())
+                .one();
+            if (existing.isPresent()) {
+                throw new BusinessException(CommonErrorCode.ENTITY_ALREADY_EXISTS, "Config item code already exists in this group: " + item.getCode());
+            }
+            return Result.success(dataManager.save(ConfigItem.class, item));
+        });
     }
 
     @PutMapping("/{id}")
-    @Transactional
     public Result<ConfigItem> update(@PathVariable String id, @RequestBody ConfigItem item) {
-        ConfigItem existing = dataManager.findById(ConfigItem.class, id)
-            .filter(i -> !i.isDeleted())
-            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Config item not found: " + id));
+        return dataManager.executeInTransaction(() -> {
+            ConfigItem existing = dataManager.findById(ConfigItem.class, id)
+                .filter(i -> !i.isDeleted())
+                .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Config item not found: " + id));
 
-        existing.setName(item.getName());
-        existing.setDescription(item.getDescription());
-        existing.setType(item.getType());
-        existing.setDefaultValue(item.getDefaultValue());
-        existing.setOptions(item.getOptions());
-        existing.setValidation(item.getValidation());
-        existing.setPlaceholder(item.getPlaceholder());
-        existing.setIsSecret(item.getIsSecret());
-        existing.setIsRequired(item.getIsRequired());
-        existing.setIsDynamic(item.getIsDynamic());
-        existing.setIsDeprecated(item.getIsDeprecated());
-        existing.setSort(item.getSort());
-        existing.setStatus(item.getStatus());
+            existing.setName(item.getName());
+            existing.setDescription(item.getDescription());
+            existing.setType(item.getType());
+            existing.setDefaultValue(item.getDefaultValue());
+            existing.setOptions(item.getOptions());
+            existing.setValidation(item.getValidation());
+            existing.setPlaceholder(item.getPlaceholder());
+            existing.setIsSecret(item.getIsSecret());
+            existing.setIsRequired(item.getIsRequired());
+            existing.setIsDynamic(item.getIsDynamic());
+            existing.setIsDeprecated(item.getIsDeprecated());
+            existing.setSort(item.getSort());
+            existing.setStatus(item.getStatus());
 
-        return Result.success(dataManager.save(ConfigItem.class, existing));
+            return Result.success(dataManager.save(ConfigItem.class, existing));
+        });
     }
 
     @DeleteMapping("/{id}")
-    @Transactional
     public Result<Void> delete(@PathVariable String id) {
-        ConfigItem item = dataManager.findById(ConfigItem.class, id)
-            .filter(i -> !i.isDeleted())
-            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Config item not found: " + id));
-        item.markDeleted();
-        dataManager.save(ConfigItem.class, item);
-        return Result.success();
+        return dataManager.executeInTransaction(() -> {
+            ConfigItem item = dataManager.findById(ConfigItem.class, id)
+                .filter(i -> !i.isDeleted())
+                .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Config item not found: " + id));
+            item.markDeleted();
+            dataManager.save(ConfigItem.class, item);
+            return Result.<Void>success();
+        });
     }
 }

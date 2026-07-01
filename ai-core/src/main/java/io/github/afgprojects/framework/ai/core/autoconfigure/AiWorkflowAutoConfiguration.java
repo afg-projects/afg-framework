@@ -12,8 +12,12 @@ import io.github.afgprojects.framework.ai.core.workflow.dsl.DefaultDslConverter;
 import io.github.afgprojects.framework.ai.core.workflow.dsl.DefaultDslValidator;
 import io.github.afgprojects.framework.ai.core.workflow.dsl.DefaultVariableResolver;
 import io.github.afgprojects.framework.ai.core.workflow.engine.DefaultDagEngine;
+import io.github.afgprojects.framework.ai.core.workflow.node.BuiltinNodeFactoryRegistrar;
 import io.github.afgprojects.framework.ai.core.workflow.node.BuiltinNodeRegistrar;
+import io.github.afgprojects.framework.ai.core.workflow.node.AiNodeFactoryRegistrar;
+import io.github.afgprojects.framework.ai.core.workflow.node.DefaultNodeFactory;
 import io.github.afgprojects.framework.ai.core.workflow.node.DefaultNodeTypeRegistry;
+import io.github.afgprojects.framework.ai.core.workflow.node.NodeFactory;
 import io.github.afgprojects.framework.ai.core.workflow.InMemoryCheckpointManager;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -45,12 +49,27 @@ public class AiWorkflowAutoConfiguration {
 
         @Bean
         @ConditionalOnMissingBean(DagEngine.class)
-        public DefaultDagEngine defaultDagEngine(@Nullable Function<String, WorkflowNode> nodeResolver) {
-            if (nodeResolver != null) {
-                return new DefaultDagEngine(nodeResolver);
-            }
-            // 如果没有节点解析器，返回一个不做任何事的引擎
-            return new DefaultDagEngine(type -> null);
+        public DefaultDagEngine defaultDagEngine(DefaultNodeFactory nodeFactory) {
+            // 节点解析器：按 type 实例化节点。未知类型返回 null（由引擎跳过）。
+            // 注：DefaultDagEngine 调用 nodeResolver.apply(type)。
+            return new DefaultDagEngine(nodeFactory);
+        }
+
+        @Bean
+        @ConditionalOnMissingBean(NodeFactory.class)
+        public DefaultNodeFactory defaultNodeFactory(
+                org.springframework.beans.factory.ObjectProvider<NodeFactory> factoryProviders,
+                org.springframework.beans.factory.ObjectProvider<io.github.afgprojects.framework.ai.core.api.chat.AfgChatClient> chatClientProvider,
+                org.springframework.beans.factory.ObjectProvider<io.github.afgprojects.framework.ai.core.api.chat.AfgEmbeddingClient> embeddingClientProvider) {
+            DefaultNodeFactory factory = new DefaultNodeFactory();
+            // 聚合容器中额外的 NodeFactory bean（自定义节点类型）
+            factoryProviders.orderedStream().forEach(factory::register);
+            // 无依赖内置节点
+            BuiltinNodeFactoryRegistrar.registerAll(factory);
+            // AI 节点（依赖可选 chat/embedding client，缺失时节点降级）
+            AiNodeFactoryRegistrar.registerAll(factory,
+                    chatClientProvider::getIfAvailable, embeddingClientProvider::getIfAvailable);
+            return factory;
         }
 
         @Bean

@@ -8,7 +8,6 @@ import io.github.afgprojects.framework.data.core.condition.Conditions;
 import io.github.afgprojects.framework.governance.server.entity.service.ServiceRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

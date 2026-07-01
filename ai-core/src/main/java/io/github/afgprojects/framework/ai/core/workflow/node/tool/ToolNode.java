@@ -3,6 +3,8 @@ package io.github.afgprojects.framework.ai.core.workflow.node.tool;
 import io.github.afgprojects.framework.ai.core.api.tool.Tool;
 import io.github.afgprojects.framework.ai.core.api.tool.ToolRegistry;
 import io.github.afgprojects.framework.ai.core.api.workflow.engine.ExecutionContext;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Out;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Param;
 import io.github.afgprojects.framework.ai.core.workflow.node.AbstractWorkflowNode;
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,32 +18,50 @@ import java.util.Map;
  * with the provided input parameters. The tool's output is passed through
  * as the node's output data.</p>
  *
- * <p>Parameters:</p>
- * <ul>
- *   <li>{@code toolName} (required) - name of the tool to invoke</li>
- *   <li>{@code toolInput} (optional) - input data for the tool</li>
- * </ul>
+ * <p>Parameters are declared on {@link Params} so the node is self-describing.
+ * The {@link ToolRegistry} is a construction-time dependency (not a parameter);
+ * the no-arg constructor leaves it null so the node degrades gracefully when
+ * no registry is configured.</p>
  */
 @Slf4j
-public class ToolNode extends AbstractWorkflowNode {
+public class ToolNode extends AbstractWorkflowNode<ToolNode.Params> {
 
     public static final String TYPE = "tool";
+
+    /** Strongly-typed parameters for {@link ToolNode}. */
+    public record Params(
+            @Param(displayName = "Tool name", description = "Name of the tool to invoke", required = true)
+            String toolName,
+            @Param(displayName = "Tool input", description = "Input data for the tool (any type)")
+            Object toolInput
+    ) {}
+
+    /** Output descriptor for {@link ToolNode}. */
+    public record Output(
+            @Out(description = "Tool name") String toolName,
+            @Out(description = "Tool result") Object result
+    ) {}
 
     private final ToolRegistry toolRegistry;
 
     public ToolNode(String nodeId, ToolRegistry toolRegistry) {
-        super(nodeId, TYPE);
+        super(nodeId, TYPE, Params.class);
         this.toolRegistry = toolRegistry;
     }
 
     public ToolNode(String nodeId) {
-        super(nodeId, TYPE);
+        super(nodeId, TYPE, Params.class);
         this.toolRegistry = null;
     }
 
     @Override
-    protected Map<String, Object> doExecute(ExecutionContext context, Map<String, Object> params) {
-        String toolName = getRequiredParam(params, "toolName");
+    protected Class<?> outputRecordType() {
+        return Output.class;
+    }
+
+    @Override
+    protected Map<String, Object> doExecute(ExecutionContext context, Params params) {
+        String toolName = params.toolName();
 
         log.debug("ToolNode [{}] invoking tool: {}", getNodeId(), toolName);
 
@@ -57,7 +77,7 @@ public class ToolNode extends AbstractWorkflowNode {
             throw new IllegalArgumentException("Tool not found: " + toolName);
         }
 
-        Object toolInput = params.get("toolInput");
+        Object toolInput = params.toolInput();
         Object toolOutput;
         try {
             @SuppressWarnings("unchecked")
@@ -74,13 +94,5 @@ public class ToolNode extends AbstractWorkflowNode {
         result.put("toolName", toolName);
         result.put("result", toolOutput);
         return result;
-    }
-
-    private String getRequiredParam(Map<String, Object> params, String key) {
-        Object value = params.get(key);
-        if (value == null) {
-            throw new IllegalArgumentException("Required parameter '" + key + "' is missing");
-        }
-        return value.toString();
     }
 }

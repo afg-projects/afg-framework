@@ -20,7 +20,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
@@ -52,7 +51,6 @@ public class AiWorkflowController {
      * 创建工作流定义
      */
     @PostMapping("/definitions")
-    @Transactional
     public WorkflowDefinitionEntity createDefinition(@Valid @RequestBody CreateWorkflowRequest request) {
         WorkflowDefinitionEntity entity = new WorkflowDefinitionEntity();
         entity.setName(request.getName());
@@ -89,51 +87,53 @@ public class AiWorkflowController {
      * 更新工作流定义
      */
     @PutMapping("/definitions/{id}")
-    @Transactional
     public ResponseEntity<WorkflowDefinitionEntity> updateDefinition(@PathVariable String id,
                                                       @Valid @RequestBody UpdateWorkflowRequest request) {
-        WorkflowDefinitionEntity entity = dataManager.findById(WorkflowDefinitionEntity.class, id)
-            .orElse(null);
-        if (entity == null) {
-            return ResponseEntity.notFound().build();
-        }
+        return dataManager.executeInTransaction(() -> {
+            WorkflowDefinitionEntity entity = dataManager.findById(WorkflowDefinitionEntity.class, id)
+                .orElse(null);
+            if (entity == null) {
+                return ResponseEntity.<WorkflowDefinitionEntity>notFound().build();
+            }
 
-        if (request.getName() != null) {
-            entity.setName(request.getName());
-        }
-        if (request.getDescription() != null) {
-            entity.setDescription(request.getDescription());
-        }
-        if (request.getDslContent() != null) {
-            entity.setDslContent(request.getDslContent());
-        }
-        if (request.getVersion() != null) {
-            entity.setVersion(request.getVersion());
-        }
-        if (request.getStatus() != null) {
-            entity.setStatus(request.getStatus());
-        }
-        if (request.getApplicationId() != null) {
-            entity.setApplicationId(request.getApplicationId());
-        }
+            if (request.getName() != null) {
+                entity.setName(request.getName());
+            }
+            if (request.getDescription() != null) {
+                entity.setDescription(request.getDescription());
+            }
+            if (request.getDslContent() != null) {
+                entity.setDslContent(request.getDslContent());
+            }
+            if (request.getVersion() != null) {
+                entity.setVersion(request.getVersion());
+            }
+            if (request.getStatus() != null) {
+                entity.setStatus(request.getStatus());
+            }
+            if (request.getApplicationId() != null) {
+                entity.setApplicationId(request.getApplicationId());
+            }
 
-        return ResponseEntity.ok(dataManager.save(WorkflowDefinitionEntity.class, entity));
+            return ResponseEntity.ok(dataManager.save(WorkflowDefinitionEntity.class, entity));
+        });
     }
 
     /**
      * 删除工作流定义（软删除）
      */
     @DeleteMapping("/definitions/{id}")
-    @Transactional
     public ResponseEntity<Void> deleteDefinition(@PathVariable String id) {
-        WorkflowDefinitionEntity entity = dataManager.findById(WorkflowDefinitionEntity.class, id)
-            .orElse(null);
-        if (entity == null) {
-            return ResponseEntity.notFound().build();
-        }
-        entity.markDeleted();
-        dataManager.save(WorkflowDefinitionEntity.class, entity);
-        return ResponseEntity.noContent().build();
+        return dataManager.executeInTransaction(() -> {
+            WorkflowDefinitionEntity entity = dataManager.findById(WorkflowDefinitionEntity.class, id)
+                .orElse(null);
+            if (entity == null) {
+                return ResponseEntity.<Void>notFound().build();
+            }
+            entity.markDeleted();
+            dataManager.save(WorkflowDefinitionEntity.class, entity);
+            return ResponseEntity.noContent().build();
+        });
     }
 
     // ==================== 工作流执行 ====================

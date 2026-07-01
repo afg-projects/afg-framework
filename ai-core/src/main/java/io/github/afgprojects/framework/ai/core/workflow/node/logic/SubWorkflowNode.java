@@ -1,8 +1,9 @@
 package io.github.afgprojects.framework.ai.core.workflow.node.logic;
 
-import io.github.afgprojects.framework.ai.core.api.workflow.engine.ExecutionContext;
 import io.github.afgprojects.framework.ai.core.api.workflow.engine.DagEngine;
-import io.github.afgprojects.framework.ai.core.api.workflow.definition.WorkflowDefinition;
+import io.github.afgprojects.framework.ai.core.api.workflow.engine.ExecutionContext;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Out;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Param;
 import io.github.afgprojects.framework.ai.core.workflow.node.AbstractWorkflowNode;
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,42 +17,60 @@ import java.util.Map;
  * context. The sub-workflow executes independently and its results are collected
  * as this node's output.</p>
  *
- * <p>Parameters:</p>
- * <ul>
- *   <li>{@code workflowId} (required) - ID of the sub-workflow to execute</li>
- *   <li>{@code inputMapping} (optional) - Map of sub-workflow input variable names to current context values</li>
- *   <li>{@code outputMapping} (optional) - Map of sub-workflow output keys to this node's output keys</li>
- * </ul>
+ * <p>Parameters are declared on {@link Params}; the {@link DagEngine} is a
+ * construction-time dependency (optional — when absent the node reports that
+ * sub-workflow execution is unavailable).</p>
  *
  * <p><strong>Alpha feature:</strong> Requires a DagEngine and WorkflowDefinition resolver
  * to be available. Current implementation stores the sub-workflow reference; actual
  * nested execution will be added when the DAG engine supports sub-workflow invocation.</p>
  */
 @Slf4j
-public class SubWorkflowNode extends AbstractWorkflowNode {
+public class SubWorkflowNode extends AbstractWorkflowNode<SubWorkflowNode.Params> {
 
     public static final String TYPE = "sub-workflow";
+
+    /** Strongly-typed parameters for {@link SubWorkflowNode}. */
+    public record Params(
+            @Param(displayName = "Sub-workflow ID", description = "ID of the sub-workflow to execute", required = true)
+            String workflowId,
+            @Param(displayName = "Input mapping", description = "Map of sub-workflow input variable names to current context values")
+            Map<String, Object> inputMapping,
+            @Param(displayName = "Output mapping", description = "Map of sub-workflow output keys to this node's output keys")
+            Map<String, String> outputMapping
+    ) {}
+
+    /** Output descriptor for {@link SubWorkflowNode}. */
+    public record Output(
+            @Out(description = "Sub-workflow ID") String subWorkflowId,
+            @Out(description = "Input mapping") Map<String, Object> inputMapping,
+            @Out(description = "Whether executed") boolean executed,
+            @Out(description = "Message") String message
+    ) {}
 
     private final DagEngine dagEngine;
 
     public SubWorkflowNode(String nodeId, DagEngine dagEngine) {
-        super(nodeId, TYPE);
+        super(nodeId, TYPE, Params.class);
         this.dagEngine = dagEngine;
     }
 
     public SubWorkflowNode(String nodeId) {
-        super(nodeId, TYPE);
-        this.dagEngine = null;
+        this(nodeId, null);
     }
 
     @Override
-    protected Map<String, Object> doExecute(ExecutionContext context, Map<String, Object> params) {
-        String workflowId = getRequiredParam(params, "workflowId");
+    protected Class<?> outputRecordType() {
+        return Output.class;
+    }
+
+    @Override
+    protected Map<String, Object> doExecute(ExecutionContext context, Params params) {
+        String workflowId = params.workflowId();
 
         log.debug("SubWorkflowNode [{}] invoking sub-workflow: {}", getNodeId(), workflowId);
 
-        @SuppressWarnings("unchecked")
-        Map<String, Object> inputMapping = (Map<String, Object>) params.get("inputMapping");
+        Map<String, Object> inputMapping = params.inputMapping();
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("subWorkflowId", workflowId);
@@ -68,13 +87,5 @@ public class SubWorkflowNode extends AbstractWorkflowNode {
         result.put("executed", false);
         result.put("message", "Sub-workflow execution pending DAG engine sub-workflow support");
         return result;
-    }
-
-    private String getRequiredParam(Map<String, Object> params, String key) {
-        Object value = params.get(key);
-        if (value == null) {
-            throw new IllegalArgumentException("Required parameter '" + key + "' is missing");
-        }
-        return value.toString();
     }
 }

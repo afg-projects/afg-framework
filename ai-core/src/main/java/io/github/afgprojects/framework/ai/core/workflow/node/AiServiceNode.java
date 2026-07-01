@@ -1,22 +1,27 @@
 package io.github.afgprojects.framework.ai.core.workflow.node;
 
 import io.github.afgprojects.framework.ai.core.api.workflow.engine.ExecutionContext;
-import io.github.afgprojects.framework.ai.core.api.workflow.engine.NodeOutput;
-import io.github.afgprojects.framework.ai.core.api.workflow.engine.WorkflowNode;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Out;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Param;
 import lombok.extern.slf4j.Slf4j;
-import reactor.core.publisher.Flux;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Abstract base class for workflow nodes that invoke an AI service.
- * <p>
- * Subclasses provide the AI service instance, prompt template, and the actual LLM
- * invocation logic via {@link #doExecute}. The base class handles prompt template
- * rendering from workflow parameters and delegates execution to the subclass.
- * <p>
- * Usage:
+ *
+ * <p>Subclasses provide the AI service instance, prompt template, and the actual LLM
+ * invocation logic via {@link #doExecuteService}. The base class renders the prompt
+ * template from workflow parameters and delegates execution to the subclass, while
+ * {@link AbstractWorkflowNode} supplies timing, error handling, logging, and
+ * parameter binding.</p>
+ *
+ * <p>This node uses the migration bridge ({@code P = Map<String, Object>}) because its
+ * parameters are the dynamic template variables consumed by
+ * {@link #renderPrompt(Map)}; subclasses that want a typed params record should extend
+ * {@link AbstractWorkflowNode} directly instead.</p>
+ *
+ * <p>Usage:
  * <pre>
  * public class MyLlmNode extends AiServiceNode {
  *     private final MyAiService aiService;
@@ -32,7 +37,7 @@ import java.util.Map;
  *         return "Analyze the following: {{input}}";
  *     }
  *
- *     protected Map&lt;String, Object&gt; doExecute(ExecutionContext ctx,
+ *     protected Map&lt;String, Object&gt; doExecuteService(ExecutionContext ctx,
  *             Map&lt;String, Object&gt; params, String prompt, String systemPrompt) {
  *         String result = aiService.chat(systemPrompt, prompt);
  *         return Map.of("content", result);
@@ -41,14 +46,20 @@ import java.util.Map;
  * </pre>
  */
 @Slf4j
-public abstract class AiServiceNode implements WorkflowNode {
+public abstract class AiServiceNode extends AbstractWorkflowNode<Map<String, Object>> {
 
-    private final String nodeId;
-    private final String type;
+    /** Output descriptor for AI service nodes. */
+    public record Output(
+            @Out(description = "AI response content") String content
+    ) {}
 
     protected AiServiceNode(String nodeId, String type) {
-        this.nodeId = nodeId;
-        this.type = type;
+        super(nodeId, type, Map.class);
+    }
+
+    @Override
+    protected Class<?> outputRecordType() {
+        return Output.class;
     }
 
     /**
@@ -58,7 +69,7 @@ public abstract class AiServiceNode implements WorkflowNode {
     protected abstract Object getAiService();
 
     /**
-     * Returns the prompt template string with {{variable}} placeholders.
+     * Returns the prompt template string with {@code {{variable}}} placeholders.
      * Variables are resolved from the workflow execution params.
      */
     protected abstract String getPromptTemplate();
@@ -80,55 +91,24 @@ public abstract class AiServiceNode implements WorkflowNode {
      * @param systemPrompt the system prompt, or null if none
      * @return a map of output data
      */
-    protected abstract Map<String, Object> doExecute(ExecutionContext context,
-                                                      Map<String, Object> params,
-                                                      String prompt,
-                                                      String systemPrompt);
+    protected abstract Map<String, Object> doExecuteService(ExecutionContext context,
+                                                             Map<String, Object> params,
+                                                             String prompt,
+                                                             String systemPrompt);
 
     @Override
-    public String getNodeId() {
-        return nodeId;
-    }
+    protected final Map<String, Object> doExecute(ExecutionContext context, Map<String, Object> params) {
+        // Render prompt template with params as variables
+        String prompt = renderPrompt(params);
+        String systemPrompt = getSystemPrompt();
 
-    @Override
-    public String getType() {
-        return type;
-    }
+        log.debug("Node [{}] executing with prompt: {}", getNodeId(), truncate(prompt, 200));
 
-    @Override
-    public NodeOutput execute(ExecutionContext context, Map<String, Object> params) {
-        long startTime = System.currentTimeMillis();
-        try {
-            // Render prompt template with params as variables
-            String prompt = renderPrompt(params);
-            String systemPrompt = getSystemPrompt();
-
-            log.debug("Node [{}] executing with prompt: {}", nodeId, truncate(prompt, 200));
-
-            Map<String, Object> result = doExecute(context, params, prompt, systemPrompt);
-
-            long duration = System.currentTimeMillis() - startTime;
-            return NodeOutput.of(result).withDuration(duration);
-
-        } catch (Exception e) {
-            log.error("Node [{}] execution failed", nodeId, e);
-            long duration = System.currentTimeMillis() - startTime;
-            Map<String, Object> errorData = new HashMap<>();
-            errorData.put("error", e.getMessage() != null ? e.getMessage() : "Unknown error");
-            return NodeOutput.of(errorData).withDuration(duration);
-        }
-    }
-
-    @Override
-    public Flux<NodeEvent> executeStream(ExecutionContext context, Map<String, Object> params) {
-        // Default: delegate to synchronous execute()
-        // Subclasses can override for true streaming support
-        NodeOutput output = execute(context, params);
-        return Flux.just(NodeEvent.complete(output));
+        return doExecuteService(context, params, prompt, systemPrompt);
     }
 
     /**
-     * Renders the prompt template by substituting {{variable}} placeholders
+     * Renders the prompt template by substituting {@code {{variable}}} placeholders
      * with values from the params map.
      */
     protected String renderPrompt(Map<String, Object> params) {

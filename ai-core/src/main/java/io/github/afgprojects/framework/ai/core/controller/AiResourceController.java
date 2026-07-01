@@ -22,7 +22,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -54,7 +53,6 @@ public class AiResourceController {
      * 创建工具
      */
     @PostMapping("/tools")
-    @Transactional
     public ToolRegistryEntity createTool(@Valid @RequestBody CreateToolRequest request) {
         ToolRegistryEntity entity = new ToolRegistryEntity();
         entity.setName(request.getName());
@@ -101,54 +99,56 @@ public class AiResourceController {
      * 更新工具
      */
     @PutMapping("/tools/{id}")
-    @Transactional
     public ResponseEntity<ToolRegistryEntity> updateTool(@PathVariable String id,
                                          @Valid @RequestBody UpdateToolRequest request) {
-        ToolRegistryEntity entity = dataManager.findById(ToolRegistryEntity.class, id)
-            .orElse(null);
-        if (entity == null) {
-            return ResponseEntity.notFound().build();
-        }
+        return dataManager.executeInTransaction(() -> {
+            ToolRegistryEntity entity = dataManager.findById(ToolRegistryEntity.class, id)
+                .orElse(null);
+            if (entity == null) {
+                return ResponseEntity.<ToolRegistryEntity>notFound().build();
+            }
 
-        if (request.getName() != null) {
-            entity.setName(request.getName());
-        }
-        if (request.getDescription() != null) {
-            entity.setDescription(request.getDescription());
-        }
-        if (request.getType() != null) {
-            entity.setType(request.getType());
-        }
-        if (request.getEndpoint() != null) {
-            entity.setEndpoint(request.getEndpoint());
-        }
-        if (request.getParameters() != null) {
-            entity.setParameters(request.getParameters());
-        }
-        if (request.getConfig() != null) {
-            entity.setConfig(request.getConfig());
-        }
-        if (request.getEnabled() != null) {
-            entity.setEnabled(request.getEnabled());
-        }
+            if (request.getName() != null) {
+                entity.setName(request.getName());
+            }
+            if (request.getDescription() != null) {
+                entity.setDescription(request.getDescription());
+            }
+            if (request.getType() != null) {
+                entity.setType(request.getType());
+            }
+            if (request.getEndpoint() != null) {
+                entity.setEndpoint(request.getEndpoint());
+            }
+            if (request.getParameters() != null) {
+                entity.setParameters(request.getParameters());
+            }
+            if (request.getConfig() != null) {
+                entity.setConfig(request.getConfig());
+            }
+            if (request.getEnabled() != null) {
+                entity.setEnabled(request.getEnabled());
+            }
 
-        return ResponseEntity.ok(dataManager.save(ToolRegistryEntity.class, entity));
+            return ResponseEntity.ok(dataManager.save(ToolRegistryEntity.class, entity));
+        });
     }
 
     /**
      * 删除工具（软删除）
      */
     @DeleteMapping("/tools/{id}")
-    @Transactional
     public ResponseEntity<Void> deleteTool(@PathVariable String id) {
-        ToolRegistryEntity entity = dataManager.findById(ToolRegistryEntity.class, id)
-            .orElse(null);
-        if (entity == null) {
-            return ResponseEntity.notFound().build();
-        }
-        entity.markDeleted();
-        dataManager.save(ToolRegistryEntity.class, entity);
-        return ResponseEntity.noContent().build();
+        return dataManager.executeInTransaction(() -> {
+            ToolRegistryEntity entity = dataManager.findById(ToolRegistryEntity.class, id)
+                .orElse(null);
+            if (entity == null) {
+                return ResponseEntity.<Void>notFound().build();
+            }
+            entity.markDeleted();
+            dataManager.save(ToolRegistryEntity.class, entity);
+            return ResponseEntity.noContent().build();
+        });
     }
 
     // ==================== 运行时工具执行 ====================
@@ -198,7 +198,6 @@ public class AiResourceController {
      * 创建应用
      */
     @PostMapping("/applications")
-    @Transactional
     public ApplicationEntity createApplication(@Valid @RequestBody CreateApplicationRequest request) {
         ApplicationEntity entity = new ApplicationEntity();
         entity.setName(request.getName());
@@ -238,57 +237,59 @@ public class AiResourceController {
      * 更新应用
      */
     @PutMapping("/applications/{id}")
-    @Transactional
     public ResponseEntity<ApplicationEntity> updateApplication(@PathVariable String id,
                                                 @Valid @RequestBody UpdateApplicationRequest request) {
-        ApplicationEntity entity = dataManager.findById(ApplicationEntity.class, id)
-            .orElse(null);
-        if (entity == null) {
-            return ResponseEntity.notFound().build();
-        }
+        return dataManager.executeInTransaction(() -> {
+            ApplicationEntity entity = dataManager.findById(ApplicationEntity.class, id)
+                .orElse(null);
+            if (entity == null) {
+                return ResponseEntity.<ApplicationEntity>notFound().build();
+            }
 
-        if (request.getName() != null) {
-            entity.setName(request.getName());
-        }
-        if (request.getDescription() != null) {
-            entity.setDescription(request.getDescription());
-        }
-        if (request.getType() != null) {
-            entity.setType(request.getType());
-        }
-        if (request.getAccessToken() != null) {
-            entity.setAccessToken(request.getAccessToken());
-        }
-        if (request.getStatus() != null) {
-            entity.setStatus(request.getStatus());
-        }
-        if (request.getConfig() != null) {
-            entity.setConfig(request.getConfig());
-        }
-        if (request.getIcon() != null) {
-            entity.setIcon(request.getIcon());
-        }
-        if (request.getSort() != null) {
-            entity.setSort(request.getSort());
-        }
+            if (request.getName() != null) {
+                entity.setName(request.getName());
+            }
+            if (request.getDescription() != null) {
+                entity.setDescription(request.getDescription());
+            }
+            if (request.getType() != null) {
+                entity.setType(request.getType());
+            }
+            if (request.getAccessToken() != null) {
+                entity.setAccessToken(request.getAccessToken());
+            }
+            if (request.getStatus() != null) {
+                entity.setStatus(request.getStatus());
+            }
+            if (request.getConfig() != null) {
+                entity.setConfig(request.getConfig());
+            }
+            if (request.getIcon() != null) {
+                entity.setIcon(request.getIcon());
+            }
+            if (request.getSort() != null) {
+                entity.setSort(request.getSort());
+            }
 
-        return ResponseEntity.ok(dataManager.save(ApplicationEntity.class, entity));
+            return ResponseEntity.ok(dataManager.save(ApplicationEntity.class, entity));
+        });
     }
 
     /**
      * 删除应用（软删除）
      */
     @DeleteMapping("/applications/{id}")
-    @Transactional
     public ResponseEntity<Void> deleteApplication(@PathVariable String id) {
-        ApplicationEntity entity = dataManager.findById(ApplicationEntity.class, id)
-            .orElse(null);
-        if (entity == null) {
-            return ResponseEntity.notFound().build();
-        }
-        entity.markDeleted();
-        dataManager.save(ApplicationEntity.class, entity);
-        return ResponseEntity.noContent().build();
+        return dataManager.executeInTransaction(() -> {
+            ApplicationEntity entity = dataManager.findById(ApplicationEntity.class, id)
+                .orElse(null);
+            if (entity == null) {
+                return ResponseEntity.<Void>notFound().build();
+            }
+            entity.markDeleted();
+            dataManager.save(ApplicationEntity.class, entity);
+            return ResponseEntity.noContent().build();
+        });
     }
 
     // ==================== 应用版本 ====================
@@ -311,21 +312,22 @@ public class AiResourceController {
      * 创建应用版本
      */
     @PostMapping("/applications/{id}/versions")
-    @Transactional
     public ResponseEntity<ApplicationVersionEntity> createApplicationVersion(@PathVariable String id,
                                                               @Valid @RequestBody CreateApplicationVersionRequest request) {
-        if (!dataManager.existsById(ApplicationEntity.class, id)) {
-            return ResponseEntity.notFound().build();
-        }
+        return dataManager.executeInTransaction(() -> {
+            if (!dataManager.existsById(ApplicationEntity.class, id)) {
+                return ResponseEntity.<ApplicationVersionEntity>notFound().build();
+            }
 
-        ApplicationVersionEntity entity = new ApplicationVersionEntity();
-        entity.setApplicationId(id);
-        entity.setVersion(request.getVersion());
-        entity.setConfig(request.getConfig());
-        entity.setDescription(request.getDescription());
-        entity.setPublishedAt(request.getPublishedAt());
-        entity.setUserId(request.getUserId());
-        return ResponseEntity.ok(dataManager.save(ApplicationVersionEntity.class, entity));
+            ApplicationVersionEntity entity = new ApplicationVersionEntity();
+            entity.setApplicationId(id);
+            entity.setVersion(request.getVersion());
+            entity.setConfig(request.getConfig());
+            entity.setDescription(request.getDescription());
+            entity.setPublishedAt(request.getPublishedAt());
+            entity.setUserId(request.getUserId());
+            return ResponseEntity.ok(dataManager.save(ApplicationVersionEntity.class, entity));
+        });
     }
 
     /**
@@ -334,7 +336,6 @@ public class AiResourceController {
      * <p>将应用状态从 DRAFT 转换为 PUBLISHED。
      */
     @PostMapping("/applications/{id}/publish")
-    @Transactional
     public ResponseEntity<ApplicationEntity> publishApplication(@PathVariable String id) {
         return ResponseEntity.ok(applicationPublishService.publish(id));
     }
@@ -345,7 +346,6 @@ public class AiResourceController {
      * <p>将应用状态从 PUBLISHED 转换为 DRAFT。
      */
     @PostMapping("/applications/{id}/unpublish")
-    @Transactional
     public ResponseEntity<ApplicationEntity> unpublishApplication(@PathVariable String id) {
         return ResponseEntity.ok(applicationPublishService.unpublish(id));
     }

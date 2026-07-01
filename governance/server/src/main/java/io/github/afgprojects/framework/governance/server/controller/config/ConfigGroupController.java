@@ -8,7 +8,6 @@ import io.github.afgprojects.framework.data.core.condition.Conditions;
 import io.github.afgprojects.framework.governance.server.entity.config.ConfigGroup;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -49,39 +48,42 @@ public class ConfigGroupController {
     }
 
     @PostMapping
-    @Transactional
     public Result<ConfigGroup> create(@RequestBody ConfigGroup group) {
-        // Check if code already exists
-        if (dataManager.findOneByField(ConfigGroup.class, ConfigGroup::getCode, group.getCode()).isPresent()) {
-            throw new BusinessException(CommonErrorCode.ENTITY_ALREADY_EXISTS, "Config group code already exists: " + group.getCode());
-        }
-                return Result.success(dataManager.save(ConfigGroup.class, group));
+        return dataManager.executeInTransaction(() -> {
+            // Check if code already exists
+            if (dataManager.findOneByField(ConfigGroup.class, ConfigGroup::getCode, group.getCode()).isPresent()) {
+                throw new BusinessException(CommonErrorCode.ENTITY_ALREADY_EXISTS, "Config group code already exists: " + group.getCode());
+            }
+            return Result.success(dataManager.save(ConfigGroup.class, group));
+        });
     }
 
     @PutMapping("/{id}")
-    @Transactional
     public Result<ConfigGroup> update(@PathVariable String id, @RequestBody ConfigGroup group) {
-        ConfigGroup existing = dataManager.findById(ConfigGroup.class, id)
-            .filter(g -> !g.isDeleted())
-            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Config group not found: " + id));
+        return dataManager.executeInTransaction(() -> {
+            ConfigGroup existing = dataManager.findById(ConfigGroup.class, id)
+                .filter(g -> !g.isDeleted())
+                .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Config group not found: " + id));
 
-        existing.setName(group.getName());
-        existing.setDescription(group.getDescription());
-        existing.setIcon(group.getIcon());
-        existing.setSort(group.getSort());
-        existing.setStatus(group.getStatus());
+            existing.setName(group.getName());
+            existing.setDescription(group.getDescription());
+            existing.setIcon(group.getIcon());
+            existing.setSort(group.getSort());
+            existing.setStatus(group.getStatus());
 
-        return Result.success(dataManager.save(ConfigGroup.class, existing));
+            return Result.success(dataManager.save(ConfigGroup.class, existing));
+        });
     }
 
     @DeleteMapping("/{id}")
-    @Transactional
     public Result<Void> delete(@PathVariable String id) {
-        ConfigGroup group = dataManager.findById(ConfigGroup.class, id)
-            .filter(g -> !g.isDeleted())
-            .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Config group not found: " + id));
-        group.markDeleted();
-        dataManager.save(ConfigGroup.class, group);
-        return Result.success();
+        return dataManager.executeInTransaction(() -> {
+            ConfigGroup group = dataManager.findById(ConfigGroup.class, id)
+                .filter(g -> !g.isDeleted())
+                .orElseThrow(() -> new BusinessException(CommonErrorCode.ENTITY_NOT_FOUND, "Config group not found: " + id));
+            group.markDeleted();
+            dataManager.save(ConfigGroup.class, group);
+            return Result.<Void>success();
+        });
     }
 }

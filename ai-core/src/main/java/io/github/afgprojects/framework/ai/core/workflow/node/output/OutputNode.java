@@ -1,6 +1,8 @@
 package io.github.afgprojects.framework.ai.core.workflow.node.output;
 
 import io.github.afgprojects.framework.ai.core.api.workflow.engine.ExecutionContext;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Out;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Param;
 import io.github.afgprojects.framework.ai.core.workflow.node.AbstractWorkflowNode;
 import lombok.extern.slf4j.Slf4j;
 
@@ -14,32 +16,54 @@ import java.util.Map;
  * output. Typically used as a terminal node to format and present
  * results.</p>
  *
- * <p>Parameters:</p>
- * <ul>
- *   <li>{@code outputKeys} (optional) - list of keys to include in output (null = all)</li>
- *   <li>{@code format} (optional) - output format, defaults to "raw"</li>
- * </ul>
+ * <p>Parameters are declared on {@link Params} so the node is self-describing.</p>
  */
 @Slf4j
-public class OutputNode extends AbstractWorkflowNode {
+public class OutputNode extends AbstractWorkflowNode<OutputNode.Params> {
 
     public static final String TYPE = "output";
 
+    /** Strongly-typed parameters for {@link OutputNode}. */
+    public record Params(
+            @Param(displayName = "Format", description = "Output format", defaultValue = "raw")
+            String format,
+            @Param(displayName = "Data", description = "Output data")
+            Object data
+    ) {
+        /** Effective format, defaulting to "raw". */
+        public String effectiveFormat() {
+            return format == null || format.isBlank() ? "raw" : format;
+        }
+    }
+
+    /** Output descriptor for {@link OutputNode}. */
+    public record Output(
+            @Out(description = "Output data") Object data
+    ) {}
+
     public OutputNode(String nodeId) {
-        super(nodeId, TYPE);
+        super(nodeId, TYPE, Params.class);
     }
 
     @Override
-    protected Map<String, Object> doExecute(ExecutionContext context, Map<String, Object> params) {
+    protected Class<?> outputRecordType() {
+        return Output.class;
+    }
+
+    @Override
+    protected Map<String, Object> doExecute(ExecutionContext context, Params params) {
         log.debug("OutputNode [{}] collecting output", getNodeId());
 
-        // Collect all params as output, optionally filtering by outputKeys
-        Map<String, Object> result = new LinkedHashMap<>(params);
-
-        // Remove internal parameters
-        result.remove("outputKeys");
-        result.remove("format");
-
+        Map<String, Object> result = new LinkedHashMap<>();
+        Object data = params.data();
+        if (data instanceof Map<?, ?> map) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> dataMap = (Map<String, Object>) map;
+            result.putAll(dataMap);
+        } else if (data != null) {
+            result.put("data", data);
+        }
+        result.put("format", params.effectiveFormat());
         return result;
     }
 }

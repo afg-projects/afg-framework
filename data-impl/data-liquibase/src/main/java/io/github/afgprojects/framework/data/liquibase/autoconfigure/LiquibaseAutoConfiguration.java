@@ -1,5 +1,6 @@
 package io.github.afgprojects.framework.data.liquibase.autoconfigure;
 
+import liquibase.Scope;
 import liquibase.integration.spring.SpringLiquibase;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -47,6 +48,22 @@ public class LiquibaseAutoConfiguration {
     @Order(Ordered.LOWEST_PRECEDENCE)
     @ConditionalOnMissingBean
     public SpringLiquibase liquibase(DataSource dataSource, LiquibaseProperties properties) {
+        // Liquibase 5.x 默认 secureParsing=true，阻止 XSD 解析。
+        // 通过系统属性禁用，让 Liquibase 的 EntityResolver 从 classpath 加载 XSD。
+        System.setProperty("liquibase.secureParsing", "false");
+
+        // 设置 Liquibase Scope 中的 ResourceAccessor，使用 Liquibase 自身的 ClassLoader。
+        // 解决 Gradle bootRun / Java 25 环境下 ContextClassLoader 无法加载 jar 内
+        // XSD 文件（www/liquibase.org/xml/ns/dbchangelog/）的问题。
+        try {
+            ClassLoader liquibaseCl = SpringLiquibase.class.getClassLoader();
+            liquibase.resource.ResourceAccessor accessor =
+                new liquibase.resource.ClassLoaderResourceAccessor(liquibaseCl);
+            Scope.child(Scope.Attr.resourceAccessor, accessor, () -> {});
+        } catch (Exception ignored) {
+            // 如果 Scope 设置失败，Liquibase 会使用默认的 ResourceAccessor
+        }
+
         SpringLiquibase liquibase = new SpringLiquibase();
         liquibase.setDataSource(dataSource);
         liquibase.setChangeLog(properties.getChangeLog());

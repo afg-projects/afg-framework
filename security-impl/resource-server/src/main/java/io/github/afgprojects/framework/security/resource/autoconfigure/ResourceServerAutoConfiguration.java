@@ -4,6 +4,7 @@ import io.github.afgprojects.framework.core.api.config.RemoteConfigClient;
 import io.github.afgprojects.framework.core.cache.CacheManager;
 import io.github.afgprojects.framework.security.core.token.JwtClaimsConfig;
 import io.github.afgprojects.framework.security.core.token.JwtClaimsExtractor;
+import io.github.afgprojects.framework.security.resource.jwt.JwtAfgAuthenticationConverter;
 import io.github.afgprojects.framework.security.resource.jwt.JwtAuthenticationConverter;
 import io.github.afgprojects.framework.security.resource.permission.CachedPermissionChecker;
 import io.github.afgprojects.framework.security.resource.permission.DynamicApiPermissionInterceptor;
@@ -25,6 +26,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 import java.util.List;
 
@@ -70,6 +74,22 @@ public class ResourceServerAutoConfiguration {
     public JwtAuthenticationConverter jwtAuthenticationConverter(@NonNull JwtClaimsExtractor claimsExtractor) {
         log.info("Configuring JWT authentication converter");
         return new JwtAuthenticationConverter(claimsExtractor);
+    }
+
+    /**
+     * 注册 Jwt 到 AFG 认证令牌的适配转换器 Bean。
+     *
+     * <p>供 Spring Security 的 {@code .jwt().jwtAuthenticationConverter(...)} 接入，
+     * 将 {@link Jwt} 转换为 {@link io.github.afgprojects.framework.security.core.authentication.AfgAuthentication}，
+     * 从 JWT 的 permissions/roles claim 还原 authorities。
+     * 应用若自定义了 {@code Converter<Jwt, AbstractAuthenticationToken>}，本 bean 自动退让。
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = "afg.security.resource-server.jwt", name = "enabled", havingValue = "true", matchIfMissing = true)
+    @ConditionalOnMissingBean(Converter.class)
+    public JwtAfgAuthenticationConverter jwtAfgAuthenticationConverter(@NonNull JwtAuthenticationConverter delegate) {
+        log.info("Configuring Jwt -> AfgAuthentication converter");
+        return new JwtAfgAuthenticationConverter(delegate);
     }
 
     @Bean

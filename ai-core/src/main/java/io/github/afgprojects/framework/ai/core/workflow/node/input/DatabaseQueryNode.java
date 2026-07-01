@@ -1,6 +1,8 @@
 package io.github.afgprojects.framework.ai.core.workflow.node.input;
 
 import io.github.afgprojects.framework.ai.core.api.workflow.engine.ExecutionContext;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Out;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Param;
 import io.github.afgprojects.framework.ai.core.workflow.node.AbstractWorkflowNode;
 import lombok.extern.slf4j.Slf4j;
 
@@ -14,35 +16,58 @@ import java.util.Map;
  * <p>Executes a SQL query via the workflow context's data access capabilities
  * and provides the query results as workflow output data.</p>
  *
- * <p>Parameters:</p>
- * <ul>
- *   <li>{@code sql} (required) - SQL query to execute</li>
- *   <li>{@code params} (optional) - List of query parameters</li>
- *   <li>{@code maxRows} (optional) - Maximum number of rows to return, defaults to 1000</li>
- * </ul>
+ * <p>Parameters are declared on {@link Params} so the node is self-describing.</p>
  *
  * <p><strong>Alpha feature:</strong> This node requires a DataManager or equivalent
  * data access bean to be available in the execution context. The current implementation
  * stores the SQL and parameters for later execution by the DAG engine.</p>
  */
 @Slf4j
-public class DatabaseQueryNode extends AbstractWorkflowNode {
+public class DatabaseQueryNode extends AbstractWorkflowNode<DatabaseQueryNode.Params> {
 
     public static final String TYPE = "database-query";
 
+    /** Strongly-typed parameters for {@link DatabaseQueryNode}. */
+    public record Params(
+            @Param(displayName = "SQL query", description = "SQL query to execute", required = true)
+            String sql,
+            @Param(displayName = "Query parameters", description = "List of query parameters")
+            List<Object> params,
+            @Param(displayName = "Max rows", description = "Maximum number of rows to return", defaultValue = "1000")
+            Integer maxRows
+    ) {
+        /** Effective row cap, defaulting to 1000 when absent. */
+        public int effectiveMaxRows() {
+            return maxRows == null ? 1000 : maxRows;
+        }
+    }
+
+    /** Output descriptor for {@link DatabaseQueryNode}. */
+    public record Output(
+            @Out(description = "SQL query") String sql,
+            @Out(description = "Query parameters") List<Object> queryParams,
+            @Out(description = "Max rows") int maxRows,
+            @Out(description = "Whether executed") boolean executed,
+            @Out(description = "Message") String message
+    ) {}
+
     public DatabaseQueryNode(String nodeId) {
-        super(nodeId, TYPE);
+        super(nodeId, TYPE, Params.class);
     }
 
     @Override
-    protected Map<String, Object> doExecute(ExecutionContext context, Map<String, Object> params) {
-        String sql = getRequiredParam(params, "sql");
-        int maxRows = getIntParam(params, "maxRows", 1000);
+    protected Class<?> outputRecordType() {
+        return Output.class;
+    }
+
+    @Override
+    protected Map<String, Object> doExecute(ExecutionContext context, Params params) {
+        String sql = params.sql();
+        int maxRows = params.effectiveMaxRows();
 
         log.debug("DatabaseQueryNode [{}] executing query: {}", getNodeId(), truncate(sql, 100));
 
-        @SuppressWarnings("unchecked")
-        List<Object> queryParams = (List<Object>) params.get("params");
+        List<Object> queryParams = params.params();
 
         // Store query info for the DAG engine to execute via DataManager
         // The actual execution requires a DataManager bean which is resolved at engine level
@@ -54,21 +79,6 @@ public class DatabaseQueryNode extends AbstractWorkflowNode {
         result.put("message", "Database query node - requires DataManager integration for execution");
 
         return result;
-    }
-
-    private String getRequiredParam(Map<String, Object> params, String key) {
-        Object value = params.get(key);
-        if (value == null) {
-            throw new IllegalArgumentException("Required parameter '" + key + "' is missing");
-        }
-        return value.toString();
-    }
-
-    private int getIntParam(Map<String, Object> params, String key, int defaultValue) {
-        Object value = params.get(key);
-        if (value == null) return defaultValue;
-        if (value instanceof Number num) return num.intValue();
-        return Integer.parseInt(value.toString());
     }
 
     private static String truncate(String str, int maxLen) {

@@ -2,7 +2,7 @@
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-                                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+                                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
     <changeSet id="v1.0.0-007-test-category" author="afg">
         <createTable tableName="test_category" remarks="测试分类树形表">
             <column name="id" type="BIGINT" autoIncrement="true">

@@ -19,6 +19,7 @@ import io.github.afgprojects.framework.ai.core.autoconfigure.AiSkillAutoConfigur
 import io.github.afgprojects.framework.ai.core.autoconfigure.AiEntityAutoConfiguration;
 import io.github.afgprojects.framework.core.autoconfigure.AfgAutoConfiguration;
 import io.github.afgprojects.framework.core.autoconfigure.AfgCoreAutoConfiguration;
+import io.github.afgprojects.framework.core.autoconfigure.IdGeneratorAutoConfiguration;
 import io.github.afgprojects.framework.core.autoconfigure.ModuleWebAutoConfiguration;
 import io.github.afgprojects.framework.core.autoconfigure.WebAutoConfiguration;
 import io.github.afgprojects.framework.data.jdbc.autoconfigure.DataManagerAutoConfiguration;
@@ -55,6 +56,8 @@ import org.springframework.boot.webmvc.autoconfigure.WebMvcAutoConfiguration;
     // AFG Core 基础设施（ModuleRegistry、AfgCoreProperties 等）
     AfgAutoConfiguration.class,
     AfgCoreAutoConfiguration.class,
+    // ID 生成器（Snowflake），显式列出：@ImportAutoConfiguration 不会自动发现 AutoConfiguration.imports
+    IdGeneratorAutoConfiguration.class,
     // AI 模块配置（触发 @ComponentScan 扫描 controller/service 等组件）
     AiCoreModuleConfig.class,
     // AFG 数据层

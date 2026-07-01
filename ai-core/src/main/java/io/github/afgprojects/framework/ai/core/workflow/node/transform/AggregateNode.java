@@ -1,6 +1,9 @@
 package io.github.afgprojects.framework.ai.core.workflow.node.transform;
 
+import io.github.afgprojects.framework.ai.core.api.workflow.definition.ParamType;
 import io.github.afgprojects.framework.ai.core.api.workflow.engine.ExecutionContext;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Out;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Param;
 import io.github.afgprojects.framework.ai.core.workflow.node.AbstractWorkflowNode;
 import lombok.extern.slf4j.Slf4j;
 
@@ -15,33 +18,48 @@ import java.util.Map;
  * <p>Performs aggregation operations on a list of items, such as
  * counting, summing, averaging, grouping, etc.</p>
  *
- * <p>Parameters:</p>
- * <ul>
- *   <li>{@code items} (required) - list of items to aggregate</li>
- *   <li>{@code operation} (required) - aggregation operation: "count", "sum", "avg", "min", "max", "group"</li>
- *   <li>{@code field} (optional) - field name to aggregate on (for item maps)</li>
- *   <li>{@code groupBy} (optional) - field name to group by (for "group" operation)</li>
- * </ul>
+ * <p>Parameters are declared on {@link Params} so the node is self-describing.</p>
  */
 @Slf4j
-public class AggregateNode extends AbstractWorkflowNode {
+public class AggregateNode extends AbstractWorkflowNode<AggregateNode.Params> {
 
     public static final String TYPE = "aggregate";
 
+    /** Strongly-typed parameters for {@link AggregateNode}. */
+    public record Params(
+            @Param(displayName = "Items", description = "List of items to aggregate", required = true)
+            List<Object> items,
+            @Param(displayName = "Operation", description = "Aggregation operation",
+                    type = ParamType.ENUM,
+                    enumValues = {"count", "sum", "avg", "min", "max", "group"},
+                    required = true)
+            String operation,
+            @Param(displayName = "Field", description = "Field name to aggregate on (for item maps)")
+            String field,
+            @Param(displayName = "Group by", description = "Field name to group by (for \"group\" operation)")
+            String groupBy
+    ) {}
+
+    /** Output descriptor for {@link AggregateNode}. */
+    public record Output(
+            @Out(description = "Aggregation result") Object result,
+            @Out(description = "Operation name") String operation,
+            @Out(description = "Item count") int itemCount
+    ) {}
+
     public AggregateNode(String nodeId) {
-        super(nodeId, TYPE);
+        super(nodeId, TYPE, Params.class);
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    protected Map<String, Object> doExecute(ExecutionContext context, Map<String, Object> params) {
-        List<Object> items = (List<Object>) params.get("items");
-        if (items == null) {
-            throw new IllegalArgumentException("Required parameter 'items' is missing");
-        }
+    protected Class<?> outputRecordType() {
+        return Output.class;
+    }
 
-        String operation = getRequiredParam(params, "operation");
-        String field = getParam(params, "field", null);
+    @Override
+    protected Map<String, Object> doExecute(ExecutionContext context, Params params) {
+        List<Object> items = params.items();
+        String operation = params.operation();
 
         log.debug("AggregateNode [{}] applying {} on {} items", getNodeId(), operation, items.size());
 
@@ -51,12 +69,12 @@ public class AggregateNode extends AbstractWorkflowNode {
 
         switch (operation.toLowerCase()) {
             case "count" -> result.put("result", items.size());
-            case "sum" -> result.put("result", sumField(items, field));
-            case "avg" -> result.put("result", avgField(items, field));
-            case "min" -> result.put("result", minField(items, field));
-            case "max" -> result.put("result", maxField(items, field));
+            case "sum" -> result.put("result", sumField(items, params.field()));
+            case "avg" -> result.put("result", avgField(items, params.field()));
+            case "min" -> result.put("result", minField(items, params.field()));
+            case "max" -> result.put("result", maxField(items, params.field()));
             case "group" -> {
-                String groupBy = getRequiredParam(params, "groupBy");
+                String groupBy = params.groupBy();
                 result.put("result", groupBy(items, groupBy));
             }
             default -> throw new IllegalArgumentException("Unknown aggregation operation: " + operation);
@@ -65,7 +83,6 @@ public class AggregateNode extends AbstractWorkflowNode {
         return result;
     }
 
-    @SuppressWarnings("unchecked")
     private double sumField(List<Object> items, String field) {
         double sum = 0;
         for (Object item : items) {
@@ -77,13 +94,11 @@ public class AggregateNode extends AbstractWorkflowNode {
         return sum;
     }
 
-    @SuppressWarnings("unchecked")
     private double avgField(List<Object> items, String field) {
         if (items.isEmpty()) return 0;
         return sumField(items, field) / items.size();
     }
 
-    @SuppressWarnings("unchecked")
     private double minField(List<Object> items, String field) {
         double min = Double.MAX_VALUE;
         for (Object item : items) {
@@ -95,7 +110,6 @@ public class AggregateNode extends AbstractWorkflowNode {
         return min == Double.MAX_VALUE ? 0 : min;
     }
 
-    @SuppressWarnings("unchecked")
     private double maxField(List<Object> items, String field) {
         double max = Double.MIN_VALUE;
         for (Object item : items) {
@@ -125,18 +139,5 @@ public class AggregateNode extends AbstractWorkflowNode {
             return ((Map<String, Object>) map).get(field);
         }
         return item;
-    }
-
-    private String getRequiredParam(Map<String, Object> params, String key) {
-        Object value = params.get(key);
-        if (value == null) {
-            throw new IllegalArgumentException("Required parameter '" + key + "' is missing");
-        }
-        return value.toString();
-    }
-
-    private String getParam(Map<String, Object> params, String key, String defaultValue) {
-        Object value = params.get(key);
-        return value != null ? value.toString() : defaultValue;
     }
 }

@@ -1,12 +1,13 @@
 package io.github.afgprojects.framework.ai.core.workflow.node.input;
 
 import io.github.afgprojects.framework.ai.core.api.workflow.engine.ExecutionContext;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Out;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Param;
 import io.github.afgprojects.framework.ai.core.workflow.node.AbstractWorkflowNode;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
@@ -19,25 +20,49 @@ import java.util.Map;
  * Supports text files with configurable encoding. Binary files are
  * represented as a Base64-encoded string in the output.</p>
  *
- * <p>Parameters:</p>
- * <ul>
- *   <li>{@code filePath} (required) - path to the file to read</li>
- *   <li>{@code encoding} (optional) - file encoding, defaults to UTF-8</li>
- * </ul>
+ * <p>Parameters are declared on {@link Params} so the node is self-describing:
+ * the parameter schema, validation, and execution all read from the same record.</p>
  */
 @Slf4j
-public class FileInputNode extends AbstractWorkflowNode {
+public class FileInputNode extends AbstractWorkflowNode<FileInputNode.Params> {
 
     public static final String TYPE = "file-input";
 
+    /** Strongly-typed parameters for {@link FileInputNode}. */
+    public record Params(
+            @Param(displayName = "File path", description = "Path to the file to read", required = true)
+            String filePath,
+            @Param(displayName = "File encoding", description = "File encoding", defaultValue = "UTF-8")
+            String encoding
+    ) {
+        /** Normalized encoding, defaulting to UTF-8 when absent. */
+        public String effectiveEncoding() {
+            return encoding == null || encoding.isBlank() ? "UTF-8" : encoding;
+        }
+    }
+
+    /** Output descriptor for {@link FileInputNode}. */
+    public record Output(
+            @Out(description = "File path") String filePath,
+            @Out(description = "File name") String fileName,
+            @Out(description = "File content") String content,
+            @Out(description = "File size") long fileSize,
+            @Out(description = "Whether binary") boolean isBinary
+    ) {}
+
     public FileInputNode(String nodeId) {
-        super(nodeId, TYPE);
+        super(nodeId, TYPE, Params.class);
     }
 
     @Override
-    protected Map<String, Object> doExecute(ExecutionContext context, Map<String, Object> params) {
-        String filePath = getRequiredParam(params, "filePath");
-        String encoding = getParam(params, "encoding", "UTF-8");
+    protected Class<?> outputRecordType() {
+        return Output.class;
+    }
+
+    @Override
+    protected Map<String, Object> doExecute(ExecutionContext context, Params params) {
+        String filePath = params.filePath();
+        String encoding = params.effectiveEncoding();
 
         log.debug("FileInputNode [{}] reading file: {}", getNodeId(), filePath);
 
@@ -70,19 +95,5 @@ public class FileInputNode extends AbstractWorkflowNode {
         }
 
         return result;
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    private String getParam(Map<String, Object> params, String key, String defaultValue) {
-        Object value = params.get(key);
-        return value != null ? value.toString() : defaultValue;
-    }
-
-    private String getRequiredParam(Map<String, Object> params, String key) {
-        Object value = params.get(key);
-        if (value == null) {
-            throw new IllegalArgumentException("Required parameter '" + key + "' is missing");
-        }
-        return value.toString();
     }
 }

@@ -1,6 +1,8 @@
 package io.github.afgprojects.framework.ai.core.workflow.node.output;
 
 import io.github.afgprojects.framework.ai.core.api.workflow.engine.ExecutionContext;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Out;
+import io.github.afgprojects.framework.ai.core.workflow.annotation.Param;
 import io.github.afgprojects.framework.ai.core.workflow.node.AbstractWorkflowNode;
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,40 +20,76 @@ import java.util.Map;
  * <p>Posts data to a configured webhook URL, typically for integration
  * with external systems like CI/CD pipelines, monitoring, or messaging platforms.</p>
  *
- * <p>Parameters:</p>
- * <ul>
- *   <li>{@code url} (required) - webhook URL</li>
- *   <li>{@code payload} (optional) - JSON payload to send</li>
- *   <li>{@code method} (optional) - HTTP method, defaults to POST</li>
- *   <li>{@code headers} (optional) - additional HTTP headers</li>
- *   <li>{@code timeoutMs} (optional) - request timeout, defaults to 10000</li>
- * </ul>
+ * <p>Parameters are declared on {@link Params} so the node is self-describing.
+ * An {@link HttpClient} is a construction-time dependency; the no-arg
+ * constructor creates one internally.</p>
  */
 @Slf4j
-public class WebhookNode extends AbstractWorkflowNode {
+public class WebhookNode extends AbstractWorkflowNode<WebhookNode.Params> {
 
     public static final String TYPE = "webhook";
+
+    /** Strongly-typed parameters for {@link WebhookNode}. */
+    public record Params(
+            @Param(displayName = "URL", description = "Webhook URL", required = true)
+            String url,
+            @Param(displayName = "Payload", description = "JSON payload to send", defaultValue = "{}")
+            String payload,
+            @Param(displayName = "Method", description = "HTTP method", defaultValue = "POST")
+            String method,
+            @Param(displayName = "Headers", description = "Additional HTTP headers")
+            Map<String, String> headers,
+            @Param(displayName = "Timeout (ms)", description = "Request timeout in milliseconds", defaultValue = "10000")
+            Long timeoutMs
+    ) {
+        /** Effective payload, defaulting to "{}". */
+        public String effectivePayload() {
+            return payload == null ? "{}" : payload;
+        }
+
+        /** Effective method, defaulting to POST. */
+        public String effectiveMethod() {
+            return method == null || method.isBlank() ? "POST" : method.toUpperCase();
+        }
+
+        /** Effective timeout, defaulting to 10000ms. */
+        public long effectiveTimeoutMs() {
+            return timeoutMs == null ? 10000L : timeoutMs;
+        }
+    }
+
+    /** Output descriptor for {@link WebhookNode}. */
+    public record Output(
+            @Out(description = "Status code") int statusCode,
+            @Out(description = "URL") String url,
+            @Out(description = "Whether successful") boolean success
+    ) {}
 
     private final HttpClient httpClient;
 
     public WebhookNode(String nodeId) {
-        super(nodeId, TYPE);
+        super(nodeId, TYPE, Params.class);
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(5))
                 .build();
     }
 
     public WebhookNode(String nodeId, HttpClient httpClient) {
-        super(nodeId, TYPE);
+        super(nodeId, TYPE, Params.class);
         this.httpClient = httpClient;
     }
 
     @Override
-    protected Map<String, Object> doExecute(ExecutionContext context, Map<String, Object> params) {
-        String url = getRequiredParam(params, "url");
-        String payload = getParam(params, "payload", "{}");
-        String method = getParam(params, "method", "POST");
-        long timeoutMs = getLongParam(params, "timeoutMs", 10000L);
+    protected Class<?> outputRecordType() {
+        return Output.class;
+    }
+
+    @Override
+    protected Map<String, Object> doExecute(ExecutionContext context, Params params) {
+        String url = params.url();
+        String payload = params.effectivePayload();
+        String method = params.effectiveMethod();
+        long timeoutMs = params.effectiveTimeoutMs();
 
         log.debug("WebhookNode [{}] sending {} to {}", getNodeId(), method, url);
 
@@ -61,8 +99,7 @@ public class WebhookNode extends AbstractWorkflowNode {
                     .timeout(Duration.ofMillis(timeoutMs))
                     .header("Content-Type", "application/json");
 
-            @SuppressWarnings("unchecked")
-            Map<String, String> headers = (Map<String, String>) params.get("headers");
+            Map<String, String> headers = params.headers();
             if (headers != null) {
                 headers.forEach(requestBuilder::header);
             }
@@ -90,25 +127,5 @@ public class WebhookNode extends AbstractWorkflowNode {
         } catch (Exception e) {
             throw new RuntimeException("Webhook failed: " + url, e);
         }
-    }
-
-    private String getRequiredParam(Map<String, Object> params, String key) {
-        Object value = params.get(key);
-        if (value == null) {
-            throw new IllegalArgumentException("Required parameter '" + key + "' is missing");
-        }
-        return value.toString();
-    }
-
-    private String getParam(Map<String, Object> params, String key, String defaultValue) {
-        Object value = params.get(key);
-        return value != null ? value.toString() : defaultValue;
-    }
-
-    private long getLongParam(Map<String, Object> params, String key, long defaultValue) {
-        Object value = params.get(key);
-        if (value == null) return defaultValue;
-        if (value instanceof Number num) return num.longValue();
-        return Long.parseLong(value.toString());
     }
 }

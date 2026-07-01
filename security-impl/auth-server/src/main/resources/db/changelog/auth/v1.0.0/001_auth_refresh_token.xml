@@ -2,7 +2,7 @@
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
 
     <changeSet id="v1.0.0-001-auth-refresh-token" author="afg">
         <createTable tableName="auth_refresh_token" remarks="刷新令牌表">
