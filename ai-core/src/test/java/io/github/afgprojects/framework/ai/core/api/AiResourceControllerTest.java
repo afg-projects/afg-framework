@@ -442,4 +442,31 @@ class AiResourceControllerTest extends AbstractAiWebTest {
         dataManager.deleteById(ApplicationVersionEntity.class, version2.getId());
         dataManager.deleteById(ApplicationEntity.class, app.getId());
     }
+
+    @Test
+    void shouldReturnHitTestResponse_whenPostHitTest() {
+        // Arrange - 创建带关联配置（config JSON 含 knowledgeBaseIds/toolIds）的应用
+        ApplicationEntity app = new ApplicationEntity();
+        app.setName("hit-test-app-" + UUID.randomUUID());
+        app.setType("CHATBOT");
+        app.setStatus("ACTIVE");
+        app.setConfig("{\"knowledgeBaseIds\":[],\"toolIds\":[]}");
+        app = dataManager.save(ApplicationEntity.class, app);
+
+        Map<String, Object> body = Map.of("question", "hello world");
+
+        // Act
+        Map<?, ?> response = restClient().post()
+            .uri("/resources/applications/{id}/hit-test", app.getId())
+            .body(body)
+            .retrieve()
+            .body(Map.class);
+
+        // Assert - 返回 HitTestResponse 结构（含 results 数组，可能为空因无关联知识库/工具）
+        assertThat(response).isNotNull();
+        assertThat(response.get("results")).isNotNull();
+
+        // Cleanup
+        dataManager.deleteById(ApplicationEntity.class, app.getId());
+    }
 }

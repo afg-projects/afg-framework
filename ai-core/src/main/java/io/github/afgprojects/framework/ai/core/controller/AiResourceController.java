@@ -1,5 +1,7 @@
 package io.github.afgprojects.framework.ai.core.controller;
 
+import io.github.afgprojects.framework.ai.core.api.rag.Document;
+import io.github.afgprojects.framework.ai.core.api.rag.KnowledgeBaseService;
 import io.github.afgprojects.framework.ai.core.api.skill.SkillDispatcher;
 import io.github.afgprojects.framework.ai.core.api.skill.SkillRoutingResult;
 import io.github.afgprojects.framework.ai.core.api.tool.Tool;
@@ -7,6 +9,9 @@ import io.github.afgprojects.framework.ai.core.api.tool.ToolRegistry;
 import io.github.afgprojects.framework.ai.core.dto.resource.CreateApplicationRequest;
 import io.github.afgprojects.framework.ai.core.dto.resource.CreateApplicationVersionRequest;
 import io.github.afgprojects.framework.ai.core.dto.resource.CreateToolRequest;
+import io.github.afgprojects.framework.ai.core.dto.resource.HitTestItem;
+import io.github.afgprojects.framework.ai.core.dto.resource.HitTestRequest;
+import io.github.afgprojects.framework.ai.core.dto.resource.HitTestResponse;
 import io.github.afgprojects.framework.ai.core.dto.resource.ToolExecuteRequest;
 import io.github.afgprojects.framework.ai.core.dto.resource.UpdateApplicationRequest;
 import io.github.afgprojects.framework.ai.core.dto.resource.UpdateToolRequest;
@@ -18,12 +23,15 @@ import io.github.afgprojects.framework.ai.core.service.ApplicationPublishService
 import io.github.afgprojects.framework.ai.core.service.ToolManagementService;
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.condition.Conditions;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -46,6 +54,8 @@ public class AiResourceController {
     private final SkillDispatcher skillDispatcher;
     private final ToolManagementService toolManagementService;
     private final ApplicationPublishService applicationPublishService;
+    private final KnowledgeBaseService knowledgeBaseService;
+    private final ObjectMapper objectMapper;
 
     // ==================== 工具注册 CRUD ====================
 
@@ -290,6 +300,97 @@ public class AiResourceController {
             dataManager.save(ApplicationEntity.class, entity);
             return ResponseEntity.noContent().build();
         });
+    }
+
+    // ==================== 应用命中测试 ====================
+
+    /**
+     * 应用命中测试
+     * <p>
+     * 根据应用关联的知识库做检索 + 关联工具匹配，返回命中结果。
+     * 关联配置（knowledgeBaseIds/toolIds）存于 ApplicationEntity.config JSON。
+     *
+     * @param id      应用 ID
+     * @param request 测试请求（question + 可选 topN/similarityThreshold）
+     */
+    @PostMapping("/applications/{id}/hit-test")
+    public HitTestResponse hitTest(@PathVariable String id, @Valid @RequestBody HitTestRequest request) {
+        ApplicationEntity app = dataManager.findById(ApplicationEntity.class, id)
+            .orElseThrow(() -> new IllegalArgumentException("Application not found: " + id));
+
+        Map<String, Object> config = parseConfigJson(app.getConfig());
+        @SuppressWarnings("unchecked")
+        List<String> knowledgeBaseIds = (List<String>) config.getOrDefault("knowledgeBaseIds", List.of());
+        @SuppressWarnings("unchecked")
+        List<String> toolIds = (List<String>) config.getOrDefault("toolIds", List.of());
+
+        int topK = request.getTopN() != null ? request.getTopN() : 5;
+        double similarityThreshold = request.getSimilarityThreshold() != null ? request.getSimilarityThreshold() : 0.7;
+        String question = request.getQuestion();
+
+        List<HitTestItem> results = new ArrayList<>();
+
+        // 知识库检索
+        for (String kbId : knowledgeBaseIds) {
+            try {
+                List<Document> docs = knowledgeBaseService.search(kbId, question, topK, similarityThreshold);
+                for (Document doc : docs) {
+                    double score = extractScore(doc);
+                    results.add(new HitTestItem("knowledge", kbId, score, truncate(doc.content(), 500)));
+                }
+            } catch (Exception e) {
+                log.warn("hit-test: knowledge base {} search failed: {}", kbId, e.getMessage());
+            }
+        }
+
+        // 工具匹配（按名称/描述包含 question 关键词）
+        for (Tool<?, ?> tool : toolRegistry.getAllTools()) {
+            if (!toolIds.isEmpty() && !toolIds.contains(tool.name())) {
+                continue;
+            }
+            if (matchesQuestion(tool, question)) {
+                results.add(new HitTestItem("tool", tool.name(), 1.0, tool.description()));
+            }
+        }
+
+        return new HitTestResponse(results);
+    }
+
+    /** 解析 config JSON，失败返回空 Map */
+    private Map<String, Object> parseConfigJson(String config) {
+        if (config == null || config.isBlank()) {
+            return Map.of();
+        }
+        try {
+            return objectMapper.readValue(config, new TypeReference<Map<String, Object>>() {});
+        } catch (Exception e) {
+            log.warn("parse config JSON failed: {}", e.getMessage());
+            return Map.of();
+        }
+    }
+
+    /** 从 Document.metadata 提取 score，无则默认 1.0 */
+    private double extractScore(Document doc) {
+        Object score = doc.metadata() == null ? null : doc.metadata().get("score");
+        if (score instanceof Number n) {
+            return n.doubleValue();
+        }
+        return 1.0;
+    }
+
+    /** 工具名称/描述是否包含 question 的关键词（简单匹配，不区分大小写） */
+    private boolean matchesQuestion(Tool<?, ?> tool, String question) {
+        String q = question.toLowerCase();
+        String name = tool.name() == null ? "" : tool.name().toLowerCase();
+        String desc = tool.description() == null ? "" : tool.description().toLowerCase();
+        return name.contains(q) || desc.contains(q)
+            || java.util.Arrays.stream(q.split("\\s+")).anyMatch(name::contains);
+    }
+
+    /** 截断文本到指定长度 */
+    private String truncate(String text, int max) {
+        if (text == null) return "";
+        return text.length() <= max ? text : text.substring(0, max) + "...";
     }
 
     // ==================== 应用版本 ====================
