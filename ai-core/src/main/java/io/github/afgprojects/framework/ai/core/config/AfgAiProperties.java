@@ -109,6 +109,7 @@ import lombok.Data;
  */
 @Data
 @ConfigurationProperties(prefix = "afg.ai")
+@SuppressWarnings("PMD.TooManyFields")
 public class AfgAiProperties {
 
     /**

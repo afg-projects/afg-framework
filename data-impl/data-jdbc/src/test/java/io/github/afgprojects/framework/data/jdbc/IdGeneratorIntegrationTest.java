@@ -2,6 +2,7 @@ package io.github.afgprojects.framework.data.jdbc;
 
 import static org.assertj.core.api.Assertions.*;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -20,33 +21,55 @@ import io.github.afgprojects.framework.data.jdbc.test.BaseDataTest;
  * </p>
  * <p>
  * 测试 IdGenerator 预生成 ID 功能：当 JdbcDataManager 设置了 IdGenerator 时，
- * 插入实体前应预生成 ID（如 Snowflake ID），而非使用数据库自增。
+ * 插入实体前应预生成 ID（如 Snowflake ID）。
+ * </p>
+ * <p>
+ * 注意：测试表 id 列为 VARCHAR，框架实体 ID 为 String（{@code BaseEntity.id}），
+ * 统一通过 IdGenerator 生成字符型 ID，不依赖数据库自增。
+ * 测试通过 {@code @BeforeEach}/{@code @AfterEach} 保存并恢复 DataManager 原有的
+ * IdGenerator，避免污染共享 Spring 上下文中的单例。
  * </p>
  */
 class IdGeneratorIntegrationTest extends BaseDataTest {
 
+    private IdGenerator originalIdGenerator;
+
     @BeforeEach
     void setUp() {
-        // 清除 IdGenerator 以确保测试隔离
-        ((JdbcDataManager) dataManager).setIdGenerator(null);
+        // 保存原 IdGenerator 以便测试后恢复，避免污染共享上下文中的单例 DataManager
+        originalIdGenerator = ((JdbcDataManager) dataManager).getIdGenerator();
+    }
+
+    @AfterEach
+    void tearDown() {
+        ((JdbcDataManager) dataManager).setIdGenerator(originalIdGenerator);
     }
 
     @Nested
-    @DisplayName("无 IdGenerator 时使用数据库自增")
-    class WithoutIdGenerator {
+    @DisplayName("默认 IdGenerator 预生成 ID")
+    class DefaultIdGenerator {
 
         @Test
-        @DisplayName("should use database auto increment when no IdGenerator")
-        void shouldUseDatabaseAutoIncrement_whenNoIdGenerator() {
-            TestUser user = createUser("no-idgen");
+        @DisplayName("should pre-generate id when using default IdGenerator")
+        void shouldPreGenerateId_whenUsingDefaultIdGenerator() {
+            TestUser user = createUser("default-idgen");
             TestUser saved = dataManager.save(TestUser.class, user);
 
             assertThat(saved.getId()).isNotNull();
         }
+
+        @Test
+        @DisplayName("should find entity by pre-generated id when default IdGenerator used")
+        void shouldFindEntityByPreGeneratedId_whenDefaultIdGeneratorUsed() {
+            TestUser saved = dataManager.save(TestUser.class, createUser("default-find"));
+
+            TestUser found = dataManager.findById(TestUser.class, saved.getId()).orElseThrow();
+            assertThat(found.getUsername()).isEqualTo("default-find");
+        }
     }
 
     @Nested
-    @DisplayName("有 IdGenerator 时预生成 ID")
+    @DisplayName("自定义 IdGenerator 预生成 ID")
     class WithIdGenerator {
 
         @Test
@@ -88,35 +111,22 @@ class IdGeneratorIntegrationTest extends BaseDataTest {
     }
 
     @Nested
-    @DisplayName("IdGenerator 切换")
+    @DisplayName("IdGenerator 运行时切换")
     class IdGeneratorSwitch {
 
         @Test
-        @DisplayName("should switch from auto increment to IdGenerator at runtime")
-        void shouldSwitchFromAutoIncrementToIdGenerator_atRuntime() {
-            // 先用数据库自增
-            TestUser user1 = dataManager.save(TestUser.class, createUser("auto-inc"));
+        @DisplayName("should switch between IdGenerators at runtime")
+        void shouldSwitchBetweenIdGenerators_atRuntime() {
+            // 先用默认 IdGenerator
+            TestUser user1 = dataManager.save(TestUser.class, createUser("default-first"));
             assertThat(user1.getId()).isNotNull();
 
-            // 切换到 IdGenerator
+            // 运行时切换到另一个 IdGenerator
             ((JdbcDataManager) dataManager).setIdGenerator(new TestSnowflakeIdGenerator());
 
             TestUser user2 = dataManager.save(TestUser.class, createUser("idgen-switch"));
             assertThat(user2.getId()).isNotNull();
-        }
-
-        @Test
-        @DisplayName("should switch back to auto increment when IdGenerator set to null")
-        void shouldSwitchBackToAutoIncrement_whenIdGeneratorSetToNull() {
-            // 先用 IdGenerator
-            ((JdbcDataManager) dataManager).setIdGenerator(new TestSnowflakeIdGenerator());
-            TestUser user1 = dataManager.save(TestUser.class, createUser("idgen-first"));
-            assertThat(user1.getId()).isNotNull();
-
-            // 切换回数据库自增
-            ((JdbcDataManager) dataManager).setIdGenerator(null);
-            TestUser user2 = dataManager.save(TestUser.class, createUser("auto-inc-again"));
-            assertThat(user2.getId()).isNotNull();
+            assertThat(user1.getId()).isNotEqualTo(user2.getId());
         }
     }
 

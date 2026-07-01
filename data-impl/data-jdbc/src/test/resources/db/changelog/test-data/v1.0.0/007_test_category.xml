@@ -5,12 +5,12 @@
                                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
     <changeSet id="v1.0.0-007-test-category" author="afg">
         <createTable tableName="test_category" remarks="测试分类树形表">
-            <column name="id" type="BIGINT" autoIncrement="true">
+            <column name="id" type="VARCHAR(64)">
                 <constraints primaryKey="true" primaryKeyName="pk_test_category"/>
             </column>
             <column name="name" type="VARCHAR(100)" remarks="分类名称"/>
             <column name="description" type="VARCHAR(200)" remarks="分类描述"/>
-            <column name="parent_id" type="BIGINT" remarks="父节点ID"/>
+            <column name="parent_id" type="VARCHAR(64)" remarks="父节点ID"/>
             <column name="level" type="INT" defaultValueNumeric="1" remarks="层级深度">
                 <constraints nullable="false"/>
             </column>

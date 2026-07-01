@@ -100,7 +100,7 @@ public class OAuth2ClientController {
                     redirectUris != null ? redirectUris : Set.of(),
                     scopes != null ? scopes : Set.of(),
                     grantTypes != null ? grantTypes : Set.of(),
-                    requirePkce != null ? requirePkce : false,
+                    Boolean.TRUE.equals(requirePkce),
                     accessTokenTtl != null ? Duration.ofSeconds(accessTokenTtl) : Duration.ofHours(2),
                     refreshTokenTtl != null ? Duration.ofSeconds(refreshTokenTtl) : Duration.ofDays(7)
             );

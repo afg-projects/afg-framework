@@ -116,7 +116,7 @@ public class AppController {
                 request.redirectUris != null ? request.redirectUris : Set.of(),
                 request.scopes != null ? request.scopes : Set.of(),
                 request.grantTypes != null ? request.grantTypes : Set.of(),
-                request.requirePkce != null ? request.requirePkce : false,
+                Boolean.TRUE.equals(request.requirePkce),
                 request.accessTokenTtl != null ? Duration.ofSeconds(request.accessTokenTtl) : Duration.ofHours(2),
                 request.refreshTokenTtl != null ? Duration.ofSeconds(request.refreshTokenTtl) : Duration.ofDays(7)
         );

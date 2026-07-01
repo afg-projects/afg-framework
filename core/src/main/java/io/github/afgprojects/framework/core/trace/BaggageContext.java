@@ -129,8 +129,7 @@ public final class BaggageContext {
             return tenantId;
         }
         // 回退到 RequestContext
-        String id = AfgRequestContextHolder.getTenantId();
-        return id;
+        return AfgRequestContextHolder.getTenantId();
     }
 
     /**
@@ -153,8 +152,7 @@ public final class BaggageContext {
             return userId;
         }
         // 回退到 RequestContext
-        String id = AfgRequestContextHolder.getUserId();
-        return id;
+        return AfgRequestContextHolder.getUserId();
     }
 
     /**

@@ -327,6 +327,17 @@ public class EntityInsertHandler<T> {
             }
         }
 
+        // 当配置了 IdGenerator 时，为无 ID 的实体预生成 ID，统一走“含 ID 插入”路径。
+        // 字符型主键（BaseEntity.id 为 String）不依赖数据库自增，必须由 IdGenerator 生成。
+        if (idGenerator != null) {
+            for (S entity : withoutId) {
+                String generatedId = idGenerator.nextIdAsString();
+                queryHelper.setIdValue(entity, generatedId);
+                withId.add(entity);
+            }
+            withoutId.clear();
+        }
+
         List<S> result = new ArrayList<>(entities.size());
 
         // 处理有ID的实体（直接插入，包含ID字段）

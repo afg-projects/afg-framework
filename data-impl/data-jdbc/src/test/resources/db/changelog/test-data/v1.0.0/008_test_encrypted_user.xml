@@ -5,7 +5,7 @@
                                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
     <changeSet id="v1.0.0-008-test-encrypted-user" author="afg">
         <createTable tableName="test_encrypted_user" remarks="测试加密用户表">
-            <column name="id" type="BIGINT" autoIncrement="true">
+            <column name="id" type="VARCHAR(64)">
                 <constraints primaryKey="true" primaryKeyName="pk_test_encrypted_user"/>
             </column>
             <column name="username" type="VARCHAR(50)" remarks="用户名"/>

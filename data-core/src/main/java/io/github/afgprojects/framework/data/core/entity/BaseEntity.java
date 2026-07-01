@@ -31,6 +31,7 @@ import java.time.Instant;
  */
 @Setter
 @Getter
+@SuppressWarnings("PMD.AbstractClassWithoutAnyMethod")
 public abstract class BaseEntity {
 
     /**

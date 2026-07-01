@@ -47,6 +47,7 @@ public class LiquibaseAutoConfiguration {
     @Bean
     @Order(Ordered.LOWEST_PRECEDENCE)
     @ConditionalOnMissingBean
+    @SuppressWarnings({"PMD.UseProperClassLoader", "PMD.CloseResource"})
     public SpringLiquibase liquibase(DataSource dataSource, LiquibaseProperties properties) {
         // Liquibase 5.x 默认 secureParsing=true，阻止 XSD 解析。
         // 通过系统属性禁用，让 Liquibase 的 EntityResolver 从 classpath 加载 XSD。

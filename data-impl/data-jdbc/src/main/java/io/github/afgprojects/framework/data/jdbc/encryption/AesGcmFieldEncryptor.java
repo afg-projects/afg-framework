@@ -91,10 +91,10 @@ public class AesGcmFieldEncryptor implements FieldEncryptor, BlindIndexProvider 
             return Base64.getEncoder().encodeToString(combined);
         } catch (InvalidKeyException e) {
             throw new BusinessException(CommonErrorCode.ENCRYPTION_KEY_INVALID,
-                "AES encryption key is invalid for keyRef '" + keyRef + "': " + e.getMessage());
+                "AES encryption key is invalid for keyRef '" + keyRef + "'", e);
         } catch (Exception e) {
             throw new BusinessException(CommonErrorCode.ENCRYPTION_ERROR,
-                "AES-GCM encryption failed for keyRef '" + keyRef + "': " + e.getMessage());
+                "AES-GCM encryption failed for keyRef '" + keyRef + "'", e);
         }
     }
 
@@ -127,12 +127,12 @@ public class AesGcmFieldEncryptor implements FieldEncryptor, BlindIndexProvider 
             return new String(plaintext, StandardCharsets.UTF_8);
         } catch (InvalidKeyException e) {
             throw new BusinessException(CommonErrorCode.ENCRYPTION_KEY_INVALID,
-                "AES decryption key is invalid for keyRef '" + keyRef + "': " + e.getMessage());
+                "AES decryption key is invalid for keyRef '" + keyRef + "'", e);
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
             throw new BusinessException(CommonErrorCode.ENCRYPTION_ERROR,
-                "AES-GCM decryption failed for keyRef '" + keyRef + "': " + e.getMessage());
+                "AES-GCM decryption failed for keyRef '" + keyRef + "'", e);
         }
     }
 
@@ -152,10 +152,10 @@ public class AesGcmFieldEncryptor implements FieldEncryptor, BlindIndexProvider 
             return bytesToHex(hmacBytes);
         } catch (InvalidKeyException e) {
             throw new BusinessException(CommonErrorCode.ENCRYPTION_KEY_INVALID,
-                "HMAC blind index key is invalid for keyRef '" + keyRef + "': " + e.getMessage());
+                "HMAC blind index key is invalid for keyRef '" + keyRef + "'", e);
         } catch (Exception e) {
             throw new BusinessException(CommonErrorCode.ENCRYPTION_ERROR,
-                "Blind index computation failed for field '" + fieldName + "': " + e.getMessage());
+                "Blind index computation failed for field '" + fieldName + "'", e);
         }
     }
 

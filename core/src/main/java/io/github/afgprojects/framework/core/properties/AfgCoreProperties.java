@@ -75,6 +75,7 @@ import lombok.Data;
  */
 @Data
 @ConfigurationProperties(prefix = "afg.core")
+@SuppressWarnings("PMD.TooManyFields")
 public class AfgCoreProperties {
 
     /**

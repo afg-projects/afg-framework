@@ -12,6 +12,7 @@ import lombok.Data;
  */
 @Data
 @ConfigurationProperties(prefix = "afg.governance.client.registry")
+@SuppressWarnings("PMD.TooManyFields")
 public class GovernanceRegistryProperties {
 
     private boolean enabled = true;

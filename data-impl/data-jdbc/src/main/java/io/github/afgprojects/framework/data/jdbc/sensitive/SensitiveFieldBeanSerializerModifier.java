@@ -44,6 +44,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @see MaskingStrategy
  * @see MaskingContext
  */
+@SuppressWarnings("PMD.NonSerializableClass")
 public class SensitiveFieldBeanSerializerModifier extends BeanSerializerModifier {
 
     private final EntityMetadataCache metadataCache;
@@ -105,7 +106,7 @@ public class SensitiveFieldBeanSerializerModifier extends BeanSerializerModifier
         return sensitiveFieldsCache.computeIfAbsent(beanClass, clazz -> {
             try {
                 @SuppressWarnings("unchecked")
-                EntityMetadata<?> metadata = (EntityMetadata<?>) metadataCache.get(clazz);
+                EntityMetadata<?> metadata = metadataCache.get(clazz);
                 if (metadata == null) {
                     return Set.of();
                 }
@@ -139,6 +140,7 @@ public class SensitiveFieldBeanSerializerModifier extends BeanSerializerModifier
         }
 
         @Override
+        @SuppressWarnings("PMD.PreserveStackTrace")
         public void serializeAsField(Object bean, JsonGenerator gen, SerializerProvider prov) throws IOException {
             try {
                 Object value = get(bean);
@@ -163,10 +165,9 @@ public class SensitiveFieldBeanSerializerModifier extends BeanSerializerModifier
                 // Fallback: let the original writer handle it
                 try {
                     delegate.serializeAsField(bean, gen, prov);
+                } catch (IOException ex) {
+                    throw ex;
                 } catch (Exception ex) {
-                    if (ex instanceof IOException ioe) {
-                        throw ioe;
-                    }
                     throw new IOException("Failed to serialize field: " + delegate.getName(), ex);
                 }
             }
@@ -185,7 +186,7 @@ public class SensitiveFieldBeanSerializerModifier extends BeanSerializerModifier
         private String resolveSensitiveType(Class<?> beanClass, String fieldName) {
             try {
                 @SuppressWarnings("unchecked")
-                EntityMetadata<?> metadata = (EntityMetadata<?>) metadataCache.get(beanClass);
+                EntityMetadata<?> metadata = metadataCache.get(beanClass);
                 if (metadata != null) {
                     SensitiveFieldMetadata sfm = metadata.getSensitiveField(fieldName);
                     if (sfm != null) {

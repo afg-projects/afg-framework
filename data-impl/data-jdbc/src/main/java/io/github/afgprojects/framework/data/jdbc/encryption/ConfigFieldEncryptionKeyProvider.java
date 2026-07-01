@@ -100,7 +100,7 @@ public class ConfigFieldEncryptionKeyProvider implements FieldEncryptionKeyProvi
             key = Base64.getDecoder().decode(base64Key);
         } catch (IllegalArgumentException e) {
             throw new BusinessException(CommonErrorCode.ENCRYPTION_KEY_INVALID,
-                "Encryption key for keyRef '" + keyRef + "' is not valid Base64: " + e.getMessage());
+                "Encryption key for keyRef '" + keyRef + "' is not valid Base64", e);
         }
 
         if (key.length != AES_KEY_LENGTH) {
@@ -126,7 +126,7 @@ public class ConfigFieldEncryptionKeyProvider implements FieldEncryptionKeyProvi
             return mac.doFinal(BLIND_INDEX_DERIVE_SUFFIX.getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
             throw new BusinessException(CommonErrorCode.ENCRYPTION_ERROR,
-                "Failed to derive blind index key for keyRef '" + keyRef + "': " + e.getMessage());
+                "Failed to derive blind index key for keyRef '" + keyRef + "'", e);
         }
     }
 
@@ -149,7 +149,7 @@ public class ConfigFieldEncryptionKeyProvider implements FieldEncryptionKeyProvi
             }
         } catch (IllegalArgumentException e) {
             throw new BusinessException(CommonErrorCode.ENCRYPTION_KEY_INVALID,
-                "Default encryption key is not valid Base64: " + e.getMessage());
+                "Default encryption key is not valid Base64", e);
         }
     }
 }

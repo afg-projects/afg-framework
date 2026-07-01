@@ -48,7 +48,7 @@ public class AppManagementAutoConfiguration {
      * 不会被同时注册。
      */
     @Bean
-    @ConditionalOnMissingBean(value = OAuth2ClientService.class)
+    @ConditionalOnMissingBean(OAuth2ClientService.class)
     public JdbcOAuth2ClientService jdbcOAuth2ClientService(DataManager dataManager) {
         log.info("Configuring JDBC OAuth2 client service");
         return new JdbcOAuth2ClientService(dataManager);

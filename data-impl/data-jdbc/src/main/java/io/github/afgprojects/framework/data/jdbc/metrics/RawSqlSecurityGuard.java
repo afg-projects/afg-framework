@@ -3,6 +3,7 @@ package io.github.afgprojects.framework.data.jdbc.metrics;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 /**
  * 原始 SQL 安全守卫
@@ -79,8 +80,8 @@ public final class RawSqlSecurityGuard {
      * @param callerInfo  调用方信息（类名，用于审计日志）
      * @throws SecurityException 如果 SQL 语句违反当前安全模式
      */
-    public void check(@NonNull String sql, @NonNull String callerInfo) {
-        if (sql.isBlank()) {
+    public void check(@Nullable String sql, @NonNull String callerInfo) {
+        if (sql == null || sql.isBlank()) {
             return;
         }
 

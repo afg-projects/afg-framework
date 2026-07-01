@@ -8,6 +8,7 @@ import lombok.Data;
  * 包含配置项元数据和当前生效值
  */
 @Data
+@SuppressWarnings("PMD.TooManyFields")
 public class ConfigItemResponse {
 
     private String id;
