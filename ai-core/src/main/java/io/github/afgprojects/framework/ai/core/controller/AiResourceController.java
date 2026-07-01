@@ -3,6 +3,9 @@ package io.github.afgprojects.framework.ai.core.controller;
 import io.github.afgprojects.framework.ai.core.api.rag.Document;
 import io.github.afgprojects.framework.ai.core.api.rag.KnowledgeBaseService;
 import io.github.afgprojects.framework.ai.core.api.skill.SkillDispatcher;
+import io.github.afgprojects.framework.ai.core.api.skill.SkillDefinition;
+import io.github.afgprojects.framework.ai.core.api.skill.SkillExecutor;
+import io.github.afgprojects.framework.ai.core.api.skill.SkillRegistry;
 import io.github.afgprojects.framework.ai.core.api.skill.SkillRoutingResult;
 import io.github.afgprojects.framework.ai.core.api.tool.Tool;
 import io.github.afgprojects.framework.ai.core.api.tool.ToolRegistry;
@@ -17,10 +20,12 @@ import io.github.afgprojects.framework.ai.core.dto.resource.UpdateApplicationReq
 import io.github.afgprojects.framework.ai.core.dto.resource.UpdateToolRequest;
 import io.github.afgprojects.framework.ai.core.entity.application.ApplicationEntity;
 import io.github.afgprojects.framework.ai.core.entity.application.ApplicationVersionEntity;
+import io.github.afgprojects.framework.ai.core.entity.skill.UserSkillEntity;
 import io.github.afgprojects.framework.ai.core.entity.chat.ChatLogEntity;
 import io.github.afgprojects.framework.ai.core.entity.tool.ToolRegistryEntity;
 import io.github.afgprojects.framework.ai.core.service.ApplicationPublishService;
 import io.github.afgprojects.framework.ai.core.service.ToolManagementService;
+import io.github.afgprojects.framework.ai.core.skill.UserSkillLoader;
 import io.github.afgprojects.framework.data.core.DataManager;
 import io.github.afgprojects.framework.data.core.condition.Conditions;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -56,6 +61,9 @@ public class AiResourceController {
     private final ApplicationPublishService applicationPublishService;
     private final KnowledgeBaseService knowledgeBaseService;
     private final ObjectMapper objectMapper;
+    private final SkillRegistry skillRegistry;
+    private final SkillExecutor skillExecutor;
+    private final UserSkillLoader userSkillLoader;
 
     // ==================== 工具注册 CRUD ====================
 
@@ -200,6 +208,168 @@ public class AiResourceController {
     @GetMapping("/skills/runtime")
     public List<Tool<?, ?>> listRuntimeTools() {
         return List.copyOf(toolRegistry.getAllTools());
+    }
+
+    // ==================== 用户技能 CRUD ====================
+
+    /**
+     * 列出全部用户技能（含禁用）
+     */
+    @GetMapping("/skills")
+    public List<UserSkillEntity> listSkills() {
+        return dataManager.entity(UserSkillEntity.class)
+            .query()
+            .orderByDesc(UserSkillEntity::getCreatedAt)
+            .list();
+    }
+
+    /**
+     * 获取单个用户技能
+     */
+    @GetMapping("/skills/{name}")
+    public ResponseEntity<UserSkillEntity> getSkill(@PathVariable String name) {
+        return dataManager.entity(UserSkillEntity.class)
+            .query()
+            .where(Conditions.builder(UserSkillEntity.class)
+                .eq(UserSkillEntity::getName, name)
+                .build())
+            .list().stream().findFirst()
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * 创建用户技能（持久化 + 注册进 SkillRegistry）
+     */
+    @PostMapping("/skills")
+    public ResponseEntity<UserSkillEntity> createSkill(@Valid @RequestBody UserSkillEntity request) {
+        return dataManager.executeInTransaction(() -> {
+            request.setId(null);
+            if (request.getEnabled() == null) {
+                request.setEnabled(true);
+            }
+            UserSkillEntity saved = dataManager.save(UserSkillEntity.class, request);
+            if (Boolean.TRUE.equals(saved.getEnabled())) {
+                skillRegistry.register(userSkillLoader.toDefinition(saved));
+            }
+            return ResponseEntity.ok(saved);
+        });
+    }
+
+    /**
+     * 更新用户技能（持久化 + 重新注册）
+     */
+    @PutMapping("/skills/{name}")
+    public ResponseEntity<UserSkillEntity> updateSkill(@PathVariable String name,
+                                                       @Valid @RequestBody UserSkillEntity request) {
+        return dataManager.executeInTransaction(() -> {
+            UserSkillEntity existing = dataManager.entity(UserSkillEntity.class)
+                .query()
+                .where(Conditions.builder(UserSkillEntity.class)
+                    .eq(UserSkillEntity::getName, name)
+                    .build())
+                .list().stream().findFirst().orElse(null);
+            if (existing == null) {
+                return ResponseEntity.<UserSkillEntity>notFound().build();
+            }
+            // 更新字段（name 不改，作为业务键）
+            existing.setDescription(request.getDescription());
+            existing.setPrompt(request.getPrompt());
+            existing.setInputs(request.getInputs());
+            existing.setTools(request.getTools());
+            existing.setDependsOn(request.getDependsOn());
+            existing.setMetadata(request.getMetadata());
+            if (request.getEnabled() != null) {
+                existing.setEnabled(request.getEnabled());
+            }
+            UserSkillEntity saved = dataManager.save(UserSkillEntity.class, existing);
+            // 重新注册：注销旧定义、注册新定义
+            skillRegistry.unregister(name);
+            if (Boolean.TRUE.equals(saved.getEnabled())) {
+                skillRegistry.register(userSkillLoader.toDefinition(saved));
+            }
+            return ResponseEntity.ok(saved);
+        });
+    }
+
+    /**
+     * 删除用户技能（软删除 + 注销）
+     */
+    @DeleteMapping("/skills/{name}")
+    public ResponseEntity<Void> deleteSkill(@PathVariable String name) {
+        return dataManager.executeInTransaction(() -> {
+            UserSkillEntity existing = dataManager.entity(UserSkillEntity.class)
+                .query()
+                .where(Conditions.builder(UserSkillEntity.class)
+                    .eq(UserSkillEntity::getName, name)
+                    .build())
+                .list().stream().findFirst().orElse(null);
+            if (existing == null) {
+                return ResponseEntity.<Void>notFound().build();
+            }
+            existing.markDeleted();
+            dataManager.save(UserSkillEntity.class, existing);
+            skillRegistry.unregister(name);
+            return ResponseEntity.noContent().build();
+        });
+    }
+
+    /**
+     * 启用用户技能（注册进 SkillRegistry）
+     */
+    @PostMapping("/skills/{name}/enable")
+    public ResponseEntity<UserSkillEntity> enableSkill(@PathVariable String name) {
+        return dataManager.executeInTransaction(() -> {
+            UserSkillEntity existing = dataManager.entity(UserSkillEntity.class)
+                .query()
+                .where(Conditions.builder(UserSkillEntity.class)
+                    .eq(UserSkillEntity::getName, name)
+                    .build())
+                .list().stream().findFirst().orElse(null);
+            if (existing == null) {
+                return ResponseEntity.<UserSkillEntity>notFound().build();
+            }
+            existing.setEnabled(true);
+            UserSkillEntity saved = dataManager.save(UserSkillEntity.class, existing);
+            skillRegistry.register(userSkillLoader.toDefinition(saved));
+            return ResponseEntity.ok(saved);
+        });
+    }
+
+    /**
+     * 禁用用户技能（从 SkillRegistry 注销）
+     */
+    @PostMapping("/skills/{name}/disable")
+    public ResponseEntity<UserSkillEntity> disableSkill(@PathVariable String name) {
+        return dataManager.executeInTransaction(() -> {
+            UserSkillEntity existing = dataManager.entity(UserSkillEntity.class)
+                .query()
+                .where(Conditions.builder(UserSkillEntity.class)
+                    .eq(UserSkillEntity::getName, name)
+                    .build())
+                .list().stream().findFirst().orElse(null);
+            if (existing == null) {
+                return ResponseEntity.<UserSkillEntity>notFound().build();
+            }
+            existing.setEnabled(false);
+            UserSkillEntity saved = dataManager.save(UserSkillEntity.class, existing);
+            skillRegistry.unregister(name);
+            return ResponseEntity.ok(saved);
+        });
+    }
+
+    /**
+     * 执行用户技能（复用 SkillExecutor）
+     */
+    @PostMapping("/skills/{name}/invoke")
+    public ResponseEntity<Object> invokeSkill(@PathVariable String name,
+                                              @RequestBody(required = false) Map<String, Object> inputs) {
+        return skillRegistry.get(name)
+            .map(def -> {
+                Object result = skillExecutor.execute(name, inputs != null ? inputs : Map.of());
+                return ResponseEntity.ok(result);
+            })
+            .orElse(ResponseEntity.<Object>notFound().build());
     }
 
     // ==================== 应用 CRUD ====================

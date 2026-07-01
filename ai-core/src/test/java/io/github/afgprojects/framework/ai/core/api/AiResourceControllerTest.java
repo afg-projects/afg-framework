@@ -8,6 +8,7 @@ import io.github.afgprojects.framework.ai.core.dto.resource.UpdateApplicationReq
 import io.github.afgprojects.framework.ai.core.dto.resource.UpdateToolRequest;
 import io.github.afgprojects.framework.ai.core.entity.application.ApplicationEntity;
 import io.github.afgprojects.framework.ai.core.entity.application.ApplicationVersionEntity;
+import io.github.afgprojects.framework.ai.core.entity.skill.UserSkillEntity;
 import io.github.afgprojects.framework.ai.core.entity.tool.ToolRegistryEntity;
 import io.github.afgprojects.framework.data.core.DataManager;
 import org.junit.jupiter.api.Test;
@@ -468,5 +469,58 @@ class AiResourceControllerTest extends AbstractAiWebTest {
 
         // Cleanup
         dataManager.deleteById(ApplicationEntity.class, app.getId());
+    }
+
+    @Test
+    void shouldCrudUserSkill() {
+        // Arrange - 构造创建请求
+        String skillName = "test-skill-" + UUID.randomUUID();
+        Map<String, Object> createBody = Map.of(
+            "name", skillName,
+            "description", "测试技能",
+            "prompt", "You are a helpful assistant.",
+            "enabled", true
+        );
+
+        // Act - create
+        Map<?, ?> created = restClient().post()
+            .uri("/resources/skills")
+            .body(createBody)
+            .retrieve()
+            .body(Map.class);
+
+        // Assert - 创建成功
+        assertThat(created).isNotNull();
+        assertThat(created.get("name")).isEqualTo(skillName);
+        String skillId = (String) created.get("id");
+
+        // Act - list（应包含新创建的）
+        List<?> list = restClient().get()
+            .uri("/resources/skills")
+            .retrieve()
+            .body(List.class);
+        assertThat(list).isNotNull();
+
+        // Act - get by name
+        Map<?, ?> fetched = restClient().get()
+            .uri("/resources/skills/{name}", skillName)
+            .retrieve()
+            .body(Map.class);
+        assertThat(fetched).isNotNull();
+        assertThat(fetched.get("name")).isEqualTo(skillName);
+
+        // Act - disable
+        Map<?, ?> disabled = restClient().post()
+            .uri("/resources/skills/{name}/disable", skillName)
+            .retrieve()
+            .body(Map.class);
+        assertThat(disabled.get("enabled")).isEqualTo(false);
+
+        // Cleanup
+        restClient().delete()
+            .uri("/resources/skills/{name}", skillName)
+            .retrieve()
+            .toBodilessEntity();
+        assertThat(dataManager.findById(UserSkillEntity.class, skillId)).isEmpty();
     }
 }

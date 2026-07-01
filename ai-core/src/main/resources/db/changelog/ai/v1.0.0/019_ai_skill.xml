@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="v1.0.0-019-ai-skill" author="afg">
+        <createTable tableName="ai_skill" remarks="用户技能">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="pk_ai_skill"/>
+            </column>
+            <column name="name" type="VARCHAR(100)" remarks="技能名">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_ai_skill_name"/>
+            </column>
+            <column name="description" type="VARCHAR(500)" remarks="描述"/>
+            <column name="prompt" type="TEXT" remarks="提示词模板"/>
+            <column name="inputs" type="JSON" remarks="输入参数定义"/>
+            <column name="tools" type="JSON" remarks="关联工具列表"/>
+            <column name="depends_on" type="JSON" remarks="依赖技能列表"/>
+            <column name="metadata" type="JSON" remarks="扩展元数据"/>
+            <column name="enabled" type="BOOLEAN" defaultValueBoolean="true" remarks="是否启用">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted" type="BOOLEAN" defaultValueBoolean="false" remarks="是否删除">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tenant_id" type="VARCHAR(50)" remarks="租户ID"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="创建时间">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP" remarks="更新时间">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex tableName="ai_skill" indexName="idx_ai_skill_tenant">
+            <column name="tenant_id"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>
